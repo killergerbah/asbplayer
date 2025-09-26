@@ -112,10 +112,12 @@ export default class RecordMediaHandler {
 
             try {
                 const audioBase64 = await audioPromise;
-                audioModel = {
-                    ...baseAudioModel,
-                    base64: audioBase64,
-                };
+                if (audioBase64 !== '') {
+                    audioModel = {
+                        ...baseAudioModel,
+                        base64: audioBase64,
+                    };
+                }
             } catch (e) {
                 if (!(e instanceof DrmProtectedStreamError)) {
                     throw e;

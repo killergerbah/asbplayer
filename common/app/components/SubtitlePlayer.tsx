@@ -364,6 +364,7 @@ interface SubtitlePlayerProps {
     keyBinder: KeyBinder;
     maxResizeWidth: number;
     webSocketClient?: WebSocketClient;
+    exporting: boolean;
 }
 
 export default function SubtitlePlayer({

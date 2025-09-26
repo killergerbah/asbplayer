@@ -47,15 +47,22 @@ export default class RerecordMediaHandler {
         let audio: AudioModel;
 
         try {
-            audio = {
-                ...baseAudioModel,
-                base64: await this._audioRecorder.startWithTimeout(
-                    rerecordCommand.message.duration / rerecordCommand.message.playbackRate +
-                        rerecordCommand.message.audioPaddingEnd,
-                    false,
-                    { src: rerecordCommand.src, tabId: sender.tab?.id! }
-                ),
-            };
+            const audioBase64 = await this._audioRecorder.startWithTimeout(
+                rerecordCommand.message.duration / rerecordCommand.message.playbackRate +
+                    rerecordCommand.message.audioPaddingEnd,
+                false,
+                { src: rerecordCommand.src, tabId: sender.tab?.id! }
+            );
+            audio =
+                audioBase64 === ''
+                    ? {
+                          ...baseAudioModel,
+                          base64: '',
+                      }
+                    : {
+                          ...baseAudioModel,
+                          base64: audioBase64,
+                      };
         } catch (e) {
             if (!(e instanceof DrmProtectedStreamError)) {
                 throw e;

@@ -16,8 +16,26 @@ import { IndexedDBCopyHistoryRepository } from '@project/common/copy-history';
 
 export class CardPublisher {
     private readonly _settingsProvider: SettingsProvider;
+    private _bulkExportCancelled = false;
+    
     constructor(settingsProvider: SettingsProvider) {
         this._settingsProvider = settingsProvider;
+    }
+    
+    setBulkExportCancelled(cancelled: boolean) {
+        if (this._bulkExportCancelled === cancelled) {
+            return;
+        }
+        
+        this._bulkExportCancelled = cancelled;
+    }
+    
+    resetBulkExportCancellation() {
+        this._bulkExportCancelled = false;
+    }
+    
+    get bulkExportCancelled() {
+        return this._bulkExportCancelled;
     }
 
     async publish(card: CardModel, postMineAction?: PostMineAction, tabId?: number, src?: string) {
@@ -64,7 +82,58 @@ export class CardPublisher {
 
     private async _exportCard(card: CardModel, src: string | undefined, tabId: number) {
         const ankiSettings = (await this._settingsProvider.get(ankiSettingsKeys)) as AnkiSettings;
-        const cardName = await exportCard(card, ankiSettings, 'default');
+        const exportMode = card.exportMode || 'default';
+        
+        if (exportMode === 'bulk' && this._bulkExportCancelled) {
+            return;
+        }
+        
+        let cardName: string = '';
+        const isBulkExport = exportMode === 'bulk';
+        try {
+            cardName = await exportCard(card, ankiSettings, exportMode as any);
+        } catch (e) {
+            if (isBulkExport) {
+                // If we're in the middle of a bulk export, a failure will hang the app.
+                // Signal an error and keep going to avoid this.
+                const cardExportedCommand: ExtensionToVideoCommand<CardExportedMessage> = {
+                    sender: 'asbplayer-extension-to-video',
+                    message: {
+                        ...card,
+                        command: 'card-exported',
+                        cardName: '',
+                        isBulkExport: true,
+                        skippedDuplicate: false,
+                        exportError: e instanceof Error ? e.message : 'Unknown error',
+                        exportMode: exportMode
+                    },
+                    src,
+                };
+                try { await browser.tabs.sendMessage(tabId, cardExportedCommand); } catch {}
+                try { await browser.runtime.sendMessage(cardExportedCommand); } catch {}
+                return;
+            }
+            throw e;
+        }
+
+        // If bulk export returned empty name, treat as duplicate and skip
+        if (isBulkExport && cardName === '') {
+            const cardExportedCommand: ExtensionToVideoCommand<CardExportedMessage> = {
+                sender: 'asbplayer-extension-to-video',
+                message: {
+                    ...card,
+                    command: 'card-exported',
+                    cardName: '',
+                    isBulkExport: true,
+                    skippedDuplicate: true,
+                    exportMode: exportMode
+                },
+                src,
+            };
+            try { await browser.tabs.sendMessage(tabId, cardExportedCommand); } catch {}
+            try { await browser.runtime.sendMessage(cardExportedCommand); } catch {}
+            return;
+        }
 
         const cardExportedCommand: ExtensionToVideoCommand<CardExportedMessage> = {
             sender: 'asbplayer-extension-to-video',
@@ -72,11 +141,16 @@ export class CardPublisher {
                 ...card,
                 command: 'card-exported',
                 cardName: `${cardName}`,
+                isBulkExport: isBulkExport,
+                exportMode: exportMode
             },
             src,
         };
 
         browser.tabs.sendMessage(tabId, cardExportedCommand);
+        if (isBulkExport) {
+            browser.runtime.sendMessage(cardExportedCommand);
+        }
     }
 
     private async _updateLastCard(card: CardModel, src: string | undefined, tabId: number) {

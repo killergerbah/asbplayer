@@ -635,6 +635,18 @@ export default class Binding {
                             subtitleFileNames: this.subtitleController.subtitleFileNames ?? [],
                         });
                         break;
+                    // This is useful because when we kick off bulk export the side panel needs to know
+                    // what subtitle to start from.
+                    case 'request-current-subtitle':
+                        const [currentSubtitle] = this.subtitleController.currentSubtitle();
+                        const currentSubtitleIndex = currentSubtitle ? this.subtitleController.subtitles.findIndex(s => 
+                            s.start === currentSubtitle.start && s.end === currentSubtitle.end && s.text === currentSubtitle.text
+                        ) : -1;
+                        sendResponse({
+                            currentSubtitle: currentSubtitle,
+                            currentSubtitleIndex: currentSubtitleIndex >= 0 ? currentSubtitleIndex : null,
+                        });
+                        break;
                     case 'offset':
                         const offsetMessage = request.message as OffsetToVideoMessage;
                         this.subtitleController.offset(offsetMessage.value, !offsetMessage.echo);
@@ -1052,6 +1064,7 @@ export default class Binding {
         definition,
         word,
         customFieldValues,
+        exportMode,
     }: CopySubtitleMessage) {
         if (!subtitle || !surroundingSubtitles) {
             return;
@@ -1104,6 +1117,7 @@ export default class Binding {
                 definition,
                 word,
                 customFieldValues,
+                exportMode,
                 ...this._imageCaptureParams,
             },
             src: this.video.src,
