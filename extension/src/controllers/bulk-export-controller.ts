@@ -121,13 +121,12 @@ export default class BulkExportController {
         this._inFlight = false;
 
         // Inform background (for CardPublisher state) and any UIs (e.g. SidePanel) about start and total
-        const startedMessage: AsbPlayerToVideoCommandV2<BulkExportStartedPayload> = {
+        const startedMessage = {
             sender: 'asbplayerv2',
             message: {
                 command: 'bulk-export-started',
                 total: this._queue.length,
             },
-            tabId: undefined as any,
             src: this._context.video.src,
         };
         try {
@@ -155,12 +154,11 @@ export default class BulkExportController {
         // Pause video to stop any ongoing recording
         this._context.pause();
 
-        const cancelledMessage: AsbPlayerToVideoCommandV2<BulkExportCancelledPayload> = {
+        const cancelledMessage = {
             sender: 'asbplayerv2',
             message: {
                 command: 'bulk-export-cancelled',
             },
-            tabId: undefined as any,
             src: this._context.video.src,
         };
         try {
@@ -202,7 +200,7 @@ export default class BulkExportController {
             surroundingSubtitles,
             postMineAction: PostMineAction.exportCard,
             exportMode: 'bulk',
-        } as any;
+        };
 
         this._inFlight = true;
         // Use Binding public wrapper to trigger the record-and-forward flow
@@ -221,12 +219,11 @@ export default class BulkExportController {
         this._currentIndex = 0;
         this._inFlight = false;
 
-        const completedMessage: AsbPlayerToVideoCommandV2<BulkExportCompletedPayload> = {
+        const completedMessage = {
             sender: 'asbplayerv2',
             message: {
                 command: 'bulk-export-completed',
             },
-            tabId: undefined as any,
             src: this._context.video.src,
         };
         try {

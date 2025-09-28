@@ -18,6 +18,7 @@ import {
     PostMineAction,
     CardExportedMessage,
 } from '@project/common';
+import type { Message } from '@project/common';
 import { AsbplayerSettings } from '@project/common/settings';
 import { AudioClip } from '@project/common/audio-clip';
 import { ChromeExtension, useCopyHistory } from '@project/common/app';
@@ -273,7 +274,7 @@ export default function SidePanel({ settings, extension }: Props) {
         if (!syncedVideoTab) return;
         const startCommand: AsbPlayerToVideoCommandV2<Message> = {
             sender: 'asbplayerv2',
-            message: { command: 'start-bulk-export' } as any,
+            message: { command: 'start-bulk-export' } as Message,
             tabId: syncedVideoTab.id,
             src: syncedVideoTab.src,
         };
@@ -284,7 +285,7 @@ export default function SidePanel({ settings, extension }: Props) {
         if (!syncedVideoTab) return;
         const cancelCommand: AsbPlayerToVideoCommandV2<Message> = {
             sender: 'asbplayerv2',
-            message: { command: 'cancel-bulk-export' } as any,
+            message: { command: 'cancel-bulk-export' } as Message,
             tabId: syncedVideoTab.id,
             src: syncedVideoTab.src,
         };
@@ -312,7 +313,7 @@ export default function SidePanel({ settings, extension }: Props) {
     useEffect(() => {
         const listener = (message: any) => {
             if (message?.sender === 'asbplayerv2' && message?.message?.command === 'bulk-export-started') {
-                const total = (message.message.total as number) ?? 0;
+                const total = (message.message as Message & { total?: number }).total ?? 0;
                 setBulkOpen(true);
                 setBulkTotal(total);
                 setBulkCurrent(0);

@@ -92,7 +92,7 @@ export class CardPublisher {
         let cardName: string = '';
         const isBulkExport = exportMode === 'bulk';
         try {
-            cardName = await exportCard(card, ankiSettings, exportMode as any);
+            cardName = await exportCard(card, ankiSettings, exportMode);
         } catch (e) {
             if (isBulkExport) {
                 if (e instanceof DuplicateNoteError) {

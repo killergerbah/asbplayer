@@ -152,7 +152,7 @@ export default class RecordMediaHandler {
             }
         }
 
-        const { exportMode, ...messageWithoutExportMode } = recordMediaCommand.message as any;
+        const { exportMode, ...messageWithoutExportMode } = recordMediaCommand.message;
         const card: CardModel = {
             image: imageModel,
             audio: audioModel,
