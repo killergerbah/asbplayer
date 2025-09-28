@@ -308,10 +308,9 @@ export default function SidePanel({ settings, extension }: Props) {
         };
     }, []);
 
-    // Stable runtime listener to update bulk export progress state
+    // Listen for bulk export lifecycle messages from background
     useEffect(() => {
         const listener = (message: any) => {
-            // Start event published by controller with total count
             if (message?.sender === 'asbplayerv2' && message?.message?.command === 'bulk-export-started') {
                 const total = (message.message.total as number) ?? 0;
                 setBulkOpen(true);
@@ -319,25 +318,15 @@ export default function SidePanel({ settings, extension }: Props) {
                 setBulkCurrent(0);
             } else if (message?.sender === 'asbplayer-extension-to-video' && message?.message?.command === 'card-exported') {
                 const exported = message.message as CardExportedMessage;
-                const isBulk = exported.isBulkExport || exported.exportMode === 'bulk';
-                if (!isBulk) return false;
-                setBulkCurrent((c) => c + 1);
-            } else if (message?.sender === 'asbplayerv2' && message?.message?.command === 'bulk-export-cancelled') {
+                if (exported.isBulkExport) {
+                    setBulkCurrent((c) => c + 1);
+                }
+            } else if (message?.sender === 'asbplayerv2' && (message?.message?.command === 'bulk-export-completed' || message?.message?.command === 'bulk-export-cancelled')) {
                 setBulkOpen(false);
-                setBulkCurrent(0);
-                setBulkTotal(0);
-            } else if (message?.sender === 'asbplayerv2' && message?.message?.command === 'bulk-export-completed') {
-                setBulkOpen(false);
-                setBulkCurrent(0);
-                setBulkTotal(0);
             }
-            return false;
         };
-
         browser.runtime.onMessage.addListener(listener);
-        return () => {
-            browser.runtime.onMessage.removeListener(listener);
-        };
+        return () => browser.runtime.onMessage.removeListener(listener);
     }, []);
 
     const topControlsRef = useRef<HTMLDivElement>(null);

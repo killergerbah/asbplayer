@@ -8,6 +8,7 @@ import {
     PostMineAction,
     ShowAnkiUiMessage,
 } from '@project/common';
+import type { AnkiExportMode } from '@project/common';
 import { humanReadableTime } from '@project/common/util';
 import { AnkiSettings, ankiSettingsKeys, SettingsProvider } from '@project/common/settings';
 import { v4 as uuidv4 } from 'uuid';
@@ -38,7 +39,7 @@ export class CardPublisher {
         return this._bulkExportCancelled;
     }
 
-    async publish(card: CardModel, postMineAction?: PostMineAction, tabId?: number, src?: string) {
+    async publish(card: CardModel, postMineAction?: PostMineAction, tabId?: number, src?: string, exportMode?: AnkiExportMode) {
         const id = uuidv4();
         const savePromise = this._saveCardToRepository(id, card);
 
@@ -52,7 +53,7 @@ export class CardPublisher {
             } else if (postMineAction == PostMineAction.updateLastCard) {
                 await this._updateLastCard(card, src, tabId);
             } else if (postMineAction === PostMineAction.exportCard) {
-                await this._exportCard(card, src, tabId);
+                await this._exportCard(card, src, tabId, exportMode);
             } else if (postMineAction === PostMineAction.none) {
                 this._notifySaved(savePromise, card, src, tabId);
             }
@@ -80,9 +81,9 @@ export class CardPublisher {
         });
     }
 
-    private async _exportCard(card: CardModel, src: string | undefined, tabId: number) {
+    private async _exportCard(card: CardModel, src: string | undefined, tabId: number, mode?: AnkiExportMode) {
         const ankiSettings = (await this._settingsProvider.get(ankiSettingsKeys)) as AnkiSettings;
-        const exportMode = card.exportMode || 'default';
+        const exportMode = mode || 'default';
         
         if (exportMode === 'bulk' && this._bulkExportCancelled) {
             return;

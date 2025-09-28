@@ -57,7 +57,7 @@ export default class BulkExportController {
                 request.src === this._context.video.src
             ) {
                 const exported = request.message as CardExportedMessage;
-                const isBulk = exported.isBulkExport || exported.exportMode === 'bulk';
+                const isBulk = exported.isBulkExport;
                 if (!isBulk) {
                     return false;
                 }

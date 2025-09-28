@@ -149,16 +149,18 @@ export default class RecordMediaHandler {
             }
         }
 
+        const { exportMode, ...messageWithoutExportMode } = recordMediaCommand.message as any;
         const card: CardModel = {
             image: imageModel,
             audio: audioModel,
-            ...recordMediaCommand.message,
+            ...(messageWithoutExportMode as Omit<typeof recordMediaCommand.message, 'exportMode'>),
         };
         this._cardPublisher.publish(
             card,
             recordMediaCommand.message.postMineAction,
             senderTab.id!,
-            recordMediaCommand.src
+            recordMediaCommand.src,
+            recordMediaCommand.message.exportMode
         );
     }
 }

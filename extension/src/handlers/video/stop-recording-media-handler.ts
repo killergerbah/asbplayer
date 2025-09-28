@@ -118,7 +118,8 @@ export default class StopRecordingMediaHandler {
                 },
                 stopRecordingCommand.message.postMineAction,
                 sender.tab!.id!,
-                stopRecordingCommand.src
+                stopRecordingCommand.src,
+                undefined
             );
         } catch (e) {
             // Ignore benign stop conditions where recording is already finished or not in progress

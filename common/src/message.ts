@@ -195,6 +195,7 @@ export interface CardExportedMessage extends Message, CardModel {
     readonly isBulkExport?: boolean;
     readonly skippedDuplicate?: boolean;
     readonly exportError?: string;
+    readonly exportMode?: AnkiExportMode;
 }
 
 export interface CardSavedMessage extends Message, CardModel {

@@ -47,7 +47,6 @@ export interface CardModel extends CardTextFieldValues {
     readonly audio?: AudioModel;
     readonly file?: FileModel;
     readonly mediaTimestamp: number;
-    readonly exportMode?: AnkiExportMode;
 }
 
 export interface FileModel {
