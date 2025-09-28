@@ -596,6 +596,7 @@ export default function SidePanel({ settings, extension }: Props) {
                                 canDownloadSubtitles={canDownloadSubtitles}
                                 onDownloadSubtitles={handleDownloadSubtitles}
                                 onBulkExportSubtitles={handleBulkExportSubtitles}
+                                disableBulkExport={recordingAudio}
                                 onShowMiningHistory={handleShowCopyHistory}
                             />
                             <SidePanelBottomControls
