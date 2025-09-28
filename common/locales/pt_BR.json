@@ -270,6 +270,7 @@
         "enabledCondensedPlayback": "Reprodução condensada: On",
         "enabledFastForwardPlayback": "Reprodução de avanço rápido: On",
         "exportedCard": "Card exportado: {{result}}",
+        "cardNotExported": "Card not exported: {{reason}}",
         "bulkExporting": "Bulk exporting subtitles: {{current}}/{{total}}",
         "bulkExport": {
             "title": "Bulk Export in Progress",
