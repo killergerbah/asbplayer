@@ -24,6 +24,13 @@ export class TimedRecordingInProgressError extends Error {}
 
 export class NoRecordingInProgressServiceError extends Error {}
 
+export class AudioRequestSupersededError extends Error {
+    constructor() {
+        super('Audio request superseded by a newer request');
+        this.name = 'AudioRequestSupersededError';
+    }
+}
+
 export default class AudioRecorderService {
     private readonly _tabRegistry: TabRegistry;
     private readonly _delegate: AudioRecorderDelegate;
@@ -178,9 +185,9 @@ export default class AudioRecorderService {
     private _prepareForAudioDataResponse(requestId: string): Promise<string> {
         if (this.audioBase64Promise !== undefined) {
             // During bulk export, a new audio request can arrive while a previous one
-            // is still pending. Resolve the previous request with an empty string so
-            // downstream handlers interpret it as "no audio" and continue gracefully.
-            this.audioBase64Resolve?.('');
+            // is still pending. Reject the previous request with a distinguishable error
+            // so callers can optionally handle it as "no audio" and continue gracefully.
+            this.audioBase64Reject?.(new AudioRequestSupersededError());
             this.audioBase64Resolve = undefined;
             this.audioBase64Reject = undefined;
             this.audioBase64Promise = undefined;

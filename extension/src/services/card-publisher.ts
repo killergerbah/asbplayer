@@ -12,7 +12,7 @@ import type { AnkiExportMode } from '@project/common';
 import { humanReadableTime } from '@project/common/util';
 import { AnkiSettings, ankiSettingsKeys, SettingsProvider } from '@project/common/settings';
 import { v4 as uuidv4 } from 'uuid';
-import { exportCard } from '@project/common/anki';
+import { exportCard, DuplicateNoteError } from '@project/common/anki';
 import { IndexedDBCopyHistoryRepository } from '@project/common/copy-history';
 
 export class CardPublisher {
@@ -95,6 +95,23 @@ export class CardPublisher {
             cardName = await exportCard(card, ankiSettings, exportMode as any);
         } catch (e) {
             if (isBulkExport) {
+                if (e instanceof DuplicateNoteError) {
+                    const cardExportedCommand: ExtensionToVideoCommand<CardExportedMessage> = {
+                        sender: 'asbplayer-extension-to-video',
+                        message: {
+                            ...card,
+                            command: 'card-exported',
+                            cardName: '',
+                            isBulkExport: true,
+                            skippedDuplicate: true,
+                            exportMode: exportMode
+                        },
+                        src,
+                    };
+                    try { await browser.tabs.sendMessage(tabId, cardExportedCommand); } catch {}
+                    try { await browser.runtime.sendMessage(cardExportedCommand); } catch {}
+                    return;
+                }
                 // If we're in the middle of a bulk export, a failure will hang the app.
                 // Signal an error and keep going to avoid this.
                 const cardExportedCommand: ExtensionToVideoCommand<CardExportedMessage> = {
@@ -117,24 +134,6 @@ export class CardPublisher {
             throw e;
         }
 
-        // If bulk export returned empty name, treat as duplicate and skip
-        if (isBulkExport && cardName === '') {
-            const cardExportedCommand: ExtensionToVideoCommand<CardExportedMessage> = {
-                sender: 'asbplayer-extension-to-video',
-                message: {
-                    ...card,
-                    command: 'card-exported',
-                    cardName: '',
-                    isBulkExport: true,
-                    skippedDuplicate: true,
-                    exportMode: exportMode
-                },
-                src,
-            };
-            try { await browser.tabs.sendMessage(tabId, cardExportedCommand); } catch {}
-            try { await browser.runtime.sendMessage(cardExportedCommand); } catch {}
-            return;
-        }
 
         const cardExportedCommand: ExtensionToVideoCommand<CardExportedMessage> = {
             sender: 'asbplayer-extension-to-video',

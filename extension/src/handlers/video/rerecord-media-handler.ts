@@ -10,7 +10,7 @@ import {
 } from '@project/common';
 import { CardPublisher } from '../../services/card-publisher';
 import { SettingsProvider } from '@project/common/settings';
-import AudioRecorderService, { DrmProtectedStreamError } from '../../services/audio-recorder-service';
+import AudioRecorderService, { DrmProtectedStreamError, AudioRequestSupersededError } from '../../services/audio-recorder-service';
 
 export default class RerecordMediaHandler {
     private readonly _settingsProvider: SettingsProvider;
@@ -53,25 +53,22 @@ export default class RerecordMediaHandler {
                 false,
                 { src: rerecordCommand.src, tabId: sender.tab?.id! }
             );
-            audio =
-                audioBase64 === ''
-                    ? {
-                          ...baseAudioModel,
-                          base64: '',
-                      }
-                    : {
-                          ...baseAudioModel,
-                          base64: audioBase64,
-                      };
-        } catch (e) {
-            if (!(e instanceof DrmProtectedStreamError)) {
-                throw e;
-            }
-
             audio = {
                 ...baseAudioModel,
-                error: AudioErrorCode.drmProtected,
+                base64: audioBase64,
             };
+        } catch (e) {
+            if (e instanceof AudioRequestSupersededError) {
+                return;
+            }
+            if (e instanceof DrmProtectedStreamError) {
+                audio = {
+                    ...baseAudioModel,
+                    error: AudioErrorCode.drmProtected,
+                };
+            } else {
+                throw e;
+            }
         }
 
         this._cardPublisher.publish(

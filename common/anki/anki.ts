@@ -155,6 +155,13 @@ export interface CreateModelParams {
     cardTemplates: { Front: string; Back: string }[];
 }
 
+export class DuplicateNoteError extends Error {
+    constructor(message: string = 'duplicate') {
+        super(message);
+        this.name = 'DuplicateNoteError';
+    }
+}
+
 export class Anki {
     private readonly settingsProvider: AnkiSettings;
     private readonly fetcher: Fetcher;
@@ -376,17 +383,15 @@ export class Anki {
 
                 throw new Error('Could not update last card because the card info could not be fetched');
             case 'bulk':
-                const res = await this._executeAction('addNote', params, ankiConnectUrl).catch((error) => {
+                try {
+                    const res = await this._executeAction('addNote', params, ankiConnectUrl);
+                    return (res as any).result;
+                } catch (error) {
                     if (error instanceof Error && error.message.includes('duplicate')) {
-                        return { result: undefined, duplicate: true } as any;
+                        throw new DuplicateNoteError(error.message);
                     }
                     throw error;
-                });
-                if ((res as any)?.duplicate) {
-                    // Return an empty string to indicate a duplicate
-                    return '' as any;
                 }
-                return (res as any).result;
             case 'default':
                 return (await this._executeAction('addNote', params, ankiConnectUrl)).result;
             default:
