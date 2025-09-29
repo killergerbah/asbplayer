@@ -1,46 +1,51 @@
 {
     "pages": [
         {
+            "key": "netflix",
             "host": "www\\.netflix\\.com",
-            "script": "netflix-page.js",
-            "path": "watch",
+            "pageScript": "netflix-page.js",
+            "syncAllowedAtPath": "watch",
             "autoSync": {
                 "enabled": true
             }
         },
         {
+            "key": "youtube",
             "host": "(m|www)\\.youtube\\.com",
-            "script": "youtube-page.js",
-            "path": "watch|shorts|embed",
+            "pageScript": "youtube-page.js",
+            "syncAllowedAtPath": "watch|shorts|embed",
             "autoSync": {
                 "enabled": true
             }
         },
         {
+            "key": "tver",
             "host": "tver\\.jp",
-            "script": "tver-page.js",
-            "path": "episodes",
+            "pageScript": "tver-page.js",
+            "syncAllowedAtPath": "episodes",
             "autoSync": {
                 "enabled": true
             }
         },
         {
+            "key": "bandaiChannel",
             "host": "www\\.b-ch\\.com",
-            "script": "bandai-channel-page.js",
-            "path": "titles",
+            "pageScript": "bandai-channel-page.js",
+            "syncAllowedAtPath": "titles",
             "autoSync": {
                 "enabled": true
             }
         },
         {
+            "key": "amazonPrime",
             "host": "www\\.amazon\\..+|www\\.primevideo\\.com",
-            "script": "amazon-prime-page.js",
-            "path": ".*",
+            "pageScript": "amazon-prime-page.js",
+            "syncAllowedAtPath": ".*",
             "autoSync": {
                 "enabled": true,
                 "videoSrc": "^blob:.+"
             },
-            "ignore": {
+            "ignoreVideoElements": {
                 "class": "tst-video-overlay-player-html5",
                 "style": {
                     "display": "none"
@@ -48,107 +53,130 @@
             }
         },
         {
+            "key": "hulu",
             "host": "www\\.hulu\\..+",
-            "script": "hulu-page.js",
-            "path": "watch",
+            "pageScript": "hulu-page.js",
+            "syncAllowedAtPath": "watch",
             "autoSync": {
                 "enabled": true,
                 "elementId": "content-video-player"
             }
         },
         {
+            "key": "disneyPlus",
             "host": "www\\.disneyplus\\..+",
-            "script": "disney-plus-page.js",
-            "path": "video|play",
-            "searchShadowRoots": true,
+            "pageScript": "disney-plus-page.js",
+            "syncAllowedAtPath": "video|play",
+            "searchShadowRootsForVideoElements": true,
             "autoSync": {
                 "enabled": true
             }
         },
         {
+            "key": "appsDisneyPlus",
             "host": "www\\.apps\\.disneyplus\\..+",
-            "script": "apps-disney-plus-page.js",
-            "path": "watch",
-            "searchShadowRoots": true,
+            "pageScript": "apps-disney-plus-page.js",
+            "syncAllowedAtPath": "watch",
+            "searchShadowRootsForVideoElements": true,
             "autoSync": {
                 "enabled": true
             }
         },
         {
-            "host": "video.unext.jp",
-            "script": "unext-page.js",
-            "path": "play",
+            "key": "unext",
+            "host": "video\\.unext\\.jp",
+            "pageScript": "unext-page.js",
+            "syncAllowedAtPath": "play",
             "autoSync": {
                 "enabled": false
             }
         },
         {
+            "key": "viki",
             "host": ".+\\.viki\\.(io|com)",
-            "script": "viki-page.js",
-            "path": "videos",
+            "pageScript": "viki-page.js",
+            "syncAllowedAtPath": "videos",
             "autoSync": {
                 "enabled": true
             }
         },
         {
+            "key": "embyJellyfin",
             "host": "(jellyfin.*)|(emby.*)|(:8096$)",
-            "script": "emby-jellyfin-page.js",
-            "hash": "#!/videoosd/videoosd.html|#/video",
+            "pageScript": "emby-jellyfin-page.js",
+            "syncAllowedAtHash": "#!/videoosd/videoosd.html|#/video",
             "autoSync": {
                 "enabled": true
             }
         },
         {
-            "host": "www.twitch.tv",
-            "allowBlankSrc": true
+            "key": "twitch",
+            "host": "www\\.twitch\\.tv",
+            "allowVideoElementsWithBlankSrc": true
         },
         {
-            "host": "osnplus.com",
-            "script": "osnplus-page.js",
-            "path": "watch",
+            "key": "osnPlus",
+            "host": "osnplus\\.com",
+            "pageScript": "osnplus-page.js",
+            "syncAllowedAtPath": "watch",
             "autoSync": {
                 "enabled": true
             }
         },
         {
-            "host": "www.bilibili.tv",
-            "script": "bilibili-page.js",
-            "path": "play|video",
+            "key": "bilibili",
+            "host": "www\\.bilibili\\.tv",
+            "pageScript": "bilibili-page.js",
+            "syncAllowedAtPath": "play|video",
             "autoSync": {
                 "enabled": true
             }
         },
         {
-            "host": "tv.nrk.no",
-            "script": "nrk-tv-page.js",
-            "path": ".*",
+            "key": "nrktv",
+            "host": "tv\\.nrk\\.no",
+            "pageScript": "nrk-tv-page.js",
+            "syncAllowedAtPath": ".*",
             "autoSync": {
                 "enabled": true
             }
         },
         {
+            "key": "plex",
             "host": "(plex.*)|(:32400$)",
-            "script": "plex-page.js",
-            "path": ".*",
+            "pageScript": "plex-page.js",
+            "syncAllowedAtPath": ".*",
             "autoSync": {
                 "enabled": true
             }
         },
         {
-            "host": "areena.yle.fi",
-            "script": "areena-yle-page.js",
-            "path": ".*",
+            "key": "yleAreena",
+            "host": "areena\\.yle\\.fi",
+            "pageScript": "areena-yle-page.js",
+            "syncAllowedAtPath": ".*",
             "autoSync": {
                 "enabled": true
             }
         },
         {
-            "host": "play.max.com",
-            "script": "hbo-max-page.js",
-            "path": "watch",
+            "key": "hboMax",
+            "host": "play\\.max\\.com",
+            "pageScript": "hbo-max-page.js",
+            "syncAllowedAtPath": "watch",
             "autoSync": {
                 "enabled": true
             }
+        },
+        {
+            "key": "stremio",
+            "host": "web\\.stremio\\.com",
+            "pageScript": "stremio-page.js",
+            "syncAllowedAtPath": ".*",
+            "autoSync": {
+                "enabled": true
+            },
+            "hideRememberTrackPreferenceToggle": true
         }
     ]
 }

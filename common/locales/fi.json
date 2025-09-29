@@ -23,7 +23,9 @@
         "openTutorial": "Avaa Johdanto",
         "decreaseOffsetButton": "Vähennä siirtymää niin, että seuraava tekstitys on nykyisessä asennossa. Pienennä sitä 100ms:llä.",
         "increaseOffsetButton": "Lisää siirtymää niin, että edellinen tekstitys on nykyisessä asennossa. Kasvata 100 ms:n tarkkuudella.",
-        "gotIt": "Selvä"
+        "gotIt": "Selvä",
+        "revert": "Revert",
+        "userGuide": "User guide"
     },
     "about": {
         "title": "Tietoja asbplayeristä",
@@ -208,7 +210,20 @@
             "syncing": "Synkronoidaan",
             "takeScreenshot": "Rajaa kuvakaappausta louhimassa",
             "updateAvailable": "Päivitys on saatavilla!",
-            "enableOverlay": "Ota hallintaoikeudet käyttöön"
+            "enableOverlay": "Ota hallintaoikeudet käyttöön",
+            "pages": {
+                "overridesWarning": "These settings have been modified.",
+                "host": "Host regex",
+                "additionalHosts": "Additional hosts",
+                "syncAllowedAtPath": "Path regex for subtitle detection",
+                "syncAllowedAtHash": "Path hash regex for subtitle detection",
+                "autoSyncEnabled": "Allow auto-loading of detected subtitles",
+                "searchShadowRootsForVideoElements": "Search shadow roots for video elements",
+                "allowVideoElementsWithBlankSrc": "Allow video elements with blank src",
+                "youtube": {
+                    "targetLanguages": "Target language codes for machine translation"
+                }
+            }
         },
         "videoDataSync": {
             "emptySubtitleTrack": "Tyhjä",

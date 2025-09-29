@@ -74,7 +74,13 @@ function renderMenuItem({
     className,
 }: ProfileMenuItemProps) {
     return (
-        <MenuItem key={profile?.name ?? ''} className={className} divider={divider} value={profile?.name ?? '-'}>
+        <MenuItem
+            key={profile?.name ?? ''}
+            className={className}
+            divider={divider}
+            value={profile?.name ?? '-'}
+            style={{ minHeight: 'auto' }}
+        >
             <div
                 onClick={(e) => {
                     if (e.currentTarget === e.target) {
@@ -217,7 +223,12 @@ export default function SettingsProfileSelectMenu({
                         },
                     }}
                 >
-                    <MenuItem key={''} value={'-'} onClick={() => onSetActiveProfile(undefined)}>
+                    <MenuItem
+                        key={''}
+                        value={'-'}
+                        onClick={() => onSetActiveProfile(undefined)}
+                        style={{ minHeight: 'auto' }}
+                    >
                         {t('settings.defaultProfile')}
                     </MenuItem>
                     {profiles.map((profile, index) => {
@@ -237,7 +248,7 @@ export default function SettingsProfileSelectMenu({
                             setNewProfile('');
                             setAddingNewProfile(true);
                         }}
-                        style={{ textAlign: 'center' }}
+                        style={{ minHeight: 'auto', textAlign: 'center' }}
                     >
                         {limitReached ? t('settings.profileLimitReached') : t('settings.newProfile')}
                     </MenuItem>

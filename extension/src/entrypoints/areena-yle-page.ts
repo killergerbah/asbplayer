@@ -1,12 +1,19 @@
 import { VideoDataSubtitleTrack } from '@project/common';
-import { inferTracks } from '@/pages/util';
+import { inferTracks, trackFromDef } from '@/pages/util';
 import { Parser } from 'm3u8-parser';
-import { subtitleTrackSegmentsFromM3U8 } from '@/pages/m3u8-util';
+import { fetchM3U8, subtitleTrackSegmentsFromM3U8 } from '@/pages/m3u8-util';
 
 export interface Playlist {
     language: string;
     uri: string;
 }
+
+const computeBaseUrl = (url: string) => {
+    const urlObj = new URL(url);
+    let baseUrl = `${urlObj.origin}/${urlObj.pathname}`;
+    baseUrl = baseUrl.substring(0, baseUrl.lastIndexOf('/'));
+    return baseUrl;
+};
 
 export const inferTracksFromInterceptedM3u8 = (urlRegex: RegExp) => {
     const tryExtractSubtitleTracks = async (m3U8Url: string): Promise<VideoDataSubtitleTrack[]> => {
@@ -23,9 +30,8 @@ export const inferTracksFromInterceptedM3u8 = (urlRegex: RegExp) => {
             return [];
         }
 
-        const m3U8UrlObject = new URL(m3U8Url);
-        let dataBaseUrl = `${m3U8UrlObject.origin}/${m3U8UrlObject.pathname}`;
-        dataBaseUrl = dataBaseUrl.substring(0, dataBaseUrl.lastIndexOf('/'));
+        let dataBaseUrl = computeBaseUrl(m3U8Url);
+        const tracks: VideoDataSubtitleTrack[] = [];
 
         for (const [, group] of Object.entries(subGroups)) {
             if (typeof group !== 'object' || !group) {
@@ -44,11 +50,25 @@ export const inferTracksFromInterceptedM3u8 = (urlRegex: RegExp) => {
                     continue;
                 }
 
-                return await subtitleTrackSegmentsFromM3U8(url);
+                const subM3U8Url = `${dataBaseUrl}/${url}`;
+                const subManifest = await fetchM3U8(subM3U8Url);
+                if (subManifest.segments && subManifest.segments.length > 0) {
+                    const firstUri = subManifest.segments[0].uri;
+                    const extension = firstUri.substring(firstUri.lastIndexOf('.') + 1);
+                    const subManifestBaseUrl = computeBaseUrl(subM3U8Url);
+                    tracks.push(
+                        trackFromDef({
+                            label: label,
+                            language: language,
+                            url: subManifest.segments.map((s: any) => `${subManifestBaseUrl}/${s.uri}`),
+                            extension: extension,
+                        })
+                    );
+                }
             }
         }
 
-        return [];
+        return tracks;
     };
 
     let lastManifestUrl: string | undefined;

@@ -23,7 +23,9 @@
         "openTutorial": "Открыть туториал",
         "decreaseOffsetButton": "Уменьшить задержку, чтобы следующий субтитр был на текущей временной метке. Удерживайте для уменьшения по 100 мс.",
         "increaseOffsetButton": "Увеличить задержку, чтобы предыдущий субтитр был на текущей временной метке. Удерживайте для увеличения по 100 мс.",
-        "gotIt": "ОК"
+        "gotIt": "ОК",
+        "revert": "Revert",
+        "userGuide": "User guide"
     },
     "about": {
         "title": "О asbplayer",
@@ -208,7 +210,20 @@
             "syncing": "Синхронизация",
             "takeScreenshot": "Сделать скриншот",
             "updateAvailable": "Доступно обновление",
-            "enableOverlay": "Включить оверлей"
+            "enableOverlay": "Включить оверлей",
+            "pages": {
+                "overridesWarning": "These settings have been modified.",
+                "host": "Host regex",
+                "additionalHosts": "Additional hosts",
+                "syncAllowedAtPath": "Path regex for subtitle detection",
+                "syncAllowedAtHash": "Path hash regex for subtitle detection",
+                "autoSyncEnabled": "Allow auto-loading of detected subtitles",
+                "searchShadowRootsForVideoElements": "Search shadow roots for video elements",
+                "allowVideoElementsWithBlankSrc": "Allow video elements with blank src",
+                "youtube": {
+                    "targetLanguages": "Target language codes for machine translation"
+                }
+            }
         },
         "videoDataSync": {
             "emptySubtitleTrack": "Пусто",

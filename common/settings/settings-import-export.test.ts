@@ -7,13 +7,13 @@ it('validates the default settings', () => {
 });
 
 it('fails validation when an unknown key is encountered', () => {
-    expect(() => validateSettings({ ...defaultSettings, asdf: 'jkl;' })).toThrowError("Unknown key 'asdf'");
+    expect(() => validateSettings({ ...defaultSettings, asdf: 'jkl;' })).toThrow("Unknown key 'asdf'");
 });
 
 it('fails validation when an unknown key bind key is encountered', () => {
     expect(() =>
         validateSettings({ ...defaultSettings, keyBindSet: { ...defaultSettings.keyBindSet, asdf: { keys: 'a' } } })
-    ).toThrowError("Unknown key 'keyBindSet.asdf'");
+    ).toThrow("Unknown key 'keyBindSet.asdf'");
 });
 
 it('validates last languages synced', () => {
