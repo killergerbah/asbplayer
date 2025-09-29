@@ -379,7 +379,6 @@ export default class Binding {
     }
 
     private _enablePlayMode(mode: PlayMode) {
-        // Enable new play mode
         switch (mode) {
             case PlayMode.autoPause:
                 this.subtitleController.autoPauseContext.onStartedShowing = () => {
@@ -538,7 +537,7 @@ export default class Binding {
                 browser.runtime.sendMessage(command);
             };
             this.video.addEventListener('canplay', this.canPlayListener);
-        }
+        }   
     }
 
     _bind() {
