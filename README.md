@@ -72,7 +72,9 @@ Peter,
 [@825i](https://github.com/825i),
 ags,
 Vannde3,
-Champ
+Champ,
+marcman3001,
+[@vladysor](https://github.com/vladysor)
 
 and to those who have donated privately.
 
@@ -101,7 +103,10 @@ Thank you to all those who have contributed to asbplayer:
 [@kowasaur](https://github.com/kowasaur),
 [@NirDafnai](https://github.com/NirDafnai),
 [@miroshQa](https://github.com/miroshQa),
-[@RicBent](https://github.com/RicBent)
+[@RicBent](https://github.com/RicBent),
+[@fuyuka1d3su](https://github.com/fuyuka1d3su),
+[@SpazzTL](https://github.com/SpazzTL),
+[@mseh1128](https://github.com/mseh1128)
 
 Thank you to all those who have translated asbplayer:
 
@@ -109,7 +114,7 @@ Thank you to all those who have translated asbplayer:
 **Kai Böse** (German),
 **Triline**, **nekorushi** (Polish),
 **NeverWinterSwor** (Simplified Chinese),
-**Yagxter** (Brazilian Portuguese),
+**Yagxter**, **Chatterine** (Brazilian Portuguese),
 **Leo Gonzalez** (Spanish),
 **Yuri (ganqqwerty)** (Russian),
 **Kellen (kputuhuk)** (Russian),

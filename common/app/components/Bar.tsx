@@ -5,7 +5,7 @@ import clsx from 'clsx';
 import AppBar from '@mui/material/AppBar';
 import BugReportIcon from '@mui/icons-material/BugReport';
 import FavoriteIcon from '@mui/icons-material/Favorite';
-import HelpIcon from '@mui/icons-material/Help';
+import TutorialIcon from '@project/common/components/TutorialIcon';
 import IconButton from '@mui/material/IconButton';
 import HistoryIcon from '@mui/icons-material/History';
 import SaveAltIcon from '@mui/icons-material/SaveAlt';
@@ -233,9 +233,9 @@ export default function Bar({
                         <ListItem disablePadding>
                             <ListItemButton>
                                 <ListItemIcon>
-                                    <HelpIcon />
+                                    <TutorialIcon />
                                 </ListItemIcon>
-                                <ListItemText primary={t('bar.help')!} />
+                                <ListItemText primary={t('action.userGuide')!} />
                             </ListItemButton>
                         </ListItem>
                     </Link>

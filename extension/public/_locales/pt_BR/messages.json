@@ -15,7 +15,7 @@
         "message": "Tira manualmente uma captura de tela, substituindo aquela que é automaticamente capturada durante a mineração."
     },
     "shortcutToggleRecordingDescription": {
-        "message": "Inicia/para manualmente a gravação de áudio, mesmo quando um arquivo de legenda está carregado."
+        "message": "Inicia/para manualmente a gravação de áudio, mesmo quando legendas estão carregadas."
     },
     "shortcutUpdateLastCardDescription": {
         "message": "Atualiza o último cartão criado no Anki com a mídia capturada pelo asbplayer. Quando o vídeo está sincronizado sem um arquivo de legenda, inicia/para a gravação de áudio."
@@ -25,5 +25,8 @@
     },
     "contextMenuMineSubtitle": {
         "message": "Minerar legenda"
+    },
+    "shortcutExportCardDescription": {
+        "message": "Exportar cartão diretamente para o Anki, ignorando a caixa de diálogo."
     }
 }

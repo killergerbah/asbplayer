@@ -9,12 +9,14 @@ import CenteredGridContainer from './CenteredGridContainer';
 import LoadSubtitlesIcon from '@project/common/components/LoadSubtitlesIcon';
 import HistoryIcon from '@mui/icons-material/History';
 import ButtonGroup from '@mui/material/ButtonGroup';
+import TutorialIcon from '@project/common/components/TutorialIcon';
 
 interface Props {
     extension: ChromeExtension;
     videoElementCount: number;
     onLoadSubtitles: () => void;
     onShowMiningHistory: () => void;
+    onOpenUserGuide: () => void;
 }
 
 const VideoElementInfoText = ({ videoElementCount }: { videoElementCount: number }) => {
@@ -28,7 +30,7 @@ const VideoElementInfoText = ({ videoElementCount }: { videoElementCount: number
     );
 };
 
-const SidePanelHome = ({ videoElementCount, onLoadSubtitles, onShowMiningHistory: onOpenMiningHistory }: Props) => {
+const SidePanelHome = ({ videoElementCount, onLoadSubtitles, onShowMiningHistory, onOpenUserGuide }: Props) => {
     const { t } = useTranslation();
 
     return (
@@ -45,8 +47,11 @@ const SidePanelHome = ({ videoElementCount, onLoadSubtitles, onShowMiningHistory
                     >
                         {t('action.loadSubtitles')}
                     </Button>
-                    <Button startIcon={<HistoryIcon />} onClick={onOpenMiningHistory}>
+                    <Button startIcon={<HistoryIcon />} onClick={onShowMiningHistory}>
                         {t('bar.miningHistory')}
+                    </Button>
+                    <Button startIcon={<TutorialIcon />} onClick={onOpenUserGuide}>
+                        {t('action.userGuide')}
                     </Button>
                 </ButtonGroup>
             </CenteredGridItem>

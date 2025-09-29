@@ -16,8 +16,10 @@ const listenForVersion = (callback: (extension: ChromeExtension) => void) => {
             if (event.data.message.command === 'version') {
                 const message = event.data.message as ExtensionVersionMessage;
                 const extensionCommands = message.extensionCommands ?? {};
-
-                callback(new ChromeExtension(message.version, chromeCommandBindsToKeyBinds(extensionCommands)));
+                const pageConfig = message.pageConfig;
+                callback(
+                    new ChromeExtension(message.version, chromeCommandBindsToKeyBinds(extensionCommands), pageConfig)
+                );
             }
         }
     };

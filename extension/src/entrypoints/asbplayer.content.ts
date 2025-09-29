@@ -13,6 +13,7 @@ import type {
 import { ExtensionSettingsStorage } from '@/services/extension-settings-storage';
 import { ExtensionGlobalStateProvider } from '@/services/extension-global-state-provider';
 import type { ContentScriptContext } from '#imports';
+import gte from 'semver/functions/gte';
 
 const matches = ['*://killergerbah.github.io/asbplayer*', '*://app.asbplayer.dev/*'];
 
@@ -163,17 +164,27 @@ export default defineContentScript({
         const manifest = browser.runtime.getManifest();
 
         window.addEventListener('DOMContentLoaded', async (e) => {
-            const extensionCommands = await browser.runtime.sendMessage({
+            const commandsPromise = browser.runtime.sendMessage({
                 sender: 'asbplayerv2',
                 message: {
                     command: 'extension-commands',
                 },
             });
 
+            const pageConfigPromise = gte(manifest.version, '1.12.0')
+                ? browser.runtime.sendMessage({
+                      sender: 'asbplayerv2',
+                      message: {
+                          command: 'page-config',
+                      },
+                  })
+                : new Promise((resolve) => resolve(undefined));
+
             sendMessageToPlayer({
                 command: 'version',
                 version: manifest.version,
-                extensionCommands,
+                extensionCommands: await commandsPromise,
+                pageConfig: await pageConfigPromise,
             });
         });
     },

@@ -23,7 +23,9 @@
         "openTutorial": "チュートリアルを開く",
         "decreaseOffsetButton": "次の字幕を現在のタイムスタンプに合わせる。長押しすると、字幕表示タイミングが100msずつ変わる。",
         "increaseOffsetButton": "前の字幕を現在のタイムスタンプに合わせる。長押しすると、字幕表示タイミングが100msずつ変わる。",
-        "gotIt": "分かった"
+        "gotIt": "分かった",
+        "revert": "元に戻す",
+        "userGuide": "ユーザーガイド"
     },
     "about": {
         "title": "asbplayerについて",
@@ -139,10 +141,10 @@
         "exportCard": "直接カードをAnkiにエクスポート。",
         "toggleSidePanel": "サイドパネルを開く/閉じる",
         "toggleRepeat": "リピートプレイバックオン/オフ",
-        "moveBottomSubtitlesUp": "Move bottom subtitles up",
-        "moveBottomSubtitlesDown": "Move bottom subtitles down",
-        "moveTopSubtitlesUp": "Move top subtitles up",
-        "moveTopSubtitlesDown": "Move top subtitles down"
+        "moveBottomSubtitlesUp": "下の字幕を上へ移動",
+        "moveBottomSubtitlesDown": "下の字幕を下へ移動",
+        "moveTopSubtitlesUp": "上の字幕を上へ移動",
+        "moveTopSubtitlesDown": "上の字幕を下へ移動"
     },
     "controls": {
         "autoPauseMode": "自動一時停止",
@@ -208,7 +210,20 @@
             "syncing": "同期",
             "takeScreenshot": "マイニング時にスクリーンショットを撮る",
             "updateAvailable": "アップデートがあります",
-            "enableOverlay": "コントロールオーバーレイを表示"
+            "enableOverlay": "コントロールオーバーレイを表示",
+            "pages": {
+                "overridesWarning": "設定が変更されています。",
+                "host": "ホストの正規表現",
+                "additionalHosts": "追加のホスト",
+                "syncAllowedAtPath": "字幕探知を許可するパス正規表現",
+                "syncAllowedAtHash": "字幕探知を許可するURLハッシュの正規表現",
+                "autoSyncEnabled": "探知された字幕の自動ロードを許可",
+                "searchShadowRootsForVideoElements": "動画埋め込み要素を検出する際、シャドウルート内も探索する",
+                "allowVideoElementsWithBlankSrc": "ソースが空の動画埋め込む要素との同期を許可",
+                "youtube": {
+                    "targetLanguages": "機械翻訳の対象言語コード"
+                }
+            }
         },
         "videoDataSync": {
             "emptySubtitleTrack": "空",
@@ -319,7 +334,7 @@
         "autoPauseAtSubtitleStart": "字幕の開始時",
         "autoPausePreference": "自動一時停止の設定",
         "autoPausePreferenceHelperText": "自動一時停止を有効化する項目ではなく、自動一時停止がオンになっている時に一時停止するタイミングを設定する。",
-        "seekDuration": "Seek interval (seconds)",
+        "seekDuration": "巻き戻し/早送り間隔（秒）",
         "speedChangeStep": "キーボードショートカット使用時の再生速度調整刻み値",
         "fastForwardModePlaybackRate": "早送りモードの再生速度",
         "copyOnMine": "マイニングした字幕をクリップボードにコピー",

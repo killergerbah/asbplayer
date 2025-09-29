@@ -37,7 +37,6 @@ export default defineConfig({
         'build:publicAssets': (wxt: Wxt, files: ResolvedPublicFile[]) => {
             for (const { srcDir, destDir } of commonAssets) {
                 moveToPublicAssets(srcDir, destDir, files);
-                moveToPublicAssets(srcDir, destDir, files);
             }
         },
         'prepare:publicPaths': (wxt: Wxt, paths: string[]) => {
@@ -50,7 +49,7 @@ export default defineConfig({
         let manifest: UserManifest = {
             name: 'asbplayer: Language-learning with subtitles',
             description: '__MSG_extensionDescription__',
-            version: '1.11.0',
+            version: '1.12.0',
             action: { default_title: 'asbplayer' },
             default_locale: 'en',
             icons: {
@@ -67,6 +66,7 @@ export default defineConfig({
                         'icon/image.png',
                         'netflix-page.js',
                         'youtube-page.js',
+                        'stremio-page.js',
                         'tver-page.js',
                         'bandai-channel-page.js',
                         'amazon-prime-page.js',
@@ -89,6 +89,7 @@ export default defineConfig({
                         'video-select-ui.js',
                         'notification-ui.js',
                         'mobile-video-overlay-ui.html',
+                        'page-favicons/*',
                     ],
                     matches: ['<all_urls>'],
                 },

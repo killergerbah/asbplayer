@@ -434,6 +434,10 @@ export default function SidePanel({ settings, extension }: Props) {
         },
         [syncedVideoTab, settings.clickToMineDefaultAction, currentTabId]
     );
+
+    const handleOpenUserGuide = useCallback(() => {
+        browser.tabs.create({ active: true, url: 'https://docs.asbplayer.dev/docs/intro' });
+    }, []);
     const noOp = useCallback(() => {}, []);
 
     const { initialized: i18nInitialized } = useI18n({ language: settings.language });
@@ -488,6 +492,7 @@ export default function SidePanel({ settings, extension }: Props) {
                             videoElementCount={videoElementCount}
                             onLoadSubtitles={handleLoadSubtitles}
                             onShowMiningHistory={handleShowCopyHistory}
+                            onOpenUserGuide={handleOpenUserGuide}
                         />
                     ) : (
                         <>

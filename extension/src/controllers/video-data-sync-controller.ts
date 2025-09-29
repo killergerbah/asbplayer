@@ -22,6 +22,10 @@ import i18n from 'i18next';
 import { ExtensionGlobalStateProvider } from '@/services/extension-global-state-provider';
 import { isOnTutorialPage } from '@/services/tutorial';
 
+declare global {
+    function cloneInto(obj: any, targetScope: any, options?: any): any;
+}
+
 async function html(lang: string) {
     return `<!DOCTYPE html>
             <html lang="en">
@@ -132,8 +136,14 @@ export default class VideoDataSyncController {
         }
     }
 
-    requestSubtitles() {
-        if (!this._context.hasPageScript || !currentPageDelegate()?.isVideoPage()) {
+    async requestSubtitles() {
+        if (!this._context.hasPageScript) {
+            return;
+        }
+
+        const pageDelegate = await currentPageDelegate();
+
+        if (!pageDelegate?.isVideoPage()) {
             return;
         }
 
@@ -148,7 +158,17 @@ export default class VideoDataSyncController {
             document.addEventListener('asbplayer-synced-data', this._dataReceivedListener, false);
         }
 
-        document.dispatchEvent(new CustomEvent('asbplayer-get-synced-data'));
+        if (pageDelegate.config.key === 'youtube') {
+            const targetTranslationLanguageCodes =
+                (await this._settings.getSingle('streamingPages')).youtube.targetLanguages ?? [];
+            let payload = { targetTranslationLanguageCodes };
+            if (typeof cloneInto === 'function') {
+                payload = cloneInto(payload, document.defaultView);
+            }
+            document.dispatchEvent(new CustomEvent('asbplayer-get-synced-data', { detail: payload }));
+        } else {
+            document.dispatchEvent(new CustomEvent('asbplayer-get-synced-data'));
+        }
     }
 
     async show({ reason, fromAsbplayerId }: ShowOptions) {
@@ -182,6 +202,7 @@ export default class VideoDataSyncController {
         const activeProfilePromise = this._context.settings.activeProfile();
         const hasSeenFtue = (await globalStateProvider.get(['ftueHasSeenSubtitleTrackSelector']))
             .ftueHasSeenSubtitleTrackSelector;
+        const hideRememberTrackPreferenceToggle = this._isTutorial || (await this._pageHidesTrackPrefToggle());
         return this._syncedData
             ? {
                   isLoading: this._syncedData.subtitles === undefined,
@@ -197,7 +218,7 @@ export default class VideoDataSyncController {
                       activeProfile: (await activeProfilePromise)?.name,
                   },
                   hasSeenFtue,
-                  hideRememberTrackPreferenceToggle: this._isTutorial,
+                  hideRememberTrackPreferenceToggle,
                   ...additionalFields,
               }
             : {
@@ -215,7 +236,7 @@ export default class VideoDataSyncController {
                       activeProfile: (await activeProfilePromise)?.name,
                   },
                   hasSeenFtue,
-                  hideRememberTrackPreferenceToggle: this._isTutorial,
+                  hideRememberTrackPreferenceToggle,
                   ...additionalFields,
               };
     }
@@ -269,7 +290,7 @@ export default class VideoDataSyncController {
     private async _setSyncedData(data: VideoData) {
         this._syncedData = data;
 
-        if (this._syncedData?.subtitles !== undefined && this._canAutoSync()) {
+        if (this._syncedData?.subtitles !== undefined && (await this._canAutoSync())) {
             if (!this._autoSyncAttempted) {
                 this._autoSyncAttempted = true;
                 const subs = this._matchLastSyncedWithAvailableTracks();
@@ -294,14 +315,18 @@ export default class VideoDataSyncController {
         }
     }
 
-    private _canAutoSync(): boolean {
-        const page = currentPageDelegate();
+    private async _canAutoSync(): Promise<boolean> {
+        const page = await currentPageDelegate();
 
         if (page === undefined) {
             return this._autoSync ?? false;
         }
 
         return this._autoSync === true && page.canAutoSync(this._context.video);
+    }
+
+    private async _pageHidesTrackPrefToggle() {
+        return (await currentPageDelegate())?.config?.hideRememberTrackPreferenceToggle ?? false;
     }
 
     private async _client() {
