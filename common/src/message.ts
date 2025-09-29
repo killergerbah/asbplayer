@@ -383,6 +383,11 @@ export interface PlayModeMessage extends Message {
     readonly playMode: PlayMode;
 }
 
+export interface PlayModesMessage extends Message {
+    readonly command: 'playModes';
+    readonly playModes: PlayMode[];
+}
+
 export interface HideSubtitlePlayerToggleToVideoMessage extends Message {
     readonly command: 'hideSubtitlePlayerToggle';
     readonly value: boolean;

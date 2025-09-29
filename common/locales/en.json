@@ -265,6 +265,7 @@
         "disabledAutoPause": "Auto-pause: Off",
         "disabledCondensedPlayback": "Condensed playback: Off",
         "disabledFastForwardPlayback": "Fast forward playback: Off",
+        "disabledAllPlayModes": "All playback modes: Off",
         "enabledAutoPause": "Auto-pause: On",
         "enabledCondensedPlayback": "Condensed playback: On",
         "enabledFastForwardPlayback": "Fast forward playback: On",

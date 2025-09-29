@@ -265,6 +265,7 @@
         "disabledAutoPause": "自動一時停止：オフ",
         "disabledCondensedPlayback": "短縮プレイバック：オフ",
         "disabledFastForwardPlayback": "早送りプレイバック：オフ",
+        "disabledAllPlayModes": "All playback modes: Off",
         "enabledAutoPause": "自動一時停止：オン",
         "enabledCondensedPlayback": "短縮プレイバック：オン",
         "enabledFastForwardPlayback": "早送りプレイバック：オン",

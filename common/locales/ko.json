@@ -265,6 +265,7 @@
         "disabledAutoPause": "자동 일시정지: 꺼짐",
         "disabledCondensedPlayback": "자막 없는 부분 건너뛰기: 꺼짐",
         "disabledFastForwardPlayback": "자막 없는 부분 빨리 감기: 꺼짐",
+        "disabledAllPlayModes": "All playback modes: Off",
         "enabledAutoPause": "자동 일시정지: 켜짐",
         "enabledCondensedPlayback": "자막 없는 부분 건너뛰기: 켜짐",
         "enabledFastForwardPlayback": "자막 없는 부분 빨리 감기: 켜짐",

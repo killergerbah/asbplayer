@@ -268,7 +268,7 @@ export interface MobileOverlayModel {
     subtitleDisplaying: boolean;
     subtitlesAreVisible: boolean;
     themeType: 'dark' | 'light';
-    playMode: PlayMode;
+    playModes: Set<PlayMode>;
 }
 
 export enum ControlType {
