@@ -537,7 +537,7 @@ export default class Binding {
                 browser.runtime.sendMessage(command);
             };
             this.video.addEventListener('canplay', this.canPlayListener);
-        }   
+        }
     }
 
     _bind() {
