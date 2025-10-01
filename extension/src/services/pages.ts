@@ -65,7 +65,10 @@ async function pageConfigsMergedWithSettingsOverrides(): Promise<PageConfigFile>
         const overrides = settingsPage.overrides;
 
         if (overrides === undefined) {
-            return page;
+            return {
+                ...page,
+                literalHosts: settingsPage.additionalHosts,
+            };
         }
 
         const autoSyncHasOverrides =
@@ -79,9 +82,8 @@ async function pageConfigsMergedWithSettingsOverrides(): Promise<PageConfigFile>
             : page.autoSync;
 
         return {
-            host: page.host,
+            ...page,
             literalHosts: settingsPage.additionalHosts,
-            pageScript: page.pageScript,
             syncAllowedAtPath: overrides.syncAllowedAtPath ?? page.syncAllowedAtPath,
             syncAllowedAtHash: overrides.syncAllowedAtHash ?? page.syncAllowedAtHash,
             searchShadowRootsForVideoElements:
