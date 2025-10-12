@@ -71,7 +71,8 @@ const latestExtensionVersion = '1.11.0';
 const extensionUrl =
     'https://chromewebstore.google.com/detail/asbplayer-language-learni/hkledmpjpaehamkiehglnbelcpdflcab';
 
-const INPUT_ACCEPT_FILE_EXTENSIONS = ".srt,.ass,.vtt,.sup,.mp3,.m4a,.aac,.flac,.ogg,.wav,.opus,.mkv,.mp4,.avi,.m4v,.webm";
+const INPUT_ACCEPT_FILE_EXTENSIONS =
+    '.srt,.ass,.vtt,.sup,.mp3,.m4a,.aac,.flac,.ogg,.wav,.opus,.mkv,.mp4,.avi,.m4v,.webm';
 
 const useContentStyles = makeStyles<Theme, ContentProps>((theme) => ({
     content: {
