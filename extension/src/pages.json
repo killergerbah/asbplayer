@@ -177,6 +177,16 @@
                 "enabled": true
             },
             "hideRememberTrackPreferenceToggle": true
+        },
+        {
+            "key": "cijapanese",
+            "host": "cijapanese\\.com",
+            "pageScript": "cijapanese-page.js",
+            "syncAllowedAtPath": "video",
+            "autoSync": {
+                "enabled": true
+            },
+            "hideRememberTrackPreferenceToggle": true
         }
     ]
 }
