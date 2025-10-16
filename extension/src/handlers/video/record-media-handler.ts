@@ -152,18 +152,26 @@ export default class RecordMediaHandler {
             }
         }
 
-        const { exportMode, ...messageWithoutExportMode } = recordMediaCommand.message;
+        const { isBulkExport, ...messageWithoutBulkFlag } = recordMediaCommand.message;
         const card: CardModel = {
             image: imageModel,
             audio: audioModel,
-            ...(messageWithoutExportMode as Omit<typeof recordMediaCommand.message, 'exportMode'>),
+            ...messageWithoutBulkFlag,
         };
-        this._cardPublisher.publish(
-            card,
-            recordMediaCommand.message.postMineAction,
-            senderTab.id!,
-            recordMediaCommand.src,
-            recordMediaCommand.message.exportMode
-        );
+
+        if (isBulkExport) {
+            this._cardPublisher.publishBulk(
+                card,
+                senderTab.id!,
+                recordMediaCommand.src
+            );
+        } else {
+            this._cardPublisher.publish(
+                card,
+                recordMediaCommand.message.postMineAction,
+                senderTab.id!,
+                recordMediaCommand.src
+            );
+        }
     }
 }

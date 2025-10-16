@@ -1075,7 +1075,7 @@ export default class Binding {
         definition,
         word,
         customFieldValues,
-        exportMode,
+        isBulkExport,
     }: CopySubtitleMessage) {
         if (!subtitle || !surroundingSubtitles) {
             return;
@@ -1128,7 +1128,7 @@ export default class Binding {
                 definition,
                 word,
                 customFieldValues,
-                exportMode,
+                isBulkExport,
                 ...this._imageCaptureParams,
             },
             src: this.video.src,

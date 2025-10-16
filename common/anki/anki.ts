@@ -384,16 +384,6 @@ export class Anki {
                 }
 
                 throw new Error('Could not update last card because the card info could not be fetched');
-            case 'bulk':
-                try {
-                    const res = await this._executeAction('addNote', params, ankiConnectUrl);
-                    return (res as any).result;
-                } catch (error) {
-                    if (error instanceof Error && error.message.includes('duplicate')) {
-                        throw new DuplicateNoteError(error.message);
-                    }
-                    throw error;
-                }
             case 'default':
                 return (await this._executeAction('addNote', params, ankiConnectUrl)).result;
             default:

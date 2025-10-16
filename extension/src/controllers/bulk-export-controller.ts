@@ -198,7 +198,7 @@ export default class BulkExportController {
             subtitle: nextSubtitle,
             surroundingSubtitles,
             postMineAction: PostMineAction.exportCard,
-            exportMode: 'bulk',
+            isBulkExport: true,
         };
 
         this._inFlight = true;

@@ -125,7 +125,7 @@ export interface RecordMediaAndForwardSubtitleMessage extends Message, CardTextF
     readonly imageDelay: number;
     readonly playbackRate: number;
     readonly mediaTimestamp: number;
-    readonly exportMode?: AnkiExportMode;
+    readonly isBulkExport?: boolean;
 }
 
 export interface StartRecordingMediaMessage extends Message, ImageCaptureParams {
@@ -174,7 +174,7 @@ export interface CopySubtitleMessage extends Message, CardTextFieldValues {
     readonly postMineAction: PostMineAction;
     readonly subtitle?: SubtitleModel;
     readonly surroundingSubtitles?: SubtitleModel[];
-    readonly exportMode?: AnkiExportMode;
+    readonly isBulkExport?: boolean;
 }
 
 export interface CopySubtitleWithAdditionalFieldsMessage extends Message, CardTextFieldValues {
@@ -208,7 +208,6 @@ export interface CardExportedMessage extends Message, CardModel {
     readonly isBulkExport?: boolean;
     readonly skippedDuplicate?: boolean;
     readonly exportError?: string;
-    readonly exportMode?: AnkiExportMode;
 }
 
 export interface CardSavedMessage extends Message, CardModel {
