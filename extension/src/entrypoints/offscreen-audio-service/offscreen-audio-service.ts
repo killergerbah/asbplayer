@@ -8,10 +8,11 @@ import {
     StartRecordingErrorCode,
     StopRecordingErrorCode,
     StopRecordingResponse,
+    EncodeMp3InServiceWorkerMessage,
 } from '@project/common';
 import AudioRecorder, { TimedRecordingInProgressError } from '@/services/audio-recorder';
 import { Mp3Encoder } from '@project/common/audio-clip';
-import { bufferToBase64 } from '@project/common/base64';
+import { base64ToBlob, bufferToBase64 } from '@project/common/base64';
 import { mp3WorkerFactory } from '@/services/mp3-worker-factory';
 
 const audioRecorder = new AudioRecorder();
@@ -139,6 +140,15 @@ window.onload = async () => {
 
                             sendResponse(errorResponse);
                         });
+                    return true;
+                case 'encode-mp3':
+                    const encodeMp3Message = request.message as EncodeMp3InServiceWorkerMessage;
+                    const { base64, extension } = encodeMp3Message;
+
+                    Mp3Encoder.encode(base64ToBlob(base64, `audio/${extension}`), mp3WorkerFactory)
+                        .then((blob) => blob.arrayBuffer())
+                        .then((buffer) => sendResponse(bufferToBase64(buffer)))
+                        .catch(console.error);
                     return true;
             }
         }

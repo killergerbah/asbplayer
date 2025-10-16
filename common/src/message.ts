@@ -94,6 +94,12 @@ export interface EncodeMp3Message extends MessageWithId {
     readonly extension: string;
 }
 
+export interface EncodeMp3InServiceWorkerMessage extends Message {
+    readonly command: 'encode-mp3';
+    readonly base64: string;
+    readonly extension: string;
+}
+
 export interface SettingsUpdatedMessage extends Message {
     readonly command: 'settings-updated';
 }
@@ -488,7 +494,6 @@ export interface StartRecordingAudioWithTimeoutViaCaptureStreamMessage extends M
     readonly command: 'start-recording-audio-with-timeout';
     readonly timeout: number;
     readonly requestId: string;
-    readonly encodeAsMp3: boolean;
 }
 
 export interface StartRecordingAudioMessage extends Message {
