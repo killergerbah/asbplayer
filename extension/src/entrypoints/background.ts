@@ -61,7 +61,6 @@ import DeleteCopyHistoryHandler from '@/handlers/asbplayerv2/delete-copy-history
 import ClearCopyHistoryHandler from '@/handlers/asbplayerv2/clear-copy-history-handler';
 import SaveCopyHistoryHandler from '@/handlers/asbplayerv2/save-copy-history-handler';
 import PageConfigHandler from '@/handlers/asbplayerv2/page-config-handler';
-import EncodeMp3Handler from '@/handlers/video/encode-mp3-handler';
 
 export default defineBackground(() => {
     if (!isFirefoxBuild) {
@@ -134,7 +133,6 @@ export default defineBackground(() => {
         new ToggleSidePanelHandler(tabRegistry),
         new OpenAsbplayerSettingsHandler(),
         new CopyToClipboardHandler(),
-        new EncodeMp3Handler(),
         new VideoDisappearedHandler(tabRegistry),
         new RequestingActiveTabPermissionHandler(),
         new CopySubtitleHandler(tabRegistry),

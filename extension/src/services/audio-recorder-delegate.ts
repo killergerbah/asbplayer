@@ -9,7 +9,6 @@ import {
     StopRecordingAudioMessage,
     StopRecordingResponse,
 } from '@project/common';
-import { ensureOffscreenAudioServiceDocument } from './offscreen-document';
 
 export interface Requester {
     tabId: number;
@@ -28,6 +27,20 @@ export interface AudioRecorderDelegate {
 }
 
 export class OffscreenAudioRecorder implements AudioRecorderDelegate {
+    private async _ensureOffscreenDocument() {
+        const contexts = await browser.runtime.getContexts({
+            contextTypes: [browser.runtime.ContextType.OFFSCREEN_DOCUMENT],
+        });
+
+        if (contexts.length === 0) {
+            await browser.offscreen.createDocument({
+                url: 'offscreen-audio-recorder.html',
+                reasons: [browser.offscreen.Reason.USER_MEDIA],
+                justification: 'Audio recording',
+            });
+        }
+    }
+
     private _mediaStreamId(tabId: number): Promise<string> {
         return new Promise((resolve, reject) => {
             browser.tabCapture.getMediaStreamId(
@@ -45,7 +58,7 @@ export class OffscreenAudioRecorder implements AudioRecorderDelegate {
         requestId: string,
         { tabId, src }: Requester
     ): Promise<StartRecordingResponse> {
-        await ensureOffscreenAudioServiceDocument();
+        await this._ensureOffscreenDocument();
 
         const streamId = await this._mediaStreamId(tabId);
         const command: ExtensionToOffscreenDocumentCommand<StartRecordingAudioWithTimeoutMessage> = {
@@ -62,7 +75,7 @@ export class OffscreenAudioRecorder implements AudioRecorderDelegate {
     }
 
     async start(requestId: string, { tabId, src }: Requester) {
-        await ensureOffscreenAudioServiceDocument();
+        await this._ensureOffscreenDocument();
         const streamId = await this._mediaStreamId(tabId);
 
         const command: ExtensionToOffscreenDocumentCommand<StartRecordingAudioMessage> = {
