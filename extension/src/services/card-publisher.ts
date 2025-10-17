@@ -8,19 +8,38 @@ import {
     PostMineAction,
     ShowAnkiUiMessage,
 } from '@project/common';
+import type { AnkiExportMode } from '@project/common';
 import { humanReadableTime } from '@project/common/util';
 import { AnkiSettings, ankiSettingsKeys, SettingsProvider } from '@project/common/settings';
 import { v4 as uuidv4 } from 'uuid';
-import { exportCard } from '@project/common/anki';
+import { exportCard, DuplicateNoteError } from '@project/common/anki';
 import { IndexedDBCopyHistoryRepository } from '@project/common/copy-history';
 
 export class CardPublisher {
     private readonly _settingsProvider: SettingsProvider;
+    private _bulkExportCancelled = false;
+    
     constructor(settingsProvider: SettingsProvider) {
         this._settingsProvider = settingsProvider;
     }
+    
+    setBulkExportCancelled(cancelled: boolean) {
+        if (this._bulkExportCancelled === cancelled) {
+            return;
+        }
+        
+        this._bulkExportCancelled = cancelled;
+    }
+    
+    resetBulkExportCancellation() {
+        this._bulkExportCancelled = false;
+    }
+    
+    get bulkExportCancelled() {
+        return this._bulkExportCancelled;
+    }
 
-    async publish(card: CardModel, postMineAction?: PostMineAction, tabId?: number, src?: string) {
+    async publish(card: CardModel, postMineAction?: PostMineAction, tabId?: number, src?: string, exportMode?: AnkiExportMode) {
         const id = uuidv4();
         const savePromise = this._saveCardToRepository(id, card);
 
@@ -34,7 +53,7 @@ export class CardPublisher {
             } else if (postMineAction == PostMineAction.updateLastCard) {
                 await this._updateLastCard(card, src, tabId);
             } else if (postMineAction === PostMineAction.exportCard) {
-                await this._exportCard(card, src, tabId);
+                await this._exportCard(card, src, tabId, exportMode);
             } else if (postMineAction === PostMineAction.none) {
                 this._notifySaved(savePromise, card, src, tabId);
             }
@@ -62,9 +81,59 @@ export class CardPublisher {
         });
     }
 
-    private async _exportCard(card: CardModel, src: string | undefined, tabId: number) {
+    private async _exportCard(card: CardModel, src: string | undefined, tabId: number, mode?: AnkiExportMode) {
         const ankiSettings = (await this._settingsProvider.get(ankiSettingsKeys)) as AnkiSettings;
-        const cardName = await exportCard(card, ankiSettings, 'default');
+        const exportMode = mode || 'default';
+        
+        if (exportMode === 'bulk' && this._bulkExportCancelled) {
+            return;
+        }
+        
+        let cardName: string = '';
+        const isBulkExport = exportMode === 'bulk';
+        try {
+            cardName = await exportCard(card, ankiSettings, exportMode);
+        } catch (e) {
+            if (isBulkExport) {
+                if (e instanceof DuplicateNoteError) {
+                    const cardExportedCommand: ExtensionToVideoCommand<CardExportedMessage> = {
+                        sender: 'asbplayer-extension-to-video',
+                        message: {
+                            ...card,
+                            command: 'card-exported',
+                            cardName: '',
+                            isBulkExport: true,
+                            skippedDuplicate: true,
+                            exportMode: exportMode
+                        },
+                        src,
+                    };
+                    try { await browser.tabs.sendMessage(tabId, cardExportedCommand); } catch {}
+                    try { await browser.runtime.sendMessage(cardExportedCommand); } catch {}
+                    return;
+                }
+                // If we're in the middle of a bulk export, a failure will hang the app.
+                // Signal an error and keep going to avoid this.
+                const cardExportedCommand: ExtensionToVideoCommand<CardExportedMessage> = {
+                    sender: 'asbplayer-extension-to-video',
+                    message: {
+                        ...card,
+                        command: 'card-exported',
+                        cardName: '',
+                        isBulkExport: true,
+                        skippedDuplicate: false,
+                        exportError: e instanceof Error ? e.message : 'Unknown error',
+                        exportMode: exportMode
+                    },
+                    src,
+                };
+                try { await browser.tabs.sendMessage(tabId, cardExportedCommand); } catch {}
+                try { await browser.runtime.sendMessage(cardExportedCommand); } catch {}
+                return;
+            }
+            throw e;
+        }
+
 
         const cardExportedCommand: ExtensionToVideoCommand<CardExportedMessage> = {
             sender: 'asbplayer-extension-to-video',
@@ -72,11 +141,16 @@ export class CardPublisher {
                 ...card,
                 command: 'card-exported',
                 cardName: `${cardName}`,
+                isBulkExport: isBulkExport,
+                exportMode: exportMode
             },
             src,
         };
 
         browser.tabs.sendMessage(tabId, cardExportedCommand);
+        if (isBulkExport) {
+            browser.runtime.sendMessage(cardExportedCommand);
+        }
     }
 
     private async _updateLastCard(card: CardModel, src: string | undefined, tabId: number) {

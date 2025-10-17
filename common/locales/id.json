@@ -6,6 +6,7 @@
         "downloadAudio": "Unduh Audio",
         "downloadImage": "Unduh Gambar",
         "downloadSubtitlesAsSrt": "Unduh Takarir sebagai SRT",
+        "bulkExportSubtitles": "Bulk Export Subtitles",
         "jumpTo": "Loncat ke",
         "ok": "OK",
         "mineSubtitle": "Tambang Takarir",
@@ -284,6 +285,13 @@
         "enabledCondensedPlayback": "Pemutaran ringkas: Aktif",
         "enabledFastForwardPlayback": "Pemutaran maju cepat: Aktif",
         "exportedCard": "Kartu diekspor: {{result}}",
+        "cardNotExported": "Card not exported: {{reason}}",
+        "bulkExporting": "Bulk exporting subtitles: {{current}}/{{total}}",
+        "bulkExport": {
+            "title": "Bulk Export in Progress",
+            "description": "Exporting subtitles to Anki. Please wait...",
+            "progressCompleted": "Exported {{current}} of {{total}}"
+        },
         "playbackRate": "Kecepatan Pemutaran: {{rate}}",
         "savedTimestamp": "Disimpan: {{timestamp}}",
         "updatedCard": "Kartu diperbarui: {{result}}",

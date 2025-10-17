@@ -6,6 +6,7 @@
         "downloadAudio": "오디오 파일 다운로드",
         "downloadImage": "이미지 파일 다운로드",
         "downloadSubtitlesAsSrt": "SRT 파일로 자막 다운로드",
+        "bulkExportSubtitles": "Bulk Export Subtitles",
         "jumpTo": "이동",
         "ok": "확인",
         "mineSubtitle": "자막 추출",
@@ -284,6 +285,13 @@
         "enabledCondensedPlayback": "자막 없는 부분 건너뛰기: 켜짐",
         "enabledFastForwardPlayback": "자막 없는 부분 빨리 감기: 켜짐",
         "exportedCard": "카드 내보내기 완료: {{result}}",
+        "cardNotExported": "Card not exported: {{reason}}",
+        "bulkExporting": "Bulk exporting subtitles: {{current}}/{{total}}",
+        "bulkExport": {
+            "title": "Bulk Export in Progress",
+            "description": "Exporting subtitles to Anki. Please wait...",
+            "progressCompleted": "Exported {{current}} of {{total}}"
+        },
         "playbackRate": "재생 속도: {{rate}}",
         "savedTimestamp": "저장 완료: {{timestamp}}",
         "updatedCard": "카드 업데이트 완료: {{result}}",

@@ -108,7 +108,7 @@ export interface ExportParams {
     ankiConnectUrl?: string;
 }
 
-export async function exportCard(card: CardModel, ankiSettings: AnkiSettings, exportMode: AnkiExportMode) {
+export async function exportCard(card: CardModel, ankiSettings: AnkiSettings, exportMode: AnkiExportMode = 'default'): Promise<string> {
     const anki = new Anki(ankiSettings);
     const source = sourceString(card.subtitleFileName, card.mediaTimestamp);
     let audioClip =
@@ -155,6 +155,13 @@ export interface CreateModelParams {
     inOrderFields: string[];
     css: string;
     cardTemplates: { Front: string; Back: string }[];
+}
+
+export class DuplicateNoteError extends Error {
+    constructor(message: string = 'duplicate') {
+        super(message);
+        this.name = 'DuplicateNoteError';
+    }
 }
 
 export class Anki {
@@ -377,6 +384,16 @@ export class Anki {
                 }
 
                 throw new Error('Could not update last card because the card info could not be fetched');
+            case 'bulk':
+                try {
+                    const res = await this._executeAction('addNote', params, ankiConnectUrl);
+                    return (res as any).result;
+                } catch (error) {
+                    if (error instanceof Error && error.message.includes('duplicate')) {
+                        throw new DuplicateNoteError(error.message);
+                    }
+                    throw error;
+                }
             case 'default':
                 return (await this._executeAction('addNote', params, ankiConnectUrl)).result;
             default:

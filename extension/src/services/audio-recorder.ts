@@ -1,6 +1,7 @@
 import { bufferToBase64 } from '@project/common/base64';
 
 export class TimedRecordingInProgressError extends Error {}
+export class NoRecordingInProgressError extends Error {}
 
 export default class AudioRecorder {
     private recording: boolean;
@@ -106,7 +107,7 @@ export default class AudioRecorder {
 
     async stop(doNotManageStream: boolean = false): Promise<string> {
         if (!this.recording) {
-            throw new Error('Not recording, unable to stop');
+            throw new NoRecordingInProgressError();
         }
 
         this.recording = false;
