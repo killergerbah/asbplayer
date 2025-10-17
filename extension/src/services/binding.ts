@@ -35,7 +35,6 @@ import {
     StartRecordingErrorCode,
     StartRecordingMediaMessage,
     StartRecordingResponse,
-    StopRecordingAudioMessage,
     StopRecordingErrorCode,
     StopRecordingMediaMessage,
     StopRecordingResponse,
@@ -47,7 +46,6 @@ import {
     VideoHeartbeatMessage,
     VideoToExtensionCommand,
 } from '@project/common';
-import Mp3Encoder from '@project/common/audio-clip/mp3-encoder';
 import { adjacentSubtitle } from '@project/common/key-binder';
 import {
     extractAnkiSettings,
@@ -73,7 +71,6 @@ import { ExtensionSettingsStorage } from './extension-settings-storage';
 import { i18nInit } from './i18n';
 import KeyBindings from './key-bindings';
 import { shouldShowUpdateAlert } from './update-alert';
-import { mp3WorkerFactory } from './mp3-worker-factory';
 import { bufferToBase64 } from '@project/common/base64';
 import { pgsParserWorkerFactory } from './pgs-parser-worker-factory';
 
@@ -815,11 +812,7 @@ export default class Binding {
                                     )
                             )
                             .then((audioBase64) =>
-                                this._sendAudioBase64(
-                                    audioBase64,
-                                    startRecordingAudioWithTimeoutMessage.requestId,
-                                    startRecordingAudioWithTimeoutMessage.encodeAsMp3
-                                )
+                                this._sendAudioBase64(audioBase64, startRecordingAudioWithTimeoutMessage.requestId)
                             )
                             .catch((e) => {
                                 sendResponse(startAudioRecordingErrorResponse(e));
@@ -839,16 +832,11 @@ export default class Binding {
                             });
                         return true;
                     case 'stop-recording-audio':
-                        const stopRecordingAudioMessage = request.message as StopRecordingAudioMessage;
                         this._audioRecorder
                             .stop(true)
                             .then((audioBase64) => {
                                 sendResponse({ stopped: true });
-                                this._sendAudioBase64(
-                                    audioBase64,
-                                    this.currentAudioRecordingRequestId!,
-                                    stopRecordingAudioMessage.encodeAsMp3
-                                );
+                                this._sendAudioBase64(audioBase64, this.currentAudioRecordingRequestId!);
                             })
                             .catch((e) => {
                                 let errorCode: StopRecordingErrorCode;
@@ -1498,13 +1486,7 @@ export default class Binding {
         return this.audioStream.active ? this.audioStream : undefined;
     }
 
-    private async _sendAudioBase64(base64: string, requestId: string, encodeAsMp3: boolean) {
-        if (encodeAsMp3) {
-            const blob = await (await fetch('data:audio/webm;base64,' + base64)).blob();
-            const mp3Blob = await Mp3Encoder.encode(blob, mp3WorkerFactory);
-            base64 = bufferToBase64(await mp3Blob.arrayBuffer());
-        }
-
+    private async _sendAudioBase64(base64: string, requestId: string) {
         const command: VideoToExtensionCommand<AudioBase64Message> = {
             sender: 'asbplayer-video',
             message: {
