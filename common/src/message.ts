@@ -494,6 +494,7 @@ export interface StartRecordingAudioWithTimeoutViaCaptureStreamMessage extends M
     readonly command: 'start-recording-audio-with-timeout';
     readonly timeout: number;
     readonly requestId: string;
+    readonly encodeAsMp3: boolean;
 }
 
 export interface StartRecordingAudioMessage extends Message {
