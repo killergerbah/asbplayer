@@ -70,6 +70,10 @@ import NeedRefreshDialog from './NeedRefreshDialog';
 const latestExtensionVersion = '1.11.0';
 const extensionUrl =
     'https://chromewebstore.google.com/detail/asbplayer-language-learni/hkledmpjpaehamkiehglnbelcpdflcab';
+
+const INPUT_ACCEPT_FILE_EXTENSIONS =
+    '.srt,.ass,.vtt,.sup,.mp3,.m4a,.aac,.flac,.ogg,.wav,.opus,.mkv,.mp4,.avi,.m4v,.webm';
+
 const useContentStyles = makeStyles<Theme, ContentProps>((theme) => ({
     content: {
         flexGrow: 1,
@@ -1359,7 +1363,7 @@ function App({
                                 ref={fileInputRef}
                                 onChange={handleFileInputChange}
                                 type="file"
-                                accept=".srt,.ass,.vtt,.sup,.mp3,.m4a,.aac,.flac,.ogg,.wav,.opus,.mkv,.mp4,.avi,.m4v"
+                                accept={INPUT_ACCEPT_FILE_EXTENSIONS}
                                 multiple
                                 hidden
                             />

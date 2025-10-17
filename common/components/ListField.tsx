@@ -1,8 +1,13 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { type TextFieldProps } from '@mui/material';
 import TextField from '@mui/material/TextField';
+import { useTranslation } from 'react-i18next';
 
 function extractTagsFromString(value: string) {
+    if (value === '') {
+        return [];
+    }
+
     const splitTags = value.split(' ').join('').split(',');
     const tags = [];
 
@@ -14,20 +19,21 @@ function extractTagsFromString(value: string) {
 }
 
 export interface Props {
-    tags: string[];
-    onTagsChange: (tags: string[]) => void;
+    items: string[];
+    onItemsChange: (tags: string[]) => void;
 }
 
-export default function TagsTextField({ tags, onTagsChange, ...props }: Props & TextFieldProps) {
+export default function ListField({ items, onItemsChange, ...props }: Props & TextFieldProps) {
+    const { t } = useTranslation();
     const [value, setValue] = useState('');
 
     useEffect(() => {
-        const tagsString = tags.join(', ');
+        const tagsString = items.join(', ');
 
         if (tagsString !== value) {
-            setValue(tags.join(', '));
+            setValue(items.join(', '));
         }
-    }, [value, tags]);
+    }, [value, items]);
 
     const handleChange = useCallback(
         (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -41,10 +47,10 @@ export default function TagsTextField({ tags, onTagsChange, ...props }: Props & 
             // Decompose string into individual tags by removing all spaces and splitting on ","
             const newTags = extractTagsFromString(currentValue);
             setValue(newTags.join(', '));
-            onTagsChange(newTags);
+            onItemsChange(newTags);
         },
-        [value, onTagsChange]
+        [value, onItemsChange]
     );
 
-    return <TextField {...props} value={value} onChange={handleChange} />;
+    return <TextField {...props} helperText={t('settings.tagsHelperText')} value={value} onChange={handleChange} />;
 }

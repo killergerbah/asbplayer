@@ -7,6 +7,8 @@ import { extractText, sourceString } from '@project/common/util';
 
 const ankiQuerySpecialCharacters = ['"', '*', '_', '\\', ':'];
 const alphaNumericCharacters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+const unsafeURLChars = /[:\/\?#\[\]@!$&'()*+,;= "<>%{}|\\^`]/g;
+const replacement = '_';
 
 const randomString = () => {
     let string = '';
@@ -414,12 +416,19 @@ export class Anki {
         fields[fieldName] = newValue;
     }
 
+    private _sanitizeUnsafeURLChars(name: string) {
+        return name.replace(unsafeURLChars, replacement);
+    }
+
     private _sanitizeFileName(name: string) {
         if (typeof name.toWellFormed === 'function') {
             name = name.toWellFormed();
         }
 
-        return sanitize(name, { replacement: '_' });
+        // Sanitize unsafe URL characters for AnkiWeb compatibility.
+        name = this._sanitizeUnsafeURLChars(name);
+        // Sanitize for file system compatibility on various operating systems.
+        return sanitize(name, { replacement: replacement });
     }
 
     private async _storeMediaFile(name: string, base64: string, ankiConnectUrl?: string) {

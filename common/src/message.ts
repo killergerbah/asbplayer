@@ -1,4 +1,11 @@
-import type { AnkiSettings, AsbplayerSettings, MiscSettings, SubtitleSettings } from '../settings/settings';
+import type {
+    AnkiSettings,
+    AsbplayerSettings,
+    MiscSettings,
+    PageSettings,
+    SettingsFormPageConfig,
+    SubtitleSettings,
+} from '../settings/settings';
 import type { GlobalState } from '../global-state';
 import {
     RectModel,
@@ -83,6 +90,12 @@ export interface HttpPostMessage extends MessageWithId {
 export interface EncodeMp3Message extends MessageWithId {
     readonly command: 'encode-mp3';
     readonly messageId: string;
+    readonly base64: string;
+    readonly extension: string;
+}
+
+export interface EncodeMp3InServiceWorkerMessage extends Message {
+    readonly command: 'encode-mp3';
     readonly base64: string;
     readonly extension: string;
 }
@@ -560,6 +573,7 @@ export interface ExtensionVersionMessage extends Message {
     readonly command: 'version';
     version: string;
     extensionCommands?: { [key: string]: string | undefined };
+    pageConfig?: { [K in keyof PageSettings]: SettingsFormPageConfig };
 }
 
 export interface AlertMessage extends Message {

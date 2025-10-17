@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useEffect, useMemo, ChangeEvent, ReactNode, useRef } from 'react';
+import React, { useCallback, useState, useEffect, useMemo, useRef } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import { makeStyles } from '@mui/styles';
 import { useTheme } from '@mui/material/styles';
@@ -27,6 +27,15 @@ import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import TextField from '@mui/material/TextField';
+import Paper from '@mui/material/Paper';
+import TableContainer from '@mui/material/TableContainer';
+import Table from '@mui/material/Table';
+import TableHead from '@mui/material/TableHead';
+import TableBody from '@mui/material/TableBody';
+import TableRow from '@mui/material/TableRow';
+import TableRowWithHoverEffect from './TableRowWithHoverEffect';
+import TableCell from '@mui/material/TableCell';
+import Badge from '@mui/material/Badge';
 import { type Theme } from '@mui/material';
 import { AutoPausePreference, CardModel, PostMineAction, PostMinePlayback, SubtitleHtml } from '@project/common';
 import {
@@ -34,7 +43,9 @@ import {
     AnkiFieldUiModel,
     AsbplayerSettings,
     CustomAnkiFieldSettings,
+    PageConfig,
     KeyBindName,
+    PageSettings,
     PauseOnHoverMode,
     SubtitleListPreference,
     TextSubtitleSettings,
@@ -42,11 +53,14 @@ import {
     sortedAnkiFieldModels,
     textSubtitleSettingsAreDirty,
     textSubtitleSettingsForTrack,
+    exportSettings,
+    YoutubePage,
+    Page,
 } from '@project/common/settings';
-import { download, isNumeric } from '@project/common/util';
+import { isNumeric } from '@project/common/util';
 import { CustomStyle, validateSettings } from '@project/common/settings';
 import { useOutsideClickListener } from '@project/common/hooks';
-import TagsTextField from './TagsTextField';
+import ListField from './ListField';
 import hotkeys from 'hotkeys-js';
 import Typography from '@mui/material/Typography';
 import { isMacOs, isMobile } from 'react-device-detect';
@@ -78,6 +92,9 @@ import AnkiConnectTutorialBubble from './AnkiConnectTutorialBubble';
 import DeckFieldTutorialBubble from './DeckFieldTutorialBubble';
 import NoteTypeTutorialBubble from './NoteTypeTutorialBubble';
 import KeyBindRelatedSetting from './KeyBindRelatedSetting';
+import PageSettingsForm from './PageSettingsForm';
+import TuneIcon from '@mui/icons-material/Tune';
+import { pageMetadata } from '../pages';
 
 const defaultDeckName = 'Sentences';
 
@@ -122,6 +139,14 @@ const defaultNoteType = {
 {{URL}}`,
         },
     ],
+};
+
+const pageSettingsHasModifications = (page: Page) => {
+    return (
+        page.overrides !== undefined ||
+        page.additionalHosts !== undefined ||
+        (page as YoutubePage).targetLanguages !== undefined
+    );
 };
 
 interface StylesProps {
@@ -775,6 +800,12 @@ type TabName =
     | 'streaming-video'
     | 'misc-settings';
 
+interface SettingsFormPageConfig extends PageConfig {
+    faviconUrl: string;
+}
+
+export type PageConfigMap = { [K in keyof PageSettings]: SettingsFormPageConfig };
+
 interface Props {
     anki: Anki;
     extensionInstalled: boolean;
@@ -787,9 +818,11 @@ interface Props {
     extensionSupportsSubtitlesWidthSetting: boolean;
     extensionSupportsPauseOnHover: boolean;
     extensionSupportsExportCardBind: boolean;
+    extensionSupportsPageSettings: boolean;
     insideApp?: boolean;
     appVersion?: string;
     settings: AsbplayerSettings;
+    pageConfigs?: PageConfigMap;
     scrollToId?: string;
     chromeKeyBinds: { [key: string]: string | undefined };
     localFontsAvailable: boolean;
@@ -810,6 +843,7 @@ const cssStyles = Object.keys(document.body.style).filter((s) => !isNumeric(s));
 export default function SettingsForm({
     anki,
     settings,
+    pageConfigs,
     extensionInstalled,
     extensionVersion,
     extensionSupportsAppIntegration,
@@ -820,6 +854,7 @@ export default function SettingsForm({
     extensionSupportsSubtitlesWidthSetting,
     extensionSupportsPauseOnHover,
     extensionSupportsExportCardBind,
+    extensionSupportsPageSettings,
     insideApp,
     appVersion,
     scrollToId,
@@ -836,7 +871,7 @@ export default function SettingsForm({
     onUnlockLocalFonts,
 }: Props) {
     const theme = useTheme();
-    const smallScreen = useMediaQuery(theme.breakpoints.down('sm')) && !forceVerticalTabs;
+    const smallScreen = useMediaQuery(theme.breakpoints.down(500)) && !forceVerticalTabs;
     const classes = useStyles({ smallScreen });
     const handleSettingChanged = useCallback(
         async <K extends keyof AsbplayerSettings>(key: K, value: AsbplayerSettings[K]) => {
@@ -908,6 +943,7 @@ export default function SettingsForm({
         streamingScreenshotDelay,
         streamingSubtitleListPreference,
         streamingEnableOverlay,
+        streamingPages,
         webSocketClientEnabled,
         webSocketServerUrl,
         pauseOnHoverMode,
@@ -1388,14 +1424,7 @@ export default function SettingsForm({
         settingsFileInputRef.current?.click();
     }, []);
     const handleExportSettings = useCallback(() => {
-        const now = new Date();
-        const timeString = `${now.getFullYear()}-${
-            now.getMonth() + 1
-        }-${now.getDate()}-${now.getHours()}-${now.getMinutes()}-${now.getSeconds()}`;
-        download(
-            new Blob([JSON.stringify(settings)], { type: 'appliction/json' }),
-            `asbplayer-settings-${timeString}.json`
-        );
+        exportSettings(settings);
     }, [settings]);
 
     const handleAnkiFieldOrderChange = useCallback(
@@ -1541,8 +1570,24 @@ export default function SettingsForm({
         await exportCard(await testCard(), settings, isMobile ? 'default' : 'gui');
     }, [tutorialStep, settings, testCard]);
 
+    const [pageSettingsFormKey, setPageSettingsFormKey] = useState<keyof PageSettings>('netflix');
+    const [pageSettingsFormOpen, setPageSettingsFormOpen] = useState<boolean>(false);
+
     return (
         <div className={classes.root}>
+            {extensionSupportsPageSettings && pageConfigs && pageSettingsFormKey && (
+                <PageSettingsForm
+                    open={pageSettingsFormOpen}
+                    pageKey={pageSettingsFormKey}
+                    page={settings.streamingPages[pageSettingsFormKey]}
+                    hasModifications={pageSettingsHasModifications(settings.streamingPages[pageSettingsFormKey])}
+                    defaultPageConfig={pageConfigs[pageSettingsFormKey]}
+                    onClose={() => setPageSettingsFormOpen(false)}
+                    onPageChanged={(key, page) =>
+                        onSettingsChanged({ streamingPages: { ...streamingPages, [key]: page } })
+                    }
+                />
+            )}
             <Tabs
                 orientation={tabsOrientation}
                 variant="scrollable"
@@ -1807,13 +1852,12 @@ export default function SettingsForm({
                         );
                     })}
                     <AddCustomField onAddCustomField={handleAddCustomField} />
-                    <TagsTextField
+                    <ListField
                         label={t('settings.tags')}
-                        helperText={t('settings.tagsHelperText')}
                         fullWidth
                         color="primary"
-                        tags={tags}
-                        onTagsChange={(tags) => handleSettingChanged('tags', tags)}
+                        items={tags}
+                        onItemsChange={(tags) => handleSettingChanged('tags', tags)}
                     />
                     {testCard && (
                         <TutorialBubble
@@ -2738,10 +2782,6 @@ export default function SettingsForm({
                                     },
                                 }}
                             />
-                        </FormGroup>
-                    </Grid>
-                    <Grid item>
-                        <FormGroup className={classes.formGroup}>
                             {!insideApp && (
                                 <TextField
                                     className={classes.textField}
@@ -2751,6 +2791,51 @@ export default function SettingsForm({
                                     value={streamingAppUrl}
                                     onChange={(e) => handleSettingChanged('streamingAppUrl', e.target.value)}
                                 />
+                            )}
+                            {pageConfigs && (
+                                <TableContainer variant="outlined" component={Paper} style={{ height: 'auto' }}>
+                                    <Table>
+                                        <TableBody>
+                                            {Object.entries(pageMetadata).map(([key, metadata]) => {
+                                                const pageKey = key as keyof PageSettings;
+                                                const page = settings.streamingPages[pageKey];
+
+                                                return (
+                                                    <TableRowWithHoverEffect
+                                                        key={key}
+                                                        onClick={() => {
+                                                            setPageSettingsFormKey(pageKey);
+                                                            setPageSettingsFormOpen(true);
+                                                        }}
+                                                    >
+                                                        <TableCell
+                                                            sx={{
+                                                                width: 48,
+                                                                background: `url(${pageConfigs[pageKey].faviconUrl})`,
+                                                                backgroundRepeat: 'no-repeat',
+                                                                backgroundPosition: '75%',
+                                                                backgroundSize: 24,
+                                                            }}
+                                                        />
+                                                        <TableCell align="left">{metadata.title}</TableCell>
+                                                        <TableCell align="right">
+                                                            <Badge
+                                                                invisible={!pageSettingsHasModifications(page)}
+                                                                color="warning"
+                                                                badgeContent=" "
+                                                                variant="dot"
+                                                            >
+                                                                <IconButton>
+                                                                    <TuneIcon />
+                                                                </IconButton>
+                                                            </Badge>
+                                                        </TableCell>
+                                                    </TableRowWithHoverEffect>
+                                                );
+                                            })}
+                                        </TableBody>
+                                    </Table>
+                                </TableContainer>
                             )}
                         </FormGroup>
                     </Grid>
@@ -2950,49 +3035,43 @@ export default function SettingsForm({
                             </RadioGroup>
                         </Grid>
                     )}
-                    {!isFirefox && (
-                        <>
-                            <Grid item>
-                                <LabelWithHoverEffect
-                                    className={classes.switchLabel}
-                                    control={
-                                        <Switch
-                                            checked={webSocketClientEnabled}
-                                            onChange={(e) =>
-                                                handleSettingChanged('webSocketClientEnabled', e.target.checked)
-                                            }
-                                        />
-                                    }
-                                    label={t('settings.webSocketClientEnabled')}
-                                    labelPlacement="start"
+                    <Grid item>
+                        <LabelWithHoverEffect
+                            className={classes.switchLabel}
+                            control={
+                                <Switch
+                                    checked={webSocketClientEnabled}
+                                    onChange={(e) => handleSettingChanged('webSocketClientEnabled', e.target.checked)}
                                 />
-                            </Grid>
-                            <Grid item>
-                                <TextField
-                                    className={classes.textField}
-                                    color="primary"
-                                    fullWidth
-                                    label={t('settings.webSocketServerUrl')}
-                                    value={webSocketServerUrl}
-                                    disabled={!webSocketClientEnabled}
-                                    onChange={(e) => handleSettingChanged('webSocketServerUrl', e.target.value)}
-                                    error={webSocketClientEnabled && webSocketConnectionSucceeded === false}
-                                    helperText={webSocketServerUrlHelperText}
-                                    slotProps={{
-                                        input: {
-                                            endAdornment: (
-                                                <InputAdornment position="end">
-                                                    <IconButton onClick={pingWebSocketServer}>
-                                                        <RefreshIcon />
-                                                    </IconButton>
-                                                </InputAdornment>
-                                            ),
-                                        },
-                                    }}
-                                />
-                            </Grid>
-                        </>
-                    )}
+                            }
+                            label={t('settings.webSocketClientEnabled')}
+                            labelPlacement="start"
+                        />
+                    </Grid>
+                    <Grid item>
+                        <TextField
+                            className={classes.textField}
+                            color="primary"
+                            fullWidth
+                            label={t('settings.webSocketServerUrl')}
+                            value={webSocketServerUrl}
+                            disabled={!webSocketClientEnabled}
+                            onChange={(e) => handleSettingChanged('webSocketServerUrl', e.target.value)}
+                            error={webSocketClientEnabled && webSocketConnectionSucceeded === false}
+                            helperText={webSocketServerUrlHelperText}
+                            slotProps={{
+                                input: {
+                                    endAdornment: (
+                                        <InputAdornment position="end">
+                                            <IconButton onClick={pingWebSocketServer}>
+                                                <RefreshIcon />
+                                            </IconButton>
+                                        </InputAdornment>
+                                    ),
+                                },
+                            }}
+                        />
+                    </Grid>
                     <Grid item>
                         <Button
                             variant="contained"

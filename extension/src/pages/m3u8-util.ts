@@ -6,7 +6,7 @@ import { Parser as m3U8Parser } from 'm3u8-parser';
 function baseUrlForUrl(url: string) {
     return url.substring(0, url.lastIndexOf('/'));
 }
-function m3U8(url: string): Promise<any> {
+export function fetchM3U8(url: string): Promise<any> {
     return new Promise((resolve, reject) => {
         setTimeout(() => {
             // Bypass cache since Chrome might try to use a cached response that doesn't have appropriate CORS headers
@@ -27,7 +27,7 @@ export function subtitleTrackSegmentsFromM3U8(url: string): Promise<VideoDataSub
     return new Promise((resolve, reject) => {
         setTimeout(async () => {
             try {
-                const manifest = await m3U8(url);
+                const manifest = await fetchM3U8(url);
                 const baseUrl = baseUrlForUrl(url);
 
                 if (manifest.playlists instanceof Array && manifest.playlists.length > 0) {

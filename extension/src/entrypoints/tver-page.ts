@@ -3,20 +3,18 @@ import { extractExtension, inferTracks } from '@/pages/util';
 export default defineUnlistedScript(() => {
     inferTracks({
         onJson: (value, addTrack, setBasename) => {
-            if (value?.text_tracks instanceof Array) {
-                for (const track of value.text_tracks) {
+            if (value?.tracks instanceof Array) {
+                for (const track of value.tracks) {
                     if (
-                        track.kind === 'captions' &&
-                        track.mime_type === 'text/webvtt' &&
-                        track.sources instanceof Array &&
-                        track.sources.length > 0 &&
-                        typeof track.sources[0].src === 'string' &&
-                        typeof track.srclang === 'string'
+                        track?.kind === 'captions' &&
+                        (track?.type === 'text/vtt' || track?.type === 'text/webvtt') &&
+                        typeof track?.src === 'string' &&
+                        typeof track?.srclang === 'string'
                     ) {
                         const label =
                             typeof track.label === 'string' ? `${track.srclang} - ${track?.label}` : track.srclang;
                         const language = track.srclang.toLowerCase();
-                        const url = track.sources[0].src;
+                        const url = track.src;
 
                         addTrack({
                             label: label,
