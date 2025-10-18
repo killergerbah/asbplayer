@@ -240,6 +240,7 @@ const Player = React.memo(function Player({
     const handleSubtitlePlayerResizeEnd = useCallback(() => setSubtitlePlayerResizing(false), []);
 
     const handleOnStartedShowingSubtitle = useCallback(() => {
+        console.log('handleOnStartedShowingSubtitle', playModes);
         if (
             !playModes.has(PlayMode.autoPause) ||
             settings.autoPausePreference !== AutoPausePreference.atStart ||
@@ -253,14 +254,17 @@ const Player = React.memo(function Player({
 
     const handleOnWillStopShowingSubtitle = useCallback(
         async (subtitle: SubtitleModel) => {
+            console.log('handleOnWillStopShowingSubtitle', playModes);
             pendingTimeRef.current = 0;
 
             const isAutoPauseAtEndEnabled =
                 playModes.has(PlayMode.autoPause) && settings.autoPausePreference === AutoPausePreference.atEnd;
+            const isAutoPauseAtStartEnabled =
+                playModes.has(PlayMode.autoPause) && settings.autoPausePreference === AutoPausePreference.atStart;
             const isRepeatEnabled = playModes.has(PlayMode.repeat);
             const isCondensedEnabled = playModes.has(PlayMode.condensed);
 
-            if (!isAutoPauseAtEndEnabled && !isRepeatEnabled) return;
+            if (!isAutoPauseAtEndEnabled && !isRepeatEnabled && !isAutoPauseAtStartEnabled) return;
 
             if (isAutoPauseAtEndEnabled && !videoFileUrl) {
                 pause(clock, mediaAdapter, true);
