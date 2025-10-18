@@ -49,6 +49,7 @@ import {
 } from '@project/common';
 import Mp3Encoder from '@project/common/audio-clip/mp3-encoder';
 import { adjacentSubtitle } from '@project/common/key-binder';
+import { PlayModeManager } from '@project/common/app/services/play-mode-manager';
 import {
     extractAnkiSettings,
     PauseOnHoverMode,
@@ -276,62 +277,35 @@ export default class Binding {
     }
 
     togglePlayMode(targetMode: PlayMode) {
-        let newModes: Set<PlayMode>;
+        const manager = new PlayModeManager(this._playModes);
+        const newModes = manager.toggle(targetMode);
 
-        if (targetMode === PlayMode.normal) {
-            if (this._playModes.size === 1 && this._playModes.has(PlayMode.normal)) {
-                return;
-            }
+        const addedModes = new Set<PlayMode>();
+        const removedModes = new Set<PlayMode>();
 
-            newModes = new Set([PlayMode.normal]);
-
-            for (const mode of this._playModes) {
-                if (mode !== PlayMode.normal) {
-                    this._disablePlayMode(mode, false);
-                }
-            }
-
-            this._enablePlayMode(PlayMode.normal);
-        } else {
-            newModes = new Set(this._playModes);
-
-            if (newModes.has(targetMode)) {
-                newModes.delete(targetMode);
-
-                this._disablePlayMode(targetMode, true);
-
-                if (newModes.size === 0) {
-                    newModes.add(PlayMode.normal);
-                }
-            } else {
-                if (newModes.has(PlayMode.normal) && newModes.size === 1) {
-                    newModes.delete(PlayMode.normal);
-                }
-                newModes.add(targetMode);
-
-                this._enablePlayMode(targetMode);
+        for (const mode of newModes) {
+            if (!this._playModes.has(mode)) {
+                addedModes.add(mode);
             }
         }
 
-        this._resolvePlayModeConflicts(newModes, targetMode);
+        for (const mode of this._playModes) {
+            if (!newModes.has(mode)) {
+                removedModes.add(mode);
+            }
+        }
+
+        for (const mode of removedModes) {
+            const showNotif = mode === targetMode && targetMode !== PlayMode.normal;
+            this._disablePlayMode(mode, showNotif);
+        }
+
+        for (const mode of addedModes) {
+            this._enablePlayMode(mode);
+        }
+
         this._playModes = newModes;
         this.mobileVideoOverlayController.updateModel();
-    }
-
-    private _resolvePlayModeConflicts(modes: Set<PlayMode>, newMode: PlayMode) {
-        const conflicts: [PlayMode, PlayMode][] = [
-            [PlayMode.condensed, PlayMode.fastForward], // Both modify playback timing
-        ];
-
-        for (const [mode1, mode2] of conflicts) {
-            if (newMode === mode1 && modes.has(mode2)) {
-                this._disablePlayMode(mode2, false);
-                modes.delete(mode2);
-            } else if (newMode === mode2 && modes.has(mode1)) {
-                this._disablePlayMode(mode1, false);
-                modes.delete(mode1);
-            }
-        }
     }
 
     private _disablePlayMode(mode: PlayMode, showNotif: boolean) {

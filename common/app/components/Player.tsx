@@ -29,6 +29,7 @@ import SubtitlePlayer, { DisplaySubtitleModel, minSubtitlePlayerWidth } from './
 import VideoChannel from '../services/video-channel';
 import ChromeExtension from '../services/chrome-extension';
 import PlaybackPreferences from '../services/playback-preferences';
+import { PlayModeManager } from '../services/play-mode-manager';
 import { useWindowSize } from '../hooks/use-window-size';
 import { useAppBarHeight } from '../hooks/use-app-bar-height';
 import { createBlobUrl } from '../../blob-url';
@@ -889,60 +890,12 @@ const Player = React.memo(function Player({
         [updatePlaybackRate]
     );
 
-    const resolvePlayModeConflicts = useCallback(
-        (modes: Set<PlayMode>, newMode: PlayMode, shouldUpdatePlaybackRate: boolean) => {
-            const conflicts: [PlayMode, PlayMode][] = [[PlayMode.condensed, PlayMode.fastForward]];
-
-            for (const [mode1, mode2] of conflicts) {
-                if (newMode === mode1 && modes.has(mode2)) {
-                    if (shouldUpdatePlaybackRate && mode2 === PlayMode.fastForward) {
-                        updatePlaybackRate(1, true);
-                    }
-                    modes.delete(mode2);
-                } else if (newMode === mode2 && modes.has(mode1)) {
-                    if (shouldUpdatePlaybackRate && mode1 === PlayMode.fastForward) {
-                        updatePlaybackRate(1, true);
-                    }
-                    modes.delete(mode1);
-                }
-            }
-        },
-        [updatePlaybackRate]
-    );
-
-    const handlePlayMode = useCallback(
-        (targetMode: PlayMode) => {
-            if (targetMode === PlayMode.normal) {
-                if (playModes.size === 1 && playModes.has(PlayMode.normal)) {
-                    return;
-                }
-
-                setPlayModes(() => new Set([PlayMode.normal]));
-                return;
-            }
-
-            setPlayModes((prevModes) => {
-                const newModes = new Set(prevModes);
-
-                if (newModes.has(targetMode)) {
-                    newModes.delete(targetMode);
-
-                    if (newModes.size === 0) {
-                        newModes.add(PlayMode.normal);
-                    }
-                } else {
-                    if (newModes.has(PlayMode.normal) && newModes.size === 1) {
-                        newModes.delete(PlayMode.normal);
-                    }
-                    newModes.add(targetMode);
-                }
-
-                resolvePlayModeConflicts(newModes, targetMode, false);
-                return newModes;
-            });
-        },
-        [resolvePlayModeConflicts, playModes]
-    );
+    const handlePlayMode = useCallback((targetMode: PlayMode) => {
+        setPlayModes((prevModes) => {
+            const manager = new PlayModeManager(prevModes);
+            return manager.toggle(targetMode);
+        });
+    }, []);
 
     const handleToggleSubtitleTrack = useCallback(
         (track: number) =>
@@ -1026,54 +979,30 @@ const Player = React.memo(function Player({
 
             event.preventDefault();
 
-            if (targetMode === PlayMode.normal) {
-                if (playModes.size === 1 && playModes.has(PlayMode.normal)) {
-                    return;
-                }
+            setPlayModes((prevModes) => {
+                const manager = new PlayModeManager(prevModes);
 
-                if (playModes.has(PlayMode.fastForward)) {
+                if (targetMode === PlayMode.normal && prevModes.has(PlayMode.fastForward)) {
                     updatePlaybackRate(1, true);
                 }
 
-                setPlayModes(() => {
-                    const newModes = new Set([PlayMode.normal]);
-                    channel?.playModes(newModes);
-                    onPlayModeChangedViaBind(playModes, targetMode);
-                    return newModes;
-                });
-                return;
-            }
-
-            setPlayModes((prevModes) => {
-                const newModes = new Set(prevModes);
-
-                if (newModes.has(targetMode)) {
-                    newModes.delete(targetMode);
-
-                    if (prevModes.has(PlayMode.fastForward) && targetMode === PlayMode.fastForward) {
-                        updatePlaybackRate(1, true);
-                    }
-
-                    if (newModes.size === 0) {
-                        newModes.add(PlayMode.normal);
-                    }
-                } else {
-                    if (newModes.has(PlayMode.normal) && newModes.size === 1) {
-                        newModes.delete(PlayMode.normal);
-                    }
-                    newModes.add(targetMode);
+                if (targetMode === PlayMode.fastForward && prevModes.has(PlayMode.fastForward)) {
+                    updatePlaybackRate(1, true);
                 }
 
-                resolvePlayModeConflicts(newModes, targetMode, true);
+                const newModes = manager.toggle(targetMode, ({ shouldResetPlaybackRate }) => {
+                    if (shouldResetPlaybackRate) {
+                        updatePlaybackRate(1, true);
+                    }
+                });
 
                 channel?.playModes(newModes);
-
                 onPlayModeChangedViaBind(prevModes, targetMode);
 
                 return newModes;
             });
         },
-        [playModeEnabled, playModes, updatePlaybackRate, resolvePlayModeConflicts, channel, onPlayModeChangedViaBind]
+        [playModeEnabled, updatePlaybackRate, channel, onPlayModeChangedViaBind]
     );
 
     useEffect(() => {

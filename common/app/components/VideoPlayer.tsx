@@ -38,6 +38,7 @@ import Clock from '../services/clock';
 import Controls, { Point } from './Controls';
 import PlayerChannel from '../services/player-channel';
 import ChromeExtension from '../services/chrome-extension';
+import { PlayModeManager } from '../services/play-mode-manager';
 import { type AlertColor } from '@mui/material/Alert';
 import Alert from './Alert';
 import { useSubtitleDomCache } from '../hooks/use-subtitle-dom-cache';
@@ -609,7 +610,9 @@ export default function VideoPlayer({
             autoPauseContextRef.current?.clear();
         });
 
-        playerChannel.onPlayModes((modes) => setPlayModes(modes));
+        playerChannel.onPlayModes((modes) => {
+            setPlayModes(modes);
+        });
         playerChannel.onHideSubtitlePlayerToggle((hidden) => setSubtitlePlayerHidden(hidden));
         playerChannel.onAppBarToggle((hidden) => setAppBarHidden(hidden));
         playerChannel.onFullscreenToggle((fullscreen) => requestFullscreen(fullscreen));
@@ -1343,20 +1346,6 @@ export default function VideoPlayer({
         );
     }, [keyBinder, playerChannel]);
 
-    function resolvePlayModeConflicts(modes: Set<PlayMode>, newMode: PlayMode) {
-        const conflicts: [PlayMode, PlayMode][] = [
-            [PlayMode.condensed, PlayMode.fastForward], // Both modify playback timing
-        ];
-
-        for (const [mode1, mode2] of conflicts) {
-            if (newMode === mode1 && modes.has(mode2)) {
-                modes.delete(mode2);
-            } else if (newMode === mode2 && modes.has(mode1)) {
-                modes.delete(mode1);
-            }
-        }
-    }
-
     const togglePlayMode = useCallback(
         (event: KeyboardEvent, targetMode: PlayMode) => {
             if (subtitles.length === 0) {
@@ -1365,34 +1354,8 @@ export default function VideoPlayer({
 
             event.preventDefault();
 
-            let newPlayModes: Set<PlayMode>;
-
-            // Special handling for PlayMode.normal - sets it as the only mode
-            if (targetMode === PlayMode.normal) {
-                // If already in normal-only, nothing to do
-                if (playModes.size === 1 && playModes.has(PlayMode.normal)) {
-                    return;
-                }
-
-                newPlayModes = new Set([PlayMode.normal]);
-            } else {
-                newPlayModes = new Set(playModes);
-
-                if (newPlayModes.has(targetMode)) {
-                    newPlayModes.delete(targetMode);
-
-                    if (newPlayModes.size === 0) {
-                        newPlayModes.add(PlayMode.normal);
-                    }
-                } else {
-                    if (newPlayModes.has(PlayMode.normal) && newPlayModes.size === 1) {
-                        newPlayModes.delete(PlayMode.normal);
-                    }
-                    newPlayModes.add(targetMode);
-                }
-            }
-
-            resolvePlayModeConflicts(newPlayModes, targetMode);
+            const manager = new PlayModeManager(playModes);
+            const newPlayModes = manager.toggle(targetMode);
             playerChannel.playModes(newPlayModes);
             onPlayModeChangedViaBind(playModes, targetMode);
         },
@@ -1456,34 +1419,8 @@ export default function VideoPlayer({
 
     const handlePlayMode = useCallback(
         (targetMode: PlayMode) => {
-            // Special handling for PlayMode.normal - sets it as the only mode
-            if (targetMode === PlayMode.normal) {
-                // If already in normal-only, nothing to do
-                if (playModes.size === 1 && playModes.has(PlayMode.normal)) {
-                    return;
-                }
-
-                const newModes = new Set([PlayMode.normal]);
-                playerChannel.playModes(newModes);
-                return;
-            }
-
-            const newModes = new Set(playModes);
-
-            if (newModes.has(targetMode)) {
-                newModes.delete(targetMode);
-
-                if (newModes.size === 0) {
-                    newModes.add(PlayMode.normal);
-                }
-            } else {
-                if (newModes.has(PlayMode.normal) && newModes.size === 1) {
-                    newModes.delete(PlayMode.normal);
-                }
-                newModes.add(targetMode);
-            }
-
-            resolvePlayModeConflicts(newModes, targetMode);
+            const manager = new PlayModeManager(playModes);
+            const newModes = manager.toggle(targetMode);
             playerChannel.playModes(newModes);
         },
         [playerChannel, playModes]
