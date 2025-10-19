@@ -16,17 +16,10 @@ import {
     PostMineAction,
     ToggleVideoSelectMessage,
 } from '@project/common';
-import { isFirefoxBuild } from './build-flags';
 
 let client: WebSocketClient | undefined;
 
 export const bindWebSocketClient = async (settings: SettingsProvider, tabRegistry: TabRegistry) => {
-    if (isFirefoxBuild) {
-        // Firefox does not allow non-TLS websocket connections from pages served over https
-        // So the websocket interface simply does not work
-        return;
-    }
-
     client?.unbind();
     const url = await settings.getSingle('webSocketServerUrl');
 
