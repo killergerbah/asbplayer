@@ -9,14 +9,12 @@ import {
     ActiveProfileMessage,
     SettingsUpdatedMessage,
     AnkiUiBridgeExportedMessage,
+    EncodeMp3InServiceWorkerMessage,
 } from '@project/common';
 import { AnkiSettings, SettingsProvider, ankiSettingsKeys } from '@project/common/settings';
 import { sourceString } from '@project/common/util';
 import UiFrame from '../services/ui-frame';
 import { fetchLocalization } from '../services/localization-fetcher';
-import { Mp3Encoder } from '@project/common/audio-clip';
-import { base64ToBlob, blobToBase64 } from '@project/common/base64';
-import { mp3WorkerFactory } from '../services/mp3-worker-factory';
 import { ExtensionGlobalStateProvider } from '../services/extension-global-state-provider';
 import { isOnTutorialPage } from '@/services/tutorial';
 
@@ -137,13 +135,18 @@ export class TabAnkiUiController {
                         return;
                     case 'encode-mp3':
                         const { base64, messageId, extension } = message as EncodeMp3Message;
-                        const encodedBlob = await Mp3Encoder.encode(
-                            await base64ToBlob(base64, `audio/${extension}`),
-                            mp3WorkerFactory
-                        );
+                        const encodeMp3Command: TabToExtensionCommand<EncodeMp3InServiceWorkerMessage> = {
+                            sender: 'asbplayer-video-tab',
+                            message: {
+                                command: 'encode-mp3',
+                                base64,
+                                extension,
+                            },
+                        };
+                        const encodedBase64 = await browser.runtime.sendMessage(encodeMp3Command);
                         client.sendMessage({
                             messageId,
-                            base64: await blobToBase64(encodedBlob),
+                            base64: encodedBase64,
                         });
                         return;
                     case 'resume':
