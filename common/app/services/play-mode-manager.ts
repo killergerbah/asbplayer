@@ -42,7 +42,7 @@ export default class PlayModeManager {
 
     static normalizePlayModes(modes: Set<PlayMode>, oldModes: Set<PlayMode>): Set<PlayMode> {
         const normalizedModes = new Set(modes);
-        
+
         if (normalizedModes.has(PlayMode.normal)) {
             if (normalizedModes.size > 1) {
                 normalizedModes.clear();
@@ -61,7 +61,7 @@ export default class PlayModeManager {
                 normalizedModes.delete(PlayMode.fastForward);
             }
         }
-        
+
         return normalizedModes;
     }
 

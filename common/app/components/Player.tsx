@@ -240,7 +240,7 @@ const Player = React.memo(function Player({
     const handleSubtitlePlayerResizeEnd = useCallback(() => setSubtitlePlayerResizing(false), []);
 
     const handleOnStartedShowingSubtitle = useCallback(() => {
-    if (
+        if (
             !playModes.has(PlayMode.autoPause) ||
             settings.autoPausePreference !== AutoPausePreference.atStart ||
             videoFileUrl // Let VideoPlayer do the auto-pausing

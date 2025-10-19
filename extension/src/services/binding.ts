@@ -322,12 +322,12 @@ export default class Binding {
                 };
                 this.subtitleController.autoPauseContext.onWillStopShowing = (subtitle) => {
                     const shouldRepeat = this._playModes.has(PlayMode.repeat);
-                    
+
                     if (this.autoPausePreference === AutoPausePreference.atEnd) {
                         if (!this.recordingMedia) {
                             this.pause();
                         }
-                        
+
                         this._pendingRepeatTime = 0;
                         if (shouldRepeat) {
                             this._pendingRepeatTime = subtitle.start / 1000;
