@@ -29,7 +29,7 @@ import SubtitlePlayer, { DisplaySubtitleModel, minSubtitlePlayerWidth } from './
 import VideoChannel from '../services/video-channel';
 import ChromeExtension from '../services/chrome-extension';
 import PlaybackPreferences from '../services/playback-preferences';
-import { PlayModeManager } from '../services/play-mode-manager';
+import PlayModeManager from '../services/play-mode-manager';
 import { useWindowSize } from '../hooks/use-window-size';
 import { useAppBarHeight } from '../hooks/use-app-bar-height';
 import { createBlobUrl } from '../../blob-url';
@@ -240,8 +240,7 @@ const Player = React.memo(function Player({
     const handleSubtitlePlayerResizeEnd = useCallback(() => setSubtitlePlayerResizing(false), []);
 
     const handleOnStartedShowingSubtitle = useCallback(() => {
-        console.log('handleOnStartedShowingSubtitle', playModes);
-        if (
+    if (
             !playModes.has(PlayMode.autoPause) ||
             settings.autoPausePreference !== AutoPausePreference.atStart ||
             videoFileUrl // Let VideoPlayer do the auto-pausing
@@ -254,7 +253,6 @@ const Player = React.memo(function Player({
 
     const handleOnWillStopShowingSubtitle = useCallback(
         async (subtitle: SubtitleModel) => {
-            console.log('handleOnWillStopShowingSubtitle', playModes);
             pendingTimeRef.current = 0;
 
             const isAutoPauseAtEndEnabled =
