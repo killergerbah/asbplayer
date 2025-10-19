@@ -38,7 +38,7 @@ import Clock from '../services/clock';
 import Controls, { Point } from './Controls';
 import PlayerChannel from '../services/player-channel';
 import ChromeExtension from '../services/chrome-extension';
-import { PlayModeManager } from '../services/play-mode-manager';
+import PlayModeManager from '../services/play-mode-manager';
 import { type AlertColor } from '@mui/material/Alert';
 import Alert from './Alert';
 import { useSubtitleDomCache } from '../hooks/use-subtitle-dom-cache';
@@ -1611,7 +1611,7 @@ export default function VideoPlayer({
             postMineAction: settings.clickToMineDefaultAction,
             subtitleDisplaying: showSubtitles.length > 0,
             subtitlesAreVisible: displaySubtitles,
-            playModes,
+            playModes: Array.from(playModes),
             themeType: settings.themeType,
         };
     };

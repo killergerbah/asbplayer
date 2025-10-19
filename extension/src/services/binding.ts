@@ -49,7 +49,7 @@ import {
 } from '@project/common';
 import Mp3Encoder from '@project/common/audio-clip/mp3-encoder';
 import { adjacentSubtitle } from '@project/common/key-binder';
-import { PlayModeManager } from '@project/common/app/services/play-mode-manager';
+import PlayModeManager from '@project/common/app/services/play-mode-manager';
 import {
     extractAnkiSettings,
     PauseOnHoverMode,
@@ -233,74 +233,32 @@ export default class Binding {
 
     set playModes(modes: Set<PlayMode>) {
         const oldModes = new Set(this._playModes);
-        const newModes = new Set(modes);
+        const normalizedModes = PlayModeManager.normalizePlayModes(modes, oldModes);
+        const { added, removed } = PlayModeManager.getModeChanges(oldModes, normalizedModes);
 
-        this._validatePlayModes(newModes);
-
-        for (const mode of oldModes) {
-            if (!newModes.has(mode)) {
-                this._disablePlayMode(mode, false);
-            }
+        for (const mode of removed) {
+            this._disablePlayMode(mode, false);
         }
 
-        for (const mode of newModes) {
-            if (!oldModes.has(mode)) {
-                this._enablePlayMode(mode);
-            }
+        for (const mode of added) {
+            this._enablePlayMode(mode);
         }
 
-        this._playModes = new Set(newModes);
+        this._playModes = normalizedModes;
         this.mobileVideoOverlayController.updateModel();
-    }
-
-    private _validatePlayModes(modes: Set<PlayMode>): void {
-        const oldModes = new Set(this._playModes);
-
-        if (modes.has(PlayMode.normal)) {
-            if (modes.size > 1) {
-                modes.clear();
-                modes.add(PlayMode.normal);
-            }
-            return;
-        }
-
-        if (modes.has(PlayMode.condensed) && modes.has(PlayMode.fastForward)) {
-            const fastForwardWasOld = oldModes.has(PlayMode.fastForward);
-            const condensedWasOld = oldModes.has(PlayMode.condensed);
-
-            if (!fastForwardWasOld && condensedWasOld) {
-                modes.delete(PlayMode.condensed);
-            } else {
-                modes.delete(PlayMode.fastForward);
-            }
-        }
     }
 
     togglePlayMode(targetMode: PlayMode) {
         const manager = new PlayModeManager(this._playModes);
         const newModes = manager.toggle(targetMode);
+        const { added, removed } = PlayModeManager.getModeChanges(this._playModes, newModes);
 
-        const addedModes = new Set<PlayMode>();
-        const removedModes = new Set<PlayMode>();
-
-        for (const mode of newModes) {
-            if (!this._playModes.has(mode)) {
-                addedModes.add(mode);
-            }
-        }
-
-        for (const mode of this._playModes) {
-            if (!newModes.has(mode)) {
-                removedModes.add(mode);
-            }
-        }
-
-        for (const mode of removedModes) {
+        for (const mode of removed) {
             const showNotif = mode === targetMode && targetMode !== PlayMode.normal;
             this._disablePlayMode(mode, showNotif);
         }
 
-        for (const mode of addedModes) {
+        for (const mode of added) {
             this._enablePlayMode(mode);
         }
 

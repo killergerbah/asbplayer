@@ -5,15 +5,64 @@ export interface ConflictResolutionContext {
     shouldResetPlaybackRate: boolean;
 }
 
-export class PlayModeManager {
+export interface PlayModeChanges {
+    readonly added: Set<PlayMode>;
+    readonly removed: Set<PlayMode>;
+}
+
+export default class PlayModeManager {
     private _modes: Set<PlayMode>;
-    private readonly _conflicts: [PlayMode, PlayMode][] = [[PlayMode.condensed, PlayMode.fastForward]];
+    private readonly _conflicts: readonly [PlayMode, PlayMode][] = [[PlayMode.condensed, PlayMode.fastForward]];
 
     constructor(initialModes: Set<PlayMode> = new Set([PlayMode.normal])) {
         this._modes = new Set(initialModes);
         if (this._modes.size === 0) {
             this._modes.add(PlayMode.normal);
         }
+    }
+
+    static getModeChanges(oldModes: Set<PlayMode>, newModes: Set<PlayMode>): PlayModeChanges {
+        const added = new Set<PlayMode>();
+        const removed = new Set<PlayMode>();
+
+        for (const mode of newModes) {
+            if (!oldModes.has(mode)) {
+                added.add(mode);
+            }
+        }
+
+        for (const mode of oldModes) {
+            if (!newModes.has(mode)) {
+                removed.add(mode);
+            }
+        }
+
+        return { added, removed };
+    }
+
+    static normalizePlayModes(modes: Set<PlayMode>, oldModes: Set<PlayMode>): Set<PlayMode> {
+        const normalizedModes = new Set(modes);
+        
+        if (normalizedModes.has(PlayMode.normal)) {
+            if (normalizedModes.size > 1) {
+                normalizedModes.clear();
+                normalizedModes.add(PlayMode.normal);
+            }
+            return normalizedModes;
+        }
+
+        if (normalizedModes.has(PlayMode.condensed) && normalizedModes.has(PlayMode.fastForward)) {
+            const fastForwardWasOld = oldModes.has(PlayMode.fastForward);
+            const condensedWasOld = oldModes.has(PlayMode.condensed);
+
+            if (!fastForwardWasOld && condensedWasOld) {
+                normalizedModes.delete(PlayMode.condensed);
+            } else {
+                normalizedModes.delete(PlayMode.fastForward);
+            }
+        }
+        
+        return normalizedModes;
     }
 
     getModes(): Set<PlayMode> {
