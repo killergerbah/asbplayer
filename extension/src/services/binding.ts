@@ -363,17 +363,19 @@ export default class Binding {
                     this.pause();
                 };
                 this.subtitleController.autoPauseContext.onWillStopShowing = (subtitle) => {
-                    if (this.recordingMedia || this.autoPausePreference !== AutoPausePreference.atEnd) {
-                        return;
-                    }
-
-                    this.pause();
-
                     const shouldRepeat = this._playModes.has(PlayMode.repeat);
-                    this._pendingRepeatTime = 0;
-
-                    if (shouldRepeat) {
-                        this._pendingRepeatTime = subtitle.start / 1000;
+                    
+                    if (this.autoPausePreference === AutoPausePreference.atEnd) {
+                        if (!this.recordingMedia) {
+                            this.pause();
+                        }
+                        
+                        this._pendingRepeatTime = 0;
+                        if (shouldRepeat) {
+                            this._pendingRepeatTime = subtitle.start / 1000;
+                        }
+                    } else if (shouldRepeat) {
+                        this.seek(subtitle.start / 1000);
                     }
                 };
                 this.subtitleController.notification('info.enabledAutoPause');
