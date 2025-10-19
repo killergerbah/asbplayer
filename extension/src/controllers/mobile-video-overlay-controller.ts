@@ -181,7 +181,7 @@ export class MobileVideoOverlayController {
             postMineAction: clickToMineDefaultAction,
             subtitleDisplaying,
             subtitlesAreVisible: streamingDisplaySubtitles,
-            playModes: this._context.playModes,
+            playModes: Array.from(this._context.playModes),
             themeType,
         };
         return model;

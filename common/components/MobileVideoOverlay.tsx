@@ -508,7 +508,7 @@ const MobileVideoOverlay = React.forwardRef<HTMLDivElement, Props>(function Mobi
                     open={playModeSelectorOpen}
                     anchorEl={playModeSelectorAnchorEl}
                     onClose={handleClosePlayModeSelector}
-                    selectedPlayModes={model.playModes}
+                    selectedPlayModes={new Set(model.playModes)}
                     onPlayMode={handlePlayModeSelected}
                     listStyle={{
                         display: 'flex',
