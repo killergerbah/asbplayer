@@ -167,6 +167,7 @@ export const defaultSettings: AsbplayerSettings = {
         yleAreena: {},
         hboMax: {},
         stremio: {},
+        cijapanese: {},
     },
     webSocketClientEnabled: false,
     webSocketServerUrl: 'ws://127.0.0.1:8766/ws',
