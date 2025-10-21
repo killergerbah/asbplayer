@@ -10,6 +10,7 @@ import {
     cropAndResize,
     CurrentTimeFromVideoMessage,
     CurrentTimeToVideoMessage,
+    EncodeMp3InServiceWorkerMessage,
     ExtensionSyncMessage,
     ImageCaptureParams,
     NotificationDialogMessage,
@@ -73,7 +74,6 @@ import { ExtensionSettingsStorage } from './extension-settings-storage';
 import { i18nInit } from './i18n';
 import KeyBindings from './key-bindings';
 import { shouldShowUpdateAlert } from './update-alert';
-import { mp3WorkerFactory } from './mp3-worker-factory';
 import { bufferToBase64 } from '@project/common/base64';
 import { pgsParserWorkerFactory } from './pgs-parser-worker-factory';
 
@@ -1500,9 +1500,16 @@ export default class Binding {
 
     private async _sendAudioBase64(base64: string, requestId: string, encodeAsMp3: boolean) {
         if (encodeAsMp3) {
-            const blob = await (await fetch('data:audio/webm;base64,' + base64)).blob();
-            const mp3Blob = await Mp3Encoder.encode(blob, mp3WorkerFactory);
-            base64 = bufferToBase64(await mp3Blob.arrayBuffer());
+            const encodeMp3Command: VideoToExtensionCommand<EncodeMp3InServiceWorkerMessage> = {
+                sender: 'asbplayer-video',
+                message: {
+                    command: 'encode-mp3',
+                    base64,
+                    extension: 'webm',
+                },
+                src: this.video.src,
+            };
+            base64 = await browser.runtime.sendMessage(encodeMp3Command);
         }
 
         const command: VideoToExtensionCommand<AudioBase64Message> = {
