@@ -1,25 +1,26 @@
-import { VideoData } from '@project/common';
+import type { VideoData, VideoDataSubtitleTrackDef } from '@project/common';
+import { trackId } from '@/pages/util.ts';
+
 export default defineUnlistedScript(() => {
     document.addEventListener('asbplayer-get-synced-data', () => {
         const tracks = Array.from(document.querySelectorAll("video track"));
-        const subtitles = [];
+        const subtitles: VideoData["subtitles"] = [];
 
-        for (let i = 0; i < tracks.length; i++) {
-            const track = tracks[i];
+        for (const track of tracks) {
             const url = track.getAttribute("src");
             const label = track.getAttribute("label");
-            const language = track.getAttribute("srclang");
-            
-            if (!url || !label || !language) continue;
-
-            const extension = url.split(".").at(-1) || "";
-            subtitles.push({
-                id: (subtitles.length).toString(),
-                label,
-                language,
-                url,
-                extension,
-            });
+            if (url && label) {
+                const trackDef: VideoDataSubtitleTrackDef = {
+                    label,
+                    language: track.getAttribute("srclang") ?? undefined,
+                    url,
+                    extension: url.split(".").at(-1)!,
+                }
+                subtitles.push({
+                    id: trackId(trackDef),
+                    ...trackDef,
+                });
+            }
         }
 
         const response: VideoData = {
