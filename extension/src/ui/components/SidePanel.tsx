@@ -297,18 +297,6 @@ export default function SidePanel({ settings, extension }: Props) {
     const [bulkCurrent, setBulkCurrent] = useState<number>(0);
     const [bulkTotal, setBulkTotal] = useState<number>(0);
 
-    // Force SidePanel to re-render when mining starts/stops so UI can refresh
-    const [, setBulkUiTick] = useState<number>(0);
-    useEffect(() => {
-        const update = () => setBulkUiTick((t) => t + 1);
-        const unsubStopped = miningContext.onEvent('stopped-mining', update);
-        const unsubStarted = miningContext.onEvent('started-mining', update);
-        return () => {
-            unsubStarted();
-            unsubStopped();
-        };
-    }, []);
-
     // Listen for bulk export lifecycle messages from background
     useEffect(() => {
         const listener = (message: any) => {
