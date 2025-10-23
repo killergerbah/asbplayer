@@ -7,9 +7,7 @@ export default class BulkExportStartedHandler {
     constructor(private readonly _cardPublisher: CardPublisher) {}
     
     handle(request: any, sender: any, sendResponse: any): boolean {
-        // Reset the card-publisher cancellation state
-        this._cardPublisher.resetBulkExportCancellation();
-        
+        this._cardPublisher.bulkExportCancelled = false;
         return false;
     }
 }

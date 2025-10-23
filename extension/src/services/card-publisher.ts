@@ -16,26 +16,10 @@ import { IndexedDBCopyHistoryRepository } from '@project/common/copy-history';
 
 export class CardPublisher {
     private readonly _settingsProvider: SettingsProvider;
-    private _bulkExportCancelled = false;
+    bulkExportCancelled = false;
     
     constructor(settingsProvider: SettingsProvider) {
         this._settingsProvider = settingsProvider;
-    }
-    
-    setBulkExportCancelled(cancelled: boolean) {
-        if (this._bulkExportCancelled === cancelled) {
-            return;
-        }
-        
-        this._bulkExportCancelled = cancelled;
-    }
-    
-    resetBulkExportCancellation() {
-        this._bulkExportCancelled = false;
-    }
-    
-    get bulkExportCancelled() {
-        return this._bulkExportCancelled;
     }
 
     async publish(card: CardModel, postMineAction?: PostMineAction, tabId?: number, src?: string) {
@@ -73,7 +57,7 @@ export class CardPublisher {
             return;
         }
 
-        if (this._bulkExportCancelled) {
+        if (this.bulkExportCancelled) {
             return;
         }
 
