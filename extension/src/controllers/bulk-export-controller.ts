@@ -131,9 +131,7 @@ export default class BulkExportController {
             },
             src: this._context.video.src,
         };
-        try {
-            await browser.runtime.sendMessage(startedMessage);
-        } catch {}
+        browser.runtime.sendMessage(startedMessage).catch(console.error);
 
         // Kick off first item
         this._sendNext();
