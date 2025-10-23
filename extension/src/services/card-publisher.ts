@@ -106,7 +106,7 @@ export class CardPublisher {
         try {
             cardName = await exportCard(card, ankiSettings, 'default');
         } catch (e) {
-            if (e instanceof DuplicateNoteError || (e instanceof Error && e.message.includes('duplicate'))) {
+            if (e instanceof DuplicateNoteError) {
                 const cardExportedCommand: ExtensionToVideoCommand<CardExportedMessage> = {
                     sender: 'asbplayer-extension-to-video',
                     message: {

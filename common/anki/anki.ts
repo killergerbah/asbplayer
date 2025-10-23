@@ -458,6 +458,9 @@ export class Anki {
         const json = await this.fetcher.fetch(ankiConnectUrl || this.settingsProvider.ankiConnectUrl, body);
 
         if (json.error) {
+            if (json.error.includes('duplicate')) {
+                throw new DuplicateNoteError(json.error);
+            }
             throw new Error(json.error);
         }
 
