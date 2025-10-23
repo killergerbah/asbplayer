@@ -64,7 +64,7 @@ export default class BulkExportController {
 
                 this._inFlight = false;
                 this._currentIndex++;
-                
+
                 if (exported.exportError) {
                     console.error('Bulk export error:', exported.exportError);
                 } else if (exported.skippedDuplicate) {
@@ -74,7 +74,7 @@ export default class BulkExportController {
                 } else {
                     this._notifyProgress();
                 }
-                
+
                 this._sendNext();
             }
 
@@ -116,7 +116,10 @@ export default class BulkExportController {
         let startQueueIndex = 0;
         if (currentSubtitle) {
             const currentIdx = subtitles.findIndex(
-                (s) => s.start === currentSubtitle.start && s.end === currentSubtitle.end && s.text === currentSubtitle.text
+                (s) =>
+                    s.start === currentSubtitle.start &&
+                    s.end === currentSubtitle.end &&
+                    s.text === currentSubtitle.text
             );
             if (currentIdx >= 0) {
                 const found = subtitleIndices.findIndex((i) => i >= currentIdx);
@@ -195,9 +198,10 @@ export default class BulkExportController {
             this._context.subtitleController.surroundingSubtitlesCountRadius,
             this._context.subtitleController.surroundingSubtitlesTimeRadius
         );
-        const surroundingSubtitles = Array.isArray(around.surroundingSubtitles) && around.surroundingSubtitles.length > 0
-            ? around.surroundingSubtitles
-            : [nextSubtitle];
+        const surroundingSubtitles =
+            Array.isArray(around.surroundingSubtitles) && around.surroundingSubtitles.length > 0
+                ? around.surroundingSubtitles
+                : [nextSubtitle];
 
         const copyMsg: CopySubtitleMessage = {
             command: 'copy-subtitle',
@@ -247,5 +251,3 @@ export default class BulkExportController {
         });
     }
 }
-
-

@@ -155,11 +155,7 @@ export default class RecordMediaHandler {
         };
 
         if (isBulkExport) {
-            this._cardPublisher.publishBulk(
-                card,
-                senderTab.id!,
-                recordMediaCommand.src
-            );
+            this._cardPublisher.publishBulk(card, senderTab.id!, recordMediaCommand.src);
         } else {
             this._cardPublisher.publish(
                 card,

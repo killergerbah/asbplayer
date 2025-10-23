@@ -13,7 +13,10 @@ import {
 import { SettingsProvider } from '@project/common/settings';
 import { mockSurroundingSubtitles } from '@project/common/util';
 import { CardPublisher } from '../../services/card-publisher';
-import AudioRecorderService, { TimedRecordingInProgressError, NoRecordingInProgressServiceError } from '../../services/audio-recorder-service';
+import AudioRecorderService, {
+    TimedRecordingInProgressError,
+    NoRecordingInProgressServiceError,
+} from '../../services/audio-recorder-service';
 
 export default class StopRecordingMediaHandler {
     private readonly _audioRecorder: AudioRecorderService;
@@ -129,9 +132,7 @@ export default class StopRecordingMediaHandler {
                 // We should do nothing else because execution in record-media-handler will continue
                 // and publish the card etc.
                 return;
-            }
-            else if (e instanceof NoRecordingInProgressServiceError) {
-                
+            } else if (e instanceof NoRecordingInProgressServiceError) {
                 return;
             }
 

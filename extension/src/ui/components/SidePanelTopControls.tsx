@@ -22,7 +22,15 @@ interface Props {
 }
 
 const SidePanelTopControls = React.forwardRef(function SidePanelTopControls(
-    { show, canDownloadSubtitles, onLoadSubtitles, onDownloadSubtitles, onBulkExportSubtitles, onShowMiningHistory, disableBulkExport }: Props,
+    {
+        show,
+        canDownloadSubtitles,
+        onLoadSubtitles,
+        onDownloadSubtitles,
+        onBulkExportSubtitles,
+        onShowMiningHistory,
+        disableBulkExport,
+    }: Props,
     ref: ForwardedRef<HTMLDivElement>
 ) {
     const { t } = useTranslation();

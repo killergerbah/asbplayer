@@ -108,7 +108,11 @@ export interface ExportParams {
     ankiConnectUrl?: string;
 }
 
-export async function exportCard(card: CardModel, ankiSettings: AnkiSettings, exportMode: AnkiExportMode = 'default'): Promise<string> {
+export async function exportCard(
+    card: CardModel,
+    ankiSettings: AnkiSettings,
+    exportMode: AnkiExportMode = 'default'
+): Promise<string> {
     const anki = new Anki(ankiSettings);
     const source = sourceString(card.subtitleFileName, card.mediaTimestamp);
     let audioClip =

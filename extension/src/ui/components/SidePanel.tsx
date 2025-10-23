@@ -305,12 +305,19 @@ export default function SidePanel({ settings, extension }: Props) {
                 setBulkOpen(true);
                 setBulkTotal(total);
                 setBulkCurrent(0);
-            } else if (message?.sender === 'asbplayer-extension-to-video' && message?.message?.command === 'card-exported') {
+            } else if (
+                message?.sender === 'asbplayer-extension-to-video' &&
+                message?.message?.command === 'card-exported'
+            ) {
                 const exported = message.message as CardExportedMessage;
                 if (exported.isBulkExport) {
                     setBulkCurrent((c) => c + 1);
                 }
-            } else if (message?.sender === 'asbplayerv2' && (message?.message?.command === 'bulk-export-completed' || message?.message?.command === 'bulk-export-cancelled')) {
+            } else if (
+                message?.sender === 'asbplayerv2' &&
+                (message?.message?.command === 'bulk-export-completed' ||
+                    message?.message?.command === 'bulk-export-cancelled')
+            ) {
                 setBulkOpen(false);
             }
         };
@@ -604,9 +611,14 @@ export default function SidePanel({ settings, extension }: Props) {
                     )}
                 </>
             )}
-            
+
             {/* Bulk Export Modal - rendered outside the main content to ensure it's always on top */}
-            <BulkExportModal open={bulkOpen} currentIndex={bulkCurrent} totalItems={bulkTotal} onCancel={handleBulkExportCancel} />
+            <BulkExportModal
+                open={bulkOpen}
+                currentIndex={bulkCurrent}
+                totalItems={bulkTotal}
+                onCancel={handleBulkExportCancel}
+            />
         </div>
     );
 }

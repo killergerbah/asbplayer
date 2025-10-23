@@ -13,7 +13,7 @@ import DialogActions from '@mui/material/DialogActions';
 interface BulkExportModalProps {
     open: boolean;
     currentIndex: number; // completed count
-    totalItems: number;   // total count
+    totalItems: number; // total count
     onCancel: () => void;
 }
 
@@ -39,9 +39,7 @@ export default function BulkExportModal({ open, currentIndex, totalItems, onCanc
             }}
             BackdropProps={{ sx: { backgroundColor: 'rgba(0, 0, 0, 1)' } }}
         >
-            <DialogTitle id="bulk-export-title">
-                {t('info.bulkExport.title', 'Bulk Export in Progress')}
-            </DialogTitle>
+            <DialogTitle id="bulk-export-title">{t('info.bulkExport.title', 'Bulk Export in Progress')}</DialogTitle>
             <DialogContent dividers>
                 <Box display="flex" alignItems="center" justifyContent="center" mb={3}>
                     <CircularProgress size={64} color="primary" />
@@ -51,13 +49,12 @@ export default function BulkExportModal({ open, currentIndex, totalItems, onCanc
                 </Typography>
                 <Box width="100%" mt={3}>
                     <Typography variant="h6" align="center" gutterBottom>
-                        {t('info.bulkExport.progressCompleted', 'Exported {{current}} of {{total}}', { current: currentIndex, total: totalItems })}
+                        {t('info.bulkExport.progressCompleted', 'Exported {{current}} of {{total}}', {
+                            current: currentIndex,
+                            total: totalItems,
+                        })}
                     </Typography>
-                    <LinearProgress
-                        variant="determinate"
-                        value={progress}
-                        sx={{ height: 10, borderRadius: 5 }}
-                    />
+                    <LinearProgress variant="determinate" value={progress} sx={{ height: 10, borderRadius: 5 }} />
                 </Box>
             </DialogContent>
             <DialogActions sx={{ justifyContent: 'center' }}>

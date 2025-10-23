@@ -17,7 +17,7 @@ import { IndexedDBCopyHistoryRepository } from '@project/common/copy-history';
 export class CardPublisher {
     private readonly _settingsProvider: SettingsProvider;
     bulkExportCancelled = false;
-    
+
     constructor(settingsProvider: SettingsProvider) {
         this._settingsProvider = settingsProvider;
     }
@@ -118,8 +118,12 @@ export class CardPublisher {
                     },
                     src,
                 };
-                try { await browser.tabs.sendMessage(tabId, cardExportedCommand); } catch {}
-                try { await browser.runtime.sendMessage(cardExportedCommand); } catch {}
+                try {
+                    await browser.tabs.sendMessage(tabId, cardExportedCommand);
+                } catch {}
+                try {
+                    await browser.runtime.sendMessage(cardExportedCommand);
+                } catch {}
                 return;
             }
             // If we're in the middle of a bulk export, a failure will hang the app.
@@ -136,8 +140,12 @@ export class CardPublisher {
                 },
                 src,
             };
-            try { await browser.tabs.sendMessage(tabId, cardExportedCommand); } catch {}
-            try { await browser.runtime.sendMessage(cardExportedCommand); } catch {}
+            try {
+                await browser.tabs.sendMessage(tabId, cardExportedCommand);
+            } catch {}
+            try {
+                await browser.runtime.sendMessage(cardExportedCommand);
+            } catch {}
             return;
         }
 
