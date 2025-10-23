@@ -15,7 +15,7 @@ import {
 } from '@project/common';
 import { SettingsProvider } from '@project/common/settings';
 import { CardPublisher } from '../../services/card-publisher';
-import AudioRecorderService, { DrmProtectedStreamError, AudioRequestSupersededError } from '../../services/audio-recorder-service';
+import AudioRecorderService, { DrmProtectedStreamError } from '../../services/audio-recorder-service';
 
 export default class RecordMediaHandler {
     private readonly _audioRecorder: AudioRecorderService;
@@ -117,19 +117,14 @@ export default class RecordMediaHandler {
                     base64: audioBase64,
                 };
             } catch (e) {
-                if (!(e instanceof DrmProtectedStreamError)) {
-                    if (e instanceof AudioRequestSupersededError) {
-                        // Treat as no-audio
-                        // Intentionally leave audioModel undefined
-                    } else {
-                        throw e;
-                    }
+                if (e instanceof DrmProtectedStreamError) {
+                    audioModel = {
+                        ...baseAudioModel,
+                        error: AudioErrorCode.drmProtected,
+                    };
+                } else {
+                    throw e;
                 }
-
-                audioModel = {
-                    ...baseAudioModel,
-                    error: AudioErrorCode.drmProtected,
-                };
             }
         }
 
