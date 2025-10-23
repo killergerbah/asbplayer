@@ -30,7 +30,6 @@ export default class BulkExportController {
     private _queue: number[] = [];
     private _currentIndex = 0;
     private _inFlight = false;
-    private _lastSkippedDuplicate = false;
     private _listener?: (
         message: any,
         sender: Browser.runtime.MessageSender,
@@ -65,8 +64,17 @@ export default class BulkExportController {
 
                 this._inFlight = false;
                 this._currentIndex++;
-                this._lastSkippedDuplicate = !!exported.skippedDuplicate;
-                this._notifyProgress();
+                
+                if (exported.exportError) {
+                    console.error('Bulk export error:', exported.exportError);
+                } else if (exported.skippedDuplicate) {
+                    this._context.subtitleController.notification('info.cardNotExported', {
+                        reason: 'Duplicate',
+                    });
+                } else {
+                    this._notifyProgress();
+                }
+                
                 this._sendNext();
             }
 
@@ -234,17 +242,9 @@ export default class BulkExportController {
         }
         const total = this._queue.length;
         const current = Math.min(this._currentIndex, total);
-        // Show status overlay; use a different message when a duplicate was skipped last
-        if (this._lastSkippedDuplicate) {
-            this._context.subtitleController.notification('info.cardNotExported', {
-                reason: 'Duplicate',
-            });
-            this._lastSkippedDuplicate = false;
-        } else {
-            this._context.subtitleController.notification('info.exportedCard', {
-                result: `${current}/${total}`,
-            });
-        }
+        this._context.subtitleController.notification('info.exportedCard', {
+            result: `${current}/${total}`,
+        });
     }
 }
 
