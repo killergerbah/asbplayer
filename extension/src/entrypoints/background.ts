@@ -65,6 +65,7 @@ import ClearCopyHistoryHandler from '@/handlers/asbplayerv2/clear-copy-history-h
 import SaveCopyHistoryHandler from '@/handlers/asbplayerv2/save-copy-history-handler';
 import PageConfigHandler from '@/handlers/asbplayerv2/page-config-handler';
 import EncodeMp3Handler from '@/handlers/video/encode-mp3-handler';
+import { CheckCspHandler, ToggleCspHandler } from '@/handlers/asbplayerv2/csp-handler';
 
 export default defineBackground(() => {
     if (!isFirefoxBuild) {
@@ -163,6 +164,8 @@ export default defineBackground(() => {
         new OpenExtensionShortcutsHandler(),
         new ExtensionCommandsHandler(),
         new PageConfigHandler(),
+        new CheckCspHandler(),
+        new ToggleCspHandler(),
         new AsbplayerV2ToVideoCommandForwardingHandler(),
         new CaptureVisibleTabHandler(),
         new RequestModelHandler(),

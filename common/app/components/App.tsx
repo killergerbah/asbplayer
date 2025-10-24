@@ -66,6 +66,7 @@ import CssBaseline from '@mui/material/CssBaseline';
 import { StyledEngineProvider } from '@mui/material/styles';
 import { useServiceWorker } from '../hooks/use-service-worker';
 import NeedRefreshDialog from './NeedRefreshDialog';
+import { AppCspAdapter } from '../services/app-csp-adapter';
 
 const latestExtensionVersion = '1.12.0';
 const extensionUrl =
@@ -250,6 +251,10 @@ function App({
     const playbackPreferences = usePlaybackPreferences(settings, extension);
     const theme = useMemo<Theme>(() => createTheme(settings.themeType), [settings.themeType]);
     const anki = useAnki({ settings, fetcher });
+    const cspAdapter = useMemo(
+        () => (extension.supportsCspPageSettings ? new AppCspAdapter(extension) : undefined),
+        [extension]
+    );
     const searchParams = useMemo(() => new URLSearchParams(location.search), []);
     const inVideoPlayer = useMemo(() => searchParams.get('video') !== null, [searchParams]);
     const [videoFullscreen, setVideoFullscreen] = useState<boolean>(false);
@@ -1334,6 +1339,7 @@ function App({
                             )}
                             <SettingsDialog
                                 anki={anki}
+                                cspAdapter={cspAdapter}
                                 extension={extension}
                                 open={settingsDialogOpen}
                                 onSettingsChanged={onSettingsChanged}

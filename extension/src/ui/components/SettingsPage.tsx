@@ -18,6 +18,7 @@ import SettingsProfileSelectMenu from '@project/common/components/SettingsProfil
 import { AsbplayerSettings, Profile, testCard } from '@project/common/settings';
 import { useTheme, type Theme } from '@mui/material/styles';
 import { settingsPageConfigs } from '@/services/pages';
+import { ExtensionCspAdapter } from '@/services/extension-csp-adapter';
 
 const useStyles = makeStyles<Theme>((theme) => ({
     root: {
@@ -88,6 +89,7 @@ const SettingsPage = ({ settings, inTutorial, onSettingsChanged, ...profileConte
         return undefined;
     }, []);
     const { supportedLanguages } = useSupportedLanguages();
+    const cspAdapter = useMemo(() => (isFirefoxBuild ? undefined : new ExtensionCspAdapter()), []);
 
     if (!settings || !anki || !commands || !i18nInitialized) {
         return null;
@@ -100,6 +102,7 @@ const SettingsPage = ({ settings, inTutorial, onSettingsChanged, ...profileConte
                 <DialogContent className={classes.content}>
                     <SettingsForm
                         anki={anki}
+                        cspAdapter={cspAdapter}
                         extensionInstalled
                         extensionVersion={browser.runtime.getManifest().version}
                         extensionSupportsAppIntegration

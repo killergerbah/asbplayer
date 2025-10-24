@@ -30,9 +30,7 @@ import TextField from '@mui/material/TextField';
 import Paper from '@mui/material/Paper';
 import TableContainer from '@mui/material/TableContainer';
 import Table from '@mui/material/Table';
-import TableHead from '@mui/material/TableHead';
 import TableBody from '@mui/material/TableBody';
-import TableRow from '@mui/material/TableRow';
 import TableRowWithHoverEffect from './TableRowWithHoverEffect';
 import TableCell from '@mui/material/TableCell';
 import Badge from '@mui/material/Badge';
@@ -95,6 +93,8 @@ import KeyBindRelatedSetting from './KeyBindRelatedSetting';
 import PageSettingsForm from './PageSettingsForm';
 import TuneIcon from '@mui/icons-material/Tune';
 import { pageMetadata } from '../pages';
+import { CspAdapter } from '../csp-adapter';
+import { useDisableCspDnrRule } from '../hooks/use-disable-csp-dns-rule';
 
 const defaultDeckName = 'Sentences';
 
@@ -141,8 +141,9 @@ const defaultNoteType = {
     ],
 };
 
-const pageSettingsHasModifications = (page: Page) => {
+const pageSettingsHasModifications = (page: Page, cspDisabled: boolean) => {
     return (
+        cspDisabled ||
         page.overrides !== undefined ||
         page.additionalHosts !== undefined ||
         (page as YoutubePage).targetLanguages !== undefined
@@ -748,6 +749,43 @@ function CustomStyleSetting({ customStyle, onCustomStyle, onDelete }: CustomStyl
     );
 }
 
+const PageSettingsTableRow: React.FC<{
+    pageKey: keyof PageSettings;
+    pageConfigs: PageConfigMap;
+    page: Page;
+    onClick: () => void;
+    cspAdapter?: CspAdapter;
+}> = ({ pageKey, pageConfigs, page, cspAdapter, onClick }) => {
+    const metadata = pageMetadata[pageKey];
+    const { cspDisabled } = useDisableCspDnrRule({ cspAdapter, pageKey });
+    return (
+        <TableRowWithHoverEffect key={pageKey} onClick={onClick}>
+            <TableCell
+                sx={{
+                    width: 48,
+                    background: `url(${pageConfigs[pageKey].faviconUrl})`,
+                    backgroundRepeat: 'no-repeat',
+                    backgroundPosition: '75%',
+                    backgroundSize: 24,
+                }}
+            />
+            <TableCell align="left">{metadata.title}</TableCell>
+            <TableCell align="right">
+                <Badge
+                    invisible={!pageSettingsHasModifications(page, cspDisabled ?? false)}
+                    color="warning"
+                    badgeContent=" "
+                    variant="dot"
+                >
+                    <IconButton>
+                        <TuneIcon />
+                    </IconButton>
+                </Badge>
+            </TableCell>
+        </TableRowWithHoverEffect>
+    );
+};
+
 enum TutorialStep {
     ankiConnect = 1,
     deck = 2,
@@ -809,6 +847,7 @@ export type PageConfigMap = { [K in keyof PageSettings]: SettingsFormPageConfig 
 
 interface Props {
     anki: Anki;
+    cspAdapter: CspAdapter | undefined;
     extensionInstalled: boolean;
     extensionVersion?: string;
     extensionSupportsAppIntegration: boolean;
@@ -843,6 +882,7 @@ const cssStyles = Object.keys(document.body.style).filter((s) => !isNumeric(s));
 
 export default function SettingsForm({
     anki,
+    cspAdapter,
     settings,
     pageConfigs,
     extensionInstalled,
@@ -1573,15 +1613,22 @@ export default function SettingsForm({
 
     const [pageSettingsFormKey, setPageSettingsFormKey] = useState<keyof PageSettings>('netflix');
     const [pageSettingsFormOpen, setPageSettingsFormOpen] = useState<boolean>(false);
-
+    const { cspDisabled, enableCsp, disableCsp } = useDisableCspDnrRule({ cspAdapter, pageKey: pageSettingsFormKey });
     return (
         <div className={classes.root}>
             {extensionSupportsPageSettings && pageConfigs && pageSettingsFormKey && (
                 <PageSettingsForm
+                    enableCsp={enableCsp}
+                    disableCsp={disableCsp}
+                    cspDisabled={cspDisabled ?? false}
+                    cspControlsEnabled={cspAdapter !== undefined}
                     open={pageSettingsFormOpen}
                     pageKey={pageSettingsFormKey}
                     page={settings.streamingPages[pageSettingsFormKey]}
-                    hasModifications={pageSettingsHasModifications(settings.streamingPages[pageSettingsFormKey])}
+                    hasModifications={pageSettingsHasModifications(
+                        settings.streamingPages[pageSettingsFormKey],
+                        cspDisabled ?? false
+                    )}
                     defaultPageConfig={pageConfigs[pageSettingsFormKey]}
                     onClose={() => setPageSettingsFormOpen(false)}
                     onPageChanged={(key, page) =>
@@ -2799,40 +2846,19 @@ export default function SettingsForm({
                                         <TableBody>
                                             {Object.keys(pageConfigs).map((key) => {
                                                 const pageKey = key as keyof PageSettings;
-                                                const metadata = pageMetadata[pageKey];
                                                 const page = settings.streamingPages[pageKey];
-
                                                 return (
-                                                    <TableRowWithHoverEffect
-                                                        key={key}
+                                                    <PageSettingsTableRow
+                                                        key={pageKey}
+                                                        pageKey={pageKey}
+                                                        page={page}
+                                                        pageConfigs={pageConfigs}
+                                                        cspAdapter={cspAdapter}
                                                         onClick={() => {
                                                             setPageSettingsFormKey(pageKey);
                                                             setPageSettingsFormOpen(true);
                                                         }}
-                                                    >
-                                                        <TableCell
-                                                            sx={{
-                                                                width: 48,
-                                                                background: `url(${pageConfigs[pageKey].faviconUrl})`,
-                                                                backgroundRepeat: 'no-repeat',
-                                                                backgroundPosition: '75%',
-                                                                backgroundSize: 24,
-                                                            }}
-                                                        />
-                                                        <TableCell align="left">{metadata.title}</TableCell>
-                                                        <TableCell align="right">
-                                                            <Badge
-                                                                invisible={!pageSettingsHasModifications(page)}
-                                                                color="warning"
-                                                                badgeContent=" "
-                                                                variant="dot"
-                                                            >
-                                                                <IconButton>
-                                                                    <TuneIcon />
-                                                                </IconButton>
-                                                            </Badge>
-                                                        </TableCell>
-                                                    </TableRowWithHoverEffect>
+                                                    />
                                                 );
                                             })}
                                         </TableBody>

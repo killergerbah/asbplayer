@@ -29,6 +29,9 @@ import {
     ClearCopyHistoryMessage,
     SetGlobalStateMessage,
     GetGlobalStateMessage,
+    ToggleCspMessage,
+    CheckCspMessage,
+    CheckCspResponse,
 } from '@project/common';
 import { AsbplayerSettings, PageSettings, Profile, SettingsFormPageConfig } from '@project/common/settings';
 import { GlobalState } from '@project/common/global-state';
@@ -132,6 +135,10 @@ export default class ChromeExtension {
         };
 
         window.addEventListener('message', this.windowEventListener);
+    }
+
+    get supportsCspPageSettings() {
+        return this.installed && !isFirefox && gte(this.version, '1.13.0');
     }
 
     get supportsPageSettings() {
@@ -515,6 +522,36 @@ export default class ChromeExtension {
         };
         window.postMessage(command);
         return this._createResponsePromise(messageId);
+    }
+
+    toggleCsp(pageKey: keyof PageSettings, disable: boolean): Promise<void> {
+        const messageId = uuidv4();
+        const command: AsbPlayerCommand<ToggleCspMessage> = {
+            sender: 'asbplayerv2',
+            message: {
+                command: 'toggle-csp',
+                messageId,
+                pageKey,
+                disable,
+            },
+        };
+        window.postMessage(command);
+        return this._createResponsePromise(messageId);
+    }
+
+    async isCspDisabled(pageKey: keyof PageSettings): Promise<boolean> {
+        const messageId = uuidv4();
+        const command: AsbPlayerCommand<CheckCspMessage> = {
+            sender: 'asbplayerv2',
+            message: {
+                command: 'check-csp',
+                messageId,
+                pageKey,
+            },
+        };
+        window.postMessage(command);
+        const { disabled } = (await this._createResponsePromise(messageId)) as CheckCspResponse;
+        return disabled;
     }
 
     private _createResponsePromise<T>(messageId: string) {
