@@ -643,17 +643,9 @@ export default class Binding {
                     // what subtitle to start from.
                     case 'request-current-subtitle':
                         const [currentSubtitle] = this.subtitleController.currentSubtitle();
-                        const currentSubtitleIndex = currentSubtitle
-                            ? this.subtitleController.subtitles.findIndex(
-                                  (s) =>
-                                      s.start === currentSubtitle.start &&
-                                      s.end === currentSubtitle.end &&
-                                      s.text === currentSubtitle.text
-                              )
-                            : -1;
                         sendResponse({
                             currentSubtitle: currentSubtitle,
-                            currentSubtitleIndex: currentSubtitleIndex >= 0 ? currentSubtitleIndex : null,
+                            currentSubtitleIndex: currentSubtitle?.index ?? null,
                         });
                         break;
                     case 'start-bulk-export':

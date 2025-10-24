@@ -115,12 +115,7 @@ export default class BulkExportController {
         const [currentSubtitle] = this._context.subtitleController.currentSubtitle();
         let startQueueIndex = 0;
         if (currentSubtitle) {
-            const currentIdx = subtitles.findIndex(
-                (s) =>
-                    s.start === currentSubtitle.start &&
-                    s.end === currentSubtitle.end &&
-                    s.text === currentSubtitle.text
-            );
+            const currentIdx = currentSubtitle.index;
             if (currentIdx >= 0) {
                 const found = subtitleIndices.findIndex((i) => i >= currentIdx);
                 startQueueIndex = found >= 0 ? found : 0;
