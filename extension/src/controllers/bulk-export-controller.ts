@@ -169,9 +169,7 @@ export default class BulkExportController {
             },
             src: this._context.video.src,
         };
-        try {
-            await browser.runtime.sendMessage(cancelledMessage);
-        } catch {}
+        browser.runtime.sendMessage(cancelledMessage);
     }
 
     private _sendNext() {
@@ -235,9 +233,7 @@ export default class BulkExportController {
             },
             src: this._context.video.src,
         };
-        try {
-            await browser.runtime.sendMessage(completedMessage);
-        } catch {}
+        browser.runtime.sendMessage(completedMessage);
     }
 
     private _notifyProgress() {

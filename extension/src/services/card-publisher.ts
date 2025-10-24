@@ -118,12 +118,7 @@ export class CardPublisher {
                     },
                     src,
                 };
-                try {
-                    await browser.tabs.sendMessage(tabId, cardExportedCommand);
-                } catch {}
-                try {
-                    await browser.runtime.sendMessage(cardExportedCommand);
-                } catch {}
+                browser.tabs.sendMessage(tabId, cardExportedCommand);
                 return;
             }
             // If we're in the middle of a bulk export, a failure will hang the app.
@@ -140,12 +135,7 @@ export class CardPublisher {
                 },
                 src,
             };
-            try {
-                await browser.tabs.sendMessage(tabId, cardExportedCommand);
-            } catch {}
-            try {
-                await browser.runtime.sendMessage(cardExportedCommand);
-            } catch {}
+            browser.tabs.sendMessage(tabId, cardExportedCommand);
             return;
         }
 
