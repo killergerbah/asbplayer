@@ -26,7 +26,9 @@
         "increaseOffsetButton": "Tambah offset agar takarir sebelumnya berada di posisi saat ini. Tahan untuk menambah 100 ms.",
         "gotIt": "Mengerti",
         "revert": "Kembalikan",
-        "userGuide": "Panduan Pengguna"
+        "userGuide": "Panduan Pengguna",
+        "confirmUnderstanding": "I understand",
+        "askConfirmation": "Are you sure?"
     },
     "about": {
         "title": "Tentang asbplayer",
@@ -223,6 +225,11 @@
                 "allowVideoElementsWithBlankSrc": "Izinkan elemen video dengan src kosong",
                 "youtube": {
                     "targetLanguages": "Kode bahasa target untuk terjemahan mesin"
+                },
+                "disableCspRestrictions": "CSP can be disabled only if no additional hosts are configured",
+                "disableCsp": "Disable content security policy",
+                "disableCspConfirmation": {
+                    "body": "Disabling a site's <0>content security policy</0> will weaken your browser's security. In particular, it can make your browser more vulnerable to <1>cross site scripting</1> attacks."
                 }
             }
         },

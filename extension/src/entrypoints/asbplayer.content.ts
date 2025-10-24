@@ -1,5 +1,6 @@
 import type {
     AddProfileMessage,
+    CheckCspResponse,
     GetGlobalStateMessage,
     GetSettingsMessage,
     RemoveProfileMessage,
@@ -145,6 +146,18 @@ export default defineContentScript({
                         const setGlobalStateMessage = command.message as SetGlobalStateMessage;
                         await globalStateProvider.set(setGlobalStateMessage.state);
                         sendMessageToPlayer({
+                            messageId: command.message.messageId,
+                        });
+                        break;
+                    case 'toggle-csp':
+                        await browser.runtime.sendMessage(command);
+                        sendMessageToPlayer({
+                            messageId: command.message.messageId,
+                        });
+                        break;
+                    case 'check-csp':
+                        sendMessageToPlayer({
+                            response: (await browser.runtime.sendMessage(command)) as CheckCspResponse,
                             messageId: command.message.messageId,
                         });
                         break;
