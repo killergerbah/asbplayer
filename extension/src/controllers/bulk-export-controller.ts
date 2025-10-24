@@ -10,7 +10,7 @@ import {
 import { surroundingSubtitlesAroundInterval } from '@project/common/util';
 import Binding from '../services/binding';
 
-interface BulkExportStartedPayload extends Message {
+export interface BulkExportStartedPayload extends Message {
     command: 'bulk-export-started';
     total: number;
 }

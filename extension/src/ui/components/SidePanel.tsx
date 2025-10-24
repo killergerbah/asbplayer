@@ -19,6 +19,7 @@ import {
     CardExportedMessage,
 } from '@project/common';
 import type { Message } from '@project/common';
+import type { BulkExportStartedPayload } from '../../controllers/bulk-export-controller';
 import { AsbplayerSettings } from '@project/common/settings';
 import { AudioClip } from '@project/common/audio-clip';
 import { ChromeExtension, useCopyHistory } from '@project/common/app';
@@ -301,7 +302,7 @@ export default function SidePanel({ settings, extension }: Props) {
     useEffect(() => {
         const listener = (message: any) => {
             if (message?.sender === 'asbplayerv2' && message?.message?.command === 'bulk-export-started') {
-                const total = (message.message as Message & { total?: number }).total ?? 0;
+                const total = (message.message as BulkExportStartedPayload).total ?? 0;
                 setBulkOpen(true);
                 setBulkTotal(total);
                 setBulkCurrent(0);
