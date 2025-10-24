@@ -22,6 +22,8 @@ export class DrmProtectedStreamError extends Error {}
 
 export class TimedRecordingInProgressError extends Error {}
 
+export class NoRecordingInProgressServiceError extends Error {}
+
 export default class AudioRecorderService {
     private readonly _tabRegistry: TabRegistry;
     private readonly _delegate: AudioRecorderDelegate;
@@ -111,10 +113,10 @@ export default class AudioRecorderService {
 
     async stop(encodeAsMp3: boolean, requester: Requester): Promise<string> {
         if (this.audioBase64Promise === undefined) {
-            const errorMessage = 'Cannot stop because audio recording is not in progress';
-            this._notifyError(errorMessage, requester);
+            // Benign no-op: If the user spams cancel on a bulk export,
+            // we can get a cancel request on a non-recording state.
             this._notifyRecordingFinished(requester);
-            throw new Error(errorMessage);
+            throw new NoRecordingInProgressServiceError();
         }
 
         const response = await this._delegate.stop(encodeAsMp3, requester);
@@ -175,9 +177,7 @@ export default class AudioRecorderService {
 
     private _prepareForAudioDataResponse(requestId: string): Promise<string> {
         if (this.audioBase64Promise !== undefined) {
-            this.audioBase64Reject!(
-                new Error('New audio recording request received before the current one could finish')
-            );
+            this.audioBase64Reject?.(new Error('Audio request superseded by a newer request'));
             this.audioBase64Resolve = undefined;
             this.audioBase64Reject = undefined;
             this.audioBase64Promise = undefined;

@@ -6,6 +6,7 @@
         "downloadAudio": "Скачать аудио",
         "downloadImage": "Скачать изображение",
         "downloadSubtitlesAsSrt": "Скачать субтитры в формате SRT",
+        "bulkExportSubtitles": "Bulk Export Subtitles",
         "jumpTo": "Перейти к этому субтитру",
         "ok": "ОК",
         "mineSubtitle": "Майнить субтитр",
@@ -284,6 +285,13 @@
         "enabledCondensedPlayback": "Сжатое воспроизведение: Вкл",
         "enabledFastForwardPlayback": "Ускоренное воспроизведение: Вкл",
         "exportedCard": "Карточка экспортирована: {{result}}",
+        "cardNotExported": "Card not exported: {{reason}}",
+        "bulkExporting": "Bulk exporting subtitles: {{current}}/{{total}}",
+        "bulkExport": {
+            "title": "Bulk Export in Progress",
+            "description": "Exporting subtitles to Anki. Please wait...",
+            "progressCompleted": "Exported {{current}} of {{total}}"
+        },
         "playbackRate": "Скорость воспроизведения: {{rate}}",
         "savedTimestamp": "Сохранено: {{timestamp}}",
         "updatedCard": "Карточка обновлена: {{result}}",

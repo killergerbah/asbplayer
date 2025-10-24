@@ -108,7 +108,11 @@ export interface ExportParams {
     ankiConnectUrl?: string;
 }
 
-export async function exportCard(card: CardModel, ankiSettings: AnkiSettings, exportMode: AnkiExportMode) {
+export async function exportCard(
+    card: CardModel,
+    ankiSettings: AnkiSettings,
+    exportMode: AnkiExportMode = 'default'
+): Promise<string> {
     const anki = new Anki(ankiSettings);
     const source = sourceString(card.subtitleFileName, card.mediaTimestamp);
     let audioClip =
@@ -155,6 +159,13 @@ export interface CreateModelParams {
     inOrderFields: string[];
     css: string;
     cardTemplates: { Front: string; Back: string }[];
+}
+
+export class DuplicateNoteError extends Error {
+    constructor(message: string = 'duplicate') {
+        super(message);
+        this.name = 'DuplicateNoteError';
+    }
 }
 
 export class Anki {
@@ -451,6 +462,9 @@ export class Anki {
         const json = await this.fetcher.fetch(ankiConnectUrl || this.settingsProvider.ankiConnectUrl, body);
 
         if (json.error) {
+            if (json.error.includes('duplicate')) {
+                throw new DuplicateNoteError(json.error);
+            }
             throw new Error(json.error);
         }
 

@@ -2,6 +2,7 @@ import IconButton from '@mui/material/IconButton';
 import HistoryIcon from '@mui/icons-material/History';
 import LoadSubtitlesIcon from '@project/common/components/LoadSubtitlesIcon';
 import SaveAltIcon from '@mui/icons-material/SaveAlt';
+import ImportExportIcon from '@mui/icons-material/ImportExport';
 import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
 import Fade from '@mui/material/Fade';
@@ -15,11 +16,21 @@ interface Props {
     canDownloadSubtitles: boolean;
     onLoadSubtitles: () => void;
     onDownloadSubtitles: () => void;
+    onBulkExportSubtitles: () => void;
     onShowMiningHistory: () => void;
+    disableBulkExport?: boolean;
 }
 
 const SidePanelTopControls = React.forwardRef(function SidePanelTopControls(
-    { show, canDownloadSubtitles, onLoadSubtitles, onDownloadSubtitles, onShowMiningHistory }: Props,
+    {
+        show,
+        canDownloadSubtitles,
+        onLoadSubtitles,
+        onDownloadSubtitles,
+        onBulkExportSubtitles,
+        onShowMiningHistory,
+        disableBulkExport,
+    }: Props,
     ref: ForwardedRef<HTMLDivElement>
 ) {
     const { t } = useTranslation();
@@ -44,13 +55,24 @@ const SidePanelTopControls = React.forwardRef(function SidePanelTopControls(
                         </Tooltip>
                     </Grid>
                     {canDownloadSubtitles && (
-                        <Grid item>
-                            <Tooltip title={t('action.downloadSubtitlesAsSrt')!}>
-                                <IconButton onClick={onDownloadSubtitles}>
-                                    <SaveAltIcon />
-                                </IconButton>
-                            </Tooltip>
-                        </Grid>
+                        <>
+                            <Grid item>
+                                <Tooltip title={t('action.downloadSubtitlesAsSrt')!}>
+                                    <IconButton onClick={onDownloadSubtitles}>
+                                        <SaveAltIcon />
+                                    </IconButton>
+                                </Tooltip>
+                            </Grid>
+                            <Grid item>
+                                <Tooltip title={t('action.bulkExportSubtitles')!} disabled={!!disableBulkExport}>
+                                    <span>
+                                        <IconButton onClick={onBulkExportSubtitles} disabled={!!disableBulkExport}>
+                                            <ImportExportIcon />
+                                        </IconButton>
+                                    </span>
+                                </Tooltip>
+                            </Grid>
+                        </>
                     )}
                     <Grid item>
                         <IconButton onClick={onShowMiningHistory}>
