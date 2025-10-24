@@ -310,6 +310,7 @@ export interface PageSettings {
     yleAreena: Page;
     hboMax: Page;
     stremio: Page;
+    cijapanese: Page;
 }
 
 export interface StreamingVideoSettings {
