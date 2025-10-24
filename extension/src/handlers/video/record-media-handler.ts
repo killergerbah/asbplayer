@@ -117,14 +117,14 @@ export default class RecordMediaHandler {
                     base64: audioBase64,
                 };
             } catch (e) {
-                if (e instanceof DrmProtectedStreamError) {
-                    audioModel = {
-                        ...baseAudioModel,
-                        error: AudioErrorCode.drmProtected,
-                    };
-                } else {
+                if (!(e instanceof DrmProtectedStreamError)) {
                     throw e;
                 }
+
+                audioModel = {
+                    ...baseAudioModel,
+                    error: AudioErrorCode.drmProtected,
+                };
             }
         }
 

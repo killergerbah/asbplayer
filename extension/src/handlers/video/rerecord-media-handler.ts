@@ -58,14 +58,14 @@ export default class RerecordMediaHandler {
                 base64: audioBase64,
             };
         } catch (e) {
-            if (e instanceof DrmProtectedStreamError) {
-                audio = {
-                    ...baseAudioModel,
-                    error: AudioErrorCode.drmProtected,
-                };
-            } else {
+            if (!(e instanceof DrmProtectedStreamError)) {
                 throw e;
             }
+
+            audio = {
+                ...baseAudioModel,
+                error: AudioErrorCode.drmProtected,
+            };
         }
 
         this._cardPublisher.publish(
