@@ -94,6 +94,12 @@ export interface EncodeMp3Message extends MessageWithId {
     readonly extension: string;
 }
 
+export interface EncodeMp3InServiceWorkerMessage extends Message {
+    readonly command: 'encode-mp3';
+    readonly base64: string;
+    readonly extension: string;
+}
+
 export interface SettingsUpdatedMessage extends Message {
     readonly command: 'settings-updated';
 }
@@ -119,6 +125,7 @@ export interface RecordMediaAndForwardSubtitleMessage extends Message, CardTextF
     readonly imageDelay: number;
     readonly playbackRate: number;
     readonly mediaTimestamp: number;
+    readonly isBulkExport?: boolean;
 }
 
 export interface StartRecordingMediaMessage extends Message, ImageCaptureParams {
@@ -167,6 +174,7 @@ export interface CopySubtitleMessage extends Message, CardTextFieldValues {
     readonly postMineAction: PostMineAction;
     readonly subtitle?: SubtitleModel;
     readonly surroundingSubtitles?: SubtitleModel[];
+    readonly isBulkExport?: boolean;
 }
 
 export interface CopySubtitleWithAdditionalFieldsMessage extends Message, CardTextFieldValues {
@@ -197,6 +205,9 @@ export interface CardUpdatedMessage extends Message, CardModel {
 export interface CardExportedMessage extends Message, CardModel {
     readonly command: 'card-exported';
     readonly cardName: string;
+    readonly isBulkExport?: boolean;
+    readonly skippedDuplicate?: boolean;
+    readonly exportError?: string;
 }
 
 export interface CardSavedMessage extends Message, CardModel {
@@ -374,6 +385,10 @@ export interface SubtitlesToVideoMessage extends Message {
 
 export interface RequestSubtitlesMessage extends Message {
     readonly command: 'request-subtitles';
+}
+
+export interface RequestCurrentSubtitleMessage extends Message {
+    readonly command: 'request-current-subtitle';
 }
 
 export interface RequestSubtitlesFromAppMessage extends MessageWithId {
@@ -670,6 +685,11 @@ export interface AckMessage extends MessageWithId {
 export interface RequestSubtitlesResponse {
     subtitles: SubtitleModel[];
     subtitleFileNames: string[];
+}
+
+export interface RequestCurrentSubtitleResponse {
+    readonly currentSubtitle: SubtitleModel | null;
+    readonly currentSubtitleIndex: number | null;
 }
 
 export interface JumpToSubtitleMessage extends Message {

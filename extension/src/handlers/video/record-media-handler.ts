@@ -147,16 +147,22 @@ export default class RecordMediaHandler {
             }
         }
 
+        const { isBulkExport, ...messageWithoutBulkFlag } = recordMediaCommand.message;
         const card: CardModel = {
             image: imageModel,
             audio: audioModel,
-            ...recordMediaCommand.message,
+            ...messageWithoutBulkFlag,
         };
-        this._cardPublisher.publish(
-            card,
-            recordMediaCommand.message.postMineAction,
-            senderTab.id!,
-            recordMediaCommand.src
-        );
+
+        if (isBulkExport) {
+            this._cardPublisher.publishBulk(card, senderTab.id!, recordMediaCommand.src);
+        } else {
+            this._cardPublisher.publish(
+                card,
+                recordMediaCommand.message.postMineAction,
+                senderTab.id!,
+                recordMediaCommand.src
+            );
+        }
     }
 }

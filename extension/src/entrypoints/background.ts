@@ -46,6 +46,8 @@ import { RequestingActiveTabPermissionHandler } from '@/handlers/video/requestin
 import { CardPublisher } from '@/services/card-publisher';
 import AckMessageHandler from '@/handlers/video/ack-message-handler';
 import PublishCardHandler from '@/handlers/asbplayerv2/publish-card-handler';
+import BulkExportCancellationHandler from '@/handlers/asbplayerv2/bulk-export-cancellation-handler';
+import BulkExportStartedHandler from '@/handlers/asbplayerv2/bulk-export-started-handler';
 import { bindWebSocketClient, unbindWebSocketClient } from '@/services/web-socket-client-binding';
 import { isFirefoxBuild } from '@/services/build-flags';
 import { CaptureStreamAudioRecorder, OffscreenAudioRecorder } from '@/services/audio-recorder-delegate';
@@ -55,12 +57,14 @@ import UpdateMobileOverlayModelHandler from '@/handlers/video/update-mobile-over
 import { isMobile } from '@project/common/device-detection/mobile';
 import { enqueueUpdateAlert } from '@/services/update-alert';
 import RequestSubtitlesHandler from '@/handlers/asbplayerv2/request-subtitles-handler';
+import RequestCurrentSubtitleHandler from '@/handlers/asbplayerv2/request-current-subtitle-handler';
 import MobileOverlayForwarderHandler from '@/handlers/mobile-overlay/mobile-overlay-forwarder-handler';
 import RequestCopyHistoryHandler from '@/handlers/asbplayerv2/request-copy-history-handler';
 import DeleteCopyHistoryHandler from '@/handlers/asbplayerv2/delete-copy-history-handler';
 import ClearCopyHistoryHandler from '@/handlers/asbplayerv2/clear-copy-history-handler';
 import SaveCopyHistoryHandler from '@/handlers/asbplayerv2/save-copy-history-handler';
 import PageConfigHandler from '@/handlers/asbplayerv2/page-config-handler';
+import EncodeMp3Handler from '@/handlers/video/encode-mp3-handler';
 
 export default defineBackground(() => {
     if (!isFirefoxBuild) {
@@ -133,16 +137,20 @@ export default defineBackground(() => {
         new ToggleSidePanelHandler(tabRegistry),
         new OpenAsbplayerSettingsHandler(),
         new CopyToClipboardHandler(),
+        new EncodeMp3Handler(),
         new VideoDisappearedHandler(tabRegistry),
         new RequestingActiveTabPermissionHandler(),
         new CopySubtitleHandler(tabRegistry),
         new LoadSubtitlesHandler(tabRegistry),
         new RequestSubtitlesHandler(),
+        new RequestCurrentSubtitleHandler(),
         new RequestCopyHistoryHandler(),
         new SaveCopyHistoryHandler(settings),
         new DeleteCopyHistoryHandler(settings),
         new ClearCopyHistoryHandler(settings),
         new PublishCardHandler(cardPublisher),
+        new BulkExportCancellationHandler(cardPublisher),
+        new BulkExportStartedHandler(cardPublisher),
         new AckMessageHandler(tabRegistry),
         new AudioBase64Handler(audioRecorder),
         new UpdateMobileOverlayModelHandler(),

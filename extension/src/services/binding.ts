@@ -10,6 +10,7 @@ import {
     cropAndResize,
     CurrentTimeFromVideoMessage,
     CurrentTimeToVideoMessage,
+    EncodeMp3InServiceWorkerMessage,
     ExtensionSyncMessage,
     ImageCaptureParams,
     NotificationDialogMessage,
@@ -65,6 +66,7 @@ import { MobileGestureController } from '../controllers/mobile-gesture-controlle
 import { MobileVideoOverlayController } from '../controllers/mobile-video-overlay-controller';
 import NotificationController from '../controllers/notification-controller';
 import SubtitleController, { SubtitleModelWithIndex } from '../controllers/subtitle-controller';
+import BulkExportController from '../controllers/bulk-export-controller';
 import VideoDataSyncController from '../controllers/video-data-sync-controller';
 import AudioRecorder, { TimedRecordingInProgressError } from './audio-recorder';
 import { isMobile } from '@project/common/device-detection/mobile';
@@ -73,7 +75,6 @@ import { ExtensionSettingsStorage } from './extension-settings-storage';
 import { i18nInit } from './i18n';
 import KeyBindings from './key-bindings';
 import { shouldShowUpdateAlert } from './update-alert';
-import { mp3WorkerFactory } from './mp3-worker-factory';
 import { bufferToBase64 } from '@project/common/base64';
 import { pgsParserWorkerFactory } from './pgs-parser-worker-factory';
 
@@ -141,6 +142,7 @@ export default class Binding {
     readonly keyBindings: KeyBindings;
     readonly settings: SettingsProvider;
     private readonly _audioRecorder = new AudioRecorder();
+    readonly bulkExportController: BulkExportController;
 
     private copyToClipboardOnMine: boolean;
     private takeScreenshot: boolean;
@@ -192,6 +194,7 @@ export default class Binding {
         this.mobileVideoOverlayController = new MobileVideoOverlayController(this, OffsetAnchor.top);
         this.subtitleController.onOffsetChange = () => this.mobileVideoOverlayController.updateModel();
         this.mobileGestureController = new MobileGestureController(this);
+        this.bulkExportController = new BulkExportController(this);
         this.recordMedia = true;
         this.takeScreenshot = true;
         this.cleanScreenshot = true;
@@ -425,6 +428,7 @@ export default class Binding {
         this.subtitleController.bind();
         this.dragController.bind(this);
         this.mobileGestureController.bind();
+        this.bulkExportController.bind();
 
         const seek = (forward: boolean) => {
             const subtitle = adjacentSubtitle(
@@ -634,6 +638,21 @@ export default class Binding {
                             subtitles: this.subtitleController.subtitles,
                             subtitleFileNames: this.subtitleController.subtitleFileNames ?? [],
                         });
+                        break;
+                    // This is useful because when we kick off bulk export the side panel needs to know
+                    // what subtitle to start from.
+                    case 'request-current-subtitle':
+                        const [currentSubtitle] = this.subtitleController.currentSubtitle();
+                        sendResponse({
+                            currentSubtitle: currentSubtitle,
+                            currentSubtitleIndex: currentSubtitle?.index ?? null,
+                        });
+                        break;
+                    case 'start-bulk-export':
+                        this.bulkExportController.start();
+                        break;
+                    case 'cancel-bulk-export':
+                        this.bulkExportController.cancel();
                         break;
                     case 'offset':
                         const offsetMessage = request.message as OffsetToVideoMessage;
@@ -1009,6 +1028,7 @@ export default class Binding {
         this.mobileVideoOverlayController.unbind();
         this.mobileGestureController.unbind();
         this.notificationController.unbind();
+        this.bulkExportController.unbind();
         this.subscribed = false;
 
         const command: VideoToExtensionCommand<VideoDisappearedMessage> = {
@@ -1052,6 +1072,7 @@ export default class Binding {
         definition,
         word,
         customFieldValues,
+        isBulkExport,
     }: CopySubtitleMessage) {
         if (!subtitle || !surroundingSubtitles) {
             return;
@@ -1104,12 +1125,18 @@ export default class Binding {
                 definition,
                 word,
                 customFieldValues,
+                isBulkExport,
                 ...this._imageCaptureParams,
             },
             src: this.video.src,
         };
 
         browser.runtime.sendMessage(command);
+    }
+
+    // Public helper for controllers to reuse copy-subtitle flow (e.g., bulk export)
+    async copySubtitleForBulk(message: CopySubtitleMessage) {
+        await this._copySubtitle(message);
     }
 
     async _toggleRecordingMedia(postMineAction: PostMineAction) {
@@ -1500,9 +1527,16 @@ export default class Binding {
 
     private async _sendAudioBase64(base64: string, requestId: string, encodeAsMp3: boolean) {
         if (encodeAsMp3) {
-            const blob = await (await fetch('data:audio/webm;base64,' + base64)).blob();
-            const mp3Blob = await Mp3Encoder.encode(blob, mp3WorkerFactory);
-            base64 = bufferToBase64(await mp3Blob.arrayBuffer());
+            const encodeMp3Command: VideoToExtensionCommand<EncodeMp3InServiceWorkerMessage> = {
+                sender: 'asbplayer-video',
+                message: {
+                    command: 'encode-mp3',
+                    base64,
+                    extension: 'webm',
+                },
+                src: this.video.src,
+            };
+            base64 = await browser.runtime.sendMessage(encodeMp3Command);
         }
 
         const command: VideoToExtensionCommand<AudioBase64Message> = {

@@ -82,6 +82,7 @@ export default defineConfig({
                         'plex-page.js',
                         'areena-yle-page.js',
                         'hbo-max-page.js',
+                        'cijapanese-page.js',
                         'anki-ui.js',
                         'mp3-encoder-worker.js',
                         'pgs-parser-worker.js',

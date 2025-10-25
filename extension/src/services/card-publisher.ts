@@ -11,11 +11,13 @@ import {
 import { humanReadableTime } from '@project/common/util';
 import { AnkiSettings, ankiSettingsKeys, SettingsProvider } from '@project/common/settings';
 import { v4 as uuidv4 } from 'uuid';
-import { exportCard } from '@project/common/anki';
+import { exportCard, DuplicateNoteError } from '@project/common/anki';
 import { IndexedDBCopyHistoryRepository } from '@project/common/copy-history';
 
 export class CardPublisher {
     private readonly _settingsProvider: SettingsProvider;
+    bulkExportCancelled = false;
+
     constructor(settingsProvider: SettingsProvider) {
         this._settingsProvider = settingsProvider;
     }
@@ -42,6 +44,24 @@ export class CardPublisher {
             this._notifyError(e, src, tabId);
             throw e;
         }
+    }
+
+    async publishBulk(card: CardModel, tabId?: number, src?: string) {
+        const id = uuidv4();
+        // (agloo) n.b. this could lead to out-of-order card saves if Anki is taking a while,
+        // which matters to users if they plan on reviewing cards in save order. If we get reports of this,
+        // consider putting a promise from here into a save queue.
+        this._saveCardToRepository(id, card);
+
+        if (tabId === undefined || src === undefined) {
+            return;
+        }
+
+        if (this.bulkExportCancelled) {
+            return;
+        }
+
+        await this._exportCardBulk(card, src, tabId);
     }
 
     private _notifySaved(savePromise: Promise<any>, card: CardModel, src: string, tabId: number) {
@@ -77,6 +97,61 @@ export class CardPublisher {
         };
 
         browser.tabs.sendMessage(tabId, cardExportedCommand);
+    }
+
+    private async _exportCardBulk(card: CardModel, src: string | undefined, tabId: number) {
+        const ankiSettings = (await this._settingsProvider.get(ankiSettingsKeys)) as AnkiSettings;
+
+        let cardName: string = '';
+        try {
+            cardName = await exportCard(card, ankiSettings, 'default');
+        } catch (e) {
+            if (e instanceof DuplicateNoteError) {
+                const cardExportedCommand: ExtensionToVideoCommand<CardExportedMessage> = {
+                    sender: 'asbplayer-extension-to-video',
+                    message: {
+                        ...card,
+                        command: 'card-exported',
+                        cardName: '',
+                        isBulkExport: true,
+                        skippedDuplicate: true,
+                    },
+                    src,
+                };
+                browser.tabs.sendMessage(tabId, cardExportedCommand);
+                return;
+            }
+            // If we're in the middle of a bulk export, a failure will hang the app.
+            // Signal an error and keep going to avoid this.
+            const cardExportedCommand: ExtensionToVideoCommand<CardExportedMessage> = {
+                sender: 'asbplayer-extension-to-video',
+                message: {
+                    ...card,
+                    command: 'card-exported',
+                    cardName: '',
+                    isBulkExport: true,
+                    skippedDuplicate: false,
+                    exportError: e instanceof Error ? e.message : 'Unknown error',
+                },
+                src,
+            };
+            browser.tabs.sendMessage(tabId, cardExportedCommand);
+            return;
+        }
+
+        const cardExportedCommand: ExtensionToVideoCommand<CardExportedMessage> = {
+            sender: 'asbplayer-extension-to-video',
+            message: {
+                ...card,
+                command: 'card-exported',
+                cardName: `${cardName}`,
+                isBulkExport: true,
+            },
+            src,
+        };
+
+        browser.tabs.sendMessage(tabId, cardExportedCommand);
+        browser.runtime.sendMessage(cardExportedCommand);
     }
 
     private async _updateLastCard(card: CardModel, src: string | undefined, tabId: number) {

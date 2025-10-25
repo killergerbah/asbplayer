@@ -486,7 +486,7 @@ export default class SubtitleController {
         this.notificationElementOverlay.refresh();
     }
 
-    currentSubtitle(): [SubtitleModel | null, SubtitleModel[] | null] {
+    currentSubtitle(): [SubtitleModelWithIndex | null, SubtitleModel[] | null] {
         const now = 1000 * this.video.currentTime;
         let subtitle = null;
         let index = null;
