@@ -331,7 +331,7 @@ export default function SidePanel({ settings, extension }: Props) {
 
                 if (clip) {
                     if (settings.preferMp3) {
-                        const worker = await mp3WorkerFactory();
+                        const worker = mp3WorkerFactory();
                         clip.toMp3(() => worker).download();
                     } else {
                         clip.download();

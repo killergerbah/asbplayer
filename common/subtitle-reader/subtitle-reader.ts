@@ -58,7 +58,7 @@ const sortVttCues = (list: VTTCue[]) => {
 export default class SubtitleReader {
     private readonly _textFilter?: TextFilter;
     private readonly _removeXml: boolean;
-    private readonly _pgsWorkerFactory: () => Promise<Worker>;
+    private readonly _pgsWorkerFactory: () => Worker;
     private xmlParser?: XMLParser;
 
     constructor({
@@ -70,7 +70,7 @@ export default class SubtitleReader {
         regexFilter: string;
         regexFilterTextReplacement: string;
         subtitleHtml: SubtitleHtml;
-        pgsParserWorkerFactory: () => Promise<Worker>;
+        pgsParserWorkerFactory: () => Worker;
     }) {
         let regex: RegExp | undefined;
 
@@ -381,7 +381,7 @@ export default class SubtitleReader {
     private _parsePgs(file: File, track: number): Promise<SubtitleNode[]> {
         const subtitles: SubtitleNode[] = [];
         return new Promise(async (resolve, reject) => {
-            const worker = await this._pgsWorkerFactory();
+            const worker = this._pgsWorkerFactory();
             worker.onmessage = async (e) => {
                 switch (e.data.command) {
                     case 'subtitle':
@@ -412,7 +412,7 @@ export default class SubtitleReader {
             const offscreenCanvas = canvas.transferControlToOffscreen();
 
             // Node ReadableStream clashes with web ReadableStream
-            const fileStream = (await file.stream()) as unknown as ReadableStream;
+            const fileStream = file.stream() as unknown as ReadableStream;
             worker.postMessage({ fileStream, canvas: offscreenCanvas }, [fileStream, offscreenCanvas]);
         });
     }
