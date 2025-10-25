@@ -44,7 +44,7 @@ function calculateVideoName(baseName: string, label: string, localFile: boolean 
         return label;
     }
 
-    if (label && localFile !== true) {
+    if (label && !baseName.includes(label) && localFile !== true) {
         return `${baseName} - ${label}`;
     }
 
