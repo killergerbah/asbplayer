@@ -242,7 +242,7 @@ function App({
             regexFilter: settings.subtitleRegexFilter,
             regexFilterTextReplacement: settings.subtitleRegexFilterTextReplacement,
             subtitleHtml: settings.subtitleHtml,
-            pgsParserWorkerFactory: async () => new pgsParserWorkerFactory(),
+            pgsParserWorkerFactory: () => new pgsParserWorkerFactory(),
         });
     }, [settings.subtitleRegexFilter, settings.subtitleRegexFilterTextReplacement, settings.subtitleHtml]);
     const webSocketClient = useAppWebSocketClient({ settings });
