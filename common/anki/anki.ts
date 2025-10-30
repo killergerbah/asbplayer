@@ -22,7 +22,7 @@ const randomString = () => {
 
 // Makes a file name unique with reasonable probability by appending a string of random characters.
 // Leaves more room for the original file name than Anki's appended hash when `storeMediaFile`
-// is called with `deleteExising` == true.
+// is called with `deleteExisting` == true.
 // Also, AnkiConnect Android doesn't support `deleteExisting` anyway.
 const makeUniqueFileName = (fileName: string) => {
     const match = /(.*)\.(.*)/.exec(fileName);
@@ -177,6 +177,14 @@ export class Anki {
         this.fetcher = fetcher;
     }
 
+    getWordFields() {
+        return [this.settingsProvider.wordField].filter((f) => f.length);
+    }
+
+    getSentenceFields() {
+        return [this.settingsProvider.track1Field].filter((f) => f.length);
+    }
+
     async deckNames(ankiConnectUrl?: string) {
         const response = await this._executeAction('deckNames', null, ankiConnectUrl);
         return response.result;
@@ -192,10 +200,30 @@ export class Anki {
         return response.result;
     }
 
+    async findCardsWithWord(word: string, fields: string[], ankiConnectUrl?: string) {
+        if (!fields.length) return [];
+        const response = await this._executeAction(
+            'findCards',
+            { query: fields.map((field) => `"${field}:${this._escapeQuery(word)}"`).join(' OR ') },
+            ankiConnectUrl
+        );
+        return response.result;
+    }
+
+    async findCardsContainingWord(word: string, fields: string[], ankiConnectUrl?: string) {
+        if (!fields.length) return [];
+        const response = await this._executeAction(
+            'findCards',
+            { query: fields.map((field) => `"${field}:*${this._escapeQuery(word)}*"`).join(' OR ') },
+            ankiConnectUrl
+        );
+        return response.result;
+    }
+
     async findNotesWithWord(word: string, ankiConnectUrl?: string) {
         const response = await this._executeAction(
             'findNotes',
-            { query: this.settingsProvider.wordField + ':' + this._escapeQuery(word) },
+            { query: `"${this.settingsProvider.wordField}:${this._escapeQuery(word)}"` },
             ankiConnectUrl
         );
         return response.result;
@@ -204,9 +232,22 @@ export class Anki {
     async findNotesWithWordGui(word: string, ankiConnectUrl?: string) {
         const response = await this._executeAction(
             'guiBrowse',
-            { query: this.settingsProvider.wordField + ':' + this._escapeQuery(word) },
+            { query: `"${this.settingsProvider.wordField}:${this._escapeQuery(word)}"` },
             ankiConnectUrl
         );
+        return response.result;
+    }
+
+    async cardsInfo(cardIds: number[], ankiConnectUrl?: string) {
+        const response = await this._executeAction('cardsInfo', { cards: cardIds }, ankiConnectUrl);
+        return response.result;
+    }
+
+    /**
+     * Negative intervals indicate seconds, positive intervals indicate days
+     */
+    async currentIntervals(cardIds: number[], ankiConnectUrl?: string): Promise<number[]> {
+        const response = await this._executeAction('getIntervals', { cards: cardIds }, ankiConnectUrl);
         return response.result;
     }
 
@@ -232,7 +273,7 @@ export class Anki {
             }
         }
 
-        return `"${escaped}"`;
+        return `${escaped}`;
     }
 
     async requestPermission(ankiConnectUrl?: string) {

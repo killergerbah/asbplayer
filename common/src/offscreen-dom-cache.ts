@@ -24,6 +24,17 @@ export default class OffscreenDomCache {
         this._empty = false;
     }
 
+    delete(key: string) {
+        const cached = this._cachedContentElements[key];
+        if (cached) {
+            cached.remove();
+            delete this._cachedContentElements[key];
+            if (Object.keys(this._cachedContentElements).length === 0) {
+                this.clear();
+            }
+        }
+    }
+
     return(element: HTMLElement) {
         this._offscreenElement().appendChild(element);
     }

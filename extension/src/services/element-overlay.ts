@@ -119,6 +119,10 @@ export class CachingElementOverlay implements ElementOverlay {
         this.domCache.clear();
     }
 
+    uncacheHtmlKey(key: string) {
+        this.domCache.delete(key);
+    }
+
     cacheHtml(key: string, html: string) {
         this.domCache.add(key, html);
     }
