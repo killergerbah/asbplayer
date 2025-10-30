@@ -1,10 +1,11 @@
 import { VideoDataSubtitleTrack } from '@project/common';
 import { VideoData } from '@project/common';
 import { trackFromDef } from '@/pages/util';
+import { v4 as uuidv4 } from 'uuid';
 
 const SUBTITLE_IMAGE_CODECS = ['pgs', 'vobsub']; // Plex will only burn in these subtitles
 
-function generateId(length: number): string {
+function generateAlphaNumId(length: number): string {
     const chars = 'abcdefhijklmnopqrstuvwxyz0123456789';
     let id = '';
     for (let i = 0; i < length; i++) {
@@ -94,22 +95,68 @@ export default defineUnlistedScript(() => {
                 } else {
                     selectedSubUrl += '&protocol=http';
                 }
-                const session = generateId(24);
+                const session = generateAlphaNumId(24);
                 const sessionMatch = selectedSubUrl.match(/&session=(?:[^&]+)/i);
                 if (sessionMatch) {
                     selectedSubUrl = selectedSubUrl.replace(sessionMatch[0], `&session=${session}`);
+                    decisionUrl = decisionUrl!.replace(sessionMatch[0], `&session=${session}`);
                 } else {
                     selectedSubUrl += `&session=${session}`;
+                    decisionUrl += `&session=${session}`;
                 }
-                const plexSessionIdentifier = generateId(24);
+                const plexSessionIdentifier = generateAlphaNumId(24);
                 const plexSessionIdentifierMatch = url.match(/&X-Plex-Session-Identifier=(?:[^&]+)/i);
                 if (plexSessionIdentifierMatch) {
                     selectedSubUrl = selectedSubUrl.replace(
                         plexSessionIdentifierMatch[0],
                         `&X-Plex-Session-Identifier=${plexSessionIdentifier}`
                     );
+                    decisionUrl = decisionUrl!.replace(
+                        plexSessionIdentifierMatch[0],
+                        `&X-Plex-Session-Identifier=${plexSessionIdentifier}`
+                    );
                 } else {
                     selectedSubUrl += `&X-Plex-Session-Identifier=${plexSessionIdentifier}`;
+                    decisionUrl += `&X-Plex-Session-Identifier=${plexSessionIdentifier}`;
+                }
+                const plexSessionId = uuidv4();
+                const plexSessionIdMatch = url.match(/&X-Plex-Session-Id=(?:[^&]+)/i);
+                if (plexSessionIdMatch) {
+                    selectedSubUrl = selectedSubUrl.replace(
+                        plexSessionIdMatch[0],
+                        `&X-Plex-Session-Id=${plexSessionId}`
+                    );
+                    decisionUrl = decisionUrl!.replace(plexSessionIdMatch[0], `&X-Plex-Session-Id=${plexSessionId}`);
+                } else {
+                    selectedSubUrl += `&X-Plex-Session-Id=${plexSessionId}`;
+                    decisionUrl += `&X-Plex-Session-Id=${plexSessionId}`;
+                }
+                const plexPlaybackSessionId = uuidv4();
+                const plexPlaybackSessionIdMatch = url.match(/&X-Plex-Playback-Session-Id=(?:[^&]+)/i);
+                if (plexPlaybackSessionIdMatch) {
+                    selectedSubUrl = selectedSubUrl.replace(
+                        plexPlaybackSessionIdMatch[0],
+                        `&X-Plex-Playback-Session-Id=${plexPlaybackSessionId}`
+                    );
+                    decisionUrl = decisionUrl!.replace(
+                        plexPlaybackSessionIdMatch[0],
+                        `&X-Plex-Playback-Session-Id=${plexPlaybackSessionId}`
+                    );
+                } else {
+                    selectedSubUrl += `&X-Plex-Playback-Session-Id=${plexPlaybackSessionId}`;
+                    decisionUrl += `&X-Plex-Playback-Session-Id=${plexPlaybackSessionId}`;
+                }
+                const plexPlaybackId = uuidv4();
+                const plexPlaybackIdMatch = url.match(/&X-Plex-Playback-Id=(?:[^&]+)/i);
+                if (plexPlaybackIdMatch) {
+                    selectedSubUrl = selectedSubUrl.replace(
+                        plexPlaybackIdMatch[0],
+                        `&X-Plex-Playback-Id=${plexPlaybackId}`
+                    );
+                    decisionUrl = decisionUrl!.replace(plexPlaybackIdMatch[0], `&X-Plex-Playback-Id=${plexPlaybackId}`);
+                } else {
+                    selectedSubUrl += `&X-Plex-Playback-Id=${plexPlaybackId}`;
+                    decisionUrl += `&X-Plex-Playback-Id=${plexPlaybackId}`;
                 }
             }
         }
@@ -211,33 +258,32 @@ export default defineUnlistedScript(() => {
                     if (!response.error) {
                         response.error = internalSubWarn; // Always display if internal subs are present
                     }
-                    if (stream.getAttribute('selected') === '1') {
-                        if (selectedSubId && stream.getAttribute('id') !== selectedSubId) {
-                            return; // Multiple versions of the media, each has its own selected audio/subtitle
-                        }
-                        if (!selectedSubUrl) {
-                            response.error = `Could not get transcoding url for internal subtitle. ${internalSubWarn}`;
-                            return;
-                        }
-                        const codec = stream.getAttribute('codec');
-                        if (codec && SUBTITLE_IMAGE_CODECS.includes(codec)) {
-                            response.error = `${codec.toUpperCase()} subtitles are not supported, Plex always burns in image formats. ${internalSubWarn}`;
-                            return;
-                        }
-                        if (isBurn) {
-                            response.error = `Plex is burning in the selected subtitle, set "Only image formats" for Plex Settings > Player > Burn Subtitles. ${internalSubWarn}`;
-                            return;
-                        }
-                        subtitles.push(
-                            trackFromDef({
-                                label: buildPlexLabel(stream, codec, false),
-                                language: stream.getAttribute('languageCode') ?? undefined,
-                                url: selectedSubUrl,
-                                extension: 'ass', // Plex always transcode to ass it seems
-                            })
-                        );
+                    if (stream.getAttribute('selected') !== '1') return; // Internal subtitles must be selected in Plex
+
+                    if (selectedSubId && stream.getAttribute('id') !== selectedSubId) {
+                        return; // Multiple versions of the media, each has its own selected audio/subtitle
+                    }
+                    if (!selectedSubUrl) {
+                        response.error = `Could not get transcoding url for internal subtitle. ${internalSubWarn}`;
                         return;
                     }
+                    const codec = stream.getAttribute('codec');
+                    if (codec && SUBTITLE_IMAGE_CODECS.includes(codec)) {
+                        response.error = `${codec.toUpperCase()} subtitles are not supported, Plex always burns in image formats. ${internalSubWarn}`;
+                        return;
+                    }
+                    if (isBurn) {
+                        response.error = `Plex is burning in the selected subtitle, set "Only image formats" for Plex Settings > Player > Burn Subtitles. ${internalSubWarn}`;
+                        return;
+                    }
+                    subtitles.push(
+                        trackFromDef({
+                            label: buildPlexLabel(stream, codec, false),
+                            language: stream.getAttribute('languageCode') ?? undefined,
+                            url: selectedSubUrl,
+                            extension: 'ass', // Plex always transcode to ass it seems
+                        })
+                    );
                 });
             });
             subtitles.sort((a, b) => a.label.localeCompare(b.label));
