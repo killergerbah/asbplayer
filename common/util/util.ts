@@ -393,3 +393,38 @@ export function seekWithNudge(media: HTMLMediaElement, timestampSeconds: number)
 
     return media.currentTime;
 }
+
+export async function inBatches<T>(
+    items: T[],
+    cb: (batch: T[]) => Promise<void>,
+    options = { batchSize: 5 }
+): Promise<void> {
+    for (let i = 0; i < items.length; i += options.batchSize) {
+        await cb(items.slice(i, i + options.batchSize));
+    }
+}
+
+export async function fromBatches<T, R>(
+    items: T[],
+    cb: (batch: T[]) => Promise<R[]>,
+    options = { batchSize: 5 }
+): Promise<R[]> {
+    const results: R[] = [];
+    for (let i = 0; i < items.length; i += options.batchSize) {
+        results.push(...(await cb(items.slice(i, i + options.batchSize))));
+    }
+    return results;
+}
+
+export async function mapAsync<T, R>(arr: T[], cb: (e: T) => Promise<R>, options = { batchSize: 5 }): Promise<R[]> {
+    return fromBatches(arr, async (batch) => Promise.all(batch.map(cb)), options);
+}
+
+export async function filterAsync<T>(
+    arr: T[],
+    cb: (e: T) => Promise<boolean>,
+    options = { batchSize: 5 }
+): Promise<T[]> {
+    const results = await mapAsync(arr, cb, options);
+    return arr.filter((_, index) => results[index]);
+}
