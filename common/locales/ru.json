@@ -26,7 +26,9 @@
         "increaseOffsetButton": "Увеличить задержку, чтобы предыдущий субтитр был на текущей временной метке. Удерживайте для увеличения по 100 мс.",
         "gotIt": "ОК",
         "revert": "Revert",
-        "userGuide": "User guide"
+        "userGuide": "User guide",
+        "confirmUnderstanding": "I understand",
+        "askConfirmation": "Are you sure?"
     },
     "about": {
         "title": "О asbplayer",
@@ -223,6 +225,11 @@
                 "allowVideoElementsWithBlankSrc": "Allow video elements with blank src",
                 "youtube": {
                     "targetLanguages": "Target language codes for machine translation"
+                },
+                "disableCspRestrictions": "CSP can be disabled only if no additional hosts are configured",
+                "disableCsp": "Disable content security policy",
+                "disableCspConfirmation": {
+                    "body": "Disabling a site's <0>content security policy</0> will weaken your browser's security. In particular, it can make your browser more vulnerable to <1>cross site scripting</1> attacks."
                 }
             }
         },
