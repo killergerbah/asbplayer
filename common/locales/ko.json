@@ -431,7 +431,22 @@
         "firefoxExtensionShortcutHelp": "단축키를 변경하려면 about:addons의 플러그인 관리자에서 설정하세요.",
         "postMinePlayback": "자막 추출 후 재생 상태",
         "pauseOnHoverMode": "자막 위에 마우스를 올리면 자동 일시정지",
-        "createTestCard": "테스트 카드 생성"
+        "createTestCard": "테스트 카드 생성",
+        "dictionary": "사전",
+        "dictionaryTrack": "사전용 자막 트랙",
+        "dictionaryTrackChoice": "트랙 {{trackNumber}}",
+        "dictionaryEnabled": "트랙 {{trackNumber}}에 대한 사전 사용",
+        "yomitanUrl": "Yomitan API URL",
+        "yomitanScanLength": "최대 단어 길이",
+        "dictionarySubtitleLemmatization": "기본형 조회(표제어화) 사용",
+        "dictionaryAnkiWordFields": "Anki 단어 필드",
+        "dictionaryAnkiSentenceFields": "Anki 문장 필드",
+        "dictionarySelectAnkiFields": "조회할 Anki 필드 선택...",
+        "dictionaryAnkiMatureInterval": "Anki 성숙 간격(일)",
+        "dictionaryTokenStyle": "단어 토큰 강조 스타일",
+        "dictionaryTokenStyleText": "텍스트",
+        "dictionaryTokenStyleUnderline": "밑줄",
+        "dictionaryTokenStyleOverline": "윗줄"
     },
     "subtitlePlayer": {
         "multiSubtitleSelectHelp": "여러 자막을 추출하려면 클릭한 채로 드래그하세요"

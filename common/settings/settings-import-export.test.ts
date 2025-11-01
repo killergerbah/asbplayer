@@ -1,4 +1,4 @@
-import { PauseOnHoverMode } from './settings';
+import { PauseOnHoverMode, TokenStyle } from './settings';
 import { validateSettings } from './settings-import-export';
 import { defaultSettings } from './settings-provider';
 
@@ -140,5 +140,37 @@ it('validates exported settings', () => {
         streamingSubtitleListPreference: 'app',
         pauseOnHoverMode: PauseOnHoverMode.disabled,
         lastSelectedAnkiExportMode: 'gui',
+        dictionaryTracks: [
+            {
+                enabled: true,
+                yomitanUrl: 'http://127.0.0.1:19633',
+                yomitanScanLength: 16,
+                dictionarySubtitleLemmatization: true,
+                dictionaryAnkiWordFields: ['Word', 'Expression'],
+                dictionaryAnkiSentenceFields: ['Sentence'],
+                dictionaryAnkiMatureInterval: 21,
+                dictionaryTokenStyle: TokenStyle.TEXT,
+            },
+            {
+                enabled: false,
+                yomitanUrl: 'http://127.0.0.1:19634',
+                yomitanScanLength: 12,
+                dictionarySubtitleLemmatization: false,
+                dictionaryAnkiWordFields: [],
+                dictionaryAnkiSentenceFields: [],
+                dictionaryAnkiMatureInterval: 30,
+                dictionaryTokenStyle: TokenStyle.UNDERLINE,
+            },
+            {
+                enabled: false,
+                yomitanUrl: 'http://127.0.0.1:19635',
+                yomitanScanLength: 8,
+                dictionarySubtitleLemmatization: false,
+                dictionaryAnkiWordFields: [],
+                dictionaryAnkiSentenceFields: [],
+                dictionaryAnkiMatureInterval: 30,
+                dictionaryTokenStyle: TokenStyle.OVERLINE,
+            },
+        ],
     });
 });

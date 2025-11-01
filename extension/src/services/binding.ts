@@ -48,7 +48,6 @@ import {
     VideoHeartbeatMessage,
     VideoToExtensionCommand,
 } from '@project/common';
-import Mp3Encoder from '@project/common/audio-clip/mp3-encoder';
 import { adjacentSubtitle } from '@project/common/key-binder';
 import {
     extractAnkiSettings,
@@ -942,6 +941,7 @@ export default class Binding {
         this.subtitleController.surroundingSubtitlesCountRadius = currentSettings.surroundingSubtitlesCountRadius;
         this.subtitleController.surroundingSubtitlesTimeRadius = currentSettings.surroundingSubtitlesTimeRadius;
         this.subtitleController.autoCopyCurrentSubtitle = currentSettings.autoCopyCurrentSubtitle;
+        this.subtitleController.dictionaryTracks = currentSettings.dictionaryTracks;
         this.subtitleController.setSubtitleSettings(currentSettings);
         this.subtitleController.refresh();
 

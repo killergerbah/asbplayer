@@ -431,7 +431,22 @@
         "firefoxExtensionShortcutHelp": "Edit this shortcut from the Plugin manager at about:addons.",
         "postMinePlayback": "Post-mining playback state",
         "pauseOnHoverMode": "Auto-pause when mousing over subtitles",
-        "createTestCard": "Create Test Card"
+        "createTestCard": "Create Test Card",
+        "dictionary": "Dictionary",
+        "dictionaryTrack": "Subtitle Track for Dictionary",
+        "dictionaryTrackChoice": "Track {{trackNumber}}",
+        "dictionaryEnabled": "Enable Dictionary for Track {{trackNumber}}",
+        "yomitanUrl": "Yomitan API URL",
+        "yomitanScanLength": "Max Word Length",
+        "dictionarySubtitleLemmatization": "Enable Base Form Lookup (Lemmatization)",
+        "dictionaryAnkiWordFields": "Anki Word Fields",
+        "dictionaryAnkiSentenceFields": "Anki Sentence Fields",
+        "dictionarySelectAnkiFields": "Select Anki fields for lookup...",
+        "dictionaryAnkiMatureInterval": "Mature Anki Interval (days)",
+        "dictionaryTokenStyle": "Dictionary Token Coloring",
+        "dictionaryTokenStyleText": "Text",
+        "dictionaryTokenStyleUnderline": "Underline",
+        "dictionaryTokenStyleOverline": "Overline"
     },
     "subtitlePlayer": {
         "multiSubtitleSelectHelp": "Click, hold, and drag to mine multiple subtitles"

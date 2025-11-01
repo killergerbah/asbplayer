@@ -51,6 +51,8 @@ export default class HttpPostHandler {
     }
 
     private _validateBody(body: any) {
+        if (body === null) return true;
+
         const bodyKeys = Object.keys(body);
 
         for (const k of bodyKeys) {

@@ -431,7 +431,22 @@
         "firefoxExtensionShortcutHelp": "Modifiez ce raccourci depuis le gestionnaire d’extensions à l’adresse about:addons.",
         "postMinePlayback": "État de lecture après minage",
         "pauseOnHoverMode": "Pause automatique au survol des sous-titres",
-        "createTestCard": "Create Test Card"
+        "createTestCard": "Créer une carte de test",
+        "dictionary": "Dictionnaire",
+        "dictionaryTrack": "Piste de sous-titres pour le dictionnaire",
+        "dictionaryTrackChoice": "Piste {{trackNumber}}",
+        "dictionaryEnabled": "Activer le dictionnaire pour la piste {{trackNumber}}",
+        "yomitanUrl": "Yomitan API URL",
+        "yomitanScanLength": "Longueur maximale des mots",
+        "dictionarySubtitleLemmatization": "Activer la recherche de forme de base (lemmatisation)",
+        "dictionaryAnkiWordFields": "Champs Anki (mots)",
+        "dictionaryAnkiSentenceFields": "Champs Anki (phrases)",
+        "dictionarySelectAnkiFields": "Sélectionnez les champs Anki pour la recherche...",
+        "dictionaryAnkiMatureInterval": "Intervalle Anki mûr (jours)",
+        "dictionaryTokenStyle": "Coloration des tokens du dictionnaire",
+        "dictionaryTokenStyleText": "Texte",
+        "dictionaryTokenStyleUnderline": "Souligné",
+        "dictionaryTokenStyleOverline": "Ligne au-dessus"
     },
     "subtitlePlayer": {
         "multiSubtitleSelectHelp": "Cliquez, maintenez et faites glisser pour extraire plusieurs sous-titres"

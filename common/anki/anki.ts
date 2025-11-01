@@ -177,14 +177,6 @@ export class Anki {
         this.fetcher = fetcher;
     }
 
-    getWordFields() {
-        return [this.settingsProvider.wordField].filter((f) => f.length);
-    }
-
-    getSentenceFields() {
-        return [this.settingsProvider.track1Field].filter((f) => f.length);
-    }
-
     async deckNames(ankiConnectUrl?: string) {
         const response = await this._executeAction('deckNames', null, ankiConnectUrl);
         return response.result;
