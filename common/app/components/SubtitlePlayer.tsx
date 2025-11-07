@@ -217,6 +217,7 @@ const useSubtitleRowStyles = makeStyles<Theme>((theme) => ({
 export interface DisplaySubtitleModel extends SubtitleModel {
     displayTime: string;
     index: number;
+    coloredText?: string;
 }
 
 enum SelectionState {
@@ -270,7 +271,11 @@ const SubtitleRow = React.memo(function SubtitleRow({
     const content = subtitle.textImage ? (
         <SubtitleTextImage availableWidth={window.screen.availWidth / 2} subtitle={subtitle} scale={1} />
     ) : (
-        <span ref={textRef} className={disabledClassName} dangerouslySetInnerHTML={{ __html: subtitle.text }} />
+        <span
+            ref={textRef}
+            className={disabledClassName}
+            dangerouslySetInnerHTML={{ __html: subtitle.coloredText ?? subtitle.text }}
+        />
     );
 
     let rowClassName: string;
@@ -420,21 +425,27 @@ export default function SubtitlePlayer({
     clockRef.current = clock;
     const subtitleListRef = useRef<DisplaySubtitleModel[]>(undefined);
     subtitleListRef.current = subtitles;
-    const subtitleRefs = useMemo<RefObject<HTMLTableRowElement | null>[]>(
-        () =>
-            subtitles
-                ? Array(subtitles.length)
-                      .fill(undefined)
-                      .map((_) => createRef<HTMLTableRowElement>())
-                : [],
-        [subtitles]
-    );
+
+    // Maintain a stable array of refs across subtitle list changes so that
+    // individual row refs don't get a new identity on every subtitles update.
+    // This prevents jumping to subtitle when their color is updated.
+    const subtitleRefsRef = useRef<RefObject<HTMLTableRowElement | null>[]>([]);
+    const subtitleRefs = subtitleRefsRef.current;
+    if (subtitles) {
+        while (subtitleRefs.length < subtitles.length) {
+            subtitleRefs.push(createRef<HTMLTableRowElement>());
+        }
+        while (subtitleRefs.length > subtitles.length) {
+            subtitleRefs.pop();
+        }
+    } else {
+        subtitleRefsRef.current.length = 0;
+    }
+
     const subtitleCollectionRef = useRef<SubtitleCollection<DisplaySubtitleModel>>(
         SubtitleCollection.empty<DisplaySubtitleModel>()
     );
     subtitleCollectionRef.current = subtitleCollection ?? SubtitleCollection.empty<DisplaySubtitleModel>();
-    const subtitleRefsRef = useRef<RefObject<HTMLTableRowElement | null>[]>([]);
-    subtitleRefsRef.current = subtitleRefs;
     const highlightedSubtitleIndexesRef = useRef<{ [index: number]: boolean }>({});
     const [selectedSubtitleIndexes, setSelectedSubtitleIndexes] = useState<boolean[]>();
     const [highlightedJumpToSubtitleIndex, setHighlightedJumpToSubtitleIndex] = useState<number>();

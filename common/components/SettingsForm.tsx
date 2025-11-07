@@ -31,9 +31,7 @@ import TextField from '@mui/material/TextField';
 import Paper from '@mui/material/Paper';
 import TableContainer from '@mui/material/TableContainer';
 import Table from '@mui/material/Table';
-import TableHead from '@mui/material/TableHead';
 import TableBody from '@mui/material/TableBody';
-import TableRow from '@mui/material/TableRow';
 import TableRowWithHoverEffect from './TableRowWithHoverEffect';
 import TableCell from '@mui/material/TableCell';
 import Badge from '@mui/material/Badge';
@@ -57,6 +55,8 @@ import {
     exportSettings,
     YoutubePage,
     Page,
+    TokenStyle,
+    DictionaryAnkiTreatSuspended,
 } from '@project/common/settings';
 import { isNumeric } from '@project/common/util';
 import { CustomStyle, validateSettings } from '@project/common/settings';
@@ -74,6 +74,7 @@ import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
+import Checkbox from '@mui/material/Checkbox';
 import Popover from '@mui/material/Popover';
 import Slider from '@mui/material/Slider';
 import Tab from '@mui/material/Tab';
@@ -82,10 +83,12 @@ import FormHelperText from '@mui/material/FormHelperText';
 import Link from '@mui/material/Link';
 import Button from '@mui/material/Button';
 import { Anki, exportCard } from '../anki';
+import { Yomitan } from '../yomitan/yomitan';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { WebSocketClient } from '../web-socket-client/web-socket-client';
 import { isFirefox } from '@project/common/browser-detection';
 import SubtitleAppearanceTrackSelector from './SubtitleAppearanceTrackSelector';
+import DictionaryTrackSelector from './DictionaryTrackSelector';
 import SubtitlePreview from './SubtitlePreview';
 import About from './About';
 import TutorialBubble from './TutorialBubble';
@@ -797,6 +800,7 @@ const TabPanel = React.forwardRef<HTMLDivElement, TabPanelProps>(function TabPan
 type TabName =
     | 'anki-settings'
     | 'mining-settings'
+    | 'dictionary'
     | 'subtitle-appearance'
     | 'keyboard-shortcuts'
     | 'streaming-video'
@@ -821,6 +825,7 @@ interface Props {
     extensionSupportsPauseOnHover: boolean;
     extensionSupportsExportCardBind: boolean;
     extensionSupportsPageSettings: boolean;
+    extensionSupportsDictionary: boolean;
     insideApp?: boolean;
     appVersion?: string;
     settings: AsbplayerSettings;
@@ -857,6 +862,7 @@ export default function SettingsForm({
     extensionSupportsPauseOnHover,
     extensionSupportsExportCardBind,
     extensionSupportsPageSettings,
+    extensionSupportsDictionary,
     insideApp,
     appVersion,
     scrollToId,
@@ -950,6 +956,7 @@ export default function SettingsForm({
         webSocketClientEnabled,
         webSocketServerUrl,
         pauseOnHoverMode,
+        dictionaryTracks,
     } = settings;
 
     const keyBindProperties = useMemo<{ [key in AllKeyNames]: KeyBindProperties }>(
@@ -1252,6 +1259,7 @@ export default function SettingsForm({
     const [modelNames, setModelNames] = useState<string[]>();
     const [ankiConnectUrlError, setAnkiConnectUrlError] = useState<string>();
     const [fieldNames, setFieldNames] = useState<string[]>();
+    const [allFieldNames, setAllFieldNames] = useState<string[]>();
     const [currentStyleKey, setCurrentStyleKey] = useState<string>(cssStyles[0]);
 
     const requestAnkiConnect = useCallback(async () => {
@@ -1272,7 +1280,16 @@ export default function SettingsForm({
             }
 
             setDeckNames(await anki.deckNames(ankiConnectUrl));
-            setModelNames(await anki.modelNames(ankiConnectUrl));
+            const modelNamesRes = await anki.modelNames(ankiConnectUrl);
+            setModelNames(modelNamesRes);
+            const allFieldNamesSet = new Set<string>();
+            for (const modelName of modelNamesRes) {
+                const fieldNames = await anki.modelFieldNames(modelName, ankiConnectUrl);
+                for (const fieldName of fieldNames) {
+                    allFieldNamesSet.add(fieldName);
+                }
+            }
+            setAllFieldNames(Array.from(allFieldNamesSet).sort((a, b) => a.localeCompare(b)));
             setAnkiConnectUrlError(undefined);
         } catch (e) {
             console.error(e);
@@ -1305,6 +1322,44 @@ export default function SettingsForm({
             clearTimeout(timeout);
         };
     }, [anki, ankiConnectUrl, requestAnkiConnect]);
+
+    const [selectedDictionaryTrack, setSelectedDictionaryTrack] = useState<number>(0);
+    const selectedDictionary = dictionaryTracks[selectedDictionaryTrack];
+
+    const [yomitanUrlError, setYomitanUrlError] = useState<string>();
+    const requestYomitan = useCallback(async () => {
+        try {
+            const yomitan = new Yomitan(selectedDictionary);
+            await yomitan.version();
+            setYomitanUrlError(undefined);
+        } catch (e) {
+            console.error(e);
+            if (e instanceof Error) {
+                setYomitanUrlError(e.message);
+            } else if (typeof e === 'string') {
+                setYomitanUrlError(e);
+            } else {
+                setYomitanUrlError(String(e));
+            }
+        }
+    }, [selectedDictionary]);
+
+    useEffect(() => {
+        let canceled = false;
+
+        const timeout = setTimeout(async () => {
+            if (canceled) {
+                return;
+            }
+
+            requestYomitan();
+        }, 1000);
+
+        return () => {
+            canceled = true;
+            clearTimeout(timeout);
+        };
+    }, [requestYomitan]);
 
     useEffect(() => {
         if (!noteType || ankiConnectUrlError) {
@@ -1381,6 +1436,7 @@ export default function SettingsForm({
         const tabs = [
             'anki-settings',
             'mining-settings',
+            'dictionary',
             'subtitle-appearance',
             'keyboard-shortcuts',
             'streaming-video',
@@ -1605,13 +1661,14 @@ export default function SettingsForm({
             >
                 <Tab tabIndex={0} label={t('settings.anki')} id="anki-settings" />
                 <Tab tabIndex={1} label={t('settings.mining')} id="mining-settings" />
-                <Tab tabIndex={2} label={t('settings.subtitleAppearance')} id="subtitle-appearance" />
-                <Tab tabIndex={3} label={t('settings.keyboardShortcuts')} id="keyboard-shortcuts" />
+                <Tab tabIndex={2} label={t('settings.dictionary')} id="dictionary" />
+                <Tab tabIndex={3} label={t('settings.subtitleAppearance')} id="subtitle-appearance" />
+                <Tab tabIndex={4} label={t('settings.keyboardShortcuts')} id="keyboard-shortcuts" />
                 {extensionSupportsAppIntegration && (
-                    <Tab tabIndex={4} label={t('settings.streamingVideo')} id="streaming-video" />
+                    <Tab tabIndex={5} label={t('settings.streamingVideo')} id="streaming-video" />
                 )}
-                <Tab tabIndex={5} label={t('settings.misc')} id="misc-settings" />
-                <Tab tabIndex={6} label={t('about.title')} id="about" />
+                <Tab tabIndex={extensionSupportsAppIntegration ? 6 : 5} label={t('settings.misc')} id="misc-settings" />
+                <Tab tabIndex={extensionSupportsAppIntegration ? 7 : 6} label={t('about.title')} id="about" />
             </Tabs>
             <TabPanel
                 ref={ankiPanelRef}
@@ -2110,6 +2167,373 @@ export default function SettingsForm({
                             },
                         }}
                     />
+                </FormGroup>
+            </TabPanel>
+            <TabPanel value={tabIndex} index={tabIndicesById['dictionary']} tabsOrientation={tabsOrientation}>
+                <FormGroup className={classes.formGroup}>
+                    {(!extensionInstalled || extensionSupportsDictionary) && (
+                        <DictionaryTrackSelector
+                            track={selectedDictionaryTrack}
+                            onTrackSelected={setSelectedDictionaryTrack}
+                        />
+                    )}
+                    <LabelWithHoverEffect
+                        control={
+                            <Switch
+                                checked={selectedDictionary.colorizeOnVideo}
+                                onChange={(e) => {
+                                    const newTracks = [...dictionaryTracks];
+                                    newTracks[selectedDictionaryTrack] = {
+                                        ...newTracks[selectedDictionaryTrack],
+                                        colorizeOnVideo: e.target.checked,
+                                    };
+                                    handleSettingChanged('dictionaryTracks', newTracks);
+                                }}
+                            />
+                        }
+                        label={t('settings.dictionaryColorizeOnVideo')}
+                        labelPlacement="start"
+                        className={classes.switchLabel}
+                    />
+                    <LabelWithHoverEffect
+                        control={
+                            <Switch
+                                checked={selectedDictionary.colorizeOnApp}
+                                onChange={(e) => {
+                                    const newTracks = [...dictionaryTracks];
+                                    newTracks[selectedDictionaryTrack] = {
+                                        ...newTracks[selectedDictionaryTrack],
+                                        colorizeOnApp: e.target.checked,
+                                    };
+                                    handleSettingChanged('dictionaryTracks', newTracks);
+                                }}
+                            />
+                        }
+                        label={t('settings.dictionaryColorizeOnApp')}
+                        labelPlacement="start"
+                        className={classes.switchLabel}
+                    />
+                    <TextField
+                        label={t('settings.yomitanUrl')}
+                        value={selectedDictionary.yomitanUrl}
+                        error={Boolean(yomitanUrlError)}
+                        helperText={yomitanUrlError}
+                        color="primary"
+                        onChange={(e) => {
+                            const newTracks = [...dictionaryTracks];
+                            newTracks[selectedDictionaryTrack] = {
+                                ...newTracks[selectedDictionaryTrack],
+                                yomitanUrl: e.target.value,
+                            };
+                            handleSettingChanged('dictionaryTracks', newTracks);
+                        }}
+                        slotProps={{
+                            input: {
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        <IconButton onClick={requestYomitan}>
+                                            <RefreshIcon />
+                                        </IconButton>
+                                    </InputAdornment>
+                                ),
+                            },
+                        }}
+                    />
+                    <TextField
+                        type="number"
+                        label={t('settings.yomitanScanLength')}
+                        value={selectedDictionary.yomitanScanLength}
+                        color="primary"
+                        onChange={(e) => {
+                            const newTracks = [...dictionaryTracks];
+                            newTracks[selectedDictionaryTrack] = {
+                                ...newTracks[selectedDictionaryTrack],
+                                yomitanScanLength: Number(e.target.value),
+                            };
+                            handleSettingChanged('dictionaryTracks', newTracks);
+                        }}
+                        slotProps={{
+                            htmlInput: { min: 1, max: 128, step: 1 },
+                        }}
+                    />
+                    <LabelWithHoverEffect
+                        control={
+                            <Switch
+                                checked={selectedDictionary.dictionarySubtitleLemmatization}
+                                onChange={(event) => {
+                                    const newTracks = [...dictionaryTracks];
+                                    newTracks[selectedDictionaryTrack] = {
+                                        ...newTracks[selectedDictionaryTrack],
+                                        dictionarySubtitleLemmatization: event.target.checked,
+                                    };
+                                    handleSettingChanged('dictionaryTracks', newTracks);
+                                }}
+                            />
+                        }
+                        label={t('settings.dictionarySubtitleLemmatization')}
+                        labelPlacement="start"
+                        className={classes.switchLabel}
+                    />
+                    <Autocomplete
+                        multiple
+                        options={allFieldNames ?? []}
+                        value={selectedDictionary.dictionaryAnkiWordFields}
+                        onChange={(_, newValue) => {
+                            const items = newValue as string[];
+                            const newTracks = [...dictionaryTracks];
+                            newTracks[selectedDictionaryTrack] = {
+                                ...newTracks[selectedDictionaryTrack],
+                                dictionaryAnkiWordFields: items,
+                            };
+                            handleSettingChanged('dictionaryTracks', newTracks);
+                        }}
+                        disableCloseOnSelect
+                        renderOption={(props, option, { selected }) => (
+                            <li {...props}>
+                                <ListItemIcon>
+                                    <Checkbox edge="start" checked={selected} tabIndex={-1} disableRipple />
+                                </ListItemIcon>
+                                <ListItemText primary={option} />
+                            </li>
+                        )}
+                        renderInput={(params) => (
+                            <TextField
+                                {...params}
+                                label={t('settings.dictionaryAnkiWordFields')}
+                                placeholder={t('settings.dictionarySelectAnkiFields')}
+                                fullWidth
+                            />
+                        )}
+                    />
+                    <Autocomplete
+                        multiple
+                        options={allFieldNames ?? []}
+                        value={selectedDictionary.dictionaryAnkiSentenceFields}
+                        onChange={(_, newValue) => {
+                            const items = newValue as string[];
+                            const newTracks = [...dictionaryTracks];
+                            newTracks[selectedDictionaryTrack] = {
+                                ...newTracks[selectedDictionaryTrack],
+                                dictionaryAnkiSentenceFields: items,
+                            };
+                            handleSettingChanged('dictionaryTracks', newTracks);
+                        }}
+                        disableCloseOnSelect
+                        renderOption={(props, option, { selected }) => (
+                            <li {...props}>
+                                <ListItemIcon>
+                                    <Checkbox edge="start" checked={selected} tabIndex={-1} disableRipple />
+                                </ListItemIcon>
+                                <ListItemText primary={option} />
+                            </li>
+                        )}
+                        renderInput={(params) => (
+                            <TextField
+                                {...params}
+                                label={t('settings.dictionaryAnkiSentenceFields')}
+                                placeholder={t('settings.dictionarySelectAnkiFields')}
+                                fullWidth
+                            />
+                        )}
+                    />
+                    <TextField
+                        type="number"
+                        label={t('settings.dictionaryAnkiMatureInterval')}
+                        value={selectedDictionary.dictionaryAnkiMatureInterval}
+                        color="primary"
+                        onChange={(e) => {
+                            const newTracks = [...dictionaryTracks];
+                            newTracks[selectedDictionaryTrack] = {
+                                ...newTracks[selectedDictionaryTrack],
+                                dictionaryAnkiMatureInterval: Number(e.target.value),
+                            };
+                            handleSettingChanged('dictionaryTracks', newTracks);
+                        }}
+                        slotProps={{
+                            htmlInput: { min: 1, max: 36500, step: 1 },
+                        }}
+                    />
+                    <FormLabel component="legend">{t('settings.dictionaryAnkiTreatSuspended')}</FormLabel>
+                    <RadioGroup row>
+                        <LabelWithHoverEffect
+                            control={
+                                <Radio
+                                    checked={
+                                        selectedDictionary.dictionaryAnkiTreatSuspended ===
+                                        DictionaryAnkiTreatSuspended.NORMAL
+                                    }
+                                    onChange={() => {
+                                        const newTracks = [...dictionaryTracks];
+                                        newTracks[selectedDictionaryTrack] = {
+                                            ...newTracks[selectedDictionaryTrack],
+                                            dictionaryAnkiTreatSuspended: DictionaryAnkiTreatSuspended.NORMAL,
+                                        };
+                                        handleSettingChanged('dictionaryTracks', newTracks);
+                                    }}
+                                />
+                            }
+                            label={t('settings.dictionaryAnkiTreatSuspendedNormal')}
+                        />
+                        <LabelWithHoverEffect
+                            control={
+                                <Radio
+                                    checked={
+                                        selectedDictionary.dictionaryAnkiTreatSuspended ===
+                                        DictionaryAnkiTreatSuspended.MATURE
+                                    }
+                                    onChange={() => {
+                                        const newTracks = [...dictionaryTracks];
+                                        newTracks[selectedDictionaryTrack] = {
+                                            ...newTracks[selectedDictionaryTrack],
+                                            dictionaryAnkiTreatSuspended: DictionaryAnkiTreatSuspended.MATURE,
+                                        };
+                                        handleSettingChanged('dictionaryTracks', newTracks);
+                                    }}
+                                />
+                            }
+                            label={t('settings.dictionaryAnkiTreatSuspendedMature')}
+                        />
+                        <LabelWithHoverEffect
+                            control={
+                                <Radio
+                                    checked={
+                                        selectedDictionary.dictionaryAnkiTreatSuspended ===
+                                        DictionaryAnkiTreatSuspended.YOUNG
+                                    }
+                                    onChange={() => {
+                                        const newTracks = [...dictionaryTracks];
+                                        newTracks[selectedDictionaryTrack] = {
+                                            ...newTracks[selectedDictionaryTrack],
+                                            dictionaryAnkiTreatSuspended: DictionaryAnkiTreatSuspended.YOUNG,
+                                        };
+                                        handleSettingChanged('dictionaryTracks', newTracks);
+                                    }}
+                                />
+                            }
+                            label={t('settings.dictionaryAnkiTreatSuspendedYoung')}
+                        />
+                        <LabelWithHoverEffect
+                            control={
+                                <Radio
+                                    checked={
+                                        selectedDictionary.dictionaryAnkiTreatSuspended ===
+                                        DictionaryAnkiTreatSuspended.UNKNOWN
+                                    }
+                                    onChange={() => {
+                                        const newTracks = [...dictionaryTracks];
+                                        newTracks[selectedDictionaryTrack] = {
+                                            ...newTracks[selectedDictionaryTrack],
+                                            dictionaryAnkiTreatSuspended: DictionaryAnkiTreatSuspended.UNKNOWN,
+                                        };
+                                        handleSettingChanged('dictionaryTracks', newTracks);
+                                    }}
+                                />
+                            }
+                            label={t('settings.dictionaryAnkiTreatSuspendedUnknown')}
+                        />
+                    </RadioGroup>
+                    <FormLabel component="legend">{t('settings.dictionaryVideoTokenStyle')}</FormLabel>
+                    <RadioGroup row>
+                        <LabelWithHoverEffect
+                            control={
+                                <Radio
+                                    checked={selectedDictionary.dictionaryVideoTokenStyle === TokenStyle.TEXT}
+                                    onChange={() => {
+                                        const newTracks = [...dictionaryTracks];
+                                        newTracks[selectedDictionaryTrack] = {
+                                            ...newTracks[selectedDictionaryTrack],
+                                            dictionaryVideoTokenStyle: TokenStyle.TEXT,
+                                        };
+                                        handleSettingChanged('dictionaryTracks', newTracks);
+                                    }}
+                                />
+                            }
+                            label={t('settings.dictionaryTokenStyleText')}
+                        />
+                        <LabelWithHoverEffect
+                            control={
+                                <Radio
+                                    checked={selectedDictionary.dictionaryVideoTokenStyle === TokenStyle.UNDERLINE}
+                                    onChange={() => {
+                                        const newTracks = [...dictionaryTracks];
+                                        newTracks[selectedDictionaryTrack] = {
+                                            ...newTracks[selectedDictionaryTrack],
+                                            dictionaryVideoTokenStyle: TokenStyle.UNDERLINE,
+                                        };
+                                        handleSettingChanged('dictionaryTracks', newTracks);
+                                    }}
+                                />
+                            }
+                            label={t('settings.dictionaryTokenStyleUnderline')}
+                        />
+                        <LabelWithHoverEffect
+                            control={
+                                <Radio
+                                    checked={selectedDictionary.dictionaryVideoTokenStyle === TokenStyle.OVERLINE}
+                                    onChange={() => {
+                                        const newTracks = [...dictionaryTracks];
+                                        newTracks[selectedDictionaryTrack] = {
+                                            ...newTracks[selectedDictionaryTrack],
+                                            dictionaryVideoTokenStyle: TokenStyle.OVERLINE,
+                                        };
+                                        handleSettingChanged('dictionaryTracks', newTracks);
+                                    }}
+                                />
+                            }
+                            label={t('settings.dictionaryTokenStyleOverline')}
+                        />
+                    </RadioGroup>
+                    <FormLabel component="legend">{t('settings.dictionaryAppTokenStyle')}</FormLabel>
+                    <RadioGroup row>
+                        <LabelWithHoverEffect
+                            control={
+                                <Radio
+                                    checked={selectedDictionary.dictionaryAppTokenStyle === TokenStyle.TEXT}
+                                    onChange={() => {
+                                        const newTracks = [...dictionaryTracks];
+                                        newTracks[selectedDictionaryTrack] = {
+                                            ...newTracks[selectedDictionaryTrack],
+                                            dictionaryAppTokenStyle: TokenStyle.TEXT,
+                                        };
+                                        handleSettingChanged('dictionaryTracks', newTracks);
+                                    }}
+                                />
+                            }
+                            label={t('settings.dictionaryTokenStyleText')}
+                        />
+                        <LabelWithHoverEffect
+                            control={
+                                <Radio
+                                    checked={selectedDictionary.dictionaryAppTokenStyle === TokenStyle.UNDERLINE}
+                                    onChange={() => {
+                                        const newTracks = [...dictionaryTracks];
+                                        newTracks[selectedDictionaryTrack] = {
+                                            ...newTracks[selectedDictionaryTrack],
+                                            dictionaryAppTokenStyle: TokenStyle.UNDERLINE,
+                                        };
+                                        handleSettingChanged('dictionaryTracks', newTracks);
+                                    }}
+                                />
+                            }
+                            label={t('settings.dictionaryTokenStyleUnderline')}
+                        />
+                        <LabelWithHoverEffect
+                            control={
+                                <Radio
+                                    checked={selectedDictionary.dictionaryAppTokenStyle === TokenStyle.OVERLINE}
+                                    onChange={() => {
+                                        const newTracks = [...dictionaryTracks];
+                                        newTracks[selectedDictionaryTrack] = {
+                                            ...newTracks[selectedDictionaryTrack],
+                                            dictionaryAppTokenStyle: TokenStyle.OVERLINE,
+                                        };
+                                        handleSettingChanged('dictionaryTracks', newTracks);
+                                    }}
+                                />
+                            }
+                            label={t('settings.dictionaryTokenStyleOverline')}
+                        />
+                    </RadioGroup>
                 </FormGroup>
             </TabPanel>
             <TabPanel value={tabIndex} index={tabIndicesById['subtitle-appearance']} tabsOrientation={tabsOrientation}>

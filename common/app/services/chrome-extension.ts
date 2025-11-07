@@ -29,6 +29,7 @@ import {
     ClearCopyHistoryMessage,
     SetGlobalStateMessage,
     GetGlobalStateMessage,
+    RequestSubtitleColorsFromAppMessage,
 } from '@project/common';
 import { AsbplayerSettings, PageSettings, Profile, SettingsFormPageConfig } from '@project/common/settings';
 import { GlobalState } from '@project/common/global-state';
@@ -132,6 +133,10 @@ export default class ChromeExtension {
         };
 
         window.addEventListener('message', this.windowEventListener);
+    }
+
+    get supportsDictionary() {
+        return this.installed && gte(this.version, '1.13.0');
     }
 
     get supportsPageSettings() {
@@ -326,6 +331,21 @@ export default class ChromeExtension {
             src,
             message: {
                 command: 'request-subtitles',
+                messageId,
+            },
+        };
+        window.postMessage(command);
+        return this._createResponsePromise(messageId);
+    }
+
+    requestSubtitleColors(tabId: number, src: string) {
+        const messageId = uuidv4();
+        const command: AsbPlayerToVideoCommandV2<RequestSubtitleColorsFromAppMessage> = {
+            sender: 'asbplayerv2',
+            tabId,
+            src,
+            message: {
+                command: 'request-subtitle-colors',
                 messageId,
             },
         };

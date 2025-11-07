@@ -31,6 +31,45 @@ export interface MiscSettings {
     readonly pauseOnHoverMode: PauseOnHoverMode;
 }
 
+export enum TokenColor {
+    MATURE = 'white',
+    YOUNG = 'yellow',
+    UNKNOWN = 'orange',
+    UNCOLLECTED = 'red',
+    ERROR = 'gray',
+}
+
+export enum TokenStyle {
+    TEXT = 'text',
+    UNDERLINE = 'underline',
+    OVERLINE = 'overline',
+}
+
+export enum DictionaryAnkiTreatSuspended {
+    NORMAL = 'normal',
+    MATURE = 'mature',
+    YOUNG = 'young',
+    UNKNOWN = 'unknown',
+}
+
+export interface DictionaryTrack {
+    readonly colorizeOnVideo: boolean;
+    readonly colorizeOnApp: boolean;
+    readonly yomitanUrl: string;
+    readonly yomitanScanLength: number;
+    readonly dictionarySubtitleLemmatization: boolean;
+    readonly dictionaryAnkiWordFields: string[];
+    readonly dictionaryAnkiSentenceFields: string[];
+    readonly dictionaryAnkiMatureInterval: number;
+    readonly dictionaryAnkiTreatSuspended: DictionaryAnkiTreatSuspended;
+    readonly dictionaryVideoTokenStyle: TokenStyle;
+    readonly dictionaryAppTokenStyle: TokenStyle;
+}
+
+export interface DictionarySettings {
+    readonly dictionaryTracks: DictionaryTrack[];
+}
+
 export type AnkiSettingsFieldKey =
     | 'sentenceField'
     | 'definitionField'
@@ -340,6 +379,7 @@ export interface AsbplayerSettings
     extends MiscSettings,
         AnkiSettings,
         SubtitleSettings,
+        DictionarySettings,
         StreamingVideoSettings,
         WebSocketClientSettings {
     readonly subtitlePreview: string;

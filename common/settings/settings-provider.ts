@@ -4,11 +4,13 @@ import {
     AnkiSettings,
     AsbplayerSettings,
     CustomAnkiFieldSettings,
+    DictionaryAnkiTreatSuspended,
     KeyBindName,
     SubtitleListPreference,
     SubtitleSettings,
     TextSubtitleSettings,
     textSubtitleSettingsKeys,
+    TokenStyle,
 } from '.';
 import { AutoPausePreference, PostMineAction, PostMinePlayback, SubtitleHtml } from '..';
 
@@ -174,6 +176,47 @@ export const defaultSettings: AsbplayerSettings = {
     webSocketServerUrl: 'ws://127.0.0.1:8766/ws',
     pauseOnHoverMode: 0,
     lastSelectedAnkiExportMode: 'default',
+    dictionaryTracks: [
+        {
+            colorizeOnVideo: false,
+            colorizeOnApp: false,
+            yomitanUrl: 'http://127.0.0.1:19633',
+            yomitanScanLength: 16,
+            dictionarySubtitleLemmatization: true,
+            dictionaryAnkiWordFields: [],
+            dictionaryAnkiSentenceFields: [],
+            dictionaryAnkiMatureInterval: 21,
+            dictionaryAnkiTreatSuspended: DictionaryAnkiTreatSuspended.NORMAL,
+            dictionaryVideoTokenStyle: TokenStyle.UNDERLINE,
+            dictionaryAppTokenStyle: TokenStyle.TEXT,
+        },
+        {
+            colorizeOnVideo: false,
+            colorizeOnApp: false,
+            yomitanUrl: 'http://127.0.0.1:19633',
+            yomitanScanLength: 16,
+            dictionarySubtitleLemmatization: true,
+            dictionaryAnkiWordFields: [],
+            dictionaryAnkiSentenceFields: [],
+            dictionaryAnkiMatureInterval: 21,
+            dictionaryAnkiTreatSuspended: DictionaryAnkiTreatSuspended.NORMAL,
+            dictionaryVideoTokenStyle: TokenStyle.UNDERLINE,
+            dictionaryAppTokenStyle: TokenStyle.TEXT,
+        },
+        {
+            colorizeOnVideo: false,
+            colorizeOnApp: false,
+            yomitanUrl: 'http://127.0.0.1:19633',
+            yomitanScanLength: 16,
+            dictionarySubtitleLemmatization: true,
+            dictionaryAnkiWordFields: [],
+            dictionaryAnkiSentenceFields: [],
+            dictionaryAnkiMatureInterval: 21,
+            dictionaryAnkiTreatSuspended: DictionaryAnkiTreatSuspended.NORMAL,
+            dictionaryVideoTokenStyle: TokenStyle.UNDERLINE,
+            dictionaryAppTokenStyle: TokenStyle.TEXT,
+        },
+    ],
 };
 
 export interface AnkiFieldUiModel {

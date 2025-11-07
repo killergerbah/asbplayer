@@ -11,6 +11,7 @@ import {
     CopyToVideoMessage,
     CurrentTimeFromVideoMessage,
     CurrentTimeToVideoMessage,
+    EventColorCache,
     FullscreenToggleMessageToVideoMessage,
     HideSubtitlePlayerToggleToVideoMessage,
     ImageModel,
@@ -27,6 +28,7 @@ import {
     ReadyFromVideoMessage,
     ReadyStateFromVideoMessage,
     ReadyToVideoMessage,
+    SubtitleColorsUpdatedFromVideoMessage,
     SubtitleModel,
     SubtitleSettingsToVideoMessage,
     SubtitlesToVideoMessage,
@@ -65,6 +67,7 @@ export default class VideoChannel {
     private appBarToggleCallbacks: (() => void)[];
     private ankiDialogRequestCallbacks: (() => void)[];
     private toggleSubtitleTrackInListCallbacks: ((track: number) => void)[];
+    private subtitleColorsUpdatedCallbacks: ((eventColorCache: EventColorCache) => void)[];
     private loadFilesCallbacks: (() => void)[];
 
     readyState: number;
@@ -97,6 +100,7 @@ export default class VideoChannel {
         this.appBarToggleCallbacks = [];
         this.ankiDialogRequestCallbacks = [];
         this.toggleSubtitleTrackInListCallbacks = [];
+        this.subtitleColorsUpdatedCallbacks = [];
         this.loadFilesCallbacks = [];
 
         const that = this;
@@ -230,6 +234,13 @@ export default class VideoChannel {
                         callback(toggleSubtitleTrackInListMessage.track);
                     }
                     break;
+                case 'subtitleColorsUpdated':
+                    const subtitleColorsUpdatedMessage = event.data as SubtitleColorsUpdatedFromVideoMessage;
+
+                    for (const callback of that.subtitleColorsUpdatedCallbacks) {
+                        callback(subtitleColorsUpdatedMessage.eventColorCache);
+                    }
+                    break;
                 case 'loadFiles':
                     for (const callback of that.loadFilesCallbacks) {
                         callback();
@@ -349,6 +360,11 @@ export default class VideoChannel {
     onToggleSubtitleTrackInList(callback: (track: number) => void) {
         this.toggleSubtitleTrackInListCallbacks.push(callback);
         return () => this._remove(callback, this.toggleSubtitleTrackInListCallbacks);
+    }
+
+    onSubtitleColorsUpdated(callback: (eventColorCache: EventColorCache) => void) {
+        this.subtitleColorsUpdatedCallbacks.push(callback);
+        return () => this._remove(callback, this.subtitleColorsUpdatedCallbacks);
     }
 
     onLoadFiles(callback: () => void) {
@@ -633,6 +649,7 @@ export default class VideoChannel {
         this.appBarToggleCallbacks = [];
         this.ankiDialogRequestCallbacks = [];
         this.toggleSubtitleTrackInListCallbacks = [];
+        this.subtitleColorsUpdatedCallbacks = [];
         this.loadFilesCallbacks = [];
     }
 

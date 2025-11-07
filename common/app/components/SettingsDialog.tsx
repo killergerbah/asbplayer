@@ -104,6 +104,7 @@ export default function SettingsDialog({
                     extensionSupportsPauseOnHover={extension.supportsPauseOnHover}
                     extensionSupportsExportCardBind={extension.supportsExportCardBind}
                     extensionSupportsPageSettings={extension.supportsPageSettings}
+                    extensionSupportsDictionary={extension.supportsDictionary}
                     pageConfigs={extension.pageConfig}
                     insideApp
                     appVersion={import.meta.env.VITE_APP_GIT_COMMIT}

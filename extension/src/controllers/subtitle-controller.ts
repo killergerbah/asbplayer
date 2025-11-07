@@ -1,19 +1,25 @@
 import {
     AutoPauseContext,
     CopyToClipboardMessage,
+    EventColorCache,
     Fetcher,
     HttpPostMessage,
     OffsetFromVideoMessage,
+    SubtitleColorsUpdatedFromVideoMessage,
     SubtitleModel,
     SubtitleHtml,
     VideoToExtensionCommand,
 } from '@project/common';
 import { Anki } from '@project/common/anki';
 import {
+    DictionaryAnkiTreatSuspended,
+    DictionaryTrack,
     SettingsProvider,
     SubtitleAlignment,
     SubtitleSettings,
     TextSubtitleSettings,
+    TokenColor,
+    TokenStyle,
     allTextSubtitleSettings,
 } from '@project/common/settings';
 import { SubtitleCollection, SubtitleSlice } from '@project/common/subtitle-collection';
@@ -30,9 +36,10 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 
 const BOUNDING_BOX_PADDING = 25;
-const TOKEN_CACHE_BUILD_AHEAD = 5;
-const TOKEN_CACHE_BATCH_SIZE = 5;
-const TOKEN_CACHE_MAX_REFRESH_INTERVAL = 3000;
+const TOKEN_CACHE_BUILD_AHEAD = 10;
+const TOKEN_CACHE_BATCH_SIZE = 1;
+const TOKEN_CACHE_ERROR_REFRESH_INTERVAL = 10000;
+const ANKI_RECENTLY_MODIFIED_INTERVAL = 10000;
 const HAS_LETTER_REGEX = /\p{L}/u;
 
 const _intersects = (clientX: number, clientY: number, element: HTMLElement): boolean => {
@@ -48,6 +55,8 @@ const _intersects = (clientX: number, clientY: number, element: HTMLElement): bo
 export interface SubtitleModelWithIndex extends SubtitleModel {
     index: number;
 }
+
+type TokenColorCache = Map<number, Map<string, TokenColor>>;
 
 class VideoFetcher implements Fetcher {
     private readonly videoSrcCB: () => string;
@@ -71,28 +80,12 @@ class VideoFetcher implements Fetcher {
     }
 }
 
-enum TokenColor {
-    MATURE = 'white',
-    YOUNG = 'yellow',
-    UNKNOWN = 'orange',
-    UNCOLLECTED = 'red',
-    ERROR = 'gray',
-}
-
-enum TokenStyle {
-    TEXT = 'text',
-    UNDERLINE = 'underline',
-    OVERLINE = 'overline',
-}
-
-const USER_TOKEN_STYLE = TokenStyle.TEXT;
-
 export default class SubtitleController {
     private readonly video: HTMLMediaElement;
     private readonly settings: SettingsProvider;
     private readonly videoFetcher: VideoFetcher;
     private anki: Anki | undefined;
-    private readonly yomitan: Yomitan;
+    private yomitanTracks: (Yomitan | undefined)[];
 
     private showingSubtitles?: SubtitleModelWithIndex[];
     private lastLoadedMessageTimestamp: number;
@@ -105,13 +98,6 @@ export default class SubtitleController {
     private subtitleClasses?: string[];
     private notificationElementOverlayHideTimeout?: NodeJS.Timeout;
     private _subtitles: SubtitleModelWithIndex[];
-    private tokenHtmlCache: Map<string, { html: string; hasError: boolean }> = new Map();
-    private tokenizeCache: Map<string, string[]> = new Map();
-    private deinflectCache: Map<string, string[]> = new Map();
-    private newTokenInShowingSubtitles: boolean = false;
-    private tokenCacheLastRefresh: number = Date.now();
-    private tokenCacheBuilding: boolean = false;
-    private ankiRequestFailed: boolean = false;
     private subtitleCollection: SubtitleCollection<SubtitleModelWithIndex>;
     private bottomSubtitlesElementOverlay: ElementOverlay;
     private topSubtitlesElementOverlay: ElementOverlay;
@@ -131,6 +117,22 @@ export default class SubtitleController {
     subtitleHtml: SubtitleHtml;
     _preCacheDom;
 
+    dictionaryTracks: (DictionaryTrack | undefined)[] | undefined;
+    videoColorCache: EventColorCache;
+    appColorCache: EventColorCache;
+    private tokenColorCache: TokenColorCache;
+    private tokenizeCache: Map<number, Map<string, string[]>>;
+    private lemmatizeCache: Map<number, Map<string, string[]>>;
+    private erroredCache: Map<number, Set<number>>;
+    private uncollectedCache: Map<number, Set<number>>;
+    private newTokenInShowingSubtitles: boolean;
+    private uncollectedNeedsRefresh: boolean;
+    private ankiRecentlyModifiedCardIds: Set<number>;
+    private ankiLastRecentlyModifiedCheck: number;
+    private colorCacheLastRefresh: number;
+    private colorCacheBuilding: boolean;
+    private tokenRequestFailed: boolean;
+
     readonly autoPauseContext: AutoPauseContext = new AutoPauseContext();
 
     onNextToShow?: (subtitle: SubtitleModel) => void;
@@ -141,8 +143,8 @@ export default class SubtitleController {
     constructor(video: HTMLMediaElement, settings: SettingsProvider) {
         this.video = video;
         this.settings = settings;
+        this.yomitanTracks = [];
         this.videoFetcher = new VideoFetcher(() => this.video.src);
-        this.yomitan = new Yomitan(this.videoFetcher);
         this._preCacheDom = false;
         this._subtitles = [];
         this.subtitleCollection = new SubtitleCollection<SubtitleModelWithIndex>([]);
@@ -167,6 +169,20 @@ export default class SubtitleController {
         this.bottomSubtitlesElementOverlay = subtitlesElementOverlay;
         this.topSubtitlesElementOverlay = topSubtitlesElementOverlay;
         this.notificationElementOverlay = notificationElementOverlay;
+        this.videoColorCache = {};
+        this.appColorCache = {};
+        this.tokenColorCache = new Map();
+        this.tokenizeCache = new Map();
+        this.lemmatizeCache = new Map();
+        this.erroredCache = new Map();
+        this.uncollectedCache = new Map();
+        this.newTokenInShowingSubtitles = false;
+        this.uncollectedNeedsRefresh = false;
+        this.ankiRecentlyModifiedCardIds = new Set<number>();
+        this.ankiLastRecentlyModifiedCheck = Date.now();
+        this.colorCacheLastRefresh = Date.now();
+        this.colorCacheBuilding = false;
+        this.tokenRequestFailed = false;
     }
 
     get subtitles() {
@@ -180,13 +196,15 @@ export default class SubtitleController {
             returnNextToShow: true,
         });
         this.autoPauseContext.clear();
-        this.initTokenCache();
+        this._clearColorCaches();
+        this._initColorCache();
     }
 
     reset() {
         this.subtitles = [];
         this.subtitleFileNames = undefined;
         this.cacheHtml();
+        this._clearColorCaches();
     }
 
     cacheHtml() {
@@ -299,6 +317,10 @@ export default class SubtitleController {
         this.showingSubtitles = undefined;
     }
 
+    ankiCardWasUpdated() {
+        this.uncollectedNeedsRefresh = true;
+    }
+
     private _overlays() {
         const { subtitleOverlayParams, topSubtitleOverlayParams, notificationOverlayParams } =
             this._elementOverlayParams();
@@ -399,12 +421,17 @@ export default class SubtitleController {
             if (subtitlesAreNew) {
                 this.showingSubtitles = showingSubtitles;
                 this._autoCopyToClipboard(showingSubtitles);
-                this._buildTokenCacheBuffer(showingSubtitles);
-                this.tokenCacheLastRefresh = Date.now();
+                const { colorBufferStartIndex, colorBufferEndIndex } = this.getColorBufferIndexes(showingSubtitles);
+                this._buildColorCache(this.subtitles.slice(colorBufferStartIndex, colorBufferEndIndex));
+                this.colorCacheLastRefresh = Date.now();
             } else {
-                if (Date.now() - this.tokenCacheLastRefresh >= TOKEN_CACHE_MAX_REFRESH_INTERVAL) {
-                    this.initTokenCache(); // Update when paused, e.g. user opened Anki after asbplayer
-                    this.tokenCacheLastRefresh = Date.now();
+                if (Date.now() - this.colorCacheLastRefresh >= TOKEN_CACHE_ERROR_REFRESH_INTERVAL) {
+                    this._initColorCache(); // Update when user collects a token or Anki opened after asbplayer
+                    this.colorCacheLastRefresh = Date.now();
+                }
+                if (Date.now() - this.ankiLastRecentlyModifiedCheck >= ANKI_RECENTLY_MODIFIED_INTERVAL) {
+                    this._checkAnkiRecentlyModifiedCards();
+                    this.ankiLastRecentlyModifiedCheck = Date.now();
                 }
             }
 
@@ -414,7 +441,12 @@ export default class SubtitleController {
             if ((!showOffset && !this._displaySubtitles) || this._forceHideSubtitles) {
                 this.bottomSubtitlesElementOverlay.hide();
                 this.topSubtitlesElementOverlay.hide();
-            } else if (subtitlesAreNew || shouldRenderOffset || this.newTokenInShowingSubtitles) {
+            } else if (
+                subtitlesAreNew ||
+                shouldRenderOffset ||
+                this.newTokenInShowingSubtitles ||
+                this.uncollectedNeedsRefresh
+            ) {
                 this.newTokenInShowingSubtitles = false;
                 this._resetUnblurState();
                 if (this.shouldRenderBottomOverlay) {
@@ -493,8 +525,55 @@ export default class SubtitleController {
         return slice.showing.filter((s) => this._trackEnabled(s)).sort((s1, s2) => s1.track - s2.track);
     }
 
+    private _findNextToShowSubtitles(slice: SubtitleSlice<SubtitleModelWithIndex>): SubtitleModelWithIndex[] {
+        return slice.nextToShow?.filter((s) => this._trackEnabled(s)).sort((s1, s2) => s1.track - s2.track) ?? [];
+    }
+
     private _trackEnabled(subtitle: SubtitleModel) {
         return subtitle.track === undefined || !this.disabledSubtitleTracks[subtitle.track];
+    }
+
+    private _dictionaryTrackEnabled(dt: DictionaryTrack | undefined) {
+        return dt && (dt.colorizeOnVideo || dt.colorizeOnApp);
+    }
+
+    private _tokenColorValid(tokenColor: TokenColor | undefined) {
+        if (tokenColor === undefined) return false;
+        if (tokenColor === TokenColor.ERROR) return false;
+        if (tokenColor === TokenColor.UNCOLLECTED) return !this.uncollectedNeedsRefresh;
+        return true;
+    }
+
+    private _colorCacheValid(cachedColoredText: string | undefined, track: number, index: number) {
+        if (cachedColoredText === undefined) return false;
+        if (this.erroredCache.get(track)?.has(index)) return false;
+        if (this.uncollectedCache.get(track)?.has(index)) return !this.uncollectedNeedsRefresh;
+        return true;
+    }
+
+    private async _checkAnkiRecentlyModifiedCards() {
+        if (!this.anki) return;
+        if (!this.dictionaryTracks) return;
+        const fields: Set<string> = new Set();
+        for (const dt of this.dictionaryTracks) {
+            if (!this._dictionaryTrackEnabled(dt)) continue;
+            for (const field of [...dt!.dictionaryAnkiWordFields, ...dt!.dictionaryAnkiSentenceFields]) {
+                fields.add(field);
+            }
+        }
+        try {
+            const cardIds: number[] = await this.anki.findRecentlyEditedCards(Array.from(fields), 1); // Don't care about rated:1 or suspended status
+            if (
+                cardIds.length === this.ankiRecentlyModifiedCardIds.size &&
+                cardIds.every((cardId) => this.ankiRecentlyModifiedCardIds.has(cardId))
+            ) {
+                return;
+            }
+            this.uncollectedNeedsRefresh = true;
+            this.ankiRecentlyModifiedCardIds = new Set(cardIds);
+        } catch {
+            console.error('Error checking Anki recently modified cards');
+        }
     }
 
     private _buildSubtitlesHtml(subtitles: SubtitleModelWithIndex[]) {
@@ -521,7 +600,7 @@ export default class SubtitleController {
                             </div>
                         `;
                     } else {
-                        return this._buildTextHtml(subtitle.text, subtitle.track);
+                        return this._buildTextHtml(subtitle.text, subtitle.track, subtitle.index);
                     }
                 },
                 key: String(subtitle.index),
@@ -529,39 +608,44 @@ export default class SubtitleController {
         });
     }
 
-    private _buildTextHtml(text: string, track?: number) {
-        return `<span data-track="${track ?? 0}" class="${this._subtitleClasses(track)}" style="${this._subtitleStyles(
+    private _buildTextHtml(text: string, track?: number, index?: number) {
+        const trackNum = track ?? 0;
+        const maybeColoredText = this.dictionaryTracks?.[trackNum]?.colorizeOnVideo
+            ? (this.videoColorCache[trackNum]?.[index ?? -1] ?? text)
+            : text;
+        return `<span data-track="${trackNum}" class="${this._subtitleClasses(track)}" style="${this._subtitleStyles(
             track
-        )}">${this.tokenHtmlCache.get(text)?.html ?? text}</span>`;
+        )}">${maybeColoredText}</span>`;
     }
 
-    private async _buildTokenCacheBuffer(subtitles: SubtitleModelWithIndex[]) {
-        if (!subtitles.length) return;
-        const startIndex = Math.min(...subtitles.map((s) => s.index));
-        const endIndex = Math.max(...subtitles.map((s) => s.index)) + 1;
-        await this.buildTokenCache(this.subtitles.slice(startIndex, endIndex)); // Prioritize current subtitles
-        await this.buildTokenCache(this.subtitles.slice(endIndex, endIndex + TOKEN_CACHE_BUILD_AHEAD), false);
-    }
-
-    private async initTokenCache() {
-        const slice = this.subtitleCollection.subtitlesAt(this.video.currentTime * 1000);
-        const showingSubtitles = this._findShowingSubtitles(slice);
-        if (showingSubtitles.length) {
-            await this._buildTokenCacheBuffer(showingSubtitles);
-        } else if (slice.nextToShow?.length) {
-            await this._buildTokenCacheBuffer(slice.nextToShow);
-        } else {
-            await this.buildTokenCache(this.subtitles.slice(0, TOKEN_CACHE_BUILD_AHEAD));
+    getColorBufferIndexes(subtitles?: SubtitleModelWithIndex[]) {
+        if (!subtitles) {
+            const slice = this.subtitleCollection.subtitlesAt(this.video.currentTime * 1000);
+            subtitles = this._findShowingSubtitles(slice);
+            if (!subtitles.length) subtitles = this._findNextToShowSubtitles(slice);
         }
+        if (!subtitles.length) return { colorBufferStartIndex: 0, colorBufferEndIndex: TOKEN_CACHE_BUILD_AHEAD };
+        const colorBufferStartIndex = Math.min(...subtitles.map((s) => s.index));
+        const colorBufferEndIndex = Math.max(...subtitles.map((s) => s.index)) + 1 + TOKEN_CACHE_BUILD_AHEAD;
+        return { colorBufferStartIndex, colorBufferEndIndex };
     }
 
-    private async buildTokenCache(subtitles: SubtitleModelWithIndex[], requestAnkiPermission: boolean = true) {
+    private async _initColorCache() {
+        const { colorBufferStartIndex, colorBufferEndIndex } = this.getColorBufferIndexes();
+        return await this._buildColorCache(this.subtitles.slice(colorBufferStartIndex, colorBufferEndIndex));
+    }
+
+    private async _buildColorCache(subtitles: SubtitleModelWithIndex[]) {
         if (!subtitles.length) return;
-        if (this.tokenCacheBuilding) return;
+        if (!this.dictionaryTracks) this.dictionaryTracks = await this.settings.getSingle('dictionaryTracks');
+        if (!this.dictionaryTracks || this.dictionaryTracks.every((dt) => !this._dictionaryTrackEnabled(dt))) return;
+        if (this.colorCacheBuilding) return;
+
+        let uncollectedNeedsRefresh = false;
         try {
-            this.tokenCacheBuilding = true;
-            this.ankiRequestFailed = false;
-            if (!this.anki && requestAnkiPermission) {
+            this.colorCacheBuilding = true;
+            this.tokenRequestFailed = false;
+            if (!this.anki) {
                 try {
                     this.anki = new Anki(await this.settings.getAll(), this.videoFetcher);
                     await this.anki.requestPermission();
@@ -570,16 +654,58 @@ export default class SubtitleController {
                     this.anki = undefined;
                 }
             }
+            for (const [track, dt] of this.dictionaryTracks.entries()) {
+                if (this.yomitanTracks[track]) continue;
+                if (!this._dictionaryTrackEnabled(dt)) continue;
+                if (!this.videoColorCache[track]) this.videoColorCache[track] = {};
+                if (!this.appColorCache[track]) this.appColorCache[track] = {};
+                if (!this.tokenColorCache.has(track)) this.tokenColorCache.set(track, new Map());
+                if (!this.tokenizeCache.has(track)) this.tokenizeCache.set(track, new Map());
+                if (!this.lemmatizeCache.has(track)) this.lemmatizeCache.set(track, new Map());
+                if (!this.erroredCache.has(track)) this.erroredCache.set(track, new Set());
+                if (!this.uncollectedCache.has(track)) this.uncollectedCache.set(track, new Set());
+                try {
+                    const yt = new Yomitan(dt!, this.videoFetcher);
+                    await yt.version();
+                    this.yomitanTracks[track] = yt;
+                } catch (e) {
+                    console.warn(`YomitanTrack${track + 1} version request failed:`, e);
+                    this.yomitanTracks[track] = undefined;
+                }
+            }
+
+            if (this.uncollectedNeedsRefresh) {
+                uncollectedNeedsRefresh = true;
+                const existingIndexes = new Set(subtitles.map((s) => s.index));
+                for (const [_, uc] of this.uncollectedCache.entries()) {
+                    for (const index of uc) {
+                        if (existingIndexes.has(index)) continue;
+                        subtitles.push(this.subtitles[index]); // Process all uncollected subtitles even if not in buffer
+                    }
+                }
+            }
+
             await inBatches(
                 subtitles,
                 async (batch) => {
                     await Promise.all(
                         batch.map(async ({ index, text, track }) => {
-                            const cachedTextHtml = this.tokenHtmlCache.get(text);
-                            if (cachedTextHtml && !cachedTextHtml.hasError) return;
-                            const coloredTextHtml = await this._colorizeText(text);
-                            this.tokenHtmlCache.set(text, coloredTextHtml);
-                            if (cachedTextHtml?.hasError && coloredTextHtml.hasError) return;
+                            const dt = this.dictionaryTracks![track];
+                            if (!this._dictionaryTrackEnabled(dt)) return;
+                            const cachedColoredText = dt!.colorizeOnVideo
+                                ? this.videoColorCache[track][index]
+                                : this.appColorCache[track][index];
+                            if (this._colorCacheValid(cachedColoredText, track, index)) return;
+                            const { videoColoredText, appColoredText } = await this._colorizeText(
+                                text,
+                                track,
+                                index,
+                                dt!
+                            );
+                            const coloredText = dt!.colorizeOnVideo ? videoColoredText : appColoredText;
+                            if (cachedColoredText === coloredText) return;
+                            if (dt!.colorizeOnVideo) this.videoColorCache[track][index] = videoColoredText;
+                            if (dt!.colorizeOnApp) this.appColorCache[track][index] = appColoredText;
 
                             if (this._getSubtitleTrackAlignment(track) === 'bottom') {
                                 if (
@@ -599,158 +725,328 @@ export default class SubtitleController {
                             if (this.showingSubtitles?.some((s) => s.index === index)) {
                                 this.newTokenInShowingSubtitles = true;
                             }
+                            if (dt!.colorizeOnApp) {
+                                const command: VideoToExtensionCommand<SubtitleColorsUpdatedFromVideoMessage> = {
+                                    sender: 'asbplayer-video',
+                                    message: {
+                                        command: 'subtitleColorsUpdated',
+                                        eventColorCache: { [track]: { [index]: appColoredText } },
+                                    },
+                                    src: this.video.src,
+                                };
+                                browser.runtime.sendMessage(command);
+                            }
                         })
                     );
                 },
                 { batchSize: TOKEN_CACHE_BATCH_SIZE }
             );
         } finally {
-            if (this.ankiRequestFailed) {
+            if (uncollectedNeedsRefresh) this.uncollectedNeedsRefresh = false; // Don't reset if it became true during processing
+            if (this.tokenRequestFailed) {
                 this.anki = undefined;
-                this.ankiRequestFailed = false;
+                this.yomitanTracks = [];
+                this.tokenRequestFailed = false;
             }
-            this.tokenCacheBuilding = false;
+            this.colorCacheBuilding = false;
         }
     }
 
-    private async _colorizeText(text: string): Promise<{ html: string; hasError: boolean }> {
+    private async _colorizeText(
+        text: string,
+        track: number,
+        index: number,
+        dt: DictionaryTrack
+    ): Promise<{ videoColoredText: string; appColoredText: string }> {
+        const erc = this.erroredCache.get(track)!;
+        const ucc = this.uncollectedCache.get(track)!;
+        const tc = this.tokenizeCache.get(track)!;
+        const tcc = this.tokenColorCache.get(track)!;
+
         try {
-            let coloredTextHtml: string = '';
+            const yt = this.yomitanTracks[track];
+            if (!this.anki || !yt) {
+                erc.add(index);
+                return {
+                    videoColoredText: this._applyTokenStyle(text, TokenColor.ERROR, dt, true),
+                    appColoredText: this._applyTokenStyle(text, TokenColor.ERROR, dt, false),
+                };
+            }
+
+            let videoColoredText: string = '';
+            let appColoredText: string = '';
             let textHasError = false;
-            let rawTokens = this.tokenizeCache.get(text);
+            let textHasUncollected = false;
+            let rawTokens = tc.get(text);
             if (!rawTokens) {
-                rawTokens = await this.yomitan.tokenize(text);
-                this.tokenizeCache.set(text, rawTokens);
+                rawTokens = await yt.tokenize(text);
+                tc.set(text, rawTokens);
             }
             for (const rawToken of rawTokens) {
                 const trimmedToken = rawToken.trim();
+
+                // Token is already cached or not a word
+                const cachedTokenColor = tcc.get(trimmedToken);
+                if (this._tokenColorValid(cachedTokenColor)) {
+                    if (dt.colorizeOnVideo)
+                        videoColoredText += this._applyTokenStyle(rawToken, cachedTokenColor!, dt, true);
+                    if (dt.colorizeOnApp)
+                        appColoredText += this._applyTokenStyle(rawToken, cachedTokenColor!, dt, false);
+                    if (cachedTokenColor === TokenColor.ERROR) textHasError = true;
+                    else if (cachedTokenColor === TokenColor.UNCOLLECTED) textHasUncollected = true;
+                    continue;
+                }
                 if (!HAS_LETTER_REGEX.test(trimmedToken)) {
-                    coloredTextHtml += this._applyTokenStyle(rawToken, TokenColor.MATURE); // Symbols or numbers
+                    if (dt.colorizeOnVideo)
+                        videoColoredText += this._applyTokenStyle(rawToken, TokenColor.MATURE, dt, true);
+                    if (dt.colorizeOnApp)
+                        appColoredText += this._applyTokenStyle(rawToken, TokenColor.MATURE, dt, false);
+                    tcc.set(trimmedToken, TokenColor.MATURE);
                     continue;
                 }
-                const cachedToken = this.tokenHtmlCache.get(trimmedToken);
-                if (cachedToken && !cachedToken.hasError) {
-                    coloredTextHtml += cachedToken.html;
+
+                // Check if this possibly inflected token is collected
+                const tokenWordFieldColor = await this._getWordFieldColor(trimmedToken, dt);
+                if (tokenWordFieldColor !== TokenColor.UNCOLLECTED) {
+                    if (dt.colorizeOnVideo)
+                        videoColoredText += this._applyTokenStyle(rawToken, tokenWordFieldColor, dt, true);
+                    if (dt.colorizeOnApp)
+                        appColoredText += this._applyTokenStyle(rawToken, tokenWordFieldColor, dt, false);
+                    if (tokenWordFieldColor === TokenColor.ERROR) textHasError = true;
+                    tcc.set(trimmedToken, tokenWordFieldColor);
                     continue;
                 }
-                const tokenColor = await this._getTokenColor(trimmedToken);
-                let coloredTokenHtml: string | undefined;
-                let tokenHasError = false;
-                if (tokenColor === TokenColor.UNCOLLECTED) {
-                    let deinflectedTokens = this.deinflectCache.get(trimmedToken);
-                    if (!deinflectedTokens) {
-                        deinflectedTokens = await this.yomitan.deinflectToken(trimmedToken);
-                        this.deinflectCache.set(trimmedToken, deinflectedTokens);
-                    }
-                    for (const deinflectedToken of deinflectedTokens) {
-                        const cachedDeinflectedToken = this.tokenHtmlCache.get(deinflectedToken);
-                        if (cachedDeinflectedToken && !cachedDeinflectedToken.hasError) {
-                            coloredTokenHtml = cachedDeinflectedToken.html;
-                            break;
-                        }
-                        const deinflectedColor = await this._getTokenColor(deinflectedToken);
-                        if (deinflectedColor !== TokenColor.UNCOLLECTED) {
-                            coloredTokenHtml = this._applyTokenStyle(rawToken, deinflectedColor);
-                            tokenHasError = deinflectedColor === TokenColor.ERROR;
-                            if (tokenHasError) textHasError = true;
-                            this.tokenHtmlCache.set(deinflectedToken, {
-                                html: coloredTokenHtml,
-                                hasError: tokenHasError,
-                            });
-                            break;
-                        }
-                    }
+
+                // Check if this token's lemma is collected
+                const lemmaWordColor = await this._handleLemmatize(
+                    trimmedToken,
+                    track,
+                    dt,
+                    yt,
+                    !dt.dictionaryAnkiSentenceFields.length,
+                    (t) => this._getWordFieldColor(t, dt)
+                );
+                if (lemmaWordColor !== TokenColor.UNCOLLECTED) {
+                    if (dt.colorizeOnVideo)
+                        videoColoredText += this._applyTokenStyle(rawToken, lemmaWordColor, dt, true);
+                    if (dt.colorizeOnApp) appColoredText += this._applyTokenStyle(rawToken, lemmaWordColor, dt, false);
+                    if (lemmaWordColor === TokenColor.ERROR) textHasError = true;
+                    tcc.set(trimmedToken, lemmaWordColor);
+                    continue;
                 }
-                if (!coloredTokenHtml) {
-                    coloredTokenHtml = this._applyTokenStyle(rawToken, tokenColor);
-                    tokenHasError = tokenColor === TokenColor.ERROR;
-                    if (tokenHasError) textHasError = true;
+
+                // Check if this possibly inflected token is collected in sentence fields
+                const tokenSentenceFieldColor = await this._getSentenceFieldColor(trimmedToken, track, dt, yt);
+                if (tokenSentenceFieldColor !== TokenColor.UNCOLLECTED) {
+                    if (dt.colorizeOnVideo)
+                        videoColoredText += this._applyTokenStyle(rawToken, tokenSentenceFieldColor, dt, true);
+                    if (dt.colorizeOnApp)
+                        appColoredText += this._applyTokenStyle(rawToken, tokenSentenceFieldColor, dt, false);
+                    if (tokenSentenceFieldColor === TokenColor.ERROR) textHasError = true;
+                    tcc.set(trimmedToken, tokenSentenceFieldColor);
+                    continue;
                 }
-                coloredTextHtml += coloredTokenHtml;
-                this.tokenHtmlCache.set(trimmedToken, { html: coloredTokenHtml, hasError: tokenHasError });
+
+                // Check if this token's lemma is collected in sentence fields
+                const lemmaSentenceColor = await this._handleLemmatize(trimmedToken, track, dt, yt, true, (t) =>
+                    this._getSentenceFieldColor(t, track, dt, yt)
+                );
+                if (lemmaSentenceColor !== TokenColor.UNCOLLECTED) {
+                    if (dt.colorizeOnVideo)
+                        videoColoredText += this._applyTokenStyle(rawToken, lemmaSentenceColor, dt, true);
+                    if (dt.colorizeOnApp)
+                        appColoredText += this._applyTokenStyle(rawToken, lemmaSentenceColor, dt, false);
+                    if (lemmaSentenceColor === TokenColor.ERROR) textHasError = true;
+                    tcc.set(trimmedToken, lemmaSentenceColor);
+                    continue;
+                }
+
+                // Token is uncollected
+                if (dt.colorizeOnVideo)
+                    videoColoredText += this._applyTokenStyle(rawToken, TokenColor.UNCOLLECTED, dt, true);
+                if (dt.colorizeOnApp)
+                    appColoredText += this._applyTokenStyle(rawToken, TokenColor.UNCOLLECTED, dt, false);
+                textHasUncollected = true;
+                tcc.set(trimmedToken, TokenColor.UNCOLLECTED);
             }
-            return { html: coloredTextHtml, hasError: textHasError };
+
+            textHasError ? erc.add(index) : erc.delete(index);
+            textHasUncollected ? ucc.add(index) : ucc.delete(index);
+            return { videoColoredText, appColoredText };
         } catch (error) {
+            this.tokenRequestFailed = true;
             console.error('Error colorizing subtitle text:', error);
-            return { html: this._applyTokenStyle(text, TokenColor.ERROR), hasError: true };
+            erc.add(index);
+            return {
+                videoColoredText: this._applyTokenStyle(text, TokenColor.ERROR, dt, true),
+                appColoredText: this._applyTokenStyle(text, TokenColor.ERROR, dt, false),
+            };
         }
     }
 
-    private async _getTokenColor(token: string): Promise<TokenColor> {
-        try {
-            if (!this.anki) return TokenColor.ERROR;
+    private async _handleLemmatize(
+        token: string,
+        track: number,
+        dt: DictionaryTrack,
+        yt: Yomitan,
+        cacheUncollected: boolean,
+        getFieldColor: (token: string) => Promise<TokenColor>
+    ): Promise<TokenColor> {
+        if (!dt.dictionarySubtitleLemmatization) return TokenColor.UNCOLLECTED;
+        const tcc = this.tokenColorCache.get(track)!;
+        const lc = this.lemmatizeCache.get(track)!;
 
-            // Search in word fields first
-            let cardIds = await this.anki.findCardsWithWord(token, this.anki.getWordFields());
-            if (cardIds.length) {
-                const intervals = await this.anki.currentIntervals(cardIds);
-                return this._getTokenColorFromIntervals(token, intervals, cardIds);
+        let tokenLemmas = lc.get(token);
+        if (!tokenLemmas) {
+            tokenLemmas = await yt.lemmatize(token);
+            lc.set(token, tokenLemmas);
+        }
+        for (const tokenLemma of tokenLemmas) {
+            const cachedTokenLemma = tcc.get(tokenLemma);
+            if (this._tokenColorValid(cachedTokenLemma)) return cachedTokenLemma!;
+            const tokenColor = await getFieldColor(tokenLemma);
+            if (tokenColor !== TokenColor.UNCOLLECTED) {
+                tcc.set(tokenLemma, tokenColor);
+                return tokenColor;
             }
+            if (cacheUncollected) {
+                tcc.set(tokenLemma, TokenColor.UNCOLLECTED);
+            }
+        }
+        return TokenColor.UNCOLLECTED;
+    }
 
-            // Search in sentence fields
-            const sentenceFields = this.anki.getSentenceFields();
-            cardIds = await this.anki.findCardsContainingWord(token, sentenceFields);
+    private async _getWordFieldColor(token: string, dt: DictionaryTrack): Promise<TokenColor> {
+        try {
+            let cardIds = await this.anki!.findCardsWithWord(token, dt.dictionaryAnkiWordFields);
             if (!cardIds.length) return TokenColor.UNCOLLECTED;
-            const rawCardInfos = await this.anki.cardsInfo(cardIds);
-            if (rawCardInfos.length === 0) return TokenColor.ERROR;
+            const suspendedResult = await this._handleSuspended(cardIds, dt);
+            if (suspendedResult) return suspendedResult;
+            const intervals = await this.anki!.currentIntervals(cardIds);
+            return this._getTokenColorFromIntervals(token, intervals, cardIds, dt);
+        } catch (error) {
+            this.tokenRequestFailed = true;
+            console.error(`Error getting color using word fields for token "${token}":`, error);
+            return TokenColor.ERROR;
+        }
+    }
+
+    private async _getSentenceFieldColor(
+        token: string,
+        track: number,
+        dt: DictionaryTrack,
+        yt: Yomitan
+    ): Promise<TokenColor> {
+        try {
+            const cardIds = await this.anki!.findCardsContainingWord(token, dt.dictionaryAnkiSentenceFields);
+            if (!cardIds.length) return TokenColor.UNCOLLECTED;
+            const rawCardInfos = await this.anki!.cardsInfo(cardIds);
+            if (!rawCardInfos.length) return TokenColor.ERROR;
+            const tc = this.tokenizeCache.get(track)!;
+            const lc = this.lemmatizeCache.get(track)!;
 
             // Tokenize the sentence field and filter cards that actually contain the token
             const validCardInfos = await filterAsync(
                 rawCardInfos,
                 async (cardInfo: any) => {
-                    for (const sentenceField of sentenceFields) {
+                    for (const sentenceField of dt.dictionaryAnkiSentenceFields) {
                         const field = cardInfo.fields[sentenceField];
                         if (!field) continue;
-                        let fieldTokens = this.tokenizeCache.get(field.value);
+                        let fieldTokens = tc.get(field.value);
                         if (!fieldTokens) {
-                            fieldTokens = await this.yomitan.tokenize(field.value);
-                            this.tokenizeCache.set(field.value, fieldTokens);
+                            fieldTokens = (await yt.tokenize(field.value)).map((t) => t.trim());
+                            tc.set(field.value, fieldTokens);
                         }
-                        if (fieldTokens.map((t) => t.trim()).includes(token)) return true;
+                        if (fieldTokens.includes(token)) return true;
+                        if (!dt.dictionarySubtitleLemmatization) continue;
+                        for (const fieldToken of fieldTokens) {
+                            let fieldTokenLemmas = lc.get(fieldToken);
+                            if (!fieldTokenLemmas) {
+                                fieldTokenLemmas = await yt.lemmatize(fieldToken);
+                                lc.set(fieldToken, fieldTokenLemmas);
+                            }
+                            if (fieldTokenLemmas.includes(token)) return true;
+                        }
                     }
                     return false;
                 },
                 { batchSize: TOKEN_CACHE_BATCH_SIZE }
             );
             if (!validCardInfos.length) return TokenColor.UNCOLLECTED;
-            const intervals = validCardInfos.map((cardInfo: any) => cardInfo.interval);
+
+            const suspendedResult = await this._handleSuspended(
+                validCardInfos.map((c) => c.cardId),
+                dt
+            );
+            if (suspendedResult) return suspendedResult;
             return this._getTokenColorFromIntervals(
                 token,
-                intervals,
-                validCardInfos.map((cardInfo) => cardInfo.cardId)
+                validCardInfos.map((cardInfo) => cardInfo.interval),
+                validCardInfos.map((cardInfo) => cardInfo.cardId),
+                dt
             );
         } catch (error) {
-            this.ankiRequestFailed = true;
-            console.error(`Error getting color for token "${token}":`, error);
+            this.tokenRequestFailed = true;
+            console.error(`Error getting color using sentence fields for token "${token}":`, error);
             return TokenColor.ERROR;
         }
     }
 
-    private _getTokenColorFromIntervals(token: string, intervals: number[], cardIds: number[]): TokenColor {
+    private _getTokenColorFromIntervals(
+        token: string,
+        intervals: number[],
+        cardIds: number[],
+        dt: DictionaryTrack
+    ): TokenColor {
         if (!intervals.length) {
             console.error(`No intervals found for token "${token}" with card IDs:`, cardIds);
             return TokenColor.ERROR;
         }
-        if (intervals.every((i) => i >= 21)) return TokenColor.MATURE;
+        if (intervals.every((i) => i >= dt.dictionaryAnkiMatureInterval)) return TokenColor.MATURE;
         if (intervals.every((i) => i === 0)) return TokenColor.UNKNOWN;
-        return TokenColor.YOUNG; // If < 21 && !== 0 or mixed intervals
+        return TokenColor.YOUNG; // If < dt.dictionaryAnkiMatureInterval && !== 0 or mixed intervals
     }
 
-    private _applyTokenStyle(token: string, color: TokenColor): string {
-        let style = USER_TOKEN_STYLE;
-        if (color === TokenColor.ERROR && USER_TOKEN_STYLE === TokenStyle.TEXT) {
-            style = TokenStyle.UNDERLINE;
-        }
-        switch (style) {
+    private _applyTokenStyle(token: string, color: TokenColor, dt: DictionaryTrack, forVideo: boolean): string {
+        let tokenStyle = forVideo ? dt.dictionaryVideoTokenStyle : dt.dictionaryAppTokenStyle;
+        tokenStyle = color === TokenColor.ERROR && tokenStyle === TokenStyle.TEXT ? TokenStyle.UNDERLINE : tokenStyle;
+        switch (tokenStyle) {
             case TokenStyle.TEXT:
                 return `<span style="color: ${color};">${token}</span>`;
             case TokenStyle.UNDERLINE:
+                if (color === TokenColor.MATURE) return token;
                 return `<span style="text-decoration: underline ${color} ${color === TokenColor.ERROR ? 'double' : 'solid'};">${token}</span>`;
-            // case TokenStyle.OVERLINE:
-            //     return `<span style="text-decoration: overline ${color};">${token}</span>`;
+            case TokenStyle.OVERLINE:
+                if (color === TokenColor.MATURE) return token;
+                return `<span style="text-decoration: overline ${color};">${token}</span>`;
             default:
                 return token;
         }
+    }
+
+    private async _handleSuspended(cardIds: number[], dt: DictionaryTrack): Promise<TokenColor | null> {
+        if (dt.dictionaryAnkiTreatSuspended === DictionaryAnkiTreatSuspended.NORMAL) return null;
+        if (!(await this.anki!.areSuspended(cardIds)).every((s) => s)) return null;
+        switch (dt.dictionaryAnkiTreatSuspended) {
+            case DictionaryAnkiTreatSuspended.MATURE:
+                return TokenColor.MATURE;
+            case DictionaryAnkiTreatSuspended.YOUNG:
+                return TokenColor.YOUNG;
+            case DictionaryAnkiTreatSuspended.UNKNOWN:
+                return TokenColor.UNKNOWN;
+            default:
+                return null;
+        }
+    }
+
+    private _clearColorCaches() {
+        this.videoColorCache = {};
+        this.appColorCache = {};
+        this.tokenColorCache.clear();
+        this.tokenizeCache.clear();
+        this.lemmatizeCache.clear();
+        this.erroredCache.clear();
+        this.uncollectedCache.clear();
     }
 
     unbind() {
@@ -771,9 +1067,7 @@ export default class SubtitleController {
         this.onSlice = undefined;
         this.onOffsetChange = undefined;
         this.onMouseOver = undefined;
-        this.tokenHtmlCache.clear();
-        this.tokenizeCache.clear();
-        this.deinflectCache.clear();
+        this._clearColorCaches();
     }
 
     refresh() {

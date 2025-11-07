@@ -1,4 +1,4 @@
-import { PauseOnHoverMode } from './settings';
+import { DictionaryAnkiTreatSuspended, PauseOnHoverMode, TokenStyle } from './settings';
 import { validateSettings } from './settings-import-export';
 import { defaultSettings } from './settings-provider';
 
@@ -141,5 +141,46 @@ it('validates exported settings', () => {
         streamingSubtitleListPreference: 'app',
         pauseOnHoverMode: PauseOnHoverMode.disabled,
         lastSelectedAnkiExportMode: 'gui',
+        dictionaryTracks: [
+            {
+                colorizeOnVideo: true,
+                colorizeOnApp: true,
+                yomitanUrl: 'http://127.0.0.1:19633',
+                yomitanScanLength: 16,
+                dictionarySubtitleLemmatization: true,
+                dictionaryAnkiWordFields: ['Word', 'Expression'],
+                dictionaryAnkiSentenceFields: ['Sentence'],
+                dictionaryAnkiMatureInterval: 21,
+                dictionaryAnkiTreatSuspended: DictionaryAnkiTreatSuspended.NORMAL,
+                dictionaryVideoTokenStyle: TokenStyle.TEXT,
+                dictionaryAppTokenStyle: TokenStyle.UNDERLINE,
+            },
+            {
+                colorizeOnVideo: false,
+                colorizeOnApp: false,
+                yomitanUrl: 'http://127.0.0.1:19634',
+                yomitanScanLength: 12,
+                dictionarySubtitleLemmatization: false,
+                dictionaryAnkiWordFields: [],
+                dictionaryAnkiSentenceFields: [],
+                dictionaryAnkiMatureInterval: 30,
+                dictionaryAnkiTreatSuspended: DictionaryAnkiTreatSuspended.MATURE,
+                dictionaryVideoTokenStyle: TokenStyle.UNDERLINE,
+                dictionaryAppTokenStyle: TokenStyle.OVERLINE,
+            },
+            {
+                colorizeOnVideo: false,
+                colorizeOnApp: true,
+                yomitanUrl: 'http://127.0.0.1:19635',
+                yomitanScanLength: 8,
+                dictionarySubtitleLemmatization: false,
+                dictionaryAnkiWordFields: [],
+                dictionaryAnkiSentenceFields: [],
+                dictionaryAnkiMatureInterval: 30,
+                dictionaryAnkiTreatSuspended: DictionaryAnkiTreatSuspended.YOUNG,
+                dictionaryVideoTokenStyle: TokenStyle.OVERLINE,
+                dictionaryAppTokenStyle: TokenStyle.TEXT,
+            },
+        ],
     });
 });

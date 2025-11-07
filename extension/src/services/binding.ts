@@ -11,6 +11,7 @@ import {
     CurrentTimeFromVideoMessage,
     CurrentTimeToVideoMessage,
     EncodeMp3InServiceWorkerMessage,
+    EventColorCache,
     ExtensionSyncMessage,
     ImageCaptureParams,
     NotificationDialogMessage,
@@ -48,7 +49,6 @@ import {
     VideoHeartbeatMessage,
     VideoToExtensionCommand,
 } from '@project/common';
-import Mp3Encoder from '@project/common/audio-clip/mp3-encoder';
 import { adjacentSubtitle } from '@project/common/key-binder';
 import {
     extractAnkiSettings,
@@ -639,6 +639,14 @@ export default class Binding {
                             subtitleFileNames: this.subtitleController.subtitleFileNames ?? [],
                         });
                         break;
+                    case 'request-subtitle-colors':
+                        const eventColorCache: EventColorCache = {};
+                        for (const [track, dt] of (this.subtitleController.dictionaryTracks ?? []).entries()) {
+                            if (!dt?.colorizeOnApp) continue;
+                            eventColorCache[track] = this.subtitleController.appColorCache[track];
+                        }
+                        sendResponse({ eventColorCache });
+                        break;
                     // This is useful because when we kick off bulk export the side panel needs to know
                     // what subtitle to start from.
                     case 'request-current-subtitle':
@@ -712,9 +720,11 @@ export default class Binding {
                         switch (cardMessage.command) {
                             case 'card-updated':
                                 locKey = 'info.updatedCard';
+                                this.subtitleController.ankiCardWasUpdated();
                                 break;
                             case 'card-exported':
                                 locKey = 'info.exportedCard';
+                                this.subtitleController.ankiCardWasUpdated();
                                 break;
                             case 'card-saved':
                                 locKey = 'info.copiedSubtitle2';
@@ -950,6 +960,7 @@ export default class Binding {
         const subtitleHtmlChanged = this.subtitleController.subtitleHtml !== currentSettings.subtitleHtml;
         this.subtitleController.subtitleHtml = currentSettings.subtitleHtml;
 
+        this.subtitleController.dictionaryTracks = currentSettings.dictionaryTracks;
         this.subtitleController.setSubtitleSettings(currentSettings);
 
         if (convertNetflixRubyChanged || subtitleHtmlChanged) {
