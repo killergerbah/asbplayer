@@ -177,14 +177,6 @@ export class Anki {
         this.fetcher = fetcher;
     }
 
-    getWordFields() {
-        return [this.settingsProvider.wordField].filter((f) => f.length);
-    }
-
-    getSentenceFields() {
-        return [this.settingsProvider.track1Field].filter((f) => f.length);
-    }
-
     async deckNames(ankiConnectUrl?: string) {
         const response = await this._executeAction('deckNames', null, ankiConnectUrl);
         return response.result;
@@ -238,6 +230,17 @@ export class Anki {
         return response.result;
     }
 
+    async findRecentlyEditedCards(fields: string[], since: number, ankiConnectUrl?: string) {
+        if (since < 1) return [];
+        if (!fields.length) return [];
+        const response = await this._executeAction(
+            'findCards',
+            { query: `edited:${since} (${fields.map((field) => `"${field}:_*"`).join(' OR ')})` },
+            ankiConnectUrl
+        );
+        return response.result;
+    }
+
     async cardsInfo(cardIds: number[], ankiConnectUrl?: string) {
         const response = await this._executeAction('cardsInfo', { cards: cardIds }, ankiConnectUrl);
         return response.result;
@@ -248,6 +251,11 @@ export class Anki {
      */
     async currentIntervals(cardIds: number[], ankiConnectUrl?: string): Promise<number[]> {
         const response = await this._executeAction('getIntervals', { cards: cardIds }, ankiConnectUrl);
+        return response.result;
+    }
+
+    async areSuspended(cardIds: number[], ankiConnectUrl?: string): Promise<boolean[]> {
+        const response = await this._executeAction('areSuspended', { cards: cardIds }, ankiConnectUrl);
         return response.result;
     }
 

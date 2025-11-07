@@ -57,6 +57,7 @@ import UpdateMobileOverlayModelHandler from '@/handlers/video/update-mobile-over
 import { isMobile } from '@project/common/device-detection/mobile';
 import { enqueueUpdateAlert } from '@/services/update-alert';
 import RequestSubtitlesHandler from '@/handlers/asbplayerv2/request-subtitles-handler';
+import RequestSubtitleColorsHandler from '@/handlers/asbplayerv2/request-subtitle-colors-handler';
 import RequestCurrentSubtitleHandler from '@/handlers/asbplayerv2/request-current-subtitle-handler';
 import MobileOverlayForwarderHandler from '@/handlers/mobile-overlay/mobile-overlay-forwarder-handler';
 import RequestCopyHistoryHandler from '@/handlers/asbplayerv2/request-copy-history-handler';
@@ -143,6 +144,7 @@ export default defineBackground(() => {
         new CopySubtitleHandler(tabRegistry),
         new LoadSubtitlesHandler(tabRegistry),
         new RequestSubtitlesHandler(),
+        new RequestSubtitleColorsHandler(),
         new RequestCurrentSubtitleHandler(),
         new RequestCopyHistoryHandler(),
         new SaveCopyHistoryHandler(settings),

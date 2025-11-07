@@ -25,6 +25,8 @@ import {
 } from './model';
 import { AsbPlayerToVideoCommandV2 } from './command';
 
+export type EventColorCache = { [track: number]: { [index: number]: string | undefined } };
+
 export interface Message {
     readonly command: string;
 }
@@ -376,6 +378,11 @@ export interface ToggleSubtitleTrackInListFromVideoMessage extends Message {
     readonly track: number;
 }
 
+export interface SubtitleColorsUpdatedFromVideoMessage extends Message {
+    readonly command: 'subtitleColorsUpdated';
+    readonly eventColorCache: EventColorCache;
+}
+
 export interface SubtitlesToVideoMessage extends Message {
     readonly command: 'subtitles';
     readonly value: SubtitleModel[];
@@ -387,12 +394,20 @@ export interface RequestSubtitlesMessage extends Message {
     readonly command: 'request-subtitles';
 }
 
+export interface RequestSubtitleColorsMessage extends Message {
+    readonly command: 'request-subtitle-colors';
+}
+
 export interface RequestCurrentSubtitleMessage extends Message {
     readonly command: 'request-current-subtitle';
 }
 
 export interface RequestSubtitlesFromAppMessage extends MessageWithId {
     readonly command: 'request-subtitles';
+}
+
+export interface RequestSubtitleColorsFromAppMessage extends MessageWithId {
+    readonly command: 'request-subtitle-colors';
 }
 
 export interface SubtitleSettingsToVideoMessage extends Message {
@@ -685,6 +700,10 @@ export interface AckMessage extends MessageWithId {
 export interface RequestSubtitlesResponse {
     subtitles: SubtitleModel[];
     subtitleFileNames: string[];
+}
+
+export interface RequestSubtitleColorsResponse {
+    readonly eventColorCache: EventColorCache;
 }
 
 export interface RequestCurrentSubtitleResponse {

@@ -1,20 +1,19 @@
 import { Fetcher, HttpFetcher } from '@project/common';
+import { DictionaryTrack } from '@project/common/settings';
 
 export class Yomitan {
+    private readonly settingsProvider: DictionaryTrack;
     private readonly fetcher: Fetcher;
-    private readonly settingsProvider = {
-        yomitanUrl: 'http://127.0.0.1:19633',
-        scanLength: 16,
-    };
 
-    constructor(fetcher = new HttpFetcher()) {
+    constructor(settingsProvider: DictionaryTrack, fetcher = new HttpFetcher()) {
+        this.settingsProvider = settingsProvider;
         this.fetcher = fetcher;
     }
 
     async tokenize(text: string, yomitanUrl?: string) {
         const response = await this._executeAction(
             'tokenize',
-            { text, scanLength: this.settingsProvider.scanLength },
+            { text, scanLength: this.settingsProvider.yomitanScanLength },
             yomitanUrl
         );
         const tokens: string[] = [];
@@ -26,7 +25,7 @@ export class Yomitan {
         return tokens;
     }
 
-    async deinflectToken(token: string, yomitanUrl?: string): Promise<string[]> {
+    async lemmatize(token: string, yomitanUrl?: string): Promise<string[]> {
         const response = await this._executeAction('termEntries', { term: token }, yomitanUrl);
         const tokens: string[] = [];
         for (const entry of response['dictionaryEntries']) {
@@ -34,10 +33,10 @@ export class Yomitan {
                 for (const source of headword['sources']) {
                     if (source.originalText !== token) continue;
                     if (source.matchType !== 'exact') continue;
-                    const deToken = source.deinflectedText;
-                    if (deToken === token) continue;
-                    if (tokens.includes(deToken)) continue;
-                    tokens.push(deToken);
+                    const lemma = source.deinflectedText;
+                    if (lemma === token) continue;
+                    if (tokens.includes(lemma)) continue;
+                    tokens.push(lemma);
                 }
             }
         }
@@ -45,12 +44,12 @@ export class Yomitan {
     }
 
     async version(yomitanUrl?: string) {
-        return this._executeAction('version', null, yomitanUrl);
+        return this._executeAction('yomitanVersion', {}, yomitanUrl);
     }
 
-    private async _executeAction(path: string, body: object | null, yomitanUrl?: string) {
+    private async _executeAction(path: string, body: object, yomitanUrl?: string) {
         const json = await this.fetcher.fetch(`${yomitanUrl || this.settingsProvider.yomitanUrl}/${path}`, body);
-        if (json.error) throw new Error(json.error);
+        if (!json || json === '{}') throw new Error(`Yomitan API error for ${path}: ${json}`);
         return json;
     }
 }
