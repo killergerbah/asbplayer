@@ -601,6 +601,7 @@ function KeyBindField({ label, keys, boundViaChrome, onKeysChange, onOpenExtensi
                     disabled={boundViaChrome}
                     helperText={boundViaChrome ? t('settings.extensionShortcut') : undefined}
                     value={currentKeyString}
+                    title={currentKeyString}
                     color="primary"
                     slotProps={{
                         input: {
