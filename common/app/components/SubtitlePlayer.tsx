@@ -1,14 +1,4 @@
-import React, {
-    ForwardedRef,
-    useCallback,
-    useEffect,
-    useState,
-    useMemo,
-    useRef,
-    createRef,
-    RefObject,
-    ReactNode,
-} from 'react';
+import React, { ForwardedRef, useCallback, useEffect, useState, useRef, createRef, RefObject, ReactNode } from 'react';
 import { makeStyles } from '@mui/styles';
 import { type Theme } from '@mui/material';
 import { keysAreEqual } from '../services/util';
@@ -22,6 +12,9 @@ import {
     AutoPauseContext,
     CopySubtitleWithAdditionalFieldsMessage,
     CardTextFieldValues,
+    VideoTabModel,
+    ColoredSubtitleModel,
+    RequestSubtitlesResponse,
 } from '@project/common';
 import { AsbplayerSettings } from '@project/common/settings';
 import {
@@ -31,6 +24,7 @@ import {
     extractText,
 } from '@project/common/util';
 import { SubtitleCollection } from '@project/common/subtitle-collection';
+import { SubtitleColoring } from '@project/common/subtitle-coloring';
 import { KeyBinder } from '@project/common/key-binder';
 import SubtitleTextImage from '@project/common/components/SubtitleTextImage';
 import NoteAddIcon from '@mui/icons-material/NoteAdd';
@@ -49,6 +43,7 @@ import { MineSubtitleParams } from '../hooks/use-app-web-socket-client';
 import { isMobile } from 'react-device-detect';
 import ChromeExtension, { ExtensionMessage } from '../services/chrome-extension';
 import { MineSubtitleCommand, WebSocketClient } from '../../web-socket-client';
+import VideoChannel from '../services/video-channel';
 
 let lastKnownWidth: number | undefined;
 export const minSubtitlePlayerWidth = 200;
@@ -214,10 +209,25 @@ const useSubtitleRowStyles = makeStyles<Theme>((theme) => ({
     },
 }));
 
-export interface DisplaySubtitleModel extends SubtitleModel {
+function updateSubtitleColors(
+    subtitles: DisplaySubtitleModel[] | undefined,
+    updatedSubtitles: ColoredSubtitleModel[]
+): DisplaySubtitleModel[] | null {
+    if (!subtitles?.length) return null;
+    const updatedEvents: [number, string][] = [];
+    for (const updatedSubtitle of updatedSubtitles) {
+        if (!updatedSubtitle.coloredAppText) continue;
+        if (subtitles[updatedSubtitle.index].coloredAppText === updatedSubtitle.coloredAppText) continue;
+        updatedEvents.push([updatedSubtitle.index, updatedSubtitle.coloredAppText]);
+    }
+    if (!updatedEvents.length) return null;
+    const newSubtitles = subtitles.slice();
+    updatedEvents.forEach(([index, coloredAppText]) => (newSubtitles[index].coloredAppText = coloredAppText));
+    return newSubtitles;
+}
+
+export interface DisplaySubtitleModel extends ColoredSubtitleModel {
     displayTime: string;
-    index: number;
-    coloredText?: string;
 }
 
 enum SelectionState {
@@ -274,7 +284,7 @@ const SubtitleRow = React.memo(function SubtitleRow({
         <span
             ref={textRef}
             className={disabledClassName}
-            dangerouslySetInnerHTML={{ __html: subtitle.coloredText ?? subtitle.text }}
+            dangerouslySetInnerHTML={{ __html: subtitle.coloredAppText ?? subtitle.text }}
         />
     );
 
@@ -365,6 +375,7 @@ interface SubtitlePlayerProps {
     onSubtitlesHighlighted: (subtitles: SubtitleModel[]) => void;
     onResizeStart?: () => void;
     onResizeEnd?: () => void;
+    onSubtitles: (subtitles: DisplaySubtitleModel[]) => void;
     autoPauseContext: AutoPauseContext;
     subtitles?: DisplaySubtitleModel[];
     subtitleCollection?: SubtitleCollection<DisplaySubtitleModel>;
@@ -386,6 +397,8 @@ interface SubtitlePlayerProps {
     keyBinder: KeyBinder;
     maxResizeWidth: number;
     webSocketClient?: WebSocketClient;
+    tab?: VideoTabModel;
+    channel: VideoChannel | undefined;
 }
 
 export default function SubtitlePlayer({
@@ -398,6 +411,7 @@ export default function SubtitlePlayer({
     onSubtitlesHighlighted,
     onResizeStart,
     onResizeEnd,
+    onSubtitles,
     autoPauseContext,
     subtitles,
     subtitleCollection,
@@ -419,6 +433,8 @@ export default function SubtitlePlayer({
     keyBinder,
     maxResizeWidth,
     webSocketClient,
+    tab,
+    channel,
 }: SubtitlePlayerProps) {
     const { t } = useTranslation();
     const clockRef = useRef<Clock>(clock);
@@ -538,6 +554,81 @@ export default function SubtitlePlayer({
             }
         };
     }, []);
+
+    const subtitleColoringRef = useRef<SubtitleColoring | undefined>(undefined);
+
+    useEffect(() => {
+        if (channel) return; // Handled by extension or VideoPlayer
+
+        const subtitleColoring = new SubtitleColoring(
+            settings,
+            (updatedSubtitles) => {
+                const newSubtitles = updateSubtitleColors(subtitleListRef.current, updatedSubtitles);
+                if (newSubtitles) onSubtitles(newSubtitles);
+            },
+            () => clockRef.current.time(lengthRef.current)
+        );
+        if (subtitleListRef.current) subtitleColoring.subtitles = subtitleListRef.current;
+        subtitleColoring.bind();
+        subtitleColoringRef.current = subtitleColoring;
+
+        return () => {
+            subtitleColoringRef.current?.unbind();
+            subtitleColoringRef.current = undefined;
+        };
+    }, [channel, settings, onSubtitles]);
+
+    useEffect(() => {
+        if (!subtitleColoringRef.current) return;
+        const subtitleColoring = subtitleColoringRef.current;
+        if (
+            subtitleColoring.subtitles.length !== subtitleListRef.current?.length ||
+            subtitleColoring.subtitles[0]?.text !== subtitleListRef.current?.[0]?.text
+        ) {
+            subtitleColoring.subtitles = subtitleListRef.current ?? [];
+        }
+    }, [subtitles]);
+
+    // Immediate update of subtitle colors when changed (from extension/VideoPlayer)
+    useEffect(() => {
+        return channel?.onSubtitlesUpdated((updatedSubtitles) => {
+            const newSubtitles = updateSubtitleColors(subtitleListRef.current, updatedSubtitles);
+            if (newSubtitles) onSubtitles(newSubtitles);
+        });
+    }, [channel, onSubtitles]);
+
+    // Poll to catch ones that slip if request fails
+    useEffect(() => {
+        if (!channel && !subtitleColoringRef.current) return;
+
+        const poll = async () => {
+            const subtitleColoring = subtitleColoringRef.current; // If not from extension/VideoPlayer
+            if (subtitleColoring) {
+                const newSubtitles = updateSubtitleColors(subtitleListRef.current, subtitleColoring.subtitles);
+                if (newSubtitles) onSubtitles(newSubtitles);
+            } else if (channel) {
+                if (!channel.fromExtension) {
+                    const updatedSubtitles = await channel.requestSubtitles();
+                    const newSubtitles = updateSubtitleColors(subtitleListRef.current, updatedSubtitles);
+                    if (newSubtitles) onSubtitles(newSubtitles);
+                } else if (tab) {
+                    const response = (await extension.requestSubtitles(tab.id, tab.src)) as
+                        | RequestSubtitlesResponse
+                        | undefined;
+                    if (!response) return;
+                    const { subtitles: updatedSubtitles } = response;
+                    const newSubtitles = updateSubtitleColors(subtitleListRef.current, updatedSubtitles);
+                    if (newSubtitles) onSubtitles(newSubtitles);
+                }
+            }
+        };
+        const interval = setInterval(poll, 10000);
+        void poll();
+
+        return () => {
+            clearInterval(interval);
+        };
+    }, [channel, extension, tab, onSubtitles]);
 
     const scrollToCurrentSubtitle = useCallback(() => {
         const highlightedSubtitleIndexes = highlightedSubtitleIndexesRef.current;

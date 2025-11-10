@@ -30,6 +30,15 @@ export interface SubtitleModel {
     readonly track: number;
 }
 
+export interface IndexedSubtitleModel extends SubtitleModel {
+    readonly index: number;
+}
+
+export interface ColoredSubtitleModel extends IndexedSubtitleModel {
+    coloredVideoText?: string;
+    coloredAppText?: string;
+}
+
 export interface CardTextFieldValues {
     readonly word?: string;
     readonly definition?: string;

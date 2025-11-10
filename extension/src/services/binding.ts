@@ -11,7 +11,6 @@ import {
     CurrentTimeFromVideoMessage,
     CurrentTimeToVideoMessage,
     EncodeMp3InServiceWorkerMessage,
-    EventColorCache,
     ExtensionSyncMessage,
     ImageCaptureParams,
     NotificationDialogMessage,
@@ -48,6 +47,7 @@ import {
     VideoDisappearedMessage,
     VideoHeartbeatMessage,
     VideoToExtensionCommand,
+    IndexedSubtitleModel,
 } from '@project/common';
 import { adjacentSubtitle } from '@project/common/key-binder';
 import {
@@ -65,7 +65,7 @@ import DragController from '../controllers/drag-controller';
 import { MobileGestureController } from '../controllers/mobile-gesture-controller';
 import { MobileVideoOverlayController } from '../controllers/mobile-video-overlay-controller';
 import NotificationController from '../controllers/notification-controller';
-import SubtitleController, { SubtitleModelWithIndex } from '../controllers/subtitle-controller';
+import SubtitleController from '../controllers/subtitle-controller';
 import BulkExportController from '../controllers/bulk-export-controller';
 import VideoDataSyncController from '../controllers/video-data-sync-controller';
 import AudioRecorder, { TimedRecordingInProgressError } from './audio-recorder';
@@ -302,7 +302,7 @@ export default class Binding {
                 changed = true;
                 break;
             case PlayMode.fastForward:
-                this.subtitleController.onSlice = async (slice: SubtitleSlice<SubtitleModelWithIndex>) => {
+                this.subtitleController.onSlice = async (slice: SubtitleSlice<IndexedSubtitleModel>) => {
                     const subtitlesAreSufficientlyOffsetFromNow = (subtitleEdgeTime: number | undefined) => {
                         return (
                             subtitleEdgeTime &&
@@ -426,6 +426,11 @@ export default class Binding {
             this.videoDataSyncController.requestSubtitles();
         });
         this.subtitleController.bind();
+        this.subtitleController.subtitleColoring
+            ? this.subtitleController.subtitleColoring.bind()
+            : this.subtitleController
+                  .createSubtitleColoring()
+                  .then(() => this.subtitleController.subtitleColoring!.bind());
         this.dragController.bind(this);
         this.mobileGestureController.bind();
         this.bulkExportController.bind();
@@ -625,7 +630,7 @@ export default class Binding {
                     case 'close':
                         // ignore
                         break;
-                    case 'subtitles':
+                    case 'subtitles': {
                         const subtitlesMessage = request.message as SubtitlesToVideoMessage;
                         const subtitles: SubtitleModel[] = subtitlesMessage.value;
                         this._updateSubtitles(
@@ -633,20 +638,17 @@ export default class Binding {
                             subtitlesMessage.names || [subtitlesMessage.name]
                         );
                         break;
-                    case 'request-subtitles':
+                    }
+                    case 'request-subtitles': {
+                        const subtitles = this.subtitleController.subtitleColoring?.subtitles?.length
+                            ? this.subtitleController.subtitleColoring.subtitles
+                            : this.subtitleController.subtitles;
                         sendResponse({
-                            subtitles: this.subtitleController.subtitles,
+                            subtitles,
                             subtitleFileNames: this.subtitleController.subtitleFileNames ?? [],
                         });
                         break;
-                    case 'request-subtitle-colors':
-                        const eventColorCache: EventColorCache = {};
-                        for (const [track, dt] of (this.subtitleController.dictionaryTracks ?? []).entries()) {
-                            if (!dt?.colorizeOnApp) continue;
-                            eventColorCache[track] = this.subtitleController.appColorCache[track];
-                        }
-                        sendResponse({ eventColorCache });
-                        break;
+                    }
                     // This is useful because when we kick off bulk export the side panel needs to know
                     // what subtitle to start from.
                     case 'request-current-subtitle':
@@ -720,11 +722,11 @@ export default class Binding {
                         switch (cardMessage.command) {
                             case 'card-updated':
                                 locKey = 'info.updatedCard';
-                                this.subtitleController.ankiCardWasUpdated();
+                                this.subtitleController.subtitleColoring?.ankiCardWasUpdated();
                                 break;
                             case 'card-exported':
                                 locKey = 'info.exportedCard';
-                                this.subtitleController.ankiCardWasUpdated();
+                                this.subtitleController.subtitleColoring?.ankiCardWasUpdated();
                                 break;
                             case 'card-saved':
                                 locKey = 'info.copiedSubtitle2';
@@ -961,6 +963,7 @@ export default class Binding {
         this.subtitleController.subtitleHtml = currentSettings.subtitleHtml;
 
         this.subtitleController.dictionaryTracks = currentSettings.dictionaryTracks;
+        this.subtitleController.subtitleColoring?.resetCache(await this.settings.getAll());
         this.subtitleController.setSubtitleSettings(currentSettings);
 
         if (convertNetflixRubyChanged || subtitleHtmlChanged) {
@@ -1046,6 +1049,11 @@ export default class Binding {
         }
 
         this.subtitleController.unbind();
+        this.subtitleController.subtitleColoring
+            ? this.subtitleController.subtitleColoring.unbind()
+            : this.subtitleController
+                  .createSubtitleColoring()
+                  .then(() => this.subtitleController.subtitleColoring!.unbind());
         this.dragController.unbind();
         this.keyBindings.unbind();
         this.videoDataSyncController.unbind();
@@ -1441,7 +1449,7 @@ export default class Binding {
         }
     }
 
-    private _updateSubtitles(subtitles: SubtitleModelWithIndex[], subtitleFileNames: string[]) {
+    private _updateSubtitles(subtitles: IndexedSubtitleModel[], subtitleFileNames: string[]) {
         this.subtitleController.subtitles = subtitles;
         this.subtitleController.subtitleFileNames = subtitleFileNames;
         this.subtitleController.cacheHtml();

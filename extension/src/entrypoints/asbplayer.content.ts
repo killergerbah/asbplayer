@@ -102,14 +102,6 @@ export default defineContentScript({
                             messageId: command.message.messageId,
                         });
                         break;
-                    case 'request-subtitle-colors':
-                        sendMessageToPlayer({
-                            response: (await browser.runtime.sendMessage(command)) as
-                                | RequestSubtitlesResponse
-                                | undefined,
-                            messageId: command.message.messageId,
-                        });
-                        break;
                     case 'request-copy-history':
                         const requestCopyHistoryRequest = command.message as RequestCopyHistoryMessage;
                         sendMessageToPlayer({

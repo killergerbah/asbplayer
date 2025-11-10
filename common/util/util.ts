@@ -2,6 +2,20 @@ import sanitize from 'sanitize-filename';
 import { Rgb, SubtitleModel } from '../src/model';
 import { TextSubtitleSettings } from '../settings/settings';
 
+export function arrayEquals<T>(a: T[], b: T[], equals = (lhs: T, rhs: T) => lhs === rhs): boolean {
+    if (a.length !== b.length) {
+        return false;
+    }
+
+    for (let i = 0; i < a.length; ++i) {
+        if (!equals(a[i], b[i])) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 export function humanReadableTime(timestamp: number, nearestTenth = false, fullyPadded = false): string {
     const totalSeconds = Math.floor(timestamp / 1000);
     let seconds;
