@@ -113,7 +113,6 @@ const Popup = ({
                         extensionSupportsPauseOnHover
                         extensionSupportsExportCardBind
                         extensionSupportsPageSettings
-                        extensionSupportsDictionary
                         forceVerticalTabs={false}
                         anki={anki}
                         chromeKeyBinds={chromeCommandBindsToKeyBinds(commands)}

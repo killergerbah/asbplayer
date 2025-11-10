@@ -824,7 +824,6 @@ interface Props {
     extensionSupportsPauseOnHover: boolean;
     extensionSupportsExportCardBind: boolean;
     extensionSupportsPageSettings: boolean;
-    extensionSupportsDictionary: boolean;
     insideApp?: boolean;
     appVersion?: string;
     settings: AsbplayerSettings;
@@ -861,7 +860,6 @@ export default function SettingsForm({
     extensionSupportsPauseOnHover,
     extensionSupportsExportCardBind,
     extensionSupportsPageSettings,
-    extensionSupportsDictionary,
     insideApp,
     appVersion,
     scrollToId,
@@ -2169,12 +2167,10 @@ export default function SettingsForm({
             </TabPanel>
             <TabPanel value={tabIndex} index={tabIndicesById['dictionary']} tabsOrientation={tabsOrientation}>
                 <FormGroup className={classes.formGroup}>
-                    {(!extensionInstalled || extensionSupportsDictionary) && (
-                        <DictionaryTrackSelector
-                            track={selectedDictionaryTrack}
-                            onTrackSelected={setSelectedDictionaryTrack}
-                        />
-                    )}
+                    <DictionaryTrackSelector
+                        track={selectedDictionaryTrack}
+                        onTrackSelected={setSelectedDictionaryTrack}
+                    />
                     <LabelWithHoverEffect
                         control={
                             <Switch

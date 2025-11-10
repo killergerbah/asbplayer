@@ -8,11 +8,9 @@ import {
     AutoPausePreference,
     CardModel,
     CardTextFieldValues,
-    EventColorCache,
     PlayMode,
     PostMineAction,
     PostMinePlayback,
-    RequestSubtitleColorsResponse,
     SubtitleModel,
     VideoTabModel,
 } from '@project/common';
@@ -80,25 +78,6 @@ function trackLength(
 
     const videoLength = video && video.duration ? 1000 * video.duration : 0;
     return Math.max(videoLength, subtitlesLength);
-}
-
-function updateSubtitleColors(
-    subtitles: DisplaySubtitleModel[],
-    eventColorCache: EventColorCache
-): DisplaySubtitleModel[] | null {
-    if (!subtitles?.length) return null;
-    const updatedEvents: [number, string][] = [];
-    for (const [, eventColor] of Object.entries(eventColorCache)) {
-        for (const [indexStr, coloredText] of Object.entries(eventColor)) {
-            const index = Number(indexStr);
-            if (subtitles[index].coloredText === coloredText || !coloredText) continue;
-            updatedEvents.push([index, coloredText]);
-        }
-    }
-    if (!updatedEvents.length) return null;
-    const updatedSubtitles = subtitles.slice();
-    updatedEvents.forEach(([index, coloredText]) => (updatedSubtitles[index].coloredText = coloredText));
-    return updatedSubtitles;
 }
 
 export interface MediaSources {
@@ -884,42 +863,6 @@ const Player = React.memo(function Player({
         return () => clearInterval(interval);
     }, [clock, mediaAdapter, seek, tab]);
 
-    // Immediate update of subtitle colors when changed
-    useEffect(
-        () =>
-            channel?.onSubtitleColorsUpdated((eventColorCache) => {
-                const updatedSubtitles = updateSubtitleColors(subtitles, eventColorCache);
-                if (updatedSubtitles) onSubtitles(updatedSubtitles);
-            }),
-        [channel, subtitles, onSubtitles]
-    );
-
-    // Poll to catch ones that slip (e.g., tab not focused)
-    useEffect(() => {
-        if (!tab) return;
-
-        let mounted = true;
-        const pollIntervalMs = 10000;
-
-        const poll = async () => {
-            if (!mounted) return;
-            const response = (await extension.requestSubtitleColors(tab.id, tab.src)) as
-                | RequestSubtitleColorsResponse
-                | undefined;
-            if (!response) return;
-            const { eventColorCache } = response;
-            const updatedSubtitles = updateSubtitleColors(subtitles, eventColorCache);
-            if (updatedSubtitles) onSubtitles(updatedSubtitles);
-        };
-
-        const interval = setInterval(poll, pollIntervalMs);
-        poll();
-        return () => {
-            mounted = false;
-            clearInterval(interval);
-        };
-    }, [tab, subtitles, extension, onSubtitles]);
-
     useEffect(() => {
         const unbind = keyBinder.bindPlay(
             (event) => {
@@ -1127,11 +1070,14 @@ const Player = React.memo(function Player({
                         onSubtitlesHighlighted={handleSubtitlesHighlighted}
                         onResizeStart={handleSubtitlePlayerResizeStart}
                         onResizeEnd={handleSubtitlePlayerResizeEnd}
+                        onSubtitles={onSubtitles}
                         maxResizeWidth={subtitlePlayerMaxResizeWidth}
                         autoPauseContext={autoPauseContext}
                         settings={settings}
                         keyBinder={keyBinder}
                         webSocketClient={webSocketClient}
+                        tab={tab}
+                        channel={channel}
                     />
                 </Grid>
             </Grid>
