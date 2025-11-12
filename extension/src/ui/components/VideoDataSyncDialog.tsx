@@ -67,6 +67,7 @@ interface Props {
     profiles: Profile[];
     activeProfile?: string;
     hasSeenFtue?: boolean;
+    isSupportedPage?: boolean;
     hideRememberTrackPreferenceToggle?: boolean;
     onCancel: () => void;
     onOpenFile: (track?: number) => void;
@@ -90,6 +91,7 @@ export default function VideoDataSyncDialog({
     profiles,
     activeProfile,
     hasSeenFtue,
+    isSupportedPage,
     hideRememberTrackPreferenceToggle,
     onCancel,
     onOpenFile,
@@ -233,12 +235,14 @@ export default function VideoDataSyncDialog({
     }
 
     const threeSubtitleTrackSelectors = generateSubtitleTrackSelectors(3);
+    const disabledRef = useRef<ButtonBaseActions | null>(null);
     const okActionRef = useRef<ButtonBaseActions | null>(null);
     const videoNameRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         if (open && trimmedName && !videoNameRef.current?.contains(document.activeElement) && !disabled) {
-            okActionRef.current?.focusVisible();
+            const focusEl = isSupportedPage ? okActionRef : disabledRef;
+            focusEl.current?.focusVisible();
         }
     }, [open, trimmedName, disabled]);
 
@@ -326,7 +330,7 @@ export default function VideoDataSyncDialog({
                 </form>
             </DialogContent>
             <DialogActions>
-                <Button disabled={disabled} onClick={() => onOpenFile()}>
+                <Button action={disabledRef} disabled={disabled} onClick={() => onOpenFile()}>
                     {t('action.openFiles')}
                 </Button>
                 <Button action={okActionRef} disabled={!trimmedName || disabled} onClick={handleOkButtonClick}>

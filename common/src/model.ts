@@ -198,6 +198,7 @@ export interface VideoDataUiModel {
     defaultCheckboxState?: boolean;
     settings: VideoDataUiSettings;
     hasSeenFtue: boolean;
+    isSupportedPage: boolean;
     hideRememberTrackPreferenceToggle: boolean;
 }
 

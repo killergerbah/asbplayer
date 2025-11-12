@@ -49,6 +49,7 @@ export default function VideoDataSyncUi({ bridge }: Props) {
     const [activeProfile, setActiveProfile] = useState<string>();
     const [fileInputTrackNumber, setFileInputTrackNumber] = useState<number>();
     const [hasSeenFtue, setHasSeenFtue] = useState<boolean>();
+    const [isSupportedPage, setIsSupportedPage] = useState<boolean>();
     const [hideRememberTrackPreferenceToggle, setHideRememberTrackPreferenceToggle] = useState<boolean>();
 
     const theme = useMemo(() => createTheme((themeType || 'dark') as PaletteMode), [themeType]);
@@ -153,6 +154,10 @@ export default function VideoDataSyncUi({ bridge }: Props) {
                 setHasSeenFtue(model.hasSeenFtue);
             }
 
+            if (model.isSupportedPage !== undefined) {
+                setIsSupportedPage(model.isSupportedPage);
+            }
+
             if (model.hideRememberTrackPreferenceToggle !== undefined) {
                 setHideRememberTrackPreferenceToggle(model.hideRememberTrackPreferenceToggle);
             }
@@ -252,6 +257,7 @@ export default function VideoDataSyncUi({ bridge }: Props) {
                     profiles={profiles}
                     activeProfile={activeProfile}
                     hasSeenFtue={hasSeenFtue}
+                    isSupportedPage={isSupportedPage}
                     hideRememberTrackPreferenceToggle={hideRememberTrackPreferenceToggle}
                     onCancel={handleCancel}
                     onOpenFile={handleOpenFile}
