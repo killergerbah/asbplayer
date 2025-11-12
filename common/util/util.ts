@@ -18,7 +18,7 @@ export function humanReadableTime(timestamp: number, nearestTenth = false, fully
     if (fullyPadded) {
         let secondsStr: string;
         if (nearestTenth) {
-            // For decimal seconds, pad integer part to 2 digits (e.g., 8.2 -> 08.2, 1 -> 01)
+            // For decimal seconds, pad integer part to 2 digits (e.g., 8.2 -> 08.2, 1 -> 01.0)
             const secondsParts = String(seconds).split('.');
             const integerPart = secondsParts[0];
             const decimalPart = secondsParts.length > 1 ? '.' + secondsParts[1] : '.0';
