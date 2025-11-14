@@ -150,7 +150,15 @@ export default defineConfig({
         let permissions = ['tabs', 'storage'];
 
         if (browser === 'chrome') {
-            permissions = [...permissions, 'tabCapture', 'activeTab', 'contextMenus', 'sidePanel', 'offscreen'];
+            permissions = [
+                ...permissions,
+                'tabCapture',
+                'activeTab',
+                'contextMenus',
+                'sidePanel',
+                'offscreen',
+                'declarativeNetRequest',
+            ];
 
             manifest = {
                 ...manifest,

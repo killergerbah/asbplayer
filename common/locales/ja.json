@@ -26,7 +26,9 @@
         "increaseOffsetButton": "前の字幕を現在のタイムスタンプに合わせる。長押しすると、字幕表示タイミングが100msずつ変わる。",
         "gotIt": "分かった",
         "revert": "元に戻す",
-        "userGuide": "ユーザーガイド"
+        "userGuide": "ユーザーガイド",
+        "confirmUnderstanding": "I understand",
+        "askConfirmation": "Are you sure?"
     },
     "about": {
         "title": "asbplayerについて",
@@ -223,6 +225,11 @@
                 "allowVideoElementsWithBlankSrc": "ソースが空の動画埋め込む要素との同期を許可",
                 "youtube": {
                     "targetLanguages": "機械翻訳の対象言語コード"
+                },
+                "disableCspRestrictions": "CSP can be disabled only if no additional hosts are configured",
+                "disableCsp": "Disable content security policy",
+                "disableCspConfirmation": {
+                    "body": "Disabling a site's <0>content security policy</0> will weaken your browser's security. In particular, it can make your browser more vulnerable to <1>cross site scripting</1> attacks."
                 }
             }
         },

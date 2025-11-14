@@ -21,6 +21,7 @@ import { settingsPageConfigs } from '@/services/pages';
 import Stack from '@mui/material/Stack';
 import TutorialIcon from '@project/common/components/TutorialIcon';
 import Paper from '@mui/material/Paper';
+import { ExtensionCspAdapter } from '@/services/extension-csp-adapter';
 
 interface Props {
     settings: AsbplayerSettings;
@@ -74,6 +75,7 @@ const Popup = ({
     const { supportedLanguages } = useSupportedLanguages();
     const { localFontsAvailable, localFontsPermission, localFontFamilies } = useLocalFontFamilies();
     const theme = useTheme();
+    const cspAdapter = useMemo(() => (isFirefoxBuild ? undefined : new ExtensionCspAdapter()), []);
 
     if (!i18nInitialized) {
         return null;
@@ -102,6 +104,7 @@ const Popup = ({
                     }}
                 >
                     <SettingsForm
+                        cspAdapter={cspAdapter}
                         extensionInstalled
                         extensionVersion={browser.runtime.getManifest().version}
                         extensionSupportsAppIntegration

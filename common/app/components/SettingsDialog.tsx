@@ -15,6 +15,7 @@ import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
 import { type Theme } from '@mui/material';
+import { CspAdapter } from '../../csp-adapter';
 
 const appTestCard = () => {
     const basePath = window.location.pathname === '/' ? '' : window.location.pathname;
@@ -42,6 +43,7 @@ const useStyles = makeStyles<Theme>((theme) => ({
 
 interface Props {
     anki: Anki;
+    cspAdapter: CspAdapter | undefined;
     extension: ChromeExtension;
     open: boolean;
     settings: AsbplayerSettings;
@@ -57,6 +59,7 @@ interface Props {
 
 export default function SettingsDialog({
     anki,
+    cspAdapter,
     extension,
     open,
     settings,
@@ -93,6 +96,7 @@ export default function SettingsDialog({
             <DialogContent className={classes.content}>
                 <SettingsForm
                     anki={anki}
+                    cspAdapter={cspAdapter}
                     extensionInstalled={extension.installed}
                     extensionVersion={extension.installed ? extension.version : undefined}
                     extensionSupportsAppIntegration={extension.supportsAppIntegration}
