@@ -206,7 +206,7 @@ it('validates exported settings', () => {
                 dictionaryColorizeOnVideo: false,
                 dictionaryColorizeOnApp: true,
                 dictionaryTokenMatchStrategy: TokenMatchStrategy.LEMMA_FORM_COLLECTED,
-                dictionaryTokenMatchStrategyPriority: TokenMatchStrategyPriority.MOST_KNOWN,
+                dictionaryTokenMatchStrategyPriority: TokenMatchStrategyPriority.BEST_KNOWN,
                 dictionaryYomitanUrl: 'http://127.0.0.1:19635',
                 dictionaryYomitanScanLength: 8,
                 dictionaryAnkiEnabled: true,

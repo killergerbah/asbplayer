@@ -64,7 +64,7 @@ export enum TokenMatchStrategy {
 export enum TokenMatchStrategyPriority {
     EXACT = 'EXACT',
     LEMMA = 'LEMMA',
-    MOST_KNOWN = 'MOST_KNOWN',
+    BEST_KNOWN = 'BEST_KNOWN',
     LEAST_KNOWN = 'LEAST_KNOWN',
 }
 

@@ -2425,14 +2425,14 @@ export default function SettingsForm({
                                         <Radio
                                             checked={
                                                 selectedDictionary.dictionaryTokenMatchStrategyPriority ===
-                                                TokenMatchStrategyPriority.MOST_KNOWN
+                                                TokenMatchStrategyPriority.BEST_KNOWN
                                             }
                                             onChange={() => {
                                                 const newTracks = [...dictionaryTracks];
                                                 newTracks[selectedDictionaryTrack] = {
                                                     ...newTracks[selectedDictionaryTrack],
                                                     dictionaryTokenMatchStrategyPriority:
-                                                        TokenMatchStrategyPriority.MOST_KNOWN,
+                                                        TokenMatchStrategyPriority.BEST_KNOWN,
                                                 };
                                                 handleSettingChanged('dictionaryTracks', newTracks);
                                             }}
