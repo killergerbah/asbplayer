@@ -217,7 +217,7 @@ function updateSubtitleColors(
     const updatedEvents: [number, string][] = [];
     for (const updatedSubtitle of updatedSubtitles) {
         if (!updatedSubtitle.coloredAppText) continue;
-        if (subtitles[updatedSubtitle.index].coloredAppText === updatedSubtitle.coloredAppText) continue;
+        if (subtitles[updatedSubtitle.index]?.coloredAppText === updatedSubtitle.coloredAppText) continue;
         updatedEvents.push([updatedSubtitle.index, updatedSubtitle.coloredAppText]);
     }
     if (!updatedEvents.length) return null;
@@ -580,13 +580,7 @@ export default function SubtitlePlayer({
 
     useEffect(() => {
         if (!subtitleColoringRef.current) return;
-        const subtitleColoring = subtitleColoringRef.current;
-        if (
-            subtitleColoring.subtitles.length !== subtitleListRef.current?.length ||
-            subtitleColoring.subtitles[0]?.text !== subtitleListRef.current?.[0]?.text
-        ) {
-            subtitleColoring.subtitles = subtitleListRef.current ?? [];
-        }
+        subtitleColoringRef.current.subtitles = subtitleListRef.current ?? [];
     }, [subtitles]);
 
     // Immediate update of subtitle colors when changed (from extension/VideoPlayer)

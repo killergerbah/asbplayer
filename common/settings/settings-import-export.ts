@@ -30,20 +30,29 @@ const dictionaryTrackSchema = {
     id: '/DictionaryTrack',
     type: 'object',
     properties: {
-        colorizeOnVideo: {
+        dictionaryColorizeOnVideo: {
             type: 'boolean',
         },
-        colorizeOnApp: {
+        dictionaryColorizeOnApp: {
             type: 'boolean',
         },
-        yomitanUrl: {
+        dictionaryTokenMatchStrategy: {
             type: 'string',
         },
-        yomitanScanLength: {
+        dictionaryTokenMatchStrategyPriority: {
+            type: 'string',
+        },
+        dictionaryYomitanUrl: {
+            type: 'string',
+        },
+        dictionaryYomitanScanLength: {
             type: 'number',
         },
-        dictionarySubtitleLemmatization: {
+        dictionaryAnkiEnabled: {
             type: 'boolean',
+        },
+        dictionaryAnkiConnectUrl: {
+            type: 'string',
         },
         dictionaryAnkiWordFields: {
             type: 'array',
@@ -57,17 +66,34 @@ const dictionaryTrackSchema = {
                 type: 'string',
             },
         },
+        dictionaryAnkiSentenceTokenMatchStrategy: {
+            type: 'string',
+        },
         dictionaryAnkiMatureInterval: {
             type: 'number',
         },
         dictionaryAnkiTreatSuspended: {
             type: 'string',
         },
-        dictionaryVideoTokenStyle: {
-            type: 'string',
-        },
-        dictionaryAppTokenStyle: {
-            type: 'string',
+        dictionaryVideoSubtitleAppearance: {
+            type: 'object',
+            properties: {
+                tokenStyling: {
+                    type: 'string',
+                },
+                tokenStylingThickness: {
+                    type: 'number',
+                },
+                colorizeFullyKnownTokens: {
+                    type: 'boolean',
+                },
+                tokenStatusColors: {
+                    type: 'array',
+                    items: {
+                        type: 'string',
+                    },
+                },
+            },
         },
     },
 };

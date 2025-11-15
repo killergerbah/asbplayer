@@ -421,7 +421,7 @@ export default class SubtitleController {
                 this.bottomSubtitlesElementOverlay.hide();
                 this.topSubtitlesElementOverlay.hide();
             } else if (subtitlesAreNew || shouldRenderOffset || this.refreshCurrentSubtitle) {
-                this.refreshCurrentSubtitle = false;
+                if (this.refreshCurrentSubtitle) this.refreshCurrentSubtitle = false;
                 this._resetUnblurState();
                 if (this.shouldRenderBottomOverlay) {
                     const showingSubtitlesBottom = showingSubtitles.filter(

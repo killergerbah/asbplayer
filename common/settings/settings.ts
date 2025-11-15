@@ -31,18 +31,41 @@ export interface MiscSettings {
     readonly pauseOnHoverMode: PauseOnHoverMode;
 }
 
-export enum TokenColor {
-    MATURE = 'white',
-    YOUNG = 'yellow',
-    UNKNOWN = 'orange',
-    UNCOLLECTED = 'red',
-    ERROR = 'gray',
+/*
+These are all the possible scenarios which can result in a match. We don't need to support every possible combination,
+as some are not useful or inconsistent. Inconsistent meaning the order the user collects forms affects what future forms
+are considered collected (e.g collecting the lemma will match all forms but user needs to collect every inflection if
+they don't ever collect the lemma).
+
+Lemma In Subtitle
+-----------------------------------------------------------------
+| User Collection | LEMMA_FORM_COLLECTED | EXACT_FORM_COLLECTED |
+-----------------------------------------------------------------
+| Lemma           |         MATCH        |         MATCH        |
+| Inflection      |          NO          |          NO          |
+-----------------------------------------------------------------
+
+Inflection In Subtitle
+-----------------------------------------------------------------
+| User Collection | LEMMA_FORM_COLLECTED | EXACT_FORM_COLLECTED |
+-----------------------------------------------------------------
+| Lemma           |         MATCH        |          NO          |
+| Same Inflection |          NO          |         MATCH        |
+| Diff Inflection |          NO          |          NO          |
+-----------------------------------------------------------------
+*/
+export enum TokenMatchStrategy {
+    ANY_FORM_COLLECTED = 'ANY_FORM_COLLECTED', // All scenarios above result in MATCH
+    LEMMA_OR_EXACT_FORM_COLLECTED = 'LEMMA_OR_EXACT_FORM_COLLECTED', // See LEMMA_FORM_COLLECTED and EXACT_FORM_COLLECTED columns above
+    LEMMA_FORM_COLLECTED = 'LEMMA_FORM_COLLECTED', // See LEMMA_FORM_COLLECTED column above
+    EXACT_FORM_COLLECTED = 'EXACT_FORM_COLLECTED', // See EXACT_FORM_COLLECTED column above
 }
 
-export enum TokenStyle {
-    TEXT = 'text',
-    UNDERLINE = 'underline',
-    OVERLINE = 'overline',
+export enum TokenMatchStrategyPriority {
+    EXACT = 'EXACT',
+    LEMMA = 'LEMMA',
+    MOST_KNOWN = 'MOST_KNOWN',
+    LEAST_KNOWN = 'LEAST_KNOWN',
 }
 
 export enum DictionaryAnkiTreatSuspended {
@@ -52,18 +75,46 @@ export enum DictionaryAnkiTreatSuspended {
     UNKNOWN = 'unknown',
 }
 
+export enum TokenStyling {
+    TEXT = 'text',
+    UNDERLINE = 'underline',
+    OVERLINE = 'overline',
+}
+
+export enum TokenStatus {
+    UNCOLLECTED = 0,
+    UNKNOWN = 1,
+    YOUNG = 2,
+    MATURE = 3, // If ever adding more statues, they should go after MATURE and getFullyKnownTokenStatus should be updated
+}
+
+export function getFullyKnownTokenStatus(): TokenStatus {
+    return TokenStatus.MATURE; // If future statuses are optional, this logic may need to change
+}
+
+export interface DictionarySubtitleAppearance {
+    readonly tokenStyling: TokenStyling;
+    readonly tokenStylingThickness: number;
+    readonly colorizeFullyKnownTokens: boolean;
+    readonly tokenStatusColors: string[]; // Indexed by TokenStatus
+}
+
 export interface DictionaryTrack {
-    readonly colorizeOnVideo: boolean;
-    readonly colorizeOnApp: boolean;
-    readonly yomitanUrl: string;
-    readonly yomitanScanLength: number;
-    readonly dictionarySubtitleLemmatization: boolean;
+    readonly dictionaryColorizeOnVideo: boolean;
+    readonly dictionaryColorizeOnApp: boolean;
+    readonly dictionaryTokenMatchStrategy: TokenMatchStrategy;
+    readonly dictionaryTokenMatchStrategyPriority: TokenMatchStrategyPriority;
+    readonly dictionaryYomitanUrl: string;
+    readonly dictionaryYomitanScanLength: number;
+    readonly dictionaryAnkiEnabled: boolean;
+    readonly dictionaryAnkiConnectUrl: string;
     readonly dictionaryAnkiWordFields: string[];
     readonly dictionaryAnkiSentenceFields: string[];
+    readonly dictionaryAnkiSentenceTokenMatchStrategy: TokenMatchStrategy;
     readonly dictionaryAnkiMatureInterval: number;
     readonly dictionaryAnkiTreatSuspended: DictionaryAnkiTreatSuspended;
-    readonly dictionaryVideoTokenStyle: TokenStyle;
-    readonly dictionaryAppTokenStyle: TokenStyle;
+    readonly dictionaryVideoSubtitleAppearance: DictionarySubtitleAppearance;
+    readonly dictionaryAppSubtitleAppearance: DictionarySubtitleAppearance;
 }
 
 export interface DictionarySettings {
