@@ -478,7 +478,7 @@ export class SubtitleColoring {
                             shouldCheckExactFormSentenceField,
                         });
                         break;
-                    case TokenMatchStrategyPriority.MOST_KNOWN:
+                    case TokenMatchStrategyPriority.BEST_KNOWN:
                         tokenStatus = await this._handlePriorityKnown({
                             trimmedToken,
                             track,
@@ -926,9 +926,9 @@ export class SubtitleColoring {
             console.error(`No intervals found for Track${track} for token "${token}" with card IDs:`, cardIds);
             return null;
         }
-        if (intervals.every((i) => i >= dt.dictionaryAnkiMatureInterval)) return TokenStatus.MATURE;
+        if (intervals.some((i) => i >= dt.dictionaryAnkiMatureInterval)) return TokenStatus.MATURE;
         if (intervals.every((i) => i === 0)) return TokenStatus.UNKNOWN;
-        return TokenStatus.YOUNG; // If < dt.dictionaryAnkiMatureInterval && !== 0 or mixed intervals
+        return TokenStatus.YOUNG; // If no mature and not all unknown, then young
     }
 
     private _applyTokenStyle(options: { rawToken: string; tokenStatus: TokenStatus | null; dt: DictionaryTrack }): {
