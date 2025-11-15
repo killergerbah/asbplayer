@@ -6,20 +6,29 @@ import { useMemo } from 'react';
 class SettingsAccessor {
     settings!: DictionaryTrack;
 
-    get colorizeOnVideo() {
-        return this.settings.colorizeOnVideo;
+    get dictionaryColorizeOnVideo() {
+        return this.settings.dictionaryColorizeOnVideo;
     }
-    get colorizeOnApp() {
-        return this.settings.colorizeOnApp;
+    get dictionaryColorizeOnApp() {
+        return this.settings.dictionaryColorizeOnApp;
     }
-    get yomitanUrl() {
-        return this.settings.yomitanUrl;
+    get dictionaryTokenMatchStrategy() {
+        return this.settings.dictionaryTokenMatchStrategy;
     }
-    get yomitanScanLength() {
-        return this.settings.yomitanScanLength;
+    get dictionaryTokenMatchStrategyPriority() {
+        return this.settings.dictionaryTokenMatchStrategyPriority;
     }
-    get dictionarySubtitleLemmatization() {
-        return this.settings.dictionarySubtitleLemmatization;
+    get dictionaryYomitanUrl() {
+        return this.settings.dictionaryYomitanUrl;
+    }
+    get dictionaryYomitanScanLength() {
+        return this.settings.dictionaryYomitanScanLength;
+    }
+    get dictionaryAnkiEnabled() {
+        return this.settings.dictionaryAnkiEnabled;
+    }
+    get dictionaryAnkiConnectUrl() {
+        return this.settings.dictionaryAnkiConnectUrl;
     }
     get dictionaryAnkiWordFields() {
         return this.settings.dictionaryAnkiWordFields;
@@ -27,17 +36,20 @@ class SettingsAccessor {
     get dictionaryAnkiSentenceFields() {
         return this.settings.dictionaryAnkiSentenceFields;
     }
+    get dictionaryAnkiSentenceTokenMatchStrategy() {
+        return this.settings.dictionaryAnkiSentenceTokenMatchStrategy;
+    }
     get dictionaryAnkiMatureInterval() {
         return this.settings.dictionaryAnkiMatureInterval;
     }
     get dictionaryAnkiTreatSuspended() {
         return this.settings.dictionaryAnkiTreatSuspended;
     }
-    get dictionaryVideoTokenStyle() {
-        return this.settings.dictionaryVideoTokenStyle;
+    get dictionaryVideoSubtitleAppearance() {
+        return this.settings.dictionaryVideoSubtitleAppearance;
     }
-    get dictionaryAppTokenStyle() {
-        return this.settings.dictionaryAppTokenStyle;
+    get dictionaryAppSubtitleAppearance() {
+        return this.settings.dictionaryAppSubtitleAppearance;
     }
 }
 

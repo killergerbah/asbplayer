@@ -430,13 +430,7 @@ export default function VideoPlayer({
 
     useEffect(() => {
         if (!subtitleColoringRef.current) return;
-        const subtitleColoring = subtitleColoringRef.current;
-        if (
-            subtitleColoring.subtitles.length !== subtitles.length ||
-            subtitleColoring.subtitles[0]?.text !== subtitles[0]?.text
-        ) {
-            subtitleColoring.subtitles = subtitles;
-        }
+        subtitleColoringRef.current.subtitles = subtitles;
     }, [subtitles]);
 
     useEffect(() => {
@@ -784,9 +778,7 @@ export default function VideoPlayer({
             );
 
             if (subtitlesAreNew || refreshCurrentSubtitleRef.current) {
-                if (refreshCurrentSubtitleRef.current) {
-                    refreshCurrentSubtitleRef.current = false;
-                }
+                if (refreshCurrentSubtitleRef.current) refreshCurrentSubtitleRef.current = false;
                 setShowSubtitles(showSubtitles);
                 if (showSubtitles.length > 0 && miscSettings.autoCopyCurrentSubtitle && document.hasFocus()) {
                     navigator.clipboard.writeText(showSubtitles.map((s) => s.text).join('\n')).catch((e) => {

@@ -177,6 +177,10 @@ export class Anki {
         this.fetcher = fetcher;
     }
 
+    get ankiConnectUrl() {
+        return this.settingsProvider.ankiConnectUrl;
+    }
+
     async deckNames(ankiConnectUrl?: string) {
         const response = await this._executeAction('deckNames', null, ankiConnectUrl);
         return response.result;
@@ -230,12 +234,12 @@ export class Anki {
         return response.result;
     }
 
-    async findRecentlyEditedCards(fields: string[], since: number, ankiConnectUrl?: string) {
-        if (since < 1) return [];
+    async findRecentlyEditedCards(fields: string[], sinceDays: number, ankiConnectUrl?: string) {
         if (!fields.length) return [];
+        if (sinceDays < 1) sinceDays = 1;
         const response = await this._executeAction(
             'findCards',
-            { query: `edited:${since} (${fields.map((field) => `"${field}:_*"`).join(' OR ')})` },
+            { query: `edited:${sinceDays} (${fields.map((field) => `"${field}:_*"`).join(' OR ')})` },
             ankiConnectUrl
         );
         return response.result;

@@ -13,7 +13,7 @@ export class Yomitan {
     async tokenize(text: string, yomitanUrl?: string) {
         const response = await this._executeAction(
             'tokenize',
-            { text, scanLength: this.settingsProvider.yomitanScanLength },
+            { text, scanLength: this.settingsProvider.dictionaryYomitanScanLength },
             yomitanUrl
         );
         const tokens: string[] = [];
@@ -48,7 +48,10 @@ export class Yomitan {
     }
 
     private async _executeAction(path: string, body: object, yomitanUrl?: string) {
-        const json = await this.fetcher.fetch(`${yomitanUrl || this.settingsProvider.yomitanUrl}/${path}`, body);
+        const json = await this.fetcher.fetch(
+            `${yomitanUrl || this.settingsProvider.dictionaryYomitanUrl}/${path}`,
+            body
+        );
         if (!json || json === '{}') throw new Error(`Yomitan API error for ${path}: ${json}`);
         return json;
     }
