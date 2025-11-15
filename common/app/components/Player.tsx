@@ -1070,11 +1070,14 @@ const Player = React.memo(function Player({
                         onSubtitlesHighlighted={handleSubtitlesHighlighted}
                         onResizeStart={handleSubtitlePlayerResizeStart}
                         onResizeEnd={handleSubtitlePlayerResizeEnd}
+                        onSubtitles={onSubtitles}
                         maxResizeWidth={subtitlePlayerMaxResizeWidth}
                         autoPauseContext={autoPauseContext}
                         settings={settings}
                         keyBinder={keyBinder}
                         webSocketClient={webSocketClient}
+                        tab={tab}
+                        channel={channel}
                     />
                 </Grid>
             </Grid>

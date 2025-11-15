@@ -29,10 +29,9 @@ import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import TextField from '@mui/material/TextField';
 import Paper from '@mui/material/Paper';
 import TableContainer from '@mui/material/TableContainer';
+import Divider from '@mui/material/Divider';
 import Table from '@mui/material/Table';
-import TableHead from '@mui/material/TableHead';
 import TableBody from '@mui/material/TableBody';
-import TableRow from '@mui/material/TableRow';
 import TableRowWithHoverEffect from './TableRowWithHoverEffect';
 import TableCell from '@mui/material/TableCell';
 import Badge from '@mui/material/Badge';
@@ -56,6 +55,9 @@ import {
     exportSettings,
     YoutubePage,
     Page,
+    DictionaryAnkiTreatSuspended,
+    TokenMatchStrategy,
+    TokenMatchStrategyPriority,
 } from '@project/common/settings';
 import { isNumeric } from '@project/common/util';
 import { CustomStyle, validateSettings } from '@project/common/settings';
@@ -73,6 +75,7 @@ import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
+import Checkbox from '@mui/material/Checkbox';
 import Popover from '@mui/material/Popover';
 import Slider from '@mui/material/Slider';
 import Tab from '@mui/material/Tab';
@@ -81,10 +84,12 @@ import FormHelperText from '@mui/material/FormHelperText';
 import Link from '@mui/material/Link';
 import Button from '@mui/material/Button';
 import { Anki, exportCard } from '../anki';
+import { Yomitan } from '../yomitan/yomitan';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { WebSocketClient } from '../web-socket-client/web-socket-client';
 import { isFirefox } from '@project/common/browser-detection';
 import SubtitleAppearanceTrackSelector from './SubtitleAppearanceTrackSelector';
+import DictionaryTrackSelector from './DictionaryTrackSelector';
 import SubtitlePreview from './SubtitlePreview';
 import About from './About';
 import TutorialBubble from './TutorialBubble';
@@ -93,6 +98,7 @@ import DeckFieldTutorialBubble from './DeckFieldTutorialBubble';
 import NoteTypeTutorialBubble from './NoteTypeTutorialBubble';
 import KeyBindRelatedSetting from './KeyBindRelatedSetting';
 import PageSettingsForm from './PageSettingsForm';
+import DictionaryAppearanceSettingsForm from './DictionaryAppearanceSettingsForm';
 import TuneIcon from '@mui/icons-material/Tune';
 import { pageMetadata } from '../pages';
 
@@ -796,6 +802,7 @@ const TabPanel = React.forwardRef<HTMLDivElement, TabPanelProps>(function TabPan
 type TabName =
     | 'anki-settings'
     | 'mining-settings'
+    | 'dictionary'
     | 'subtitle-appearance'
     | 'keyboard-shortcuts'
     | 'streaming-video'
@@ -948,6 +955,7 @@ export default function SettingsForm({
         webSocketClientEnabled,
         webSocketServerUrl,
         pauseOnHoverMode,
+        dictionaryTracks,
     } = settings;
 
     const keyBindProperties = useMemo<{ [key in AllKeyNames]: KeyBindProperties }>(
@@ -1304,6 +1312,109 @@ export default function SettingsForm({
         };
     }, [anki, ankiConnectUrl, requestAnkiConnect]);
 
+    const [selectedDictionaryTrack, setSelectedDictionaryTrack] = useState<number>(0);
+    const selectedDictionary = dictionaryTracks[selectedDictionaryTrack];
+    const showTokenMatchStrategyPriority = ![
+        TokenMatchStrategy.LEMMA_FORM_COLLECTED,
+        TokenMatchStrategy.EXACT_FORM_COLLECTED,
+    ].includes(selectedDictionary.dictionaryTokenMatchStrategy);
+
+    const [dictionaryYomitanUrlError, setDictionaryYomitanUrlError] = useState<string>();
+    const dictionaryRequestYomitan = useCallback(async () => {
+        try {
+            const yomitan = new Yomitan(selectedDictionary);
+            await yomitan.version();
+            setDictionaryYomitanUrlError(undefined);
+        } catch (e) {
+            console.error(e);
+            if (e instanceof Error) {
+                setDictionaryYomitanUrlError(e.message);
+            } else if (typeof e === 'string') {
+                setDictionaryYomitanUrlError(e);
+            } else {
+                setDictionaryYomitanUrlError(String(e));
+            }
+        }
+    }, [selectedDictionary]);
+
+    useEffect(() => {
+        let canceled = false;
+
+        const timeout = setTimeout(async () => {
+            if (canceled) {
+                return;
+            }
+
+            dictionaryRequestYomitan();
+        }, 1000);
+
+        return () => {
+            canceled = true;
+            clearTimeout(timeout);
+        };
+    }, [dictionaryRequestYomitan]);
+
+    const [dictionaryAllFieldNames, setDictionaryAllFieldNames] = useState<string[]>();
+    const [dictionaryAnkiConnectUrlError, setDictionaryAnkiConnectUrlError] = useState<string>();
+    const dictionaryRequestAnkiConnect = useCallback(async () => {
+        try {
+            if (!selectedDictionary.dictionaryAnkiEnabled) {
+                setDictionaryAllFieldNames(undefined);
+                setDictionaryAnkiConnectUrlError(undefined);
+                return;
+            }
+            const ankiDictionary = new Anki({
+                ...settings,
+                ankiConnectUrl: selectedDictionary.dictionaryAnkiConnectUrl,
+            });
+            // See requestAnkiConnect for explanation
+            if (insideApp) {
+                try {
+                    await ankiDictionary.requestPermission();
+                } catch (e) {
+                    await ankiDictionary.version();
+                }
+            } else {
+                await ankiDictionary.version();
+            }
+            const allFieldNamesSet = new Set<string>();
+            for (const modelName of await ankiDictionary.modelNames()) {
+                const fieldNames = await ankiDictionary.modelFieldNames(modelName);
+                for (const fieldName of fieldNames) {
+                    allFieldNamesSet.add(fieldName);
+                }
+            }
+            setDictionaryAllFieldNames(Array.from(allFieldNamesSet).sort((a, b) => a.localeCompare(b)));
+            setDictionaryAnkiConnectUrlError(undefined);
+        } catch (e) {
+            console.error(e);
+            if (e instanceof Error) {
+                setDictionaryAnkiConnectUrlError(e.message);
+            } else if (typeof e === 'string') {
+                setDictionaryAnkiConnectUrlError(e);
+            } else {
+                setDictionaryAnkiConnectUrlError(String(e));
+            }
+        }
+    }, [insideApp, selectedDictionary, settings]);
+
+    useEffect(() => {
+        let canceled = false;
+
+        const timeout = setTimeout(async () => {
+            if (canceled) {
+                return;
+            }
+
+            dictionaryRequestAnkiConnect();
+        }, 1000);
+
+        return () => {
+            canceled = true;
+            clearTimeout(timeout);
+        };
+    }, [dictionaryRequestAnkiConnect]);
+
     useEffect(() => {
         if (!noteType || ankiConnectUrlError) {
             return undefined;
@@ -1379,6 +1490,7 @@ export default function SettingsForm({
         const tabs = [
             'anki-settings',
             'mining-settings',
+            'dictionary',
             'subtitle-appearance',
             'keyboard-shortcuts',
             'streaming-video',
@@ -1574,6 +1686,9 @@ export default function SettingsForm({
     const [pageSettingsFormKey, setPageSettingsFormKey] = useState<keyof PageSettings>('netflix');
     const [pageSettingsFormOpen, setPageSettingsFormOpen] = useState<boolean>(false);
 
+    const [dictionaryAppearanceFormType, setDictionaryAppearanceFormType] = useState<'video' | 'app'>('video');
+    const [dictionaryAppearanceFormOpen, setDictionaryAppearanceFormOpen] = useState<boolean>(false);
+
     return (
         <div className={classes.root}>
             {extensionSupportsPageSettings && pageConfigs && pageSettingsFormKey && (
@@ -1589,6 +1704,30 @@ export default function SettingsForm({
                     }
                 />
             )}
+            <DictionaryAppearanceSettingsForm
+                open={dictionaryAppearanceFormOpen}
+                title={t(
+                    dictionaryAppearanceFormType === 'video'
+                        ? 'settings.dictionaryTokenStylingVideo'
+                        : 'settings.dictionaryTokenStylingApp'
+                )}
+                appearance={
+                    dictionaryAppearanceFormType === 'video'
+                        ? selectedDictionary.dictionaryVideoSubtitleAppearance
+                        : selectedDictionary.dictionaryAppSubtitleAppearance
+                }
+                onClose={() => setDictionaryAppearanceFormOpen(false)}
+                onAppearanceChanged={(appearance) => {
+                    const newTracks = [...dictionaryTracks];
+                    newTracks[selectedDictionaryTrack] = {
+                        ...newTracks[selectedDictionaryTrack],
+                        ...(dictionaryAppearanceFormType === 'video'
+                            ? { dictionaryVideoSubtitleAppearance: appearance }
+                            : { dictionaryAppSubtitleAppearance: appearance }),
+                    };
+                    handleSettingChanged('dictionaryTracks', newTracks);
+                }}
+            />
             <Tabs
                 orientation={tabsOrientation}
                 variant="scrollable"
@@ -1603,13 +1742,14 @@ export default function SettingsForm({
             >
                 <Tab tabIndex={0} label={t('settings.anki')} id="anki-settings" />
                 <Tab tabIndex={1} label={t('settings.mining')} id="mining-settings" />
-                <Tab tabIndex={2} label={t('settings.subtitleAppearance')} id="subtitle-appearance" />
-                <Tab tabIndex={3} label={t('settings.keyboardShortcuts')} id="keyboard-shortcuts" />
+                <Tab tabIndex={2} label={t('settings.dictionary')} id="dictionary" />
+                <Tab tabIndex={3} label={t('settings.subtitleAppearance')} id="subtitle-appearance" />
+                <Tab tabIndex={4} label={t('settings.keyboardShortcuts')} id="keyboard-shortcuts" />
                 {extensionSupportsAppIntegration && (
-                    <Tab tabIndex={4} label={t('settings.streamingVideo')} id="streaming-video" />
+                    <Tab tabIndex={5} label={t('settings.streamingVideo')} id="streaming-video" />
                 )}
-                <Tab tabIndex={5} label={t('settings.misc')} id="misc-settings" />
-                <Tab tabIndex={6} label={t('about.title')} id="about" />
+                <Tab tabIndex={extensionSupportsAppIntegration ? 6 : 5} label={t('settings.misc')} id="misc-settings" />
+                <Tab tabIndex={extensionSupportsAppIntegration ? 7 : 6} label={t('about.title')} id="about" />
             </Tabs>
             <TabPanel
                 ref={ankiPanelRef}
@@ -2108,6 +2248,585 @@ export default function SettingsForm({
                             },
                         }}
                     />
+                </FormGroup>
+            </TabPanel>
+            <TabPanel value={tabIndex} index={tabIndicesById['dictionary']} tabsOrientation={tabsOrientation}>
+                <FormGroup className={classes.formGroup}>
+                    <DictionaryTrackSelector
+                        track={selectedDictionaryTrack}
+                        onTrackSelected={setSelectedDictionaryTrack}
+                    />
+                    <LabelWithHoverEffect
+                        control={
+                            <Switch
+                                checked={selectedDictionary.dictionaryColorizeOnVideo}
+                                onChange={(e) => {
+                                    const newTracks = [...dictionaryTracks];
+                                    newTracks[selectedDictionaryTrack] = {
+                                        ...newTracks[selectedDictionaryTrack],
+                                        dictionaryColorizeOnVideo: e.target.checked,
+                                    };
+                                    handleSettingChanged('dictionaryTracks', newTracks);
+                                }}
+                            />
+                        }
+                        label={t('settings.dictionaryColorizeOnVideo')}
+                        labelPlacement="start"
+                        className={classes.switchLabel}
+                    />
+                    <LabelWithHoverEffect
+                        control={
+                            <Switch
+                                checked={selectedDictionary.dictionaryColorizeOnApp}
+                                onChange={(e) => {
+                                    const newTracks = [...dictionaryTracks];
+                                    newTracks[selectedDictionaryTrack] = {
+                                        ...newTracks[selectedDictionaryTrack],
+                                        dictionaryColorizeOnApp: e.target.checked,
+                                    };
+                                    handleSettingChanged('dictionaryTracks', newTracks);
+                                }}
+                            />
+                        }
+                        label={t('settings.dictionaryColorizeOnApp')}
+                        labelPlacement="start"
+                        className={classes.switchLabel}
+                    />
+                    <FormLabel component="legend">{t('settings.dictionaryTokenMatchStrategy')}</FormLabel>
+                    <RadioGroup row={false}>
+                        <LabelWithHoverEffect
+                            control={
+                                <Radio
+                                    checked={
+                                        selectedDictionary.dictionaryTokenMatchStrategy ===
+                                        TokenMatchStrategy.ANY_FORM_COLLECTED
+                                    }
+                                    onChange={() => {
+                                        const newTracks = [...dictionaryTracks];
+                                        newTracks[selectedDictionaryTrack] = {
+                                            ...newTracks[selectedDictionaryTrack],
+                                            dictionaryTokenMatchStrategy: TokenMatchStrategy.ANY_FORM_COLLECTED,
+                                        };
+                                        handleSettingChanged('dictionaryTracks', newTracks);
+                                    }}
+                                />
+                            }
+                            label={t('settings.dictionaryTokenMatchStrategyAnyFormCollected')}
+                        />
+                        <LabelWithHoverEffect
+                            control={
+                                <Radio
+                                    checked={
+                                        selectedDictionary.dictionaryTokenMatchStrategy ===
+                                        TokenMatchStrategy.LEMMA_OR_EXACT_FORM_COLLECTED
+                                    }
+                                    onChange={() => {
+                                        const newTracks = [...dictionaryTracks];
+                                        newTracks[selectedDictionaryTrack] = {
+                                            ...newTracks[selectedDictionaryTrack],
+                                            dictionaryTokenMatchStrategy:
+                                                TokenMatchStrategy.LEMMA_OR_EXACT_FORM_COLLECTED,
+                                        };
+                                        handleSettingChanged('dictionaryTracks', newTracks);
+                                    }}
+                                />
+                            }
+                            label={t('settings.dictionaryTokenMatchStrategyLemmaOrExactFormCollected')}
+                        />
+                        <LabelWithHoverEffect
+                            control={
+                                <Radio
+                                    checked={
+                                        selectedDictionary.dictionaryTokenMatchStrategy ===
+                                        TokenMatchStrategy.LEMMA_FORM_COLLECTED
+                                    }
+                                    onChange={() => {
+                                        const newTracks = [...dictionaryTracks];
+                                        newTracks[selectedDictionaryTrack] = {
+                                            ...newTracks[selectedDictionaryTrack],
+                                            dictionaryTokenMatchStrategy: TokenMatchStrategy.LEMMA_FORM_COLLECTED,
+                                        };
+                                        handleSettingChanged('dictionaryTracks', newTracks);
+                                    }}
+                                />
+                            }
+                            label={t('settings.dictionaryTokenMatchStrategyLemmaFormCollected')}
+                        />
+                        <LabelWithHoverEffect
+                            control={
+                                <Radio
+                                    checked={
+                                        selectedDictionary.dictionaryTokenMatchStrategy ===
+                                        TokenMatchStrategy.EXACT_FORM_COLLECTED
+                                    }
+                                    onChange={() => {
+                                        const newTracks = [...dictionaryTracks];
+                                        newTracks[selectedDictionaryTrack] = {
+                                            ...newTracks[selectedDictionaryTrack],
+                                            dictionaryTokenMatchStrategy: TokenMatchStrategy.EXACT_FORM_COLLECTED,
+                                        };
+                                        handleSettingChanged('dictionaryTracks', newTracks);
+                                    }}
+                                />
+                            }
+                            label={t('settings.dictionaryTokenMatchStrategyExactFormCollected')}
+                        />
+                    </RadioGroup>
+                    {showTokenMatchStrategyPriority && (
+                        <>
+                            <FormLabel component="legend">
+                                {t('settings.dictionaryTokenMatchStrategyPriority')}
+                            </FormLabel>
+                            <RadioGroup row={false}>
+                                <LabelWithHoverEffect
+                                    control={
+                                        <Radio
+                                            checked={
+                                                selectedDictionary.dictionaryTokenMatchStrategyPriority ===
+                                                TokenMatchStrategyPriority.EXACT
+                                            }
+                                            onChange={() => {
+                                                const newTracks = [...dictionaryTracks];
+                                                newTracks[selectedDictionaryTrack] = {
+                                                    ...newTracks[selectedDictionaryTrack],
+                                                    dictionaryTokenMatchStrategyPriority:
+                                                        TokenMatchStrategyPriority.EXACT,
+                                                };
+                                                handleSettingChanged('dictionaryTracks', newTracks);
+                                            }}
+                                        />
+                                    }
+                                    label={t('settings.dictionaryTokenMatchStrategyPriorityExact')}
+                                />
+                                <LabelWithHoverEffect
+                                    control={
+                                        <Radio
+                                            checked={
+                                                selectedDictionary.dictionaryTokenMatchStrategyPriority ===
+                                                TokenMatchStrategyPriority.LEMMA
+                                            }
+                                            onChange={() => {
+                                                const newTracks = [...dictionaryTracks];
+                                                newTracks[selectedDictionaryTrack] = {
+                                                    ...newTracks[selectedDictionaryTrack],
+                                                    dictionaryTokenMatchStrategyPriority:
+                                                        TokenMatchStrategyPriority.LEMMA,
+                                                };
+                                                handleSettingChanged('dictionaryTracks', newTracks);
+                                            }}
+                                        />
+                                    }
+                                    label={t('settings.dictionaryTokenMatchStrategyPriorityLemma')}
+                                />
+                                <LabelWithHoverEffect
+                                    control={
+                                        <Radio
+                                            checked={
+                                                selectedDictionary.dictionaryTokenMatchStrategyPriority ===
+                                                TokenMatchStrategyPriority.BEST_KNOWN
+                                            }
+                                            onChange={() => {
+                                                const newTracks = [...dictionaryTracks];
+                                                newTracks[selectedDictionaryTrack] = {
+                                                    ...newTracks[selectedDictionaryTrack],
+                                                    dictionaryTokenMatchStrategyPriority:
+                                                        TokenMatchStrategyPriority.BEST_KNOWN,
+                                                };
+                                                handleSettingChanged('dictionaryTracks', newTracks);
+                                            }}
+                                        />
+                                    }
+                                    label={t('settings.dictionaryTokenMatchStrategyPriorityBestKnown')}
+                                />
+                                <LabelWithHoverEffect
+                                    control={
+                                        <Radio
+                                            checked={
+                                                selectedDictionary.dictionaryTokenMatchStrategyPriority ===
+                                                TokenMatchStrategyPriority.LEAST_KNOWN
+                                            }
+                                            onChange={() => {
+                                                const newTracks = [...dictionaryTracks];
+                                                newTracks[selectedDictionaryTrack] = {
+                                                    ...newTracks[selectedDictionaryTrack],
+                                                    dictionaryTokenMatchStrategyPriority:
+                                                        TokenMatchStrategyPriority.LEAST_KNOWN,
+                                                };
+                                                handleSettingChanged('dictionaryTracks', newTracks);
+                                            }}
+                                        />
+                                    }
+                                    label={t('settings.dictionaryTokenMatchStrategyPriorityLeastKnown')}
+                                />
+                            </RadioGroup>
+                        </>
+                    )}
+                    <Divider />
+                    <Typography variant="h6">{t('settings.dictionaryYomitanSection')}</Typography>
+                    <TextField
+                        label={t('settings.dictionaryYomitanUrl')}
+                        value={selectedDictionary.dictionaryYomitanUrl}
+                        error={Boolean(dictionaryYomitanUrlError)}
+                        helperText={dictionaryYomitanUrlError}
+                        color="primary"
+                        onChange={(e) => {
+                            const newTracks = [...dictionaryTracks];
+                            newTracks[selectedDictionaryTrack] = {
+                                ...newTracks[selectedDictionaryTrack],
+                                dictionaryYomitanUrl: e.target.value,
+                            };
+                            handleSettingChanged('dictionaryTracks', newTracks);
+                        }}
+                        slotProps={{
+                            input: {
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        <IconButton onClick={dictionaryRequestYomitan}>
+                                            <RefreshIcon />
+                                        </IconButton>
+                                    </InputAdornment>
+                                ),
+                            },
+                        }}
+                    />
+                    <TextField
+                        type="number"
+                        label={t('settings.dictionaryYomitanScanLength')}
+                        value={selectedDictionary.dictionaryYomitanScanLength}
+                        color="primary"
+                        onChange={(e) => {
+                            const newTracks = [...dictionaryTracks];
+                            newTracks[selectedDictionaryTrack] = {
+                                ...newTracks[selectedDictionaryTrack],
+                                dictionaryYomitanScanLength: Number(e.target.value),
+                            };
+                            handleSettingChanged('dictionaryTracks', newTracks);
+                        }}
+                        slotProps={{
+                            htmlInput: { min: 1, max: 128, step: 1 },
+                        }}
+                    />
+                    <Divider />
+                    <Typography variant="h6">{t('settings.dictionaryAnkiSection')}</Typography>
+                    <LabelWithHoverEffect
+                        control={
+                            <Switch
+                                checked={selectedDictionary.dictionaryAnkiEnabled}
+                                onChange={(e) => {
+                                    const newTracks = [...dictionaryTracks];
+                                    newTracks[selectedDictionaryTrack] = {
+                                        ...newTracks[selectedDictionaryTrack],
+                                        dictionaryAnkiEnabled: e.target.checked,
+                                    };
+                                    handleSettingChanged('dictionaryTracks', newTracks);
+                                }}
+                            />
+                        }
+                        label={t('settings.dictionaryAnkiEnabled')}
+                        labelPlacement="start"
+                        className={classes.switchLabel}
+                    />
+                    <TextField
+                        label={t('settings.ankiConnectUrl')}
+                        value={selectedDictionary.dictionaryAnkiConnectUrl}
+                        error={Boolean(dictionaryAnkiConnectUrlError)}
+                        helperText={dictionaryAnkiConnectUrlError}
+                        color="primary"
+                        onChange={(e) => {
+                            const newTracks = [...dictionaryTracks];
+                            newTracks[selectedDictionaryTrack] = {
+                                ...newTracks[selectedDictionaryTrack],
+                                dictionaryAnkiConnectUrl: e.target.value,
+                            };
+                            handleSettingChanged('dictionaryTracks', newTracks);
+                        }}
+                        slotProps={{
+                            input: {
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        <IconButton onClick={dictionaryRequestAnkiConnect}>
+                                            <RefreshIcon />
+                                        </IconButton>
+                                    </InputAdornment>
+                                ),
+                            },
+                        }}
+                    />
+                    <Autocomplete
+                        multiple
+                        options={dictionaryAllFieldNames ?? []}
+                        value={selectedDictionary.dictionaryAnkiWordFields}
+                        onChange={(_, newValue) => {
+                            const items = newValue as string[];
+                            const newTracks = [...dictionaryTracks];
+                            newTracks[selectedDictionaryTrack] = {
+                                ...newTracks[selectedDictionaryTrack],
+                                dictionaryAnkiWordFields: items,
+                            };
+                            handleSettingChanged('dictionaryTracks', newTracks);
+                        }}
+                        disableCloseOnSelect
+                        renderOption={(props, option, { selected }) => (
+                            <li {...props}>
+                                <ListItemIcon>
+                                    <Checkbox edge="start" checked={selected} tabIndex={-1} disableRipple />
+                                </ListItemIcon>
+                                <ListItemText primary={option} />
+                            </li>
+                        )}
+                        renderInput={(params) => (
+                            <TextField
+                                {...params}
+                                label={t('settings.dictionaryAnkiWordFields')}
+                                placeholder={t('settings.dictionarySelectAnkiFields')}
+                                fullWidth
+                            />
+                        )}
+                    />
+                    <Autocomplete
+                        multiple
+                        options={dictionaryAllFieldNames ?? []}
+                        value={selectedDictionary.dictionaryAnkiSentenceFields}
+                        onChange={(_, newValue) => {
+                            const items = newValue as string[];
+                            const newTracks = [...dictionaryTracks];
+                            newTracks[selectedDictionaryTrack] = {
+                                ...newTracks[selectedDictionaryTrack],
+                                dictionaryAnkiSentenceFields: items,
+                            };
+                            handleSettingChanged('dictionaryTracks', newTracks);
+                        }}
+                        disableCloseOnSelect
+                        renderOption={(props, option, { selected }) => (
+                            <li {...props}>
+                                <ListItemIcon>
+                                    <Checkbox edge="start" checked={selected} tabIndex={-1} disableRipple />
+                                </ListItemIcon>
+                                <ListItemText primary={option} />
+                            </li>
+                        )}
+                        renderInput={(params) => (
+                            <TextField
+                                {...params}
+                                label={t('settings.dictionaryAnkiSentenceFields')}
+                                placeholder={t('settings.dictionarySelectAnkiFields')}
+                                fullWidth
+                            />
+                        )}
+                    />
+                    <FormLabel component="legend">{t('settings.dictionaryAnkiSentenceTokenMatchStrategy')}</FormLabel>
+                    <RadioGroup row={false}>
+                        <LabelWithHoverEffect
+                            control={
+                                <Radio
+                                    checked={
+                                        selectedDictionary.dictionaryAnkiSentenceTokenMatchStrategy ===
+                                        TokenMatchStrategy.ANY_FORM_COLLECTED
+                                    }
+                                    onChange={() => {
+                                        const newTracks = [...dictionaryTracks];
+                                        newTracks[selectedDictionaryTrack] = {
+                                            ...newTracks[selectedDictionaryTrack],
+                                            dictionaryAnkiSentenceTokenMatchStrategy:
+                                                TokenMatchStrategy.ANY_FORM_COLLECTED,
+                                        };
+                                        handleSettingChanged('dictionaryTracks', newTracks);
+                                    }}
+                                />
+                            }
+                            label={t('settings.dictionaryTokenMatchStrategyAnyFormCollected')}
+                        />
+                        <LabelWithHoverEffect
+                            control={
+                                <Radio
+                                    checked={
+                                        selectedDictionary.dictionaryAnkiSentenceTokenMatchStrategy ===
+                                        TokenMatchStrategy.LEMMA_OR_EXACT_FORM_COLLECTED
+                                    }
+                                    onChange={() => {
+                                        const newTracks = [...dictionaryTracks];
+                                        newTracks[selectedDictionaryTrack] = {
+                                            ...newTracks[selectedDictionaryTrack],
+                                            dictionaryAnkiSentenceTokenMatchStrategy:
+                                                TokenMatchStrategy.LEMMA_OR_EXACT_FORM_COLLECTED,
+                                        };
+                                        handleSettingChanged('dictionaryTracks', newTracks);
+                                    }}
+                                />
+                            }
+                            label={t('settings.dictionaryTokenMatchStrategyLemmaOrExactFormCollected')}
+                        />
+                        <LabelWithHoverEffect
+                            control={
+                                <Radio
+                                    checked={
+                                        selectedDictionary.dictionaryAnkiSentenceTokenMatchStrategy ===
+                                        TokenMatchStrategy.LEMMA_FORM_COLLECTED
+                                    }
+                                    onChange={() => {
+                                        const newTracks = [...dictionaryTracks];
+                                        newTracks[selectedDictionaryTrack] = {
+                                            ...newTracks[selectedDictionaryTrack],
+                                            dictionaryAnkiSentenceTokenMatchStrategy:
+                                                TokenMatchStrategy.LEMMA_FORM_COLLECTED,
+                                        };
+                                        handleSettingChanged('dictionaryTracks', newTracks);
+                                    }}
+                                />
+                            }
+                            label={t('settings.dictionaryTokenMatchStrategyLemmaFormCollected')}
+                        />
+                        <LabelWithHoverEffect
+                            control={
+                                <Radio
+                                    checked={
+                                        selectedDictionary.dictionaryAnkiSentenceTokenMatchStrategy ===
+                                        TokenMatchStrategy.EXACT_FORM_COLLECTED
+                                    }
+                                    onChange={() => {
+                                        const newTracks = [...dictionaryTracks];
+                                        newTracks[selectedDictionaryTrack] = {
+                                            ...newTracks[selectedDictionaryTrack],
+                                            dictionaryAnkiSentenceTokenMatchStrategy:
+                                                TokenMatchStrategy.EXACT_FORM_COLLECTED,
+                                        };
+                                        handleSettingChanged('dictionaryTracks', newTracks);
+                                    }}
+                                />
+                            }
+                            label={t('settings.dictionaryTokenMatchStrategyExactFormCollected')}
+                        />
+                    </RadioGroup>
+                    <TextField
+                        type="number"
+                        label={t('settings.dictionaryAnkiMatureInterval')}
+                        value={selectedDictionary.dictionaryAnkiMatureInterval}
+                        color="primary"
+                        onChange={(e) => {
+                            const newTracks = [...dictionaryTracks];
+                            newTracks[selectedDictionaryTrack] = {
+                                ...newTracks[selectedDictionaryTrack],
+                                dictionaryAnkiMatureInterval: Number(e.target.value),
+                            };
+                            handleSettingChanged('dictionaryTracks', newTracks);
+                        }}
+                        slotProps={{
+                            htmlInput: { min: 1, max: 36500, step: 1 },
+                        }}
+                    />
+                    <FormLabel component="legend">{t('settings.dictionaryAnkiTreatSuspended')}</FormLabel>
+                    <RadioGroup row={false}>
+                        <LabelWithHoverEffect
+                            control={
+                                <Radio
+                                    checked={
+                                        selectedDictionary.dictionaryAnkiTreatSuspended ===
+                                        DictionaryAnkiTreatSuspended.NORMAL
+                                    }
+                                    onChange={() => {
+                                        const newTracks = [...dictionaryTracks];
+                                        newTracks[selectedDictionaryTrack] = {
+                                            ...newTracks[selectedDictionaryTrack],
+                                            dictionaryAnkiTreatSuspended: DictionaryAnkiTreatSuspended.NORMAL,
+                                        };
+                                        handleSettingChanged('dictionaryTracks', newTracks);
+                                    }}
+                                />
+                            }
+                            label={t('settings.dictionaryAnkiTreatSuspendedNormal')}
+                        />
+                        <LabelWithHoverEffect
+                            control={
+                                <Radio
+                                    checked={
+                                        selectedDictionary.dictionaryAnkiTreatSuspended ===
+                                        DictionaryAnkiTreatSuspended.MATURE
+                                    }
+                                    onChange={() => {
+                                        const newTracks = [...dictionaryTracks];
+                                        newTracks[selectedDictionaryTrack] = {
+                                            ...newTracks[selectedDictionaryTrack],
+                                            dictionaryAnkiTreatSuspended: DictionaryAnkiTreatSuspended.MATURE,
+                                        };
+                                        handleSettingChanged('dictionaryTracks', newTracks);
+                                    }}
+                                />
+                            }
+                            label={t('settings.dictionaryAnkiTreatSuspendedMature')}
+                        />
+                        <LabelWithHoverEffect
+                            control={
+                                <Radio
+                                    checked={
+                                        selectedDictionary.dictionaryAnkiTreatSuspended ===
+                                        DictionaryAnkiTreatSuspended.YOUNG
+                                    }
+                                    onChange={() => {
+                                        const newTracks = [...dictionaryTracks];
+                                        newTracks[selectedDictionaryTrack] = {
+                                            ...newTracks[selectedDictionaryTrack],
+                                            dictionaryAnkiTreatSuspended: DictionaryAnkiTreatSuspended.YOUNG,
+                                        };
+                                        handleSettingChanged('dictionaryTracks', newTracks);
+                                    }}
+                                />
+                            }
+                            label={t('settings.dictionaryAnkiTreatSuspendedYoung')}
+                        />
+                        <LabelWithHoverEffect
+                            control={
+                                <Radio
+                                    checked={
+                                        selectedDictionary.dictionaryAnkiTreatSuspended ===
+                                        DictionaryAnkiTreatSuspended.UNKNOWN
+                                    }
+                                    onChange={() => {
+                                        const newTracks = [...dictionaryTracks];
+                                        newTracks[selectedDictionaryTrack] = {
+                                            ...newTracks[selectedDictionaryTrack],
+                                            dictionaryAnkiTreatSuspended: DictionaryAnkiTreatSuspended.UNKNOWN,
+                                        };
+                                        handleSettingChanged('dictionaryTracks', newTracks);
+                                    }}
+                                />
+                            }
+                            label={t('settings.dictionaryAnkiTreatSuspendedUnknown')}
+                        />
+                    </RadioGroup>
+                    <Divider />
+                    <Typography variant="h6">{t('settings.dictionaryTokenStylingSection')}</Typography>
+                    <TableContainer variant="outlined" component={Paper} style={{ height: 'auto' }}>
+                        <Table>
+                            <TableBody>
+                                <TableRowWithHoverEffect
+                                    onClick={() => {
+                                        setDictionaryAppearanceFormType('video');
+                                        setDictionaryAppearanceFormOpen(true);
+                                    }}
+                                >
+                                    <TableCell align="left">{t('settings.dictionaryTokenStylingVideo')}</TableCell>
+                                    <TableCell align="right">
+                                        <IconButton>
+                                            <TuneIcon />
+                                        </IconButton>
+                                    </TableCell>
+                                </TableRowWithHoverEffect>
+                                <TableRowWithHoverEffect
+                                    onClick={() => {
+                                        setDictionaryAppearanceFormType('app');
+                                        setDictionaryAppearanceFormOpen(true);
+                                    }}
+                                >
+                                    <TableCell align="left">{t('settings.dictionaryTokenStylingApp')}</TableCell>
+                                    <TableCell align="right">
+                                        <IconButton>
+                                            <TuneIcon />
+                                        </IconButton>
+                                    </TableCell>
+                                </TableRowWithHoverEffect>
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
                 </FormGroup>
             </TabPanel>
             <TabPanel value={tabIndex} index={tabIndicesById['subtitle-appearance']} tabsOrientation={tabsOrientation}>

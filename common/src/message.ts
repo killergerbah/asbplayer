@@ -22,6 +22,7 @@ import {
     CopyHistoryItem,
     AnkiDialogSettings,
     AnkiExportMode,
+    ColoredSubtitleModel,
 } from './model';
 import { AsbPlayerToVideoCommandV2 } from './command';
 
@@ -383,12 +384,26 @@ export interface SubtitlesToVideoMessage extends Message {
     readonly names: string[];
 }
 
+export interface RequestCurrentSubtitleMessage extends Message {
+    readonly command: 'request-current-subtitle';
+}
+
 export interface RequestSubtitlesMessage extends Message {
     readonly command: 'request-subtitles';
 }
 
-export interface RequestCurrentSubtitleMessage extends Message {
-    readonly command: 'request-current-subtitle';
+export interface RequestSubtitlesToVideoMessage extends MessageWithId {
+    readonly command: 'requestSubtitles';
+}
+
+export interface ResponseSubtitlesFromVideoMessage extends MessageWithId {
+    readonly command: 'responseSubtitles';
+    readonly updatedSubtitles: ColoredSubtitleModel[];
+}
+
+export interface SubtitlesUpdatedFromVideoMessage extends Message {
+    readonly command: 'subtitlesUpdated';
+    readonly updatedSubtitles: ColoredSubtitleModel[];
 }
 
 export interface RequestSubtitlesFromAppMessage extends MessageWithId {
@@ -683,7 +698,7 @@ export interface AckMessage extends MessageWithId {
 }
 
 export interface RequestSubtitlesResponse {
-    subtitles: SubtitleModel[];
+    subtitles: ColoredSubtitleModel[];
     subtitleFileNames: string[];
 }
 

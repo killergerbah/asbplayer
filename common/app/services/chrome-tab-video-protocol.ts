@@ -3,6 +3,7 @@ import ChromeExtension, { ExtensionMessage } from './chrome-extension';
 import { VideoProtocol, VideoProtocolMessage } from './video-protocol';
 
 export default class ChromeTabVideoProtocol implements VideoProtocol {
+    readonly fromExtension: boolean = true;
     private readonly tabId: number;
     private readonly src: string;
     private readonly extension: ChromeExtension;

@@ -1,17 +1,3 @@
-export function arrayEquals(a: any[], b: any[], equals = (a: any, b: any) => a === b) {
-    if (a.length !== b.length) {
-        return false;
-    }
-
-    for (let i = 0; i < a.length; ++i) {
-        if (!equals(a[i], b[i])) {
-            return false;
-        }
-    }
-
-    return true;
-}
-
 export function keysAreEqual(a: any, b: any) {
     for (let key in a) {
         if (!(key in b)) {

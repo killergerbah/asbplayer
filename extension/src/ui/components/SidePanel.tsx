@@ -15,7 +15,6 @@ import {
     JumpToSubtitleMessage,
     DownloadImageMessage,
     DownloadAudioMessage,
-    PostMineAction,
     CardExportedMessage,
 } from '@project/common';
 import type { Message } from '@project/common';

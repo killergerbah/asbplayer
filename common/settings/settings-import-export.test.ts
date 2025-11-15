@@ -1,4 +1,10 @@
-import { PauseOnHoverMode } from './settings';
+import {
+    DictionaryAnkiTreatSuspended,
+    PauseOnHoverMode,
+    TokenMatchStrategyPriority,
+    TokenMatchStrategy,
+    TokenStyling,
+} from './settings';
 import { validateSettings } from './settings-import-export';
 import { defaultSettings } from './settings-provider';
 
@@ -140,5 +146,88 @@ it('validates exported settings', () => {
         streamingSubtitleListPreference: 'app',
         pauseOnHoverMode: PauseOnHoverMode.disabled,
         lastSelectedAnkiExportMode: 'gui',
+        dictionaryTracks: [
+            {
+                dictionaryColorizeOnVideo: true,
+                dictionaryColorizeOnApp: true,
+                dictionaryTokenMatchStrategy: TokenMatchStrategy.ANY_FORM_COLLECTED,
+                dictionaryTokenMatchStrategyPriority: TokenMatchStrategyPriority.EXACT,
+                dictionaryYomitanUrl: 'http://127.0.0.1:19633',
+                dictionaryYomitanScanLength: 16,
+                dictionaryAnkiEnabled: true,
+                dictionaryAnkiConnectUrl: 'http://127.0.0.1:8765',
+                dictionaryAnkiWordFields: ['Word', 'Expression'],
+                dictionaryAnkiSentenceFields: ['Sentence'],
+                dictionaryAnkiSentenceTokenMatchStrategy: TokenMatchStrategy.EXACT_FORM_COLLECTED,
+                dictionaryAnkiMatureInterval: 21,
+                dictionaryAnkiTreatSuspended: DictionaryAnkiTreatSuspended.NORMAL,
+                dictionaryVideoSubtitleAppearance: {
+                    tokenStyling: TokenStyling.UNDERLINE,
+                    tokenStylingThickness: 1,
+                    colorizeFullyKnownTokens: false,
+                    tokenStatusColors: ['#FF0000', '#FFA500', '#FFFF00', '#FFFFFF'],
+                },
+                dictionaryAppSubtitleAppearance: {
+                    tokenStyling: TokenStyling.TEXT,
+                    tokenStylingThickness: 1,
+                    colorizeFullyKnownTokens: true,
+                    tokenStatusColors: ['#FF0000', '#FFA500', '#FFFF00', '#FFFFFF'],
+                },
+            },
+            {
+                dictionaryColorizeOnVideo: false,
+                dictionaryColorizeOnApp: false,
+                dictionaryTokenMatchStrategy: TokenMatchStrategy.LEMMA_OR_EXACT_FORM_COLLECTED,
+                dictionaryTokenMatchStrategyPriority: TokenMatchStrategyPriority.LEMMA,
+                dictionaryYomitanUrl: 'http://127.0.0.1:19634',
+                dictionaryYomitanScanLength: 12,
+                dictionaryAnkiEnabled: false,
+                dictionaryAnkiConnectUrl: 'http://127.0.0.1:8765',
+                dictionaryAnkiWordFields: [],
+                dictionaryAnkiSentenceFields: [],
+                dictionaryAnkiSentenceTokenMatchStrategy: TokenMatchStrategy.EXACT_FORM_COLLECTED,
+                dictionaryAnkiMatureInterval: 30,
+                dictionaryAnkiTreatSuspended: DictionaryAnkiTreatSuspended.MATURE,
+                dictionaryVideoSubtitleAppearance: {
+                    tokenStyling: TokenStyling.UNDERLINE,
+                    tokenStylingThickness: 1,
+                    colorizeFullyKnownTokens: false,
+                    tokenStatusColors: ['#FF0000', '#FFA500', '#FFFF00', '#FFFFFF'],
+                },
+                dictionaryAppSubtitleAppearance: {
+                    tokenStyling: TokenStyling.TEXT,
+                    tokenStylingThickness: 1,
+                    colorizeFullyKnownTokens: true,
+                    tokenStatusColors: ['#FF0000', '#FFA500', '#FFFF00', '#FFFFFF'],
+                },
+            },
+            {
+                dictionaryColorizeOnVideo: false,
+                dictionaryColorizeOnApp: true,
+                dictionaryTokenMatchStrategy: TokenMatchStrategy.LEMMA_FORM_COLLECTED,
+                dictionaryTokenMatchStrategyPriority: TokenMatchStrategyPriority.BEST_KNOWN,
+                dictionaryYomitanUrl: 'http://127.0.0.1:19635',
+                dictionaryYomitanScanLength: 8,
+                dictionaryAnkiEnabled: true,
+                dictionaryAnkiConnectUrl: 'http://127.0.0.1:8765',
+                dictionaryAnkiWordFields: [],
+                dictionaryAnkiSentenceFields: [],
+                dictionaryAnkiSentenceTokenMatchStrategy: TokenMatchStrategy.EXACT_FORM_COLLECTED,
+                dictionaryAnkiMatureInterval: 30,
+                dictionaryAnkiTreatSuspended: DictionaryAnkiTreatSuspended.YOUNG,
+                dictionaryVideoSubtitleAppearance: {
+                    tokenStyling: TokenStyling.UNDERLINE,
+                    tokenStylingThickness: 1,
+                    colorizeFullyKnownTokens: false,
+                    tokenStatusColors: ['#FF0000', '#FFA500', '#FFFF00', '#FFFFFF'],
+                },
+                dictionaryAppSubtitleAppearance: {
+                    tokenStyling: TokenStyling.TEXT,
+                    tokenStylingThickness: 1,
+                    colorizeFullyKnownTokens: true,
+                    tokenStatusColors: ['#FF0000', '#FFA500', '#FFFF00', '#FFFFFF'],
+                },
+            },
+        ],
     });
 });

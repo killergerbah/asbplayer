@@ -7,6 +7,7 @@ import {
     AudioTrackSelectedFromVideoMessage,
     AudioTrackSelectedToVideoMessage,
     CardTextFieldValues,
+    ColoredSubtitleModel,
     CopyMessage,
     CopyToVideoMessage,
     CurrentTimeFromVideoMessage,
@@ -27,14 +28,18 @@ import {
     ReadyFromVideoMessage,
     ReadyStateFromVideoMessage,
     ReadyToVideoMessage,
+    RequestSubtitlesToVideoMessage,
+    ResponseSubtitlesFromVideoMessage,
     SubtitleModel,
     SubtitleSettingsToVideoMessage,
     SubtitlesToVideoMessage,
+    SubtitlesUpdatedFromVideoMessage,
     TakeScreenshotToVideoPlayerMessage,
     ToggleSubtitleTrackInListFromVideoMessage,
 } from '@project/common';
 import { AnkiSettings, MiscSettings, SubtitleSettings } from '@project/common/settings';
 import { VideoProtocol } from './video-protocol';
+import { v4 as uuidv4 } from 'uuid';
 
 export default class VideoChannel {
     private readonly protocol: VideoProtocol;
@@ -65,7 +70,10 @@ export default class VideoChannel {
     private appBarToggleCallbacks: (() => void)[];
     private ankiDialogRequestCallbacks: (() => void)[];
     private toggleSubtitleTrackInListCallbacks: ((track: number) => void)[];
+    private subtitlesUpdatedCallbacks: ((updatedSubtitles: ColoredSubtitleModel[]) => void)[];
     private loadFilesCallbacks: (() => void)[];
+    private requestSubtitlesCallbacks: (() => ColoredSubtitleModel[])[];
+    private responseResolvers: { [messageId: string]: (value: any) => void };
 
     readyState: number;
     oncanplay: ((ev: Event) => void) | null = null;
@@ -73,6 +81,7 @@ export default class VideoChannel {
     selectedAudioTrack?: string;
     duration: number;
     _playbackRate: number;
+    readonly fromExtension: boolean;
 
     constructor(protocol: VideoProtocol) {
         this.protocol = protocol;
@@ -81,6 +90,7 @@ export default class VideoChannel {
         this.isReady = false;
         this.readyState = 0;
         this._playbackRate = 1;
+        this.fromExtension = protocol.fromExtension;
         this.selectedAudioTrack = undefined;
         this.readyCallbacks = [];
         this.playCallbacks = [];
@@ -97,7 +107,10 @@ export default class VideoChannel {
         this.appBarToggleCallbacks = [];
         this.ankiDialogRequestCallbacks = [];
         this.toggleSubtitleTrackInListCallbacks = [];
+        this.subtitlesUpdatedCallbacks = [];
         this.loadFilesCallbacks = [];
+        this.requestSubtitlesCallbacks = [];
+        this.responseResolvers = {};
 
         const that = this;
 
@@ -230,9 +243,35 @@ export default class VideoChannel {
                         callback(toggleSubtitleTrackInListMessage.track);
                     }
                     break;
+                case 'subtitlesUpdated':
+                    const subtitlesUpdatedMessage = event.data as SubtitlesUpdatedFromVideoMessage;
+
+                    for (const callback of that.subtitlesUpdatedCallbacks) {
+                        callback(subtitlesUpdatedMessage.updatedSubtitles);
+                    }
+                    break;
                 case 'loadFiles':
                     for (const callback of that.loadFilesCallbacks) {
                         callback();
+                    }
+                    break;
+                case 'requestSubtitles':
+                    const requestMessage = event.data as RequestSubtitlesToVideoMessage;
+                    for (const callback of that.requestSubtitlesCallbacks) {
+                        const updatedSubtitles = callback();
+                        const responseMessage: ResponseSubtitlesFromVideoMessage = {
+                            command: 'responseSubtitles',
+                            messageId: requestMessage.messageId,
+                            updatedSubtitles,
+                        };
+                        that.protocol.postMessage(responseMessage);
+                    }
+                    break;
+                case 'responseSubtitles':
+                    const responseMessage = event.data as ResponseSubtitlesFromVideoMessage;
+                    if (responseMessage.messageId in that.responseResolvers) {
+                        that.responseResolvers[responseMessage.messageId](responseMessage.updatedSubtitles);
+                        delete that.responseResolvers[responseMessage.messageId];
                     }
                     break;
                 default:
@@ -349,6 +388,25 @@ export default class VideoChannel {
     onToggleSubtitleTrackInList(callback: (track: number) => void) {
         this.toggleSubtitleTrackInListCallbacks.push(callback);
         return () => this._remove(callback, this.toggleSubtitleTrackInListCallbacks);
+    }
+
+    onSubtitlesUpdated(callback: (updatedSubtitles: ColoredSubtitleModel[]) => void) {
+        this.subtitlesUpdatedCallbacks.push(callback);
+        return () => this._remove(callback, this.subtitlesUpdatedCallbacks);
+    }
+
+    onRequestSubtitles(callback: () => ColoredSubtitleModel[]) {
+        this.requestSubtitlesCallbacks.push(callback);
+        return () => this._remove(callback, this.requestSubtitlesCallbacks);
+    }
+
+    requestSubtitles(): Promise<ColoredSubtitleModel[]> {
+        const messageId = uuidv4();
+        const message: RequestSubtitlesToVideoMessage = { command: 'requestSubtitles', messageId };
+        this.protocol.postMessage(message);
+        return new Promise((resolve) => {
+            this.responseResolvers[messageId] = resolve;
+        });
     }
 
     onLoadFiles(callback: () => void) {
@@ -631,6 +689,7 @@ export default class VideoChannel {
         this.appBarToggleCallbacks = [];
         this.ankiDialogRequestCallbacks = [];
         this.toggleSubtitleTrackInListCallbacks = [];
+        this.subtitlesUpdatedCallbacks = [];
         this.loadFilesCallbacks = [];
     }
 
