@@ -457,7 +457,7 @@
         "dictionaryAnkiSentenceFields": "Pola Anki dla zdań",
         "dictionarySelectAnkiFields": "Wybierz pola Anki do wyszukiwania...",
         "dictionaryAnkiSentenceTokenMatchStrategy": "Strategia dopasowania słów w zdaniu",
-        "dictionaryAnkiMatureInterval": "Okres dojrzałości Anki (dni)",
+        "dictionaryAnkiMatureCutoff": "Stabilność/Okres dojrzałości Anki (dni)",
         "dictionaryAnkiTreatSuspended": "Traktuj zawieszone karty Anki jako",
         "dictionaryAnkiTreatSuspendedNormal": "Normalna",
         "dictionaryAnkiTreatSuspendedMature": "Dojrzała",

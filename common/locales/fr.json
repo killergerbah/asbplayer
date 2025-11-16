@@ -457,7 +457,7 @@
         "dictionaryAnkiSentenceFields": "Champs Anki (phrases)",
         "dictionarySelectAnkiFields": "Sélectionnez les champs Anki pour la recherche...",
         "dictionaryAnkiSentenceTokenMatchStrategy": "Stratégie de correspondance des mots dans la phrase",
-        "dictionaryAnkiMatureInterval": "Intervalle Anki mûr (jours)",
+        "dictionaryAnkiMatureCutoff": "Stabilité/Intervalle Anki mûr (jours)",
         "dictionaryAnkiTreatSuspended": "Traiter les cartes Anki suspendues comme",
         "dictionaryAnkiTreatSuspendedNormal": "Normal",
         "dictionaryAnkiTreatSuspendedMature": "Mûr",

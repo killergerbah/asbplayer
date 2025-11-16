@@ -457,7 +457,7 @@
         "dictionaryAnkiSentenceFields": "Anki 文フィールド",
         "dictionarySelectAnkiFields": "ルックアップ用の Anki フィールドを選択...",
         "dictionaryAnkiSentenceTokenMatchStrategy": "文中の単語照合戦略",
-        "dictionaryAnkiMatureInterval": "Anki の成熟間隔（日）",
+        "dictionaryAnkiMatureCutoff": "Anki の安定度/成熟間隔（日）",
         "dictionaryAnkiTreatSuspended": "保留された Anki カードを次のように扱う",
         "dictionaryAnkiTreatSuspendedNormal": "通常",
         "dictionaryAnkiTreatSuspendedMature": "成熟",

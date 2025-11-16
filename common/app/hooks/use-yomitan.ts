@@ -39,8 +39,8 @@ class SettingsAccessor {
     get dictionaryAnkiSentenceTokenMatchStrategy() {
         return this.settings.dictionaryAnkiSentenceTokenMatchStrategy;
     }
-    get dictionaryAnkiMatureInterval() {
-        return this.settings.dictionaryAnkiMatureInterval;
+    get dictionaryAnkiMatureCutoff() {
+        return this.settings.dictionaryAnkiMatureCutoff;
     }
     get dictionaryAnkiTreatSuspended() {
         return this.settings.dictionaryAnkiTreatSuspended;

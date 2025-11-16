@@ -191,7 +191,7 @@ export const defaultSettings: AsbplayerSettings = {
             dictionaryAnkiWordFields: [],
             dictionaryAnkiSentenceFields: [],
             dictionaryAnkiSentenceTokenMatchStrategy: TokenMatchStrategy.EXACT_FORM_COLLECTED,
-            dictionaryAnkiMatureInterval: 21,
+            dictionaryAnkiMatureCutoff: 21,
             dictionaryAnkiTreatSuspended: DictionaryAnkiTreatSuspended.NORMAL,
             dictionaryVideoSubtitleAppearance: {
                 tokenStyling: TokenStyling.UNDERLINE,
@@ -218,7 +218,7 @@ export const defaultSettings: AsbplayerSettings = {
             dictionaryAnkiWordFields: [],
             dictionaryAnkiSentenceFields: [],
             dictionaryAnkiSentenceTokenMatchStrategy: TokenMatchStrategy.EXACT_FORM_COLLECTED,
-            dictionaryAnkiMatureInterval: 21,
+            dictionaryAnkiMatureCutoff: 21,
             dictionaryAnkiTreatSuspended: DictionaryAnkiTreatSuspended.NORMAL,
             dictionaryVideoSubtitleAppearance: {
                 tokenStyling: TokenStyling.UNDERLINE,
@@ -245,7 +245,7 @@ export const defaultSettings: AsbplayerSettings = {
             dictionaryAnkiWordFields: [],
             dictionaryAnkiSentenceFields: [],
             dictionaryAnkiSentenceTokenMatchStrategy: TokenMatchStrategy.EXACT_FORM_COLLECTED,
-            dictionaryAnkiMatureInterval: 21,
+            dictionaryAnkiMatureCutoff: 21,
             dictionaryAnkiTreatSuspended: DictionaryAnkiTreatSuspended.NORMAL,
             dictionaryVideoSubtitleAppearance: {
                 tokenStyling: TokenStyling.UNDERLINE,

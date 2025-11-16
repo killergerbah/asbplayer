@@ -160,7 +160,7 @@ it('validates exported settings', () => {
                 dictionaryAnkiWordFields: ['Word', 'Expression'],
                 dictionaryAnkiSentenceFields: ['Sentence'],
                 dictionaryAnkiSentenceTokenMatchStrategy: TokenMatchStrategy.EXACT_FORM_COLLECTED,
-                dictionaryAnkiMatureInterval: 21,
+                dictionaryAnkiMatureCutoff: 21,
                 dictionaryAnkiTreatSuspended: DictionaryAnkiTreatSuspended.NORMAL,
                 dictionaryVideoSubtitleAppearance: {
                     tokenStyling: TokenStyling.UNDERLINE,
@@ -187,7 +187,7 @@ it('validates exported settings', () => {
                 dictionaryAnkiWordFields: [],
                 dictionaryAnkiSentenceFields: [],
                 dictionaryAnkiSentenceTokenMatchStrategy: TokenMatchStrategy.EXACT_FORM_COLLECTED,
-                dictionaryAnkiMatureInterval: 30,
+                dictionaryAnkiMatureCutoff: 30,
                 dictionaryAnkiTreatSuspended: DictionaryAnkiTreatSuspended.MATURE,
                 dictionaryVideoSubtitleAppearance: {
                     tokenStyling: TokenStyling.UNDERLINE,
@@ -214,7 +214,7 @@ it('validates exported settings', () => {
                 dictionaryAnkiWordFields: [],
                 dictionaryAnkiSentenceFields: [],
                 dictionaryAnkiSentenceTokenMatchStrategy: TokenMatchStrategy.EXACT_FORM_COLLECTED,
-                dictionaryAnkiMatureInterval: 30,
+                dictionaryAnkiMatureCutoff: 30,
                 dictionaryAnkiTreatSuspended: DictionaryAnkiTreatSuspended.YOUNG,
                 dictionaryVideoSubtitleAppearance: {
                     tokenStyling: TokenStyling.UNDERLINE,

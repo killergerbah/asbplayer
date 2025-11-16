@@ -457,7 +457,7 @@
         "dictionaryAnkiSentenceFields": "Anki 句子字段",
         "dictionarySelectAnkiFields": "选择用于查找的 Anki 字段...",
         "dictionaryAnkiSentenceTokenMatchStrategy": "句子中的单词匹配策略",
-        "dictionaryAnkiMatureInterval": "Anki 成熟间隔（天）",
+        "dictionaryAnkiMatureCutoff": "Anki 稳定度/成熟间隔（天）",
         "dictionaryAnkiTreatSuspended": "将已挂起的 Anki 卡视为",
         "dictionaryAnkiTreatSuspendedNormal": "正常",
         "dictionaryAnkiTreatSuspendedMature": "成熟",

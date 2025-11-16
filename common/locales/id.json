@@ -457,7 +457,7 @@
         "dictionaryAnkiSentenceFields": "Kolom Kalimat Anki",
         "dictionarySelectAnkiFields": "Pilih kolom Anki untuk pencarian...",
         "dictionaryAnkiSentenceTokenMatchStrategy": "Strategi pencocokan kata dalam kalimat",
-        "dictionaryAnkiMatureInterval": "Interval Anki Mature (hari)",
+        "dictionaryAnkiMatureCutoff": "Stabilitas/Interval Anki Mature (hari)",
         "dictionaryAnkiTreatSuspended": "Perlakukan kartu Anki yang ditangguhkan sebagai",
         "dictionaryAnkiTreatSuspendedNormal": "Normal",
         "dictionaryAnkiTreatSuspendedMature": "Mature",

@@ -457,7 +457,7 @@
         "dictionaryAnkiSentenceFields": "Поля Anki для предложения",
         "dictionarySelectAnkiFields": "Выберите поля Anki для поиска...",
         "dictionaryAnkiSentenceTokenMatchStrategy": "Стратегия сопоставления слов в предложении",
-        "dictionaryAnkiMatureInterval": "Интервал зрелых карт Anki (дни)",
+        "dictionaryAnkiMatureCutoff": "Стабильность/интервал зрелости Anki (дни)",
         "dictionaryAnkiTreatSuspended": "Рассматривать приостановленные карточки Anki как",
         "dictionaryAnkiTreatSuspendedNormal": "Обычные",
         "dictionaryAnkiTreatSuspendedMature": "Зрелые",

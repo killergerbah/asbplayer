@@ -2701,14 +2701,14 @@ export default function SettingsForm({
                     </RadioGroup>
                     <TextField
                         type="number"
-                        label={t('settings.dictionaryAnkiMatureInterval')}
-                        value={selectedDictionary.dictionaryAnkiMatureInterval}
+                        label={t('settings.dictionaryAnkiMatureCutoff')}
+                        value={selectedDictionary.dictionaryAnkiMatureCutoff}
                         color="primary"
                         onChange={(e) => {
                             const newTracks = [...dictionaryTracks];
                             newTracks[selectedDictionaryTrack] = {
                                 ...newTracks[selectedDictionaryTrack],
-                                dictionaryAnkiMatureInterval: Number(e.target.value),
+                                dictionaryAnkiMatureCutoff: Number(e.target.value),
                             };
                             handleSettingChanged('dictionaryTracks', newTracks);
                         }}

@@ -239,7 +239,7 @@
         "settings.dictionaryAnkiSentenceFields": "A list of Anki card sentence fields to match subtitle words inside of for known status.",
         "settings.dictionarySelectAnkiFields": "Placeholder label for selecting Anki fields for dictionary features.",
         "settings.dictionaryAnkiSentenceTokenMatchStrategy": "The strategy used to match subtitle words in Anki card sentence fields for known status.",
-        "settings.dictionaryAnkiMatureInterval": "The Anki interval (in days) after which a word is considered fully known.",
+        "settings.dictionaryAnkiMatureCutoff": "The Anki stability/interval (in days) after which a word is considered fully known.",
         "settings.dictionaryAnkiTreatSuspended": "How to treat suspended cards when determining known status of words.",
         "settings.dictionaryAnkiTreatSuspendedNormal": "Option to treat suspended cards as normal",
         "settings.dictionaryAnkiTreatSuspendedMature": "Option to treat suspended cards as mature",

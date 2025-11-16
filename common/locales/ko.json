@@ -457,7 +457,7 @@
         "dictionaryAnkiSentenceFields": "Anki 문장 필드",
         "dictionarySelectAnkiFields": "조회할 Anki 필드 선택...",
         "dictionaryAnkiSentenceTokenMatchStrategy": "문장 단어 일치 전략",
-        "dictionaryAnkiMatureInterval": "Anki 성숙 간격(일)",
+        "dictionaryAnkiMatureCutoff": "Anki 안정성/성숙 간격(일)",
         "dictionaryAnkiTreatSuspended": "중단된 Anki 카드를 다음으로 처리",
         "dictionaryAnkiTreatSuspendedNormal": "보통",
         "dictionaryAnkiTreatSuspendedMature": "성숙",

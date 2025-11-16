@@ -457,7 +457,7 @@
         "dictionaryAnkiSentenceFields": "Campos de Sentença do Anki",
         "dictionarySelectAnkiFields": "Selecione campos do Anki para busca...",
         "dictionaryAnkiSentenceTokenMatchStrategy": "Estratégia de correspondência de palavras na frase",
-        "dictionaryAnkiMatureInterval": "Intervalo de maturidade do Anki (dias)",
+        "dictionaryAnkiMatureCutoff": "Estabilidade/Intervalo de maturidade do Anki (dias)",
         "dictionaryAnkiTreatSuspended": "Tratar cartões Anki suspensos como",
         "dictionaryAnkiTreatSuspendedNormal": "Normal",
         "dictionaryAnkiTreatSuspendedMature": "Maturas",

@@ -457,7 +457,7 @@
         "dictionaryAnkiSentenceFields": "Anki-Satz-Felder",
         "dictionarySelectAnkiFields": "Anki-Felder für Lookup auswählen...",
         "dictionaryAnkiSentenceTokenMatchStrategy": "Satz-Wortabgleichsstrategie",
-        "dictionaryAnkiMatureInterval": "Anki Reifeintervall (Tage)",
+        "dictionaryAnkiMatureCutoff": "Anki Stabilität/Reifeintervall (Tage)",
         "dictionaryAnkiTreatSuspended": "Behandle ausgesetzte Anki-Karten als",
         "dictionaryAnkiTreatSuspendedNormal": "Normal",
         "dictionaryAnkiTreatSuspendedMature": "Reif",

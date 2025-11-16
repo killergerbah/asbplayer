@@ -111,7 +111,7 @@ export interface DictionaryTrack {
     readonly dictionaryAnkiWordFields: string[];
     readonly dictionaryAnkiSentenceFields: string[];
     readonly dictionaryAnkiSentenceTokenMatchStrategy: TokenMatchStrategy;
-    readonly dictionaryAnkiMatureInterval: number;
+    readonly dictionaryAnkiMatureCutoff: number;
     readonly dictionaryAnkiTreatSuspended: DictionaryAnkiTreatSuspended;
     readonly dictionaryVideoSubtitleAppearance: DictionarySubtitleAppearance;
     readonly dictionaryAppSubtitleAppearance: DictionarySubtitleAppearance;

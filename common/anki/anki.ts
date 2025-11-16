@@ -251,15 +251,45 @@ export class Anki {
     }
 
     /**
-     * Negative intervals indicate seconds, positive intervals indicate days
+     * If user has FSRS disabled no cards will be returned.
      */
-    async currentIntervals(cardIds: number[], ankiConnectUrl?: string): Promise<number[]> {
-        const response = await this._executeAction('getIntervals', { cards: cardIds }, ankiConnectUrl);
+    async findMatureStabilityCards(fields: string[], days: number, ankiConnectUrl?: string) {
+        if (!fields.length) return [];
+        const response = await this._executeAction(
+            'findCards',
+            { query: `prop:s>=${days} (${fields.map((field) => `"${field}:_*"`).join(' OR ')})` },
+            ankiConnectUrl
+        );
         return response.result;
     }
 
-    async areSuspended(cardIds: number[], ankiConnectUrl?: string): Promise<boolean[]> {
-        const response = await this._executeAction('areSuspended', { cards: cardIds }, ankiConnectUrl);
+    async findMatureIntervalCards(fields: string[], days: number, ankiConnectUrl?: string) {
+        if (!fields.length) return [];
+        const response = await this._executeAction(
+            'findCards',
+            { query: `prop:ivl>=${days} (${fields.map((field) => `"${field}:_*"`).join(' OR ')})` },
+            ankiConnectUrl
+        );
+        return response.result;
+    }
+
+    async findUnknownIntervalCards(fields: string[], ankiConnectUrl?: string) {
+        if (!fields.length) return [];
+        const response = await this._executeAction(
+            'findCards',
+            { query: `prop:ivl=0 (${fields.map((field) => `"${field}:_*"`).join(' OR ')})` },
+            ankiConnectUrl
+        );
+        return response.result;
+    }
+
+    async findSuspendedCards(fields: string[], ankiConnectUrl?: string) {
+        if (!fields.length) return [];
+        const response = await this._executeAction(
+            'findCards',
+            { query: `is:suspended (${fields.map((field) => `"${field}:_*"`).join(' OR ')})` },
+            ankiConnectUrl
+        );
         return response.result;
     }
 

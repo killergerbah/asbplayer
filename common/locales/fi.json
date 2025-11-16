@@ -457,7 +457,7 @@
         "dictionaryAnkiSentenceFields": "Ankin lausekentät",
         "dictionarySelectAnkiFields": "Valitse Anki-kentät haulle...",
         "dictionaryAnkiSentenceTokenMatchStrategy": "Lauseen sanan vertausstrategia",
-        "dictionaryAnkiMatureInterval": "Ankin kypsymisväli (päivinä)",
+        "dictionaryAnkiMatureCutoff": "Ankin vakaus/kypsymisväli (päivinä)",
         "dictionaryAnkiTreatSuspended": "Käsittele keskeytettyjä Anki-kortteja kuin",
         "dictionaryAnkiTreatSuspendedNormal": "Normaali",
         "dictionaryAnkiTreatSuspendedMature": "Kypsä",

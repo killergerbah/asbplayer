@@ -457,7 +457,7 @@
         "dictionaryAnkiSentenceFields": "Anki Sentence Fields",
         "dictionarySelectAnkiFields": "Select Anki fields for lookup...",
         "dictionaryAnkiSentenceTokenMatchStrategy": "Sentence Word Matching Strategy",
-        "dictionaryAnkiMatureInterval": "Mature Anki Interval (days)",
+        "dictionaryAnkiMatureCutoff": "Mature Anki Stability/Interval (days)",
         "dictionaryAnkiTreatSuspended": "Treat Suspended Anki Cards As",
         "dictionaryAnkiTreatSuspendedNormal": "Normal",
         "dictionaryAnkiTreatSuspendedMature": "Mature",
