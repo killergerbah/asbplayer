@@ -69,7 +69,7 @@ const dictionaryTrackSchema = {
         dictionaryAnkiSentenceTokenMatchStrategy: {
             type: 'string',
         },
-        dictionaryAnkiMatureInterval: {
+        dictionaryAnkiMatureCutoff: {
             type: 'number',
         },
         dictionaryAnkiTreatSuspended: {
