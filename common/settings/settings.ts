@@ -92,29 +92,22 @@ export function getFullyKnownTokenStatus(): TokenStatus {
     return TokenStatus.MATURE; // If future statuses are optional, this logic may need to change
 }
 
-export interface DictionarySubtitleAppearance {
-    readonly tokenStyling: TokenStyling;
-    readonly tokenStylingThickness: number;
-    readonly colorizeFullyKnownTokens: boolean;
-    readonly tokenStatusColors: string[]; // Indexed by TokenStatus
-}
-
 export interface DictionaryTrack {
-    readonly dictionaryColorizeOnVideo: boolean;
-    readonly dictionaryColorizeOnApp: boolean;
+    readonly dictionaryColorizeSubtitles: boolean;
     readonly dictionaryTokenMatchStrategy: TokenMatchStrategy;
     readonly dictionaryTokenMatchStrategyPriority: TokenMatchStrategyPriority;
     readonly dictionaryYomitanUrl: string;
     readonly dictionaryYomitanScanLength: number;
     readonly dictionaryAnkiEnabled: boolean;
-    readonly dictionaryAnkiConnectUrl: string;
     readonly dictionaryAnkiWordFields: string[];
     readonly dictionaryAnkiSentenceFields: string[];
     readonly dictionaryAnkiSentenceTokenMatchStrategy: TokenMatchStrategy;
     readonly dictionaryAnkiMatureCutoff: number;
     readonly dictionaryAnkiTreatSuspended: DictionaryAnkiTreatSuspended;
-    readonly dictionaryVideoSubtitleAppearance: DictionarySubtitleAppearance;
-    readonly dictionaryAppSubtitleAppearance: DictionarySubtitleAppearance;
+    readonly tokenStyling: TokenStyling;
+    readonly tokenStylingThickness: number;
+    readonly colorizeFullyKnownTokens: boolean;
+    readonly tokenStatusColors: string[]; // Indexed by TokenStatus
 }
 
 export interface DictionarySettings {

@@ -6,11 +6,8 @@ import { useMemo } from 'react';
 class SettingsAccessor {
     settings!: DictionaryTrack;
 
-    get dictionaryColorizeOnVideo() {
-        return this.settings.dictionaryColorizeOnVideo;
-    }
-    get dictionaryColorizeOnApp() {
-        return this.settings.dictionaryColorizeOnApp;
+    get dictionaryColorizeSubtitles() {
+        return this.settings.dictionaryColorizeSubtitles;
     }
     get dictionaryTokenMatchStrategy() {
         return this.settings.dictionaryTokenMatchStrategy;
@@ -27,9 +24,6 @@ class SettingsAccessor {
     get dictionaryAnkiEnabled() {
         return this.settings.dictionaryAnkiEnabled;
     }
-    get dictionaryAnkiConnectUrl() {
-        return this.settings.dictionaryAnkiConnectUrl;
-    }
     get dictionaryAnkiWordFields() {
         return this.settings.dictionaryAnkiWordFields;
     }
@@ -45,11 +39,17 @@ class SettingsAccessor {
     get dictionaryAnkiTreatSuspended() {
         return this.settings.dictionaryAnkiTreatSuspended;
     }
-    get dictionaryVideoSubtitleAppearance() {
-        return this.settings.dictionaryVideoSubtitleAppearance;
+    get tokenStyling() {
+        return this.settings.tokenStyling;
     }
-    get dictionaryAppSubtitleAppearance() {
-        return this.settings.dictionaryAppSubtitleAppearance;
+    get tokenStylingThickness() {
+        return this.settings.tokenStylingThickness;
+    }
+    get colorizeFullyKnownTokens() {
+        return this.settings.colorizeFullyKnownTokens;
+    }
+    get tokenStatusColors() {
+        return this.settings.tokenStatusColors;
     }
 }
 

@@ -59,6 +59,9 @@ import {
     DictionaryAnkiTreatSuspended,
     TokenMatchStrategy,
     TokenMatchStrategyPriority,
+    TokenStyling,
+    getFullyKnownTokenStatus,
+    NUM_TOKEN_STYLINGS,
 } from '@project/common/settings';
 import { isNumeric } from '@project/common/util';
 import { CustomStyle, validateSettings } from '@project/common/settings';
@@ -99,7 +102,6 @@ import DeckFieldTutorialBubble from './DeckFieldTutorialBubble';
 import NoteTypeTutorialBubble from './NoteTypeTutorialBubble';
 import KeyBindRelatedSetting from './KeyBindRelatedSetting';
 import PageSettingsForm from './PageSettingsForm';
-import DictionaryAppearanceSettingsForm from './DictionaryAppearanceSettingsForm';
 import TuneIcon from '@mui/icons-material/Tune';
 import { pageMetadata } from '../pages';
 
@@ -1258,6 +1260,7 @@ export default function SettingsForm({
 
     const [deckNames, setDeckNames] = useState<string[]>();
     const [modelNames, setModelNames] = useState<string[]>();
+    const [allFieldNames, setAllFieldNames] = useState<string[]>();
     const [ankiConnectUrlError, setAnkiConnectUrlError] = useState<string>();
     const [fieldNames, setFieldNames] = useState<string[]>();
     const [currentStyleKey, setCurrentStyleKey] = useState<string>(cssStyles[0]);
@@ -1280,7 +1283,16 @@ export default function SettingsForm({
             }
 
             setDeckNames(await anki.deckNames(ankiConnectUrl));
-            setModelNames(await anki.modelNames(ankiConnectUrl));
+            const modelNames = await anki.modelNames(ankiConnectUrl);
+            setModelNames(modelNames);
+            const allFieldNamesSet = new Set<string>();
+            for (const modelName of modelNames) {
+                const fieldNames = await anki.modelFieldNames(modelName);
+                for (const fieldName of fieldNames) {
+                    allFieldNamesSet.add(fieldName);
+                }
+            }
+            setAllFieldNames(Array.from(allFieldNamesSet).sort((a, b) => a.localeCompare(b)));
             setAnkiConnectUrlError(undefined);
         } catch (e) {
             console.error(e);
@@ -1320,6 +1332,13 @@ export default function SettingsForm({
         TokenMatchStrategy.LEMMA_FORM_COLLECTED,
         TokenMatchStrategy.EXACT_FORM_COLLECTED,
     ].includes(selectedDictionary.dictionaryTokenMatchStrategy);
+    const showThickness =
+        selectedDictionary.tokenStyling === TokenStyling.UNDERLINE ||
+        selectedDictionary.tokenStyling === TokenStyling.OVERLINE;
+    const tokenStylingToHide = useMemo(() => {
+        if (selectedDictionary.colorizeFullyKnownTokens) return;
+        return getFullyKnownTokenStatus();
+    }, [selectedDictionary.colorizeFullyKnownTokens]);
 
     const [dictionaryYomitanUrlError, setDictionaryYomitanUrlError] = useState<string>();
     const dictionaryRequestYomitan = useCallback(async () => {
@@ -1355,67 +1374,6 @@ export default function SettingsForm({
             clearTimeout(timeout);
         };
     }, [dictionaryRequestYomitan]);
-
-    const [dictionaryAllFieldNames, setDictionaryAllFieldNames] = useState<string[]>();
-    const [dictionaryAnkiConnectUrlError, setDictionaryAnkiConnectUrlError] = useState<string>();
-    const dictionaryRequestAnkiConnect = useCallback(async () => {
-        try {
-            if (!selectedDictionary.dictionaryAnkiEnabled) {
-                setDictionaryAllFieldNames(undefined);
-                setDictionaryAnkiConnectUrlError(undefined);
-                return;
-            }
-            const ankiDictionary = new Anki({
-                ...settings,
-                ankiConnectUrl: selectedDictionary.dictionaryAnkiConnectUrl,
-            });
-            // See requestAnkiConnect for explanation
-            if (insideApp) {
-                try {
-                    await ankiDictionary.requestPermission();
-                } catch (e) {
-                    await ankiDictionary.version();
-                }
-            } else {
-                await ankiDictionary.version();
-            }
-            const allFieldNamesSet = new Set<string>();
-            for (const modelName of await ankiDictionary.modelNames()) {
-                const fieldNames = await ankiDictionary.modelFieldNames(modelName);
-                for (const fieldName of fieldNames) {
-                    allFieldNamesSet.add(fieldName);
-                }
-            }
-            setDictionaryAllFieldNames(Array.from(allFieldNamesSet).sort((a, b) => a.localeCompare(b)));
-            setDictionaryAnkiConnectUrlError(undefined);
-        } catch (e) {
-            console.error(e);
-            if (e instanceof Error) {
-                setDictionaryAnkiConnectUrlError(e.message);
-            } else if (typeof e === 'string') {
-                setDictionaryAnkiConnectUrlError(e);
-            } else {
-                setDictionaryAnkiConnectUrlError(String(e));
-            }
-        }
-    }, [insideApp, selectedDictionary, settings]);
-
-    useEffect(() => {
-        let canceled = false;
-
-        const timeout = setTimeout(async () => {
-            if (canceled) {
-                return;
-            }
-
-            dictionaryRequestAnkiConnect();
-        }, 1000);
-
-        return () => {
-            canceled = true;
-            clearTimeout(timeout);
-        };
-    }, [dictionaryRequestAnkiConnect]);
 
     useEffect(() => {
         if (!noteType || ankiConnectUrlError) {
@@ -1688,9 +1646,6 @@ export default function SettingsForm({
     const [pageSettingsFormKey, setPageSettingsFormKey] = useState<keyof PageSettings>('netflix');
     const [pageSettingsFormOpen, setPageSettingsFormOpen] = useState<boolean>(false);
 
-    const [dictionaryAppearanceFormType, setDictionaryAppearanceFormType] = useState<'video' | 'app'>('video');
-    const [dictionaryAppearanceFormOpen, setDictionaryAppearanceFormOpen] = useState<boolean>(false);
-
     return (
         <div className={classes.root}>
             {extensionSupportsPageSettings && pageConfigs && pageSettingsFormKey && (
@@ -1706,30 +1661,6 @@ export default function SettingsForm({
                     }
                 />
             )}
-            <DictionaryAppearanceSettingsForm
-                open={dictionaryAppearanceFormOpen}
-                title={t(
-                    dictionaryAppearanceFormType === 'video'
-                        ? 'settings.dictionaryTokenStylingVideo'
-                        : 'settings.dictionaryTokenStylingApp'
-                )}
-                appearance={
-                    dictionaryAppearanceFormType === 'video'
-                        ? selectedDictionary.dictionaryVideoSubtitleAppearance
-                        : selectedDictionary.dictionaryAppSubtitleAppearance
-                }
-                onClose={() => setDictionaryAppearanceFormOpen(false)}
-                onAppearanceChanged={(appearance) => {
-                    const newTracks = [...dictionaryTracks];
-                    newTracks[selectedDictionaryTrack] = {
-                        ...newTracks[selectedDictionaryTrack],
-                        ...(dictionaryAppearanceFormType === 'video'
-                            ? { dictionaryVideoSubtitleAppearance: appearance }
-                            : { dictionaryAppSubtitleAppearance: appearance }),
-                    };
-                    handleSettingChanged('dictionaryTracks', newTracks);
-                }}
-            />
             <Tabs
                 orientation={tabsOrientation}
                 variant="scrollable"
@@ -2261,36 +2192,18 @@ export default function SettingsForm({
                     <LabelWithHoverEffect
                         control={
                             <Switch
-                                checked={selectedDictionary.dictionaryColorizeOnVideo}
+                                checked={selectedDictionary.dictionaryColorizeSubtitles}
                                 onChange={(e) => {
                                     const newTracks = [...dictionaryTracks];
                                     newTracks[selectedDictionaryTrack] = {
                                         ...newTracks[selectedDictionaryTrack],
-                                        dictionaryColorizeOnVideo: e.target.checked,
+                                        dictionaryColorizeSubtitles: e.target.checked,
                                     };
                                     handleSettingChanged('dictionaryTracks', newTracks);
                                 }}
                             />
                         }
-                        label={t('settings.dictionaryColorizeOnVideo')}
-                        labelPlacement="start"
-                        className={classes.switchLabel}
-                    />
-                    <LabelWithHoverEffect
-                        control={
-                            <Switch
-                                checked={selectedDictionary.dictionaryColorizeOnApp}
-                                onChange={(e) => {
-                                    const newTracks = [...dictionaryTracks];
-                                    newTracks[selectedDictionaryTrack] = {
-                                        ...newTracks[selectedDictionaryTrack],
-                                        dictionaryColorizeOnApp: e.target.checked,
-                                    };
-                                    handleSettingChanged('dictionaryTracks', newTracks);
-                                }}
-                            />
-                        }
-                        label={t('settings.dictionaryColorizeOnApp')}
+                        label={t('settings.dictionaryColorizeSubtitles')}
                         labelPlacement="start"
                         className={classes.switchLabel}
                     />
@@ -2528,35 +2441,9 @@ export default function SettingsForm({
                         labelPlacement="start"
                         className={classes.switchLabel}
                     />
-                    <TextField
-                        label={t('settings.ankiConnectUrl')}
-                        value={selectedDictionary.dictionaryAnkiConnectUrl}
-                        error={Boolean(dictionaryAnkiConnectUrlError)}
-                        helperText={dictionaryAnkiConnectUrlError}
-                        color="primary"
-                        onChange={(e) => {
-                            const newTracks = [...dictionaryTracks];
-                            newTracks[selectedDictionaryTrack] = {
-                                ...newTracks[selectedDictionaryTrack],
-                                dictionaryAnkiConnectUrl: e.target.value,
-                            };
-                            handleSettingChanged('dictionaryTracks', newTracks);
-                        }}
-                        slotProps={{
-                            input: {
-                                endAdornment: (
-                                    <InputAdornment position="end">
-                                        <IconButton onClick={dictionaryRequestAnkiConnect}>
-                                            <RefreshIcon />
-                                        </IconButton>
-                                    </InputAdornment>
-                                ),
-                            },
-                        }}
-                    />
                     <Autocomplete
                         multiple
-                        options={dictionaryAllFieldNames ?? []}
+                        options={allFieldNames ?? []}
                         value={selectedDictionary.dictionaryAnkiWordFields}
                         onChange={(_, newValue) => {
                             const items = newValue as string[];
@@ -2581,13 +2468,15 @@ export default function SettingsForm({
                                 {...params}
                                 label={t('settings.dictionaryAnkiWordFields')}
                                 placeholder={t('settings.dictionarySelectAnkiFields')}
+                                error={Boolean(ankiConnectUrlError)}
+                                helperText={ankiConnectUrlError}
                                 fullWidth
                             />
                         )}
                     />
                     <Autocomplete
                         multiple
-                        options={dictionaryAllFieldNames ?? []}
+                        options={allFieldNames ?? []}
                         value={selectedDictionary.dictionaryAnkiSentenceFields}
                         onChange={(_, newValue) => {
                             const items = newValue as string[];
@@ -2612,6 +2501,8 @@ export default function SettingsForm({
                                 {...params}
                                 label={t('settings.dictionaryAnkiSentenceFields')}
                                 placeholder={t('settings.dictionarySelectAnkiFields')}
+                                error={Boolean(ankiConnectUrlError)}
+                                helperText={ankiConnectUrlError}
                                 fullWidth
                             />
                         )}
@@ -2797,38 +2688,122 @@ export default function SettingsForm({
                     </RadioGroup>
                     <Divider />
                     <Typography variant="h6">{t('settings.dictionaryTokenStylingSection')}</Typography>
-                    <TableContainer variant="outlined" component={Paper} style={{ height: 'auto' }}>
-                        <Table>
-                            <TableBody>
-                                <TableRowWithHoverEffect
-                                    onClick={() => {
-                                        setDictionaryAppearanceFormType('video');
-                                        setDictionaryAppearanceFormOpen(true);
+                    <FormLabel component="legend">{t('settings.dictionaryTokenStyling')}</FormLabel>
+                    <RadioGroup row>
+                        <LabelWithHoverEffect
+                            control={
+                                <Radio
+                                    checked={selectedDictionary.tokenStyling === TokenStyling.TEXT}
+                                    onChange={() => {
+                                        const newTracks = [...dictionaryTracks];
+                                        newTracks[selectedDictionaryTrack] = {
+                                            ...newTracks[selectedDictionaryTrack],
+                                            tokenStyling: TokenStyling.TEXT,
+                                        };
+                                        handleSettingChanged('dictionaryTracks', newTracks);
                                     }}
-                                >
-                                    <TableCell align="left">{t('settings.dictionaryTokenStylingVideo')}</TableCell>
-                                    <TableCell align="right">
-                                        <IconButton>
-                                            <TuneIcon />
-                                        </IconButton>
-                                    </TableCell>
-                                </TableRowWithHoverEffect>
-                                <TableRowWithHoverEffect
-                                    onClick={() => {
-                                        setDictionaryAppearanceFormType('app');
-                                        setDictionaryAppearanceFormOpen(true);
+                                />
+                            }
+                            label={t('settings.dictionaryTokenStylingText')}
+                        />
+                        <LabelWithHoverEffect
+                            control={
+                                <Radio
+                                    checked={selectedDictionary.tokenStyling === TokenStyling.UNDERLINE}
+                                    onChange={() => {
+                                        const newTracks = [...dictionaryTracks];
+                                        newTracks[selectedDictionaryTrack] = {
+                                            ...newTracks[selectedDictionaryTrack],
+                                            tokenStyling: TokenStyling.UNDERLINE,
+                                        };
+                                        handleSettingChanged('dictionaryTracks', newTracks);
                                     }}
-                                >
-                                    <TableCell align="left">{t('settings.dictionaryTokenStylingApp')}</TableCell>
-                                    <TableCell align="right">
-                                        <IconButton>
-                                            <TuneIcon />
-                                        </IconButton>
-                                    </TableCell>
-                                </TableRowWithHoverEffect>
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
+                                />
+                            }
+                            label={t('settings.dictionaryTokenStylingUnderline')}
+                        />
+                        <LabelWithHoverEffect
+                            control={
+                                <Radio
+                                    checked={selectedDictionary.tokenStyling === TokenStyling.OVERLINE}
+                                    onChange={() => {
+                                        const newTracks = [...dictionaryTracks];
+                                        newTracks[selectedDictionaryTrack] = {
+                                            ...newTracks[selectedDictionaryTrack],
+                                            tokenStyling: TokenStyling.OVERLINE,
+                                        };
+                                        handleSettingChanged('dictionaryTracks', newTracks);
+                                    }}
+                                />
+                            }
+                            label={t('settings.dictionaryTokenStylingOverline')}
+                        />
+                    </RadioGroup>
+                    {showThickness && (
+                        <TextField
+                            type="number"
+                            label={t('settings.dictionaryTokenStylingThickness')}
+                            fullWidth
+                            value={selectedDictionary.tokenStylingThickness}
+                            color="primary"
+                            onChange={(e) => {
+                                const newTracks = [...dictionaryTracks];
+                                newTracks[selectedDictionaryTrack] = {
+                                    ...newTracks[selectedDictionaryTrack],
+                                    tokenStylingThickness: Number(e.target.value),
+                                };
+                                handleSettingChanged('dictionaryTracks', newTracks);
+                            }}
+                            slotProps={{
+                                htmlInput: {
+                                    min: 1,
+                                    step: 1,
+                                },
+                            }}
+                        />
+                    )}
+                    <LabelWithHoverEffect
+                        control={
+                            <Switch
+                                checked={selectedDictionary.colorizeFullyKnownTokens}
+                                onChange={(e) => {
+                                    const newTracks = [...dictionaryTracks];
+                                    newTracks[selectedDictionaryTrack] = {
+                                        ...newTracks[selectedDictionaryTrack],
+                                        colorizeFullyKnownTokens: e.target.checked,
+                                    };
+                                    handleSettingChanged('dictionaryTracks', newTracks);
+                                }}
+                            />
+                        }
+                        label={t('settings.dictionaryColorizeFullyKnownTokens')}
+                        labelPlacement="start"
+                        className={classes.switchLabel}
+                    />
+                    {[...Array(NUM_TOKEN_STYLINGS).keys()].map((i) => {
+                        const tokenStatusIndex = NUM_TOKEN_STYLINGS - 1 - i;
+                        if (tokenStatusIndex === tokenStylingToHide) return null;
+                        return (
+                            <TextField
+                                key={i}
+                                type="color"
+                                label={t(`settings.dictionaryTokenStatus${tokenStatusIndex}`)}
+                                fullWidth
+                                value={selectedDictionary.tokenStatusColors[tokenStatusIndex]}
+                                color="primary"
+                                onChange={(e) => {
+                                    const newColors = [...selectedDictionary.tokenStatusColors];
+                                    newColors[tokenStatusIndex] = e.target.value;
+                                    const newTracks = [...dictionaryTracks];
+                                    newTracks[selectedDictionaryTrack] = {
+                                        ...newTracks[selectedDictionaryTrack],
+                                        tokenStatusColors: newColors,
+                                    };
+                                    handleSettingChanged('dictionaryTracks', newTracks);
+                                }}
+                            />
+                        );
+                    })}
                 </FormGroup>
             </TabPanel>
             <TabPanel value={tabIndex} index={tabIndicesById['subtitle-appearance']} tabsOrientation={tabsOrientation}>

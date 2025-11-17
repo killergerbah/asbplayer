@@ -13,7 +13,7 @@ import {
     CardTextFieldValues,
     PostMinePlayback,
     ControlType,
-    IndexedSubtitleModel,
+    RichSubtitleModel,
 } from '@project/common';
 import {
     MiscSettings,
@@ -50,7 +50,6 @@ import { adjacentSubtitle } from '../../key-binder';
 import { usePlaybackPreferences } from '../hooks/use-playback-preferences';
 import { MiningContext } from '../services/mining-context';
 import { useSubtitleStyles } from '../hooks/use-subtitle-styles';
-import { SubtitleColoring } from '@project/common/subtitle-coloring';
 import { useFullscreen } from '../hooks/use-fullscreen';
 import MobileVideoOverlay from '@project/common/components/MobileVideoOverlay';
 import { CachedLocalStorage } from '../services/cached-local-storage';
@@ -155,9 +154,8 @@ function errorMessage(element: HTMLVideoElement) {
 }
 
 const showingSubtitleHtml = (
-    subtitle: IndexedSubtitleModel,
+    subtitle: RichSubtitleModel,
     videoRef: MutableRefObject<ExperimentalHTMLVideoElement | undefined>,
-    subtitleColoringRef: MutableRefObject<SubtitleColoring | undefined>,
     subtitleStyles: string,
     subtitleClasses: string,
     imageBasedSubtitleScaleFactor: number
@@ -179,9 +177,7 @@ const showingSubtitleHtml = (
 `;
     }
     const allSubtitleClasses = subtitleClasses ? `${subtitleClasses} subtitle-line` : 'subtitle-line';
-    const coloredText = subtitleColoringRef.current?.subtitles[subtitle.index]?.coloredVideoText;
-    const lines = coloredText?.split('\n') ?? subtitle.text.split('\n');
-    const wrappedText = lines
+    const wrappedText = (subtitle.richText?.split('\n') ?? subtitle.text.split('\n'))
         .map((line) => `<p class="${allSubtitleClasses}" style="${subtitleStyles}">${line}</p>`)
         .join('');
     return wrappedText;
@@ -355,18 +351,16 @@ export default function VideoPlayer({
     const [audioTracks, setAudioTracks] = useState<AudioTrackModel[]>();
     const [selectedAudioTrack, setSelectedAudioTrack] = useState<string>();
     const [wasPlayingOnAnkiDialogRequest, setWasPlayingOnAnkiDialogRequest] = useState<boolean>(false);
-    const [subtitles, setSubtitles] = useState<IndexedSubtitleModel[]>([]);
-    const subtitlesRef = useRef<IndexedSubtitleModel[]>([]);
-    subtitlesRef.current = subtitles;
-    const subtitleCollection = useMemo<SubtitleCollection<IndexedSubtitleModel>>(
+    const [subtitles, setSubtitles] = useState<RichSubtitleModel[]>([]);
+    const subtitleCollection = useMemo<SubtitleCollection<RichSubtitleModel>>(
         () =>
-            new SubtitleCollection<IndexedSubtitleModel>(subtitles, {
+            new SubtitleCollection<RichSubtitleModel>(subtitles, {
                 returnLastShown: false,
                 showingCheckRadiusMs: 150,
             }),
         [subtitles]
     );
-    const [showSubtitles, setShowSubtitles] = useState<IndexedSubtitleModel[]>([]);
+    const [showSubtitles, setShowSubtitles] = useState<RichSubtitleModel[]>([]);
     const [miscSettings, setMiscSettings] = useState<MiscSettings>(settings);
     const [subtitleSettings, setSubtitleSettings] = useState<SubtitleSettings>(settings);
     const [ankiSettings, setAnkiSettings] = useState<AnkiSettings>(settings);
@@ -381,7 +375,7 @@ export default function VideoPlayer({
     );
     const [, setBottomSubtitlePositionOffset] = useState<number>(subtitleSettings.subtitlePositionOffset);
     const [, setTopSubtitlePositionOffset] = useState<number>(subtitleSettings.topSubtitlePositionOffset);
-    const showSubtitlesRef = useRef<IndexedSubtitleModel[]>([]);
+    const showSubtitlesRef = useRef<RichSubtitleModel[]>([]);
     showSubtitlesRef.current = showSubtitles;
     const clock = useMemo<Clock>(() => new Clock(), []);
     const mousePositionRef = useRef<Point | undefined>(undefined);
@@ -398,40 +392,7 @@ export default function VideoPlayer({
     const [mineIntervalStartTimestamp, setMineIntervalStartTimestamp] = useState<number>();
     const mobileOverlayRef = useRef<HTMLDivElement>(null);
     const bottomSubtitleContainerRef = useRef<HTMLDivElement>(null);
-
-    const subtitleColoringRef = useRef<SubtitleColoring | undefined>(undefined);
-    const refreshCurrentSubtitleRef = useRef<boolean>(false);
-
     const domCacheRef = useRef<OffscreenDomCache | undefined>(undefined);
-
-    useEffect(() => {
-        // Always create SubtitleColoring as VideoPlayer is only used when bypassing the extension
-        const subtitleColoring = new SubtitleColoring(
-            settings,
-            (updatedSubtitles) => {
-                for (const updatedSubtitle of updatedSubtitles) {
-                    domCacheRef.current?.delete(String(updatedSubtitle.index));
-                    if (showSubtitlesRef.current?.some((s) => s.index === updatedSubtitle.index)) {
-                        refreshCurrentSubtitleRef.current = true;
-                    }
-                }
-                playerChannel.subtitlesUpdated(updatedSubtitles);
-            },
-            () => (videoRef.current ? videoRef.current.currentTime * 1000 : 0)
-        );
-        subtitleColoringRef.current = subtitleColoring;
-        subtitleColoring.bind();
-        if (subtitlesRef.current.length) subtitleColoring.subtitles = subtitlesRef.current;
-        return () => {
-            subtitleColoringRef.current?.unbind();
-            subtitleColoringRef.current = undefined;
-        };
-    }, [playerChannel, settings]);
-
-    useEffect(() => {
-        if (!subtitleColoringRef.current) return;
-        subtitleColoringRef.current.subtitles = subtitles;
-    }, [subtitles]);
 
     useEffect(() => {
         setMiscSettings(settings);
@@ -557,8 +518,8 @@ export default function VideoPlayer({
 
     const updateSubtitlesWithOffset = useCallback((offset: number) => {
         setOffset(offset);
-        setSubtitles((subtitles) => {
-            const newSubtitles = subtitles.map((s, i) => ({
+        setSubtitles((subtitles) =>
+            subtitles.map((s, i) => ({
                 text: s.text,
                 textImage: s.textImage,
                 start: s.originalStart + offset,
@@ -567,10 +528,9 @@ export default function VideoPlayer({
                 originalEnd: s.originalEnd,
                 track: s.track,
                 index: i,
-            }));
-            subtitlesRef.current = newSubtitles;
-            return newSubtitles;
-        });
+                richText: s.richText,
+            }))
+        );
     }, []);
 
     const updatePlaybackRate = useCallback(
@@ -631,9 +591,7 @@ export default function VideoPlayer({
         });
 
         playerChannel.onSubtitles((subtitles) => {
-            const newSubtitles = subtitles.map((s, i) => ({ ...s, index: i }));
-            setSubtitles(newSubtitles);
-            subtitlesRef.current = newSubtitles;
+            setSubtitles(subtitles.map((s, i) => ({ ...s, index: i })));
             setTrackCount(Math.max(...subtitles.map((s) => s.track)) + 1);
 
             if (subtitles && subtitles.length > 0) {
@@ -644,6 +602,16 @@ export default function VideoPlayer({
 
             setShowSubtitles([]);
             autoPauseContextRef.current?.clear();
+        });
+        playerChannel.onSubtitlesUpdated((updatedSubtitles) => {
+            for (const updatedSubtitle of updatedSubtitles) {
+                domCacheRef.current?.delete(String(updatedSubtitle.index));
+            }
+            setSubtitles((prevSubtitles) => {
+                const newSubtitles = prevSubtitles.slice();
+                updatedSubtitles.forEach((s) => (newSubtitles[s.index] = s));
+                return newSubtitles;
+            });
         });
 
         playerChannel.onPlayMode((playMode) => setPlayMode(playMode));
@@ -657,7 +625,6 @@ export default function VideoPlayer({
         playerChannel.onPlaybackRate((playbackRate) => {
             updatePlaybackRate(playbackRate, false);
         });
-        playerChannel.onRequestSubtitles(() => subtitleColoringRef.current?.subtitles ?? []);
         playerChannel.onAlert((message, severity) => {
             setAlertOpen(true);
             setAlertMessage(message);
@@ -752,7 +719,7 @@ export default function VideoPlayer({
 
         const interval = setInterval(() => {
             const now = clock.time(length);
-            let showSubtitles: IndexedSubtitleModel[] = [];
+            let showSubtitles: RichSubtitleModel[] = [];
             const slice = subtitleCollection.subtitlesAt(now);
 
             for (const s of slice.showing) {
@@ -771,14 +738,7 @@ export default function VideoPlayer({
 
             showSubtitles = showSubtitles.sort((s1, s2) => s1.track - s2.track);
 
-            const subtitlesAreNew = !arrayEquals(
-                showSubtitles,
-                showSubtitlesRef.current,
-                (s1, s2) => s1.index === s2.index
-            );
-
-            if (subtitlesAreNew || refreshCurrentSubtitleRef.current) {
-                if (refreshCurrentSubtitleRef.current) refreshCurrentSubtitleRef.current = false;
+            if (!arrayEquals(showSubtitles, showSubtitlesRef.current, (s1, s2) => s1.index === s2.index)) {
                 setShowSubtitles(showSubtitles);
                 if (showSubtitles.length > 0 && miscSettings.autoCopyCurrentSubtitle && document.hasFocus()) {
                     navigator.clipboard.writeText(showSubtitles.map((s) => s.text).join('\n')).catch((e) => {
@@ -1531,11 +1491,10 @@ export default function VideoPlayer({
     const trackStyles = useSubtitleStyles(subtitleSettings, trackCount ?? 1);
 
     const getSubtitleHtml = useCallback(
-        (subtitle: IndexedSubtitleModel) =>
+        (subtitle: RichSubtitleModel) =>
             showingSubtitleHtml(
                 subtitle,
                 videoRef,
-                subtitleColoringRef,
                 trackStyles[subtitle.track]?.styleString ?? trackStyles[0].styleString,
                 trackStyles[subtitle.track]?.classes ?? trackStyles[0].classes,
                 subtitleSettings.imageBasedSubtitleScaleFactor
@@ -1546,8 +1505,7 @@ export default function VideoPlayer({
     const { getSubtitleDomCache } = useSubtitleDomCache(subtitles, getSubtitleHtml);
 
     useEffect(() => {
-        const cache = getSubtitleDomCache();
-        domCacheRef.current = cache;
+        domCacheRef.current = getSubtitleDomCache();
     }, [getSubtitleDomCache]);
 
     const handleSwipe = useCallback(
@@ -1623,11 +1581,11 @@ export default function VideoPlayer({
         parent.document.body.clientWidth === document.body.clientWidth;
 
     const subtitleAlignmentForTrack = (track: number) => subtitleAlignments[track] ?? subtitleAlignments[0];
-    const elementForSubtitle = (subtitle: IndexedSubtitleModel, index: number) => (
+    const elementForSubtitle = (subtitle: RichSubtitleModel, index: number) => (
         <CachedShowingSubtitle
             key={index}
             index={subtitle.index}
-            domCache={getSubtitleDomCache()}
+            domCache={domCacheRef.current ?? getSubtitleDomCache()}
             renderHtml={() => getSubtitleHtml(subtitle)}
             onMouseOver={handleSubtitleMouseOver}
         />

@@ -1,4 +1,4 @@
-import { IndexedSubtitleModel, OffscreenDomCache, SubtitleModel } from '@project/common';
+import { IndexedSubtitleModel, OffscreenDomCache } from '@project/common';
 import { useEffect, useState } from 'react';
 
 export const useSubtitleDomCache = (

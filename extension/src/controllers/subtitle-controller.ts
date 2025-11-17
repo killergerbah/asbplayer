@@ -9,7 +9,7 @@ import {
     Fetcher,
     HttpPostMessage,
     IndexedSubtitleModel,
-    ColoredSubtitleModel,
+    RichSubtitleModel,
 } from '@project/common';
 import {
     SettingsProvider,
@@ -341,7 +341,7 @@ export default class SubtitleController {
         return { subtitleOverlayParams, topSubtitleOverlayParams, notificationOverlayParams };
     }
 
-    private _subtitleColorsUpdated(updatedSubtitles: ColoredSubtitleModel[]): void {
+    private _subtitleColorsUpdated(updatedSubtitles: RichSubtitleModel[]): void {
         for (const updatedSubtitle of updatedSubtitles) {
             if (this._getSubtitleTrackAlignment(updatedSubtitle.track) === 'bottom') {
                 if (
@@ -536,11 +536,10 @@ export default class SubtitleController {
     }
 
     private _buildTextHtml(text: string, track?: number, index?: number) {
-        const coloredVideoText =
-            index !== undefined ? this.subtitleColoring?.subtitles[index]?.coloredVideoText : undefined;
+        const richText = index !== undefined ? this.subtitleColoring?.subtitles[index]?.richText : undefined;
         return `<span data-track="${track ?? 0}" class="${this._subtitleClasses(track)}" style="${this._subtitleStyles(
             track
-        )}">${coloredVideoText ?? text}</span>`;
+        )}">${richText ?? text}</span>`;
     }
 
     unbind() {

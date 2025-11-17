@@ -13,7 +13,7 @@ import {
     CopySubtitleWithAdditionalFieldsMessage,
     CardTextFieldValues,
     VideoTabModel,
-    ColoredSubtitleModel,
+    RichSubtitleModel,
     RequestSubtitlesResponse,
 } from '@project/common';
 import { AsbplayerSettings } from '@project/common/settings';
@@ -211,22 +211,21 @@ const useSubtitleRowStyles = makeStyles<Theme>((theme) => ({
 
 function updateSubtitleColors(
     subtitles: DisplaySubtitleModel[] | undefined,
-    updatedSubtitles: ColoredSubtitleModel[]
-): DisplaySubtitleModel[] | null {
-    if (!subtitles?.length) return null;
-    const updatedEvents: [number, string][] = [];
+    updatedSubtitles: RichSubtitleModel[]
+): DisplaySubtitleModel[] {
+    if (!subtitles?.length) return [];
+    const newSubtitles: DisplaySubtitleModel[] = [];
     for (const updatedSubtitle of updatedSubtitles) {
-        if (!updatedSubtitle.coloredAppText) continue;
-        if (subtitles[updatedSubtitle.index]?.coloredAppText === updatedSubtitle.coloredAppText) continue;
-        updatedEvents.push([updatedSubtitle.index, updatedSubtitle.coloredAppText]);
+        if (!updatedSubtitle.richText) continue;
+        if (subtitles[updatedSubtitle.index]?.richText === updatedSubtitle.richText) continue;
+        const newSubtitle = subtitles[updatedSubtitle.index];
+        newSubtitle.richText = updatedSubtitle.richText;
+        newSubtitles.push(newSubtitle);
     }
-    if (!updatedEvents.length) return null;
-    const newSubtitles = subtitles.slice();
-    updatedEvents.forEach(([index, coloredAppText]) => (newSubtitles[index].coloredAppText = coloredAppText));
     return newSubtitles;
 }
 
-export interface DisplaySubtitleModel extends ColoredSubtitleModel {
+export interface DisplaySubtitleModel extends RichSubtitleModel {
     displayTime: string;
 }
 
@@ -284,7 +283,7 @@ const SubtitleRow = React.memo(function SubtitleRow({
         <span
             ref={textRef}
             className={disabledClassName}
-            dangerouslySetInnerHTML={{ __html: subtitle.coloredAppText ?? subtitle.text }}
+            dangerouslySetInnerHTML={{ __html: subtitle.richText ?? subtitle.text }}
         />
     );
 
@@ -558,13 +557,18 @@ export default function SubtitlePlayer({
     const subtitleColoringRef = useRef<SubtitleColoring | undefined>(undefined);
 
     useEffect(() => {
-        if (channel) return; // Handled by extension or VideoPlayer
+        if (tab) return; // Handled by extension
 
         const subtitleColoring = new SubtitleColoring(
             settings,
             (updatedSubtitles) => {
                 const newSubtitles = updateSubtitleColors(subtitleListRef.current, updatedSubtitles);
-                if (newSubtitles) onSubtitles(newSubtitles);
+                if (newSubtitles.length) {
+                    channel?.subtitlesUpdated(newSubtitles);
+                    const allSubtitles = subtitleListRef.current?.slice() ?? [];
+                    newSubtitles.forEach((s) => (allSubtitles[s.index] = s));
+                    onSubtitles(allSubtitles);
+                }
             },
             () => clockRef.current.time(lengthRef.current)
         );
@@ -576,53 +580,52 @@ export default function SubtitlePlayer({
             subtitleColoringRef.current?.unbind();
             subtitleColoringRef.current = undefined;
         };
-    }, [channel, settings, onSubtitles]);
+    }, [channel, settings, tab, onSubtitles]);
 
     useEffect(() => {
-        if (!subtitleColoringRef.current) return;
-        subtitleColoringRef.current.subtitles = subtitleListRef.current ?? [];
+        if (!subtitleColoringRef.current || !subtitleListRef.current) return;
+        const subtitleColoring = subtitleColoringRef.current;
+        const subtitleList = subtitleListRef.current;
+        if (
+            subtitleColoring.subtitles.length !== subtitleList.length ||
+            subtitleColoring.subtitles.some((s) => s.originalEnd !== subtitleList[s.index].originalEnd)
+        ) {
+            subtitleColoring.subtitles = subtitleList; // Only update if it's a completely new set of subtitles
+        }
     }, [subtitles]);
 
-    // Immediate update of subtitle colors when changed (from extension/VideoPlayer)
+    // Immediate update of subtitle colors when changed (from extension)
     useEffect(() => {
         return channel?.onSubtitlesUpdated((updatedSubtitles) => {
             const newSubtitles = updateSubtitleColors(subtitleListRef.current, updatedSubtitles);
-            if (newSubtitles) onSubtitles(newSubtitles);
+            if (newSubtitles.length) {
+                const allSubtitles = subtitleListRef.current?.slice() ?? [];
+                newSubtitles.forEach((s) => (allSubtitles[s.index] = s));
+                onSubtitles(allSubtitles);
+            }
         });
     }, [channel, onSubtitles]);
 
     // Poll to catch ones that slip if request fails
     useEffect(() => {
-        if (!channel && !subtitleColoringRef.current) return;
-
+        if (!tab) return;
         const poll = async () => {
-            const subtitleColoring = subtitleColoringRef.current; // If not from extension/VideoPlayer
-            if (subtitleColoring) {
-                const newSubtitles = updateSubtitleColors(subtitleListRef.current, subtitleColoring.subtitles);
-                if (newSubtitles) onSubtitles(newSubtitles);
-            } else if (channel) {
-                if (!channel.fromExtension) {
-                    const updatedSubtitles = await channel.requestSubtitles();
-                    const newSubtitles = updateSubtitleColors(subtitleListRef.current, updatedSubtitles);
-                    if (newSubtitles) onSubtitles(newSubtitles);
-                } else if (tab) {
-                    const response = (await extension.requestSubtitles(tab.id, tab.src)) as
-                        | RequestSubtitlesResponse
-                        | undefined;
-                    if (!response) return;
-                    const { subtitles: updatedSubtitles } = response;
-                    const newSubtitles = updateSubtitleColors(subtitleListRef.current, updatedSubtitles);
-                    if (newSubtitles) onSubtitles(newSubtitles);
-                }
+            const response = (await extension.requestSubtitles(tab.id, tab.src)) as
+                | RequestSubtitlesResponse
+                | undefined;
+            if (!response) return;
+            const { subtitles: updatedSubtitles } = response;
+            const newSubtitles = updateSubtitleColors(subtitleListRef.current, updatedSubtitles);
+            if (newSubtitles.length) {
+                const allSubtitles = subtitleListRef.current?.slice() ?? [];
+                newSubtitles.forEach((s) => (allSubtitles[s.index] = s));
+                onSubtitles(allSubtitles);
             }
         };
         const interval = setInterval(poll, 10000);
         void poll();
-
-        return () => {
-            clearInterval(interval);
-        };
-    }, [channel, extension, tab, onSubtitles]);
+        return () => clearInterval(interval);
+    }, [extension, tab, onSubtitles]);
 
     const scrollToCurrentSubtitle = useCallback(() => {
         const highlightedSubtitleIndexes = highlightedSubtitleIndexesRef.current;

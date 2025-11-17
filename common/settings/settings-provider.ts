@@ -35,6 +35,24 @@ const defaultSubtitleTextSettings = {
     subtitleBlur: false,
 };
 
+const defaultDictionaryTrackSettings = {
+    dictionaryColorizeSubtitles: false,
+    dictionaryTokenMatchStrategy: TokenMatchStrategy.ANY_FORM_COLLECTED,
+    dictionaryTokenMatchStrategyPriority: TokenMatchStrategyPriority.EXACT,
+    dictionaryYomitanUrl: 'http://127.0.0.1:19633',
+    dictionaryYomitanScanLength: 16,
+    dictionaryAnkiEnabled: true,
+    dictionaryAnkiWordFields: [],
+    dictionaryAnkiSentenceFields: [],
+    dictionaryAnkiSentenceTokenMatchStrategy: TokenMatchStrategy.EXACT_FORM_COLLECTED,
+    dictionaryAnkiMatureCutoff: 21,
+    dictionaryAnkiTreatSuspended: DictionaryAnkiTreatSuspended.NORMAL,
+    tokenStyling: TokenStyling.UNDERLINE,
+    tokenStylingThickness: 3,
+    colorizeFullyKnownTokens: false,
+    tokenStatusColors: ['#FF0000', '#FFA500', '#FFFF00', '#FFFFFF'],
+};
+
 export const defaultSettings: AsbplayerSettings = {
     ankiConnectUrl: 'http://127.0.0.1:8765',
     deck: '',
@@ -178,94 +196,11 @@ export const defaultSettings: AsbplayerSettings = {
     webSocketServerUrl: 'ws://127.0.0.1:8766/ws',
     pauseOnHoverMode: 0,
     lastSelectedAnkiExportMode: 'default',
-    dictionaryTracks: [
-        {
-            dictionaryColorizeOnVideo: false,
-            dictionaryColorizeOnApp: false,
-            dictionaryTokenMatchStrategy: TokenMatchStrategy.ANY_FORM_COLLECTED,
-            dictionaryTokenMatchStrategyPriority: TokenMatchStrategyPriority.EXACT,
-            dictionaryYomitanUrl: 'http://127.0.0.1:19633',
-            dictionaryYomitanScanLength: 16,
-            dictionaryAnkiEnabled: true,
-            dictionaryAnkiConnectUrl: 'http://127.0.0.1:8765',
-            dictionaryAnkiWordFields: [],
-            dictionaryAnkiSentenceFields: [],
-            dictionaryAnkiSentenceTokenMatchStrategy: TokenMatchStrategy.EXACT_FORM_COLLECTED,
-            dictionaryAnkiMatureCutoff: 21,
-            dictionaryAnkiTreatSuspended: DictionaryAnkiTreatSuspended.NORMAL,
-            dictionaryVideoSubtitleAppearance: {
-                tokenStyling: TokenStyling.UNDERLINE,
-                tokenStylingThickness: 1,
-                colorizeFullyKnownTokens: false,
-                tokenStatusColors: ['#FF0000', '#FFA500', '#FFFF00', '#FFFFFF'],
-            },
-            dictionaryAppSubtitleAppearance: {
-                tokenStyling: TokenStyling.TEXT,
-                tokenStylingThickness: 1,
-                colorizeFullyKnownTokens: false,
-                tokenStatusColors: ['#FF0000', '#FFA500', '#FFFF00', '#FFFFFF'],
-            },
-        },
-        {
-            dictionaryColorizeOnVideo: false,
-            dictionaryColorizeOnApp: false,
-            dictionaryTokenMatchStrategy: TokenMatchStrategy.ANY_FORM_COLLECTED,
-            dictionaryTokenMatchStrategyPriority: TokenMatchStrategyPriority.EXACT,
-            dictionaryYomitanUrl: 'http://127.0.0.1:19633',
-            dictionaryYomitanScanLength: 16,
-            dictionaryAnkiEnabled: true,
-            dictionaryAnkiConnectUrl: 'http://127.0.0.1:8765',
-            dictionaryAnkiWordFields: [],
-            dictionaryAnkiSentenceFields: [],
-            dictionaryAnkiSentenceTokenMatchStrategy: TokenMatchStrategy.EXACT_FORM_COLLECTED,
-            dictionaryAnkiMatureCutoff: 21,
-            dictionaryAnkiTreatSuspended: DictionaryAnkiTreatSuspended.NORMAL,
-            dictionaryVideoSubtitleAppearance: {
-                tokenStyling: TokenStyling.UNDERLINE,
-                tokenStylingThickness: 1,
-                colorizeFullyKnownTokens: false,
-                tokenStatusColors: ['#FF0000', '#FFA500', '#FFFF00', '#FFFFFF'],
-            },
-            dictionaryAppSubtitleAppearance: {
-                tokenStyling: TokenStyling.TEXT,
-                tokenStylingThickness: 1,
-                colorizeFullyKnownTokens: false,
-                tokenStatusColors: ['#FF0000', '#FFA500', '#FFFF00', '#FFFFFF'],
-            },
-        },
-        {
-            dictionaryColorizeOnVideo: false,
-            dictionaryColorizeOnApp: false,
-            dictionaryTokenMatchStrategy: TokenMatchStrategy.ANY_FORM_COLLECTED,
-            dictionaryTokenMatchStrategyPriority: TokenMatchStrategyPriority.EXACT,
-            dictionaryYomitanUrl: 'http://127.0.0.1:19633',
-            dictionaryYomitanScanLength: 16,
-            dictionaryAnkiEnabled: true,
-            dictionaryAnkiConnectUrl: 'http://127.0.0.1:8765',
-            dictionaryAnkiWordFields: [],
-            dictionaryAnkiSentenceFields: [],
-            dictionaryAnkiSentenceTokenMatchStrategy: TokenMatchStrategy.EXACT_FORM_COLLECTED,
-            dictionaryAnkiMatureCutoff: 21,
-            dictionaryAnkiTreatSuspended: DictionaryAnkiTreatSuspended.NORMAL,
-            dictionaryVideoSubtitleAppearance: {
-                tokenStyling: TokenStyling.UNDERLINE,
-                tokenStylingThickness: 1,
-                colorizeFullyKnownTokens: false,
-                tokenStatusColors: ['#FF0000', '#FFA500', '#FFFF00', '#FFFFFF'],
-            },
-            dictionaryAppSubtitleAppearance: {
-                tokenStyling: TokenStyling.TEXT,
-                tokenStylingThickness: 1,
-                colorizeFullyKnownTokens: false,
-                tokenStatusColors: ['#FF0000', '#FFA500', '#FFFF00', '#FFFFFF'],
-            },
-        },
-    ],
+    dictionaryTracks: [defaultDictionaryTrackSettings, defaultDictionaryTrackSettings, defaultDictionaryTrackSettings],
 };
 
 export const NUM_DICTIONARY_TRACKS = defaultSettings.dictionaryTracks.length;
-export const NUM_TOKEN_STYLINGS =
-    defaultSettings.dictionaryTracks[0].dictionaryVideoSubtitleAppearance.tokenStatusColors.length;
+export const NUM_TOKEN_STYLINGS = defaultDictionaryTrackSettings.tokenStatusColors.length;
 
 export interface AnkiFieldUiModel {
     key: string;
@@ -590,15 +525,10 @@ export class SettingsProvider {
         if (settings.dictionaryTracks !== undefined) {
             const defaultTrack = defaultSettings.dictionaryTracks[0];
             for (const dt of settings.dictionaryTracks) {
-                while (dt.dictionaryVideoSubtitleAppearance.tokenStatusColors.length < NUM_TOKEN_STYLINGS) {
-                    const currLength = dt.dictionaryVideoSubtitleAppearance.tokenStatusColors.length;
-                    const color = defaultTrack.dictionaryVideoSubtitleAppearance.tokenStatusColors[currLength];
-                    dt.dictionaryVideoSubtitleAppearance.tokenStatusColors.push(color);
-                }
-                while (dt.dictionaryAppSubtitleAppearance.tokenStatusColors.length < NUM_TOKEN_STYLINGS) {
-                    const currLength = dt.dictionaryAppSubtitleAppearance.tokenStatusColors.length;
-                    const color = defaultTrack.dictionaryAppSubtitleAppearance.tokenStatusColors[currLength];
-                    dt.dictionaryAppSubtitleAppearance.tokenStatusColors.push(color);
+                while (dt.tokenStatusColors.length < NUM_TOKEN_STYLINGS) {
+                    const currLength = dt.tokenStatusColors.length;
+                    const color = defaultTrack.tokenStatusColors[currLength];
+                    dt.tokenStatusColors.push(color);
                 }
             }
             while (settings.dictionaryTracks.length < NUM_DICTIONARY_TRACKS) {
