@@ -30,10 +30,7 @@ const dictionaryTrackSchema = {
     id: '/DictionaryTrack',
     type: 'object',
     properties: {
-        dictionaryColorizeOnVideo: {
-            type: 'boolean',
-        },
-        dictionaryColorizeOnApp: {
+        dictionaryColorizeSubtitles: {
             type: 'boolean',
         },
         dictionaryTokenMatchStrategy: {
@@ -50,9 +47,6 @@ const dictionaryTrackSchema = {
         },
         dictionaryAnkiEnabled: {
             type: 'boolean',
-        },
-        dictionaryAnkiConnectUrl: {
-            type: 'string',
         },
         dictionaryAnkiWordFields: {
             type: 'array',
@@ -75,24 +69,19 @@ const dictionaryTrackSchema = {
         dictionaryAnkiTreatSuspended: {
             type: 'string',
         },
-        dictionaryVideoSubtitleAppearance: {
-            type: 'object',
-            properties: {
-                tokenStyling: {
-                    type: 'string',
-                },
-                tokenStylingThickness: {
-                    type: 'number',
-                },
-                colorizeFullyKnownTokens: {
-                    type: 'boolean',
-                },
-                tokenStatusColors: {
-                    type: 'array',
-                    items: {
-                        type: 'string',
-                    },
-                },
+        tokenStyling: {
+            type: 'string',
+        },
+        tokenStylingThickness: {
+            type: 'number',
+        },
+        colorizeFullyKnownTokens: {
+            type: 'boolean',
+        },
+        tokenStatusColors: {
+            type: 'array',
+            items: {
+                type: 'string',
             },
         },
     },

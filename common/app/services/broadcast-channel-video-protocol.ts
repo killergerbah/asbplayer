@@ -2,7 +2,6 @@ import { Message } from '@project/common';
 import { VideoProtocol, VideoProtocolMessage } from './video-protocol';
 
 export default class BroadcastChannelVideoProtocol implements VideoProtocol {
-    readonly fromExtension: boolean = false;
     private channel?: BroadcastChannel;
 
     onMessage?: (message: VideoProtocolMessage) => void;
