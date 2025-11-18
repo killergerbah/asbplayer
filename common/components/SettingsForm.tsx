@@ -56,7 +56,6 @@ import {
     exportSettings,
     YoutubePage,
     Page,
-    DictionaryAnkiTreatSuspended,
     TokenMatchStrategy,
     TokenMatchStrategyPriority,
     TokenStyling,
@@ -1332,9 +1331,10 @@ export default function SettingsForm({
         TokenMatchStrategy.LEMMA_FORM_COLLECTED,
         TokenMatchStrategy.EXACT_FORM_COLLECTED,
     ].includes(selectedDictionary.dictionaryTokenMatchStrategy);
-    const showThickness =
+    const selectedDictionaryShowThickness =
         selectedDictionary.tokenStyling === TokenStyling.UNDERLINE ||
-        selectedDictionary.tokenStyling === TokenStyling.OVERLINE;
+        selectedDictionary.tokenStyling === TokenStyling.OVERLINE ||
+        selectedDictionary.tokenStyling === TokenStyling.OUTLINE;
     const tokenStylingToHide = useMemo(() => {
         if (selectedDictionary.colorizeFullyKnownTokens) return;
         return getFullyKnownTokenStatus();
@@ -2612,15 +2612,14 @@ export default function SettingsForm({
                         <LabelWithHoverEffect
                             control={
                                 <Radio
-                                    checked={
-                                        selectedDictionary.dictionaryAnkiTreatSuspended ===
-                                        DictionaryAnkiTreatSuspended.NORMAL
-                                    }
-                                    onChange={() => {
+                                    checked={selectedDictionary.dictionaryAnkiTreatSuspended === 'NORMAL'}
+                                    onChange={(event) => {
+                                        if (!event.target.checked) return;
+
                                         const newTracks = [...dictionaryTracks];
                                         newTracks[selectedDictionaryTrack] = {
                                             ...newTracks[selectedDictionaryTrack],
-                                            dictionaryAnkiTreatSuspended: DictionaryAnkiTreatSuspended.NORMAL,
+                                            dictionaryAnkiTreatSuspended: 'NORMAL',
                                         };
                                         handleSettingChanged('dictionaryTracks', newTracks);
                                     }}
@@ -2628,68 +2627,37 @@ export default function SettingsForm({
                             }
                             label={t('settings.dictionaryAnkiTreatSuspendedNormal')}
                         />
-                        <LabelWithHoverEffect
-                            control={
-                                <Radio
-                                    checked={
-                                        selectedDictionary.dictionaryAnkiTreatSuspended ===
-                                        DictionaryAnkiTreatSuspended.MATURE
+                        {[...Array(NUM_TOKEN_STYLINGS).keys()].map((i) => {
+                            const tokenStatusIndex = NUM_TOKEN_STYLINGS - 1 - i;
+                            if (tokenStatusIndex === 0) return null;
+                            return (
+                                <LabelWithHoverEffect
+                                    key={i}
+                                    control={
+                                        <Radio
+                                            checked={
+                                                selectedDictionary.dictionaryAnkiTreatSuspended === tokenStatusIndex
+                                            }
+                                            onChange={(event) => {
+                                                if (!event.target.checked) return;
+                                                const newTracks = [...dictionaryTracks];
+                                                newTracks[selectedDictionaryTrack] = {
+                                                    ...newTracks[selectedDictionaryTrack],
+                                                    dictionaryAnkiTreatSuspended: tokenStatusIndex,
+                                                };
+                                                handleSettingChanged('dictionaryTracks', newTracks);
+                                            }}
+                                        />
                                     }
-                                    onChange={() => {
-                                        const newTracks = [...dictionaryTracks];
-                                        newTracks[selectedDictionaryTrack] = {
-                                            ...newTracks[selectedDictionaryTrack],
-                                            dictionaryAnkiTreatSuspended: DictionaryAnkiTreatSuspended.MATURE,
-                                        };
-                                        handleSettingChanged('dictionaryTracks', newTracks);
-                                    }}
+                                    label={t(`settings.dictionaryTokenStatus${tokenStatusIndex}`)}
                                 />
-                            }
-                            label={t('settings.dictionaryAnkiTreatSuspendedMature')}
-                        />
-                        <LabelWithHoverEffect
-                            control={
-                                <Radio
-                                    checked={
-                                        selectedDictionary.dictionaryAnkiTreatSuspended ===
-                                        DictionaryAnkiTreatSuspended.YOUNG
-                                    }
-                                    onChange={() => {
-                                        const newTracks = [...dictionaryTracks];
-                                        newTracks[selectedDictionaryTrack] = {
-                                            ...newTracks[selectedDictionaryTrack],
-                                            dictionaryAnkiTreatSuspended: DictionaryAnkiTreatSuspended.YOUNG,
-                                        };
-                                        handleSettingChanged('dictionaryTracks', newTracks);
-                                    }}
-                                />
-                            }
-                            label={t('settings.dictionaryAnkiTreatSuspendedYoung')}
-                        />
-                        <LabelWithHoverEffect
-                            control={
-                                <Radio
-                                    checked={
-                                        selectedDictionary.dictionaryAnkiTreatSuspended ===
-                                        DictionaryAnkiTreatSuspended.UNKNOWN
-                                    }
-                                    onChange={() => {
-                                        const newTracks = [...dictionaryTracks];
-                                        newTracks[selectedDictionaryTrack] = {
-                                            ...newTracks[selectedDictionaryTrack],
-                                            dictionaryAnkiTreatSuspended: DictionaryAnkiTreatSuspended.UNKNOWN,
-                                        };
-                                        handleSettingChanged('dictionaryTracks', newTracks);
-                                    }}
-                                />
-                            }
-                            label={t('settings.dictionaryAnkiTreatSuspendedUnknown')}
-                        />
+                            );
+                        })}
                     </RadioGroup>
                     <Divider />
                     <Typography variant="h6">{t('settings.dictionaryTokenStylingSection')}</Typography>
                     <FormLabel component="legend">{t('settings.dictionaryTokenStyling')}</FormLabel>
-                    <RadioGroup row>
+                    <RadioGroup row={false}>
                         <LabelWithHoverEffect
                             control={
                                 <Radio
@@ -2705,6 +2673,22 @@ export default function SettingsForm({
                                 />
                             }
                             label={t('settings.dictionaryTokenStylingText')}
+                        />
+                        <LabelWithHoverEffect
+                            control={
+                                <Radio
+                                    checked={selectedDictionary.tokenStyling === TokenStyling.BACKGROUND}
+                                    onChange={() => {
+                                        const newTracks = [...dictionaryTracks];
+                                        newTracks[selectedDictionaryTrack] = {
+                                            ...newTracks[selectedDictionaryTrack],
+                                            tokenStyling: TokenStyling.BACKGROUND,
+                                        };
+                                        handleSettingChanged('dictionaryTracks', newTracks);
+                                    }}
+                                />
+                            }
+                            label={t('settings.dictionaryTokenStylingBackground')}
                         />
                         <LabelWithHoverEffect
                             control={
@@ -2738,8 +2722,29 @@ export default function SettingsForm({
                             }
                             label={t('settings.dictionaryTokenStylingOverline')}
                         />
+                        <LabelWithHoverEffect
+                            control={
+                                <Radio
+                                    checked={selectedDictionary.tokenStyling === TokenStyling.OUTLINE}
+                                    onChange={() => {
+                                        const newTracks = [...dictionaryTracks];
+                                        newTracks[selectedDictionaryTrack] = {
+                                            ...newTracks[selectedDictionaryTrack],
+                                            tokenStyling: TokenStyling.OUTLINE,
+                                        };
+                                        handleSettingChanged('dictionaryTracks', newTracks);
+                                    }}
+                                />
+                            }
+                            label={t('settings.dictionaryTokenStylingOutline')}
+                        />
                     </RadioGroup>
-                    {showThickness && (
+                    {selectedDictionary.tokenStyling === TokenStyling.OUTLINE && (subtitleOutlineThickness || null) && (
+                        <Typography variant="caption" color="textSecondary">
+                            {t('settings.dictionaryTokenStylingOutlineHelperText')}
+                        </Typography>
+                    )}
+                    {selectedDictionaryShowThickness && (
                         <TextField
                             type="number"
                             label={t('settings.dictionaryTokenStylingThickness')}
@@ -2756,8 +2761,8 @@ export default function SettingsForm({
                             }}
                             slotProps={{
                                 htmlInput: {
-                                    min: 1,
-                                    step: 1,
+                                    min: 0.1,
+                                    step: 0.1,
                                 },
                             }}
                         />

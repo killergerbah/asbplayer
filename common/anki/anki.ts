@@ -196,7 +196,7 @@ export class Anki {
         return response.result;
     }
 
-    async findCardsWithWord(word: string, fields: string[], ankiConnectUrl?: string) {
+    async findCardsWithWord(word: string, fields: string[], ankiConnectUrl?: string): Promise<number[]> {
         if (!fields.length) return [];
         const response = await this._executeAction(
             'findCards',
@@ -206,7 +206,7 @@ export class Anki {
         return response.result;
     }
 
-    async findCardsContainingWord(word: string, fields: string[], ankiConnectUrl?: string) {
+    async findCardsContainingWord(word: string, fields: string[], ankiConnectUrl?: string): Promise<number[]> {
         if (!fields.length) return [];
         const response = await this._executeAction(
             'findCards',
@@ -216,7 +216,7 @@ export class Anki {
         return response.result;
     }
 
-    async findNotesWithWord(word: string, ankiConnectUrl?: string) {
+    async findNotesWithWord(word: string, ankiConnectUrl?: string): Promise<number[]> {
         const response = await this._executeAction(
             'findNotes',
             { query: `"${this.settingsProvider.wordField}:${this._escapeQuery(word)}"` },
@@ -225,7 +225,7 @@ export class Anki {
         return response.result;
     }
 
-    async findNotesWithWordGui(word: string, ankiConnectUrl?: string) {
+    async findNotesWithWordGui(word: string, ankiConnectUrl?: string): Promise<number[]> {
         const response = await this._executeAction(
             'guiBrowse',
             { query: `"${this.settingsProvider.wordField}:${this._escapeQuery(word)}"` },
@@ -234,7 +234,7 @@ export class Anki {
         return response.result;
     }
 
-    async findRecentlyEditedCards(fields: string[], sinceDays: number, ankiConnectUrl?: string) {
+    async findRecentlyEditedCards(fields: string[], sinceDays: number, ankiConnectUrl?: string): Promise<number[]> {
         if (!fields.length) return [];
         if (sinceDays < 1) sinceDays = 1;
         const response = await this._executeAction(
@@ -245,51 +245,13 @@ export class Anki {
         return response.result;
     }
 
-    async cardsInfo(cardIds: number[], ankiConnectUrl?: string) {
+    async cardsInfo(cardIds: number[], ankiConnectUrl?: string): Promise<any[]> {
         const response = await this._executeAction('cardsInfo', { cards: cardIds }, ankiConnectUrl);
         return response.result;
     }
 
-    /**
-     * If user has FSRS disabled no cards will be returned.
-     */
-    async findMatureStabilityCards(fields: string[], days: number, ankiConnectUrl?: string) {
-        if (!fields.length) return [];
-        const response = await this._executeAction(
-            'findCards',
-            { query: `prop:s>=${days} (${fields.map((field) => `"${field}:_*"`).join(' OR ')})` },
-            ankiConnectUrl
-        );
-        return response.result;
-    }
-
-    async findMatureIntervalCards(fields: string[], days: number, ankiConnectUrl?: string) {
-        if (!fields.length) return [];
-        const response = await this._executeAction(
-            'findCards',
-            { query: `prop:ivl>=${days} (${fields.map((field) => `"${field}:_*"`).join(' OR ')})` },
-            ankiConnectUrl
-        );
-        return response.result;
-    }
-
-    async findUnknownIntervalCards(fields: string[], ankiConnectUrl?: string) {
-        if (!fields.length) return [];
-        const response = await this._executeAction(
-            'findCards',
-            { query: `prop:ivl=0 (${fields.map((field) => `"${field}:_*"`).join(' OR ')})` },
-            ankiConnectUrl
-        );
-        return response.result;
-    }
-
-    async findSuspendedCards(fields: string[], ankiConnectUrl?: string) {
-        if (!fields.length) return [];
-        const response = await this._executeAction(
-            'findCards',
-            { query: `is:suspended (${fields.map((field) => `"${field}:_*"`).join(' OR ')})` },
-            ankiConnectUrl
-        );
+    async findCards(query: string, ankiConnectUrl?: string): Promise<number[]> {
+        const response = await this._executeAction('findCards', { query: query }, ankiConnectUrl);
         return response.result;
     }
 

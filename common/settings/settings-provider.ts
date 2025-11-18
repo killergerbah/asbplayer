@@ -4,7 +4,6 @@ import {
     AnkiSettings,
     AsbplayerSettings,
     CustomAnkiFieldSettings,
-    DictionaryAnkiTreatSuspended,
     KeyBindName,
     SubtitleListPreference,
     SubtitleSettings,
@@ -13,6 +12,7 @@ import {
     TokenMatchStrategyPriority,
     TokenMatchStrategy,
     TokenStyling,
+    DictionaryTrack,
 } from '.';
 import { AutoPausePreference, PostMineAction, PostMinePlayback, SubtitleHtml } from '..';
 
@@ -35,7 +35,7 @@ const defaultSubtitleTextSettings = {
     subtitleBlur: false,
 };
 
-const defaultDictionaryTrackSettings = {
+const defaultDictionaryTrackSettings: DictionaryTrack = {
     dictionaryColorizeSubtitles: false,
     dictionaryTokenMatchStrategy: TokenMatchStrategy.ANY_FORM_COLLECTED,
     dictionaryTokenMatchStrategyPriority: TokenMatchStrategyPriority.EXACT,
@@ -46,11 +46,11 @@ const defaultDictionaryTrackSettings = {
     dictionaryAnkiSentenceFields: [],
     dictionaryAnkiSentenceTokenMatchStrategy: TokenMatchStrategy.EXACT_FORM_COLLECTED,
     dictionaryAnkiMatureCutoff: 21,
-    dictionaryAnkiTreatSuspended: DictionaryAnkiTreatSuspended.NORMAL,
+    dictionaryAnkiTreatSuspended: 'NORMAL',
     tokenStyling: TokenStyling.UNDERLINE,
     tokenStylingThickness: 3,
     colorizeFullyKnownTokens: false,
-    tokenStatusColors: ['#FF0000', '#FFA500', '#FFFF00', '#FFFFFF'],
+    tokenStatusColors: ['#FF0000', '#FFA500', '#FFFF00', '#00FF00', '#0000FF', '#FFFFFF'],
 };
 
 export const defaultSettings: AsbplayerSettings = {

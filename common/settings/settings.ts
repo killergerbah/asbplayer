@@ -68,24 +68,21 @@ export enum TokenMatchStrategyPriority {
     LEAST_KNOWN = 'LEAST_KNOWN',
 }
 
-export enum DictionaryAnkiTreatSuspended {
-    NORMAL = 'normal',
-    MATURE = 'mature',
-    YOUNG = 'young',
-    UNKNOWN = 'unknown',
-}
-
 export enum TokenStyling {
-    TEXT = 'text',
-    UNDERLINE = 'underline',
-    OVERLINE = 'overline',
+    TEXT = 'TEXT',
+    BACKGROUND = 'BACKGROUND',
+    UNDERLINE = 'UNDERLINE',
+    OVERLINE = 'OVERLINE',
+    OUTLINE = 'OUTLINE',
 }
 
 export enum TokenStatus {
     UNCOLLECTED = 0,
     UNKNOWN = 1,
-    YOUNG = 2,
-    MATURE = 3, // If ever adding more statues, they should go after MATURE and getFullyKnownTokenStatus should be updated
+    LEARNING = 2,
+    GRADUATED = 3,
+    YOUNG = 4,
+    MATURE = 5, // If ever adding more statuses, they should go after MATURE and getFullyKnownTokenStatus should be updated
 }
 
 export function getFullyKnownTokenStatus(): TokenStatus {
@@ -103,7 +100,7 @@ export interface DictionaryTrack {
     readonly dictionaryAnkiSentenceFields: string[];
     readonly dictionaryAnkiSentenceTokenMatchStrategy: TokenMatchStrategy;
     readonly dictionaryAnkiMatureCutoff: number;
-    readonly dictionaryAnkiTreatSuspended: DictionaryAnkiTreatSuspended;
+    readonly dictionaryAnkiTreatSuspended: TokenStatus | 'NORMAL';
     readonly tokenStyling: TokenStyling;
     readonly tokenStylingThickness: number;
     readonly colorizeFullyKnownTokens: boolean;

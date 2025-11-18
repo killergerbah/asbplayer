@@ -1,10 +1,4 @@
-import {
-    DictionaryAnkiTreatSuspended,
-    PauseOnHoverMode,
-    TokenMatchStrategyPriority,
-    TokenMatchStrategy,
-    TokenStyling,
-} from './settings';
+import { PauseOnHoverMode, TokenMatchStrategyPriority, TokenMatchStrategy, TokenStyling } from './settings';
 import { validateSettings } from './settings-import-export';
 import { defaultSettings } from './settings-provider';
 
@@ -159,11 +153,11 @@ it('validates exported settings', () => {
                 dictionaryAnkiSentenceFields: ['Sentence'],
                 dictionaryAnkiSentenceTokenMatchStrategy: TokenMatchStrategy.EXACT_FORM_COLLECTED,
                 dictionaryAnkiMatureCutoff: 21,
-                dictionaryAnkiTreatSuspended: DictionaryAnkiTreatSuspended.NORMAL,
+                dictionaryAnkiTreatSuspended: 'NORMAL',
                 tokenStyling: TokenStyling.UNDERLINE,
                 tokenStylingThickness: 1,
                 colorizeFullyKnownTokens: false,
-                tokenStatusColors: ['#FF0000', '#FFA500', '#FFFF00', '#FFFFFF'],
+                tokenStatusColors: ['#FF0000', '#FFA500', '#FFFF00', '#00FF00', '#0000FF', '#FFFFFF'],
             },
             {
                 dictionaryColorizeSubtitles: false,
@@ -176,11 +170,11 @@ it('validates exported settings', () => {
                 dictionaryAnkiSentenceFields: [],
                 dictionaryAnkiSentenceTokenMatchStrategy: TokenMatchStrategy.EXACT_FORM_COLLECTED,
                 dictionaryAnkiMatureCutoff: 30,
-                dictionaryAnkiTreatSuspended: DictionaryAnkiTreatSuspended.MATURE,
+                dictionaryAnkiTreatSuspended: 1,
                 tokenStyling: TokenStyling.UNDERLINE,
                 tokenStylingThickness: 1,
                 colorizeFullyKnownTokens: false,
-                tokenStatusColors: ['#FF0000', '#FFA500', '#FFFF00', '#FFFFFF'],
+                tokenStatusColors: ['#FF0000', '#FFA500', '#FFFF00', '#00FF00', '#0000FF', '#FFFFFF'],
             },
             {
                 dictionaryColorizeSubtitles: false,
@@ -193,11 +187,11 @@ it('validates exported settings', () => {
                 dictionaryAnkiSentenceFields: [],
                 dictionaryAnkiSentenceTokenMatchStrategy: TokenMatchStrategy.EXACT_FORM_COLLECTED,
                 dictionaryAnkiMatureCutoff: 30,
-                dictionaryAnkiTreatSuspended: DictionaryAnkiTreatSuspended.YOUNG,
+                dictionaryAnkiTreatSuspended: 2,
                 tokenStyling: TokenStyling.UNDERLINE,
                 tokenStylingThickness: 1,
                 colorizeFullyKnownTokens: false,
-                tokenStatusColors: ['#FF0000', '#FFA500', '#FFFF00', '#FFFFFF'],
+                tokenStatusColors: ['#FF0000', '#FFA500', '#FFFF00', '#00FF00', '#0000FF', '#FFFFFF'],
             },
         ],
     });
