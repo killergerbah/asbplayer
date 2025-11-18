@@ -2,7 +2,6 @@ import { Fetcher, RichSubtitleModel } from '@project/common';
 import { Anki } from '@project/common/anki';
 import {
     AsbplayerSettings,
-    DictionaryAnkiTreatSuspended,
     DictionaryTrack,
     getFullyKnownTokenStatus,
     TokenMatchStrategy,
@@ -38,8 +37,7 @@ export class SubtitleColoring {
     private erroredCache: Set<number>;
     private uncollectedCache: Set<number>;
     private uncollectedNeedsRefresh: boolean;
-    private ankiMatureCardIds: Map<number, Set<number>>;
-    private ankiUnknownCardIds: Map<number, Set<number>>;
+    private ankiCardIdStatuses: Map<number, Map<number, TokenStatus>>;
     private ankiSuspendedCardIds: Map<number, Set<number>>;
     private ankiRecentlyModifiedCardIds: Set<number>;
     private ankiLastRecentlyModifiedCheck: number;
@@ -72,8 +70,7 @@ export class SubtitleColoring {
         this.erroredCache = new Set();
         this.uncollectedCache = new Set();
         this.uncollectedNeedsRefresh = false;
-        this.ankiMatureCardIds = new Map();
-        this.ankiUnknownCardIds = new Map();
+        this.ankiCardIdStatuses = new Map();
         this.ankiSuspendedCardIds = new Map();
         this.ankiRecentlyModifiedCardIds = new Set();
         this.ankiLastRecentlyModifiedCheck = Date.now();
@@ -109,8 +106,7 @@ export class SubtitleColoring {
         this.lemmatizeCache.clear();
         this.erroredCache.clear();
         this.uncollectedCache.clear();
-        this.ankiMatureCardIds.clear();
-        this.ankiUnknownCardIds.clear();
+        this.ankiCardIdStatuses.clear();
         this.ankiSuspendedCardIds.clear();
         this.ankiRecentlyModifiedCardIds.clear();
         for (const subtitle of this._subtitles) {
@@ -148,16 +144,30 @@ export class SubtitleColoring {
         const anki = this.anki;
         for (const [track, dt] of this.dictionaryTracks?.entries() ?? []) {
             if (!this._dictionaryTrackEnabled(dt) || !dt!.dictionaryAnkiEnabled) continue;
-            const fields = [...dt!.dictionaryAnkiWordFields, ...dt!.dictionaryAnkiSentenceFields];
-            let matureRes = await anki.findMatureStabilityCards(fields, dt!.dictionaryAnkiMatureCutoff);
-            if (matureRes.length) {
-                this.ankiMatureCardIds.set(track, new Set(matureRes));
-            } else {
-                matureRes = await anki.findMatureIntervalCards(fields, dt!.dictionaryAnkiMatureCutoff);
-                this.ankiMatureCardIds.set(track, new Set(matureRes));
-            }
-            this.ankiUnknownCardIds.set(track, new Set(await anki.findUnknownIntervalCards(fields)));
-            this.ankiSuspendedCardIds.set(track, new Set(await anki.findSuspendedCards(fields)));
+            const fields = [...dt!.dictionaryAnkiWordFields, ...dt!.dictionaryAnkiSentenceFields]
+                .map((field) => `"${field}:_*"`)
+                .join(' OR ');
+            this.ankiSuspendedCardIds.set(track, new Set(await anki.findCards(`is:suspended (${fields})`)));
+            const prop = (await anki.findCards(`prop:s>=0 (${fields})`)).length ? 'prop:s' : 'prop:ivl'; // No cards are returned if FSRS is disabled
+            const graduatedCutoff = Math.ceil(dt!.dictionaryAnkiMatureCutoff / 2);
+            const matureCutoff = dt!.dictionaryAnkiMatureCutoff;
+
+            // AnkiConnect doesn't expose Stability but we can retrieve it using search queries
+            this.ankiCardIdStatuses.set(track, new Map<number, TokenStatus>());
+            const statuses = this.ankiCardIdStatuses.get(track)!;
+            (await anki.findCards(`prop:ivl=0 (${fields})`)).forEach((c) => statuses.set(c, TokenStatus.UNKNOWN)); // Stability is undefined for new cards
+            (await anki.findCards(`${prop}>0 ${prop}<1 (${fields})`)).forEach((c) =>
+                statuses.set(c, TokenStatus.LEARNING)
+            );
+            (await anki.findCards(`${prop}>=1 ${prop}<${graduatedCutoff} (${fields})`)).forEach((c) =>
+                statuses.set(c, TokenStatus.GRADUATED)
+            );
+            (await anki.findCards(`${prop}>=${graduatedCutoff} ${prop}<${matureCutoff} (${fields})`)).forEach((c) =>
+                statuses.set(c, TokenStatus.YOUNG)
+            );
+            (await anki.findCards(`${prop}>=${matureCutoff} (${fields})`)).forEach((c) =>
+                statuses.set(c, TokenStatus.MATURE)
+            );
         }
     }
 
@@ -388,10 +398,8 @@ export class SubtitleColoring {
             if (!tokenStatusCache) throw new Error('Token status cache not initialized');
             const lemmatizeCache = this.lemmatizeCache.get(track);
             if (!lemmatizeCache) throw new Error('Lemmatize cache not initialized');
-            const ankiMatureCardIds = this.ankiMatureCardIds.get(track);
-            if (!ankiMatureCardIds) throw new Error('Mature cache not initialized');
-            const ankiUnknownCardIds = this.ankiUnknownCardIds.get(track);
-            if (!ankiUnknownCardIds) throw new Error('Unknown cache not initialized');
+            const ankiCardIdStatuses = this.ankiCardIdStatuses.get(track);
+            if (!ankiCardIdStatuses) throw new Error('Mature cache not initialized');
             const suspendedCache = this.ankiSuspendedCardIds.get(track);
             if (!suspendedCache) throw new Error('Suspended cache not initialized');
 
@@ -465,8 +473,7 @@ export class SubtitleColoring {
                             tokenizeCache,
                             tokenStatusCache,
                             lemmatizeCache,
-                            ankiMatureCardIds,
-                            ankiUnknownCardIds,
+                            ankiCardIdStatuses,
                             suspendedCache,
                             shouldCheckExactFormWordField,
                             shouldCheckExactFormSentenceField,
@@ -482,8 +489,7 @@ export class SubtitleColoring {
                             tokenizeCache,
                             tokenStatusCache,
                             lemmatizeCache,
-                            ankiMatureCardIds,
-                            ankiUnknownCardIds,
+                            ankiCardIdStatuses,
                             suspendedCache,
                             shouldCheckExactFormWordField,
                             shouldCheckExactFormSentenceField,
@@ -499,8 +505,7 @@ export class SubtitleColoring {
                             tokenizeCache,
                             tokenStatusCache,
                             lemmatizeCache,
-                            ankiMatureCardIds,
-                            ankiUnknownCardIds,
+                            ankiCardIdStatuses,
                             suspendedCache,
                             shouldCheckExactFormWordField,
                             shouldCheckExactFormSentenceField,
@@ -517,8 +522,7 @@ export class SubtitleColoring {
                             tokenizeCache,
                             tokenStatusCache,
                             lemmatizeCache,
-                            ankiMatureCardIds,
-                            ankiUnknownCardIds,
+                            ankiCardIdStatuses,
                             suspendedCache,
                             shouldCheckExactFormWordField,
                             shouldCheckExactFormSentenceField,
@@ -557,8 +561,7 @@ export class SubtitleColoring {
         tokenizeCache: Map<string, string[]>;
         tokenStatusCache: Map<string, TokenStatus | null>;
         lemmatizeCache: Map<string, string[]>;
-        ankiMatureCardIds: Set<number>;
-        ankiUnknownCardIds: Set<number>;
+        ankiCardIdStatuses: Map<number, TokenStatus>;
         suspendedCache: Set<number>;
         shouldCheckExactFormWordField: boolean;
         shouldCheckExactFormSentenceField: boolean;
@@ -572,8 +575,7 @@ export class SubtitleColoring {
             tokenizeCache,
             tokenStatusCache,
             lemmatizeCache,
-            ankiMatureCardIds,
-            ankiUnknownCardIds,
+            ankiCardIdStatuses,
             suspendedCache,
             shouldCheckExactFormWordField,
             shouldCheckExactFormSentenceField,
@@ -584,8 +586,7 @@ export class SubtitleColoring {
                 track,
                 anki,
                 dt,
-                ankiMatureCardIds,
-                ankiUnknownCardIds,
+                ankiCardIdStatuses,
                 suspendedCache,
             });
             if (this.shouldCancelBuild) return null;
@@ -605,8 +606,7 @@ export class SubtitleColoring {
                         track,
                         anki,
                         dt,
-                        ankiMatureCardIds,
-                        ankiUnknownCardIds,
+                        ankiCardIdStatuses,
                         suspendedCache,
                     }),
             });
@@ -622,8 +622,7 @@ export class SubtitleColoring {
                 yomitan,
                 tokenizeCache,
                 lemmatizeCache,
-                ankiMatureCardIds,
-                ankiUnknownCardIds,
+                ankiCardIdStatuses,
                 suspendedCache,
             });
             if (this.shouldCancelBuild) return null;
@@ -646,8 +645,7 @@ export class SubtitleColoring {
                         yomitan,
                         tokenizeCache,
                         lemmatizeCache,
-                        ankiMatureCardIds,
-                        ankiUnknownCardIds,
+                        ankiCardIdStatuses,
                         suspendedCache,
                     }),
             });
@@ -666,8 +664,7 @@ export class SubtitleColoring {
         tokenizeCache: Map<string, string[]>;
         tokenStatusCache: Map<string, TokenStatus | null>;
         lemmatizeCache: Map<string, string[]>;
-        ankiMatureCardIds: Set<number>;
-        ankiUnknownCardIds: Set<number>;
+        ankiCardIdStatuses: Map<number, TokenStatus>;
         suspendedCache: Set<number>;
         shouldCheckExactFormWordField: boolean;
         shouldCheckExactFormSentenceField: boolean;
@@ -681,8 +678,7 @@ export class SubtitleColoring {
             tokenizeCache,
             tokenStatusCache,
             lemmatizeCache,
-            ankiMatureCardIds,
-            ankiUnknownCardIds,
+            ankiCardIdStatuses,
             suspendedCache,
             shouldCheckExactFormWordField,
             shouldCheckExactFormSentenceField,
@@ -701,8 +697,7 @@ export class SubtitleColoring {
                         track,
                         anki,
                         dt,
-                        ankiMatureCardIds,
-                        ankiUnknownCardIds,
+                        ankiCardIdStatuses,
                         suspendedCache,
                     }),
             });
@@ -715,8 +710,7 @@ export class SubtitleColoring {
                 track,
                 anki,
                 dt,
-                ankiMatureCardIds,
-                ankiUnknownCardIds,
+                ankiCardIdStatuses,
                 suspendedCache,
             });
             if (this.shouldCancelBuild) return null;
@@ -739,8 +733,7 @@ export class SubtitleColoring {
                         yomitan,
                         tokenizeCache,
                         lemmatizeCache,
-                        ankiMatureCardIds,
-                        ankiUnknownCardIds,
+                        ankiCardIdStatuses,
                         suspendedCache,
                     }),
             });
@@ -756,8 +749,7 @@ export class SubtitleColoring {
                 yomitan,
                 tokenizeCache,
                 lemmatizeCache,
-                ankiMatureCardIds,
-                ankiUnknownCardIds,
+                ankiCardIdStatuses,
                 suspendedCache,
             });
             if (this.shouldCancelBuild) return null;
@@ -775,8 +767,7 @@ export class SubtitleColoring {
         tokenizeCache: Map<string, string[]>;
         tokenStatusCache: Map<string, TokenStatus | null>;
         lemmatizeCache: Map<string, string[]>;
-        ankiMatureCardIds: Set<number>;
-        ankiUnknownCardIds: Set<number>;
+        ankiCardIdStatuses: Map<number, TokenStatus>;
         suspendedCache: Set<number>;
         shouldCheckExactFormWordField: boolean;
         shouldCheckExactFormSentenceField: boolean;
@@ -791,8 +782,7 @@ export class SubtitleColoring {
             tokenizeCache,
             tokenStatusCache,
             lemmatizeCache,
-            ankiMatureCardIds,
-            ankiUnknownCardIds,
+            ankiCardIdStatuses,
             suspendedCache,
             shouldCheckExactFormWordField,
             shouldCheckExactFormSentenceField,
@@ -805,8 +795,7 @@ export class SubtitleColoring {
                 track,
                 anki,
                 dt,
-                ankiMatureCardIds,
-                ankiUnknownCardIds,
+                ankiCardIdStatuses,
                 suspendedCache,
             });
             if (this.shouldCancelBuild) return null;
@@ -828,8 +817,7 @@ export class SubtitleColoring {
                         track,
                         anki,
                         dt,
-                        ankiMatureCardIds,
-                        ankiUnknownCardIds,
+                        ankiCardIdStatuses,
                         suspendedCache,
                     }),
             });
@@ -850,8 +838,7 @@ export class SubtitleColoring {
                 yomitan,
                 tokenizeCache,
                 lemmatizeCache,
-                ankiMatureCardIds,
-                ankiUnknownCardIds,
+                ankiCardIdStatuses,
                 suspendedCache,
             });
             if (this.shouldCancelBuild) return null;
@@ -875,8 +862,7 @@ export class SubtitleColoring {
                         yomitan,
                         tokenizeCache,
                         lemmatizeCache,
-                        ankiMatureCardIds,
-                        ankiUnknownCardIds,
+                        ankiCardIdStatuses,
                         suspendedCache,
                     }),
             });
@@ -923,19 +909,20 @@ export class SubtitleColoring {
         track: number;
         anki: Anki;
         dt: DictionaryTrack;
-        ankiMatureCardIds: Set<number>;
-        ankiUnknownCardIds: Set<number>;
+        ankiCardIdStatuses: Map<number, TokenStatus>;
         suspendedCache: Set<number>;
     }): Promise<TokenStatus | null> {
-        const { token, track, anki, dt, ankiMatureCardIds, ankiUnknownCardIds, suspendedCache } = options;
+        const { token, track, anki, dt, ankiCardIdStatuses, suspendedCache } = options;
         try {
             let cardIds = await anki.findCardsWithWord(token, dt.dictionaryAnkiWordFields);
             if (!cardIds.length) return TokenStatus.UNCOLLECTED;
             if (this.shouldCancelBuild) return null;
-            const suspendedResult = this._handleSuspended({ cardIds, dt, suspendedCache });
-            if (suspendedResult) return suspendedResult;
-            if (this.shouldCancelBuild) return null;
-            return this._getTokenStatusFromCutoff({ cardIds, ankiMatureCardIds, ankiUnknownCardIds });
+            return this._getTokenStatusFromCutoff({
+                cardIds,
+                dt,
+                ankiCardIdStatuses,
+                suspendedCache,
+            });
         } catch (error) {
             this.tokenRequestFailed = true;
             console.error(`Error getting color for Track${track} using word fields for token "${token}":`, error);
@@ -951,22 +938,11 @@ export class SubtitleColoring {
         yomitan: Yomitan;
         tokenizeCache: Map<string, string[]>;
         lemmatizeCache: Map<string, string[]>;
-        ankiMatureCardIds: Set<number>;
-        ankiUnknownCardIds: Set<number>;
+        ankiCardIdStatuses: Map<number, TokenStatus>;
         suspendedCache: Set<number>;
     }): Promise<TokenStatus | null> {
-        const {
-            token,
-            track,
-            anki,
-            dt,
-            yomitan,
-            tokenizeCache,
-            lemmatizeCache,
-            ankiMatureCardIds,
-            ankiUnknownCardIds,
-            suspendedCache,
-        } = options;
+        const { token, track, anki, dt, yomitan, tokenizeCache, lemmatizeCache, ankiCardIdStatuses, suspendedCache } =
+            options;
         try {
             const cardIds = await anki.findCardsContainingWord(token, dt.dictionaryAnkiSentenceFields);
             if (!cardIds.length) return TokenStatus.UNCOLLECTED;
@@ -1009,16 +985,11 @@ export class SubtitleColoring {
             if (this.shouldCancelBuild) return null;
             if (!validCardInfos.length) return TokenStatus.UNCOLLECTED;
 
-            const suspendedResult = this._handleSuspended({
-                cardIds: validCardInfos.map((c) => c.cardId),
-                dt,
-                suspendedCache,
-            });
-            if (suspendedResult) return suspendedResult;
             return this._getTokenStatusFromCutoff({
                 cardIds: validCardInfos.map((cardInfo) => cardInfo.cardId),
-                ankiMatureCardIds,
-                ankiUnknownCardIds,
+                dt,
+                ankiCardIdStatuses,
+                suspendedCache,
             });
         } catch (error) {
             this.tokenRequestFailed = true;
@@ -1027,36 +998,23 @@ export class SubtitleColoring {
         }
     }
 
-    private _handleSuspended(options: {
+    private async _getTokenStatusFromCutoff(options: {
         cardIds: number[];
         dt: DictionaryTrack;
+        ankiCardIdStatuses: Map<number, TokenStatus>;
         suspendedCache: Set<number>;
-    }): TokenStatus | null {
-        const { cardIds, dt, suspendedCache } = options;
-        if (dt.dictionaryAnkiTreatSuspended === DictionaryAnkiTreatSuspended.NORMAL) return null;
-        if (!cardIds.length) return null;
-        if (cardIds.some((cardId) => !suspendedCache.has(cardId))) return null;
-        switch (dt.dictionaryAnkiTreatSuspended) {
-            case DictionaryAnkiTreatSuspended.MATURE:
-                return TokenStatus.MATURE;
-            case DictionaryAnkiTreatSuspended.YOUNG:
-                return TokenStatus.YOUNG;
-            case DictionaryAnkiTreatSuspended.UNKNOWN:
-                return TokenStatus.UNKNOWN;
-            default:
-                return null;
+    }): Promise<TokenStatus | null> {
+        const { dt, ankiCardIdStatuses, suspendedCache } = options;
+        let cardIds = options.cardIds;
+        if (dt.dictionaryAnkiTreatSuspended !== 'NORMAL') {
+            cardIds = cardIds.filter((cardId) => !suspendedCache.has(cardId));
+            if (!cardIds.length) return dt.dictionaryAnkiTreatSuspended;
         }
-    }
-
-    private _getTokenStatusFromCutoff(options: {
-        cardIds: number[];
-        ankiMatureCardIds: Set<number>;
-        ankiUnknownCardIds: Set<number>;
-    }): TokenStatus | null {
-        const { cardIds, ankiMatureCardIds, ankiUnknownCardIds } = options;
-        if (cardIds.some((cardId) => ankiMatureCardIds.has(cardId))) return TokenStatus.MATURE;
-        if (cardIds.every((cardId) => ankiUnknownCardIds.has(cardId))) return TokenStatus.UNKNOWN;
-        return TokenStatus.YOUNG; // If no mature and not all unknown, then young
+        if (cardIds.some((c) => ankiCardIdStatuses.get(c) === TokenStatus.MATURE)) return TokenStatus.MATURE;
+        if (cardIds.some((c) => ankiCardIdStatuses.get(c) === TokenStatus.YOUNG)) return TokenStatus.YOUNG;
+        if (cardIds.some((c) => ankiCardIdStatuses.get(c) === TokenStatus.GRADUATED)) return TokenStatus.GRADUATED;
+        if (cardIds.some((c) => ankiCardIdStatuses.get(c) === TokenStatus.LEARNING)) return TokenStatus.LEARNING;
+        return TokenStatus.UNKNOWN;
     }
 
     private _applyTokenStyle(options: {
@@ -1067,12 +1025,18 @@ export class SubtitleColoring {
         const { rawToken, tokenStatus, dt } = options;
         if (tokenStatus === null) return `<span style="text-decoration: line-through red 3px;">${rawToken}</span>`;
         if (!dt.colorizeFullyKnownTokens && tokenStatus === getFullyKnownTokenStatus()) return rawToken;
+        const c = dt.tokenStatusColors[tokenStatus];
+        const t = dt.tokenStylingThickness;
         switch (dt.tokenStyling) {
             case TokenStyling.TEXT:
-                return `<span style="color: ${dt.tokenStatusColors[tokenStatus]};">${rawToken}</span>`;
+                return `<span style="-webkit-text-fill-color: ${c};">${rawToken}</span>`;
+            case TokenStyling.BACKGROUND:
+                return `<span style="background-color: ${c};">${rawToken}</span>`;
             case TokenStyling.UNDERLINE:
             case TokenStyling.OVERLINE:
-                return `<span style="text-decoration: ${dt.tokenStyling} ${dt.tokenStatusColors[tokenStatus]} ${dt.tokenStylingThickness}px;">${rawToken}</span>`;
+                return `<span style="text-decoration: ${dt.tokenStyling} ${c} ${t}px;">${rawToken}</span>`;
+            case TokenStyling.OUTLINE:
+                return `<span style="-webkit-text-stroke: ${t}px ${c};">${rawToken}</span>`;
             default:
                 return `<span style="text-decoration: line-through red 3px double;">${rawToken}</span>`;
         }

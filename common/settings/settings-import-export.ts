@@ -67,7 +67,7 @@ const dictionaryTrackSchema = {
             type: 'number',
         },
         dictionaryAnkiTreatSuspended: {
-            type: 'string',
+            type: ['string', 'number'],
         },
         tokenStyling: {
             type: 'string',
