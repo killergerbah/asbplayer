@@ -270,6 +270,8 @@ export interface SeekRequest {
     timestamp: number;
 }
 
+// 行ける！
+// have access to videoFile
 interface Props {
     settings: AsbplayerSettings;
     extension: ChromeExtension;
@@ -345,6 +347,8 @@ export default function VideoPlayer({
     const { t } = useTranslation();
     const poppingInRef = useRef<boolean>(undefined);
     const videoRef = useRef<ExperimentalHTMLVideoElement>(undefined);
+    // this one is for the seek preview thumbnail
+    const hiddenVideoRef = useRef<HTMLVideoElement>(null);
     const [windowWidth, windowHeight] = useWindowSize(true);
     if (videoRef.current) {
         videoRef.current.width = windowWidth;
@@ -694,9 +698,41 @@ export default function VideoPlayer({
             }
 
             const time = progress * length;
+            // get a screenshot of this time when hovered
             playerChannel.currentTime(time / 1000);
         },
         [length, clock, playerChannel]
+    );
+
+    // so what do I want to return here? Remember that controls should only render the image
+    const handleSeekPreview = useCallback(
+        (progress: number) => {
+            if (!Number.isFinite(length)) {
+                return;
+            }
+
+            if (!hiddenVideoRef.current) {
+                return null;
+            }
+
+            const time = progress * length;
+            const video = hiddenVideoRef.current;
+            video.currentTime = time / 1000;
+
+            // this kinda works, but its buggy, and not the most accurate sometimes
+            // second best thing to do is to generate like a map or something that keeps track of every frame
+            // frame and pregenerates
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx?.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+
+            return canvas.toDataURL('image/png');
+            // console.log(time / 1000);
+        },
+        [length, clock]
     );
 
     const handleSeekByTimestamp = useCallback(
@@ -1743,6 +1779,15 @@ export default function VideoPlayer({
                 src={videoFile}
                 onMouseOver={handleVideoMouseOver}
             />
+            {/* this video is for getting the seek preview */}
+            <video
+                src={videoFile}
+                muted
+                preload="auto"
+                autoPlay={false}
+                style={{position: "absolute", left: "-9999px"}}
+                ref={hiddenVideoRef}
+            />
             {topSubtitleElements.length > 0 && (
                 <SubtitleContainer alignment={'top'} subtitleSettings={subtitleSettings} baseOffset={0}>
                     {topSubtitleElements}
@@ -1785,6 +1830,7 @@ export default function VideoPlayer({
                 onPlay={handlePlay}
                 onPause={handlePause}
                 onSeek={handleSeek}
+                onSeekPreview={handleSeekPreview}
                 onAudioTrackSelected={handleAudioTrackSelected}
                 onSubtitlesToggle={handleSubtitlesToggle}
                 onFullscreenToggle={handleFullscreenToggle}
