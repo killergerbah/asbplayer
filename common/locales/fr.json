@@ -406,6 +406,7 @@
         "tabName": "Nom de l'onglet",
         "subtitleRegexFilter": "Filtre regex des sous-titres",
         "subtitleRegexFilterTextReplacement": "Remplacement de texte pour le filtre regex des sous-titres",
+        "convertRubyText": "Convert Ruby Text",
         "subtitleHtml": "Sous-titres HTML",
         "subtitleHtmlRemove": "Retirer",
         "subtitleHtmlRender": "Rendu",

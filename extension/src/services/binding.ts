@@ -942,7 +942,19 @@ export default class Binding {
         this.subtitleController.surroundingSubtitlesCountRadius = currentSettings.surroundingSubtitlesCountRadius;
         this.subtitleController.surroundingSubtitlesTimeRadius = currentSettings.surroundingSubtitlesTimeRadius;
         this.subtitleController.autoCopyCurrentSubtitle = currentSettings.autoCopyCurrentSubtitle;
+
+        const convertRubyTextChanged = this.subtitleController.convertRubyText !== currentSettings.convertRubyText;
+        this.subtitleController.convertRubyText = currentSettings.convertRubyText;
+
+        const subtitleHtmlChanged = this.subtitleController.subtitleHtml !== currentSettings.subtitleHtml;
+        this.subtitleController.subtitleHtml = currentSettings.subtitleHtml;
+
         this.subtitleController.setSubtitleSettings(currentSettings);
+
+        if (convertRubyTextChanged || subtitleHtmlChanged) {
+            this.subtitleController.cacheHtml();
+        }
+
         this.subtitleController.refresh();
 
         this.videoDataSyncController.updateSettings(currentSettings);
@@ -1349,6 +1361,7 @@ export default class Binding {
             rememberSubtitleOffset,
             lastSubtitleOffset,
             subtitleHtml,
+            convertRubyText,
         } = await this.settings.get([
             'streamingSubtitleListPreference',
             'subtitleRegexFilter',
@@ -1356,6 +1369,7 @@ export default class Binding {
             'rememberSubtitleOffset',
             'lastSubtitleOffset',
             'subtitleHtml',
+            'convertRubyText',
         ]);
         const syncWithAsbplayerTab = async (withSyncedAsbplayerOnly: boolean, withAsbplayerId: string | undefined) => {
             const syncMessage: VideoToExtensionCommand<ExtensionSyncMessage> = {
@@ -1386,6 +1400,7 @@ export default class Binding {
                     regexFilter: subtitleRegexFilter,
                     regexFilterTextReplacement: subtitleRegexFilterTextReplacement,
                     subtitleHtml: subtitleHtml,
+                    convertRubyText: convertRubyText,
                     pgsParserWorkerFactory: pgsParserWorkerFactory,
                 });
                 const offset = rememberSubtitleOffset ? lastSubtitleOffset : 0;

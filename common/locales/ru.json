@@ -406,6 +406,7 @@
         "tabName": "Название вкладки",
         "subtitleRegexFilter": "Пропускать субтитры через фильтр с регулярным выражением",
         "subtitleRegexFilterTextReplacement": "Текст на замену при использовании регулярных выражений",
+        "convertRubyText": "Convert Ruby Text",
         "subtitleHtml": "HTML субтитров",
         "subtitleHtmlRemove": "Убрать",
         "subtitleHtmlRender": "Рендерить",

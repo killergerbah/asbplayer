@@ -321,6 +321,9 @@ const settingsSchema = {
         subtitleRegexFilterTextReplacement: {
             type: 'string',
         },
+        convertRubyText: {
+            type: 'boolean',
+        },
         language: {
             type: 'string',
         },

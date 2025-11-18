@@ -121,6 +121,7 @@ it('validates exported settings', () => {
         alwaysPlayOnSubtitleRepeat: true,
         subtitleRegexFilter: '',
         subtitleRegexFilterTextReplacement: '',
+        convertRubyText: false,
         subtitleHtml: 1,
         language: 'en',
         customAnkiFields: {},

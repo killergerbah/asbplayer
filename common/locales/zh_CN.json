@@ -406,6 +406,7 @@
         "tabName": "选项卡名称",
         "subtitleRegexFilter": "字幕正则筛选器",
         "subtitleRegexFilterTextReplacement": "字幕正则筛选器文本替换",
+        "convertRubyText": "Convert Ruby Text",
         "subtitleHtml": "Subtitle HTML",
         "subtitleHtmlRemove": "Remove",
         "subtitleHtmlRender": "Render",

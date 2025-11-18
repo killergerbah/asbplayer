@@ -129,6 +129,7 @@ export const defaultSettings: AsbplayerSettings = {
     alwaysPlayOnSubtitleRepeat: true,
     subtitleRegexFilter: '',
     subtitleRegexFilterTextReplacement: '',
+    convertRubyText: false,
     language: 'en',
     customAnkiFields: {},
     tags: [],

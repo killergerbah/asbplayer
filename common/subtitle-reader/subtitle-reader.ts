@@ -3,6 +3,7 @@ import SrtParser from '@qgustavor/srt-parser';
 import { WebVTT } from 'vtt.js';
 import { XMLParser } from 'fast-xml-parser';
 import { SubtitleHtml, SubtitleTextImage } from '@project/common';
+import { parseRubyText } from '../util';
 
 const vttClassRegex = /<(\/)?c(\.[^>]*)?>/g;
 const assNewLineRegex = RegExp(/\\[nN]/, 'ig');
@@ -58,6 +59,7 @@ const sortVttCues = (list: VTTCue[]) => {
 export default class SubtitleReader {
     private readonly _textFilter?: TextFilter;
     private readonly _removeXml: boolean;
+    private readonly _convertRubyText: boolean;
     private readonly _pgsWorkerFactory: () => Promise<Worker>;
     private xmlParser?: XMLParser;
 
@@ -65,11 +67,13 @@ export default class SubtitleReader {
         regexFilter,
         regexFilterTextReplacement,
         subtitleHtml,
+        convertRubyText,
         pgsParserWorkerFactory: pgsWorkerFactory,
     }: {
         regexFilter: string;
         regexFilterTextReplacement: string;
         subtitleHtml: SubtitleHtml;
+        convertRubyText: boolean;
         pgsParserWorkerFactory: () => Promise<Worker>;
     }) {
         let regex: RegExp | undefined;
@@ -87,6 +91,7 @@ export default class SubtitleReader {
         }
 
         this._removeXml = subtitleHtml === SubtitleHtml.remove;
+        this._convertRubyText = convertRubyText;
 
         this._pgsWorkerFactory = pgsWorkerFactory;
     }
@@ -488,13 +493,18 @@ export default class SubtitleReader {
     private _decodeHTML(text: string): string {
         helperElement.innerHTML = text;
 
-        // Remove <rt> element content
-        const rubyTextElements = [...helperElement.getElementsByTagName('rt')];
-        for (const rubyTextElement of rubyTextElements) {
-            rubyTextElement.remove();
+        // Only remove <rt> elements if ruby text conversion is disabled
+        if (!this._convertRubyText) {
+            const rubyTextElements = [...helperElement.getElementsByTagName('rt')];
+            for (const rubyTextElement of rubyTextElements) {
+                rubyTextElement.remove();
+            }
         }
 
-        // Remove all HTML tags
+        // Always remove all HTML tags when _removeXml is true
+        // This respects the Subtitle HTML setting
+        // If convertRubyText is enabled, ruby tags were converted earlier,
+        // and now we strip them to show only the base text
         return helperElement.textContent ?? helperElement.innerText;
     }
 
@@ -514,6 +524,12 @@ export default class SubtitleReader {
             this._textFilter === undefined
                 ? text
                 : text.replace(this._textFilter.regex, this._textFilter.replacement).trim();
+
+        // Convert Netflix-style ruby text to HTML ruby tags, but only if we're rendering HTML
+        // If we're removing HTML, keep Netflix format so the renderer can convert it later
+        if (this._convertRubyText && !this._removeXml) {
+            text = parseRubyText(text, true);
+        }
 
         if (this._removeXml) {
             text = this._decodeHTML(text);

@@ -3,6 +3,7 @@ import {
     CopyToClipboardMessage,
     OffsetFromVideoMessage,
     SubtitleModel,
+    SubtitleHtml,
     VideoToExtensionCommand,
 } from '@project/common';
 import {
@@ -13,7 +14,7 @@ import {
     allTextSubtitleSettings,
 } from '@project/common/settings';
 import { SubtitleCollection, SubtitleSlice } from '@project/common/subtitle-collection';
-import { computeStyleString, surroundingSubtitles } from '@project/common/util';
+import { computeStyleString, parseRubyText, surroundingSubtitles } from '@project/common/util';
 import i18n from 'i18next';
 import {
     CachingElementOverlay,
@@ -69,6 +70,8 @@ export default class SubtitleController {
     surroundingSubtitlesCountRadius: number;
     surroundingSubtitlesTimeRadius: number;
     autoCopyCurrentSubtitle: boolean;
+    convertRubyText: boolean;
+    subtitleHtml: SubtitleHtml;
     _preCacheDom;
 
     readonly autoPauseContext: AutoPauseContext = new AutoPauseContext();
@@ -99,6 +102,8 @@ export default class SubtitleController {
         this.surroundingSubtitlesTimeRadius = 5000;
         this.showingLoadedMessage = false;
         this.autoCopyCurrentSubtitle = false;
+        this.convertRubyText = false;
+        this.subtitleHtml = SubtitleHtml.remove;
         const { subtitlesElementOverlay, topSubtitlesElementOverlay, notificationElementOverlay } = this._overlays();
         this.bottomSubtitlesElementOverlay = subtitlesElementOverlay;
         this.topSubtitlesElementOverlay = topSubtitlesElementOverlay;
@@ -455,9 +460,17 @@ export default class SubtitleController {
     }
 
     private _buildTextHtml(text: string, track?: number) {
+        let processedText = parseRubyText(text, this.convertRubyText);
+
+        if (this.subtitleHtml === SubtitleHtml.remove) {
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = processedText;
+            processedText = tempDiv.textContent || tempDiv.innerText || '';
+        }
+
         return `<span data-track="${track ?? 0}" class="${this._subtitleClasses(track)}" style="${this._subtitleStyles(
             track
-        )}">${text}</span>`;
+        )}">${processedText}</span>`;
     }
 
     unbind() {

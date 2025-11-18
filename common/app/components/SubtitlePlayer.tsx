@@ -18,6 +18,7 @@ import { useTranslation } from 'react-i18next';
 import {
     PostMineAction,
     SubtitleModel,
+    SubtitleHtml,
     AutoPauseContext,
     CopySubtitleWithAdditionalFieldsMessage,
     CardTextFieldValues,
@@ -28,6 +29,7 @@ import {
     mockSurroundingSubtitles,
     surroundingSubtitlesAroundInterval,
     extractText,
+    parseRubyText,
 } from '@project/common/util';
 import { SubtitleCollection } from '@project/common/subtitle-collection';
 import { KeyBinder } from '@project/common/key-binder';
@@ -169,6 +171,13 @@ const useSubtitleRowStyles = makeStyles<Theme>((theme) => ({
         width: '100%',
         overflowWrap: 'anywhere',
         whiteSpace: 'pre-wrap',
+        '& ruby': {
+            rubyPosition: 'over',
+        },
+        '& rt': {
+            fontSize: '0.5em',
+            lineHeight: 1,
+        },
     },
     compressedSubtitle: {
         fontSize: 16,
@@ -176,6 +185,13 @@ const useSubtitleRowStyles = makeStyles<Theme>((theme) => ({
         width: '100%',
         overflowWrap: 'anywhere',
         whiteSpace: 'pre-wrap',
+        '& ruby': {
+            rubyPosition: 'over',
+        },
+        '& rt': {
+            fontSize: '0.5em',
+            lineHeight: 1,
+        },
     },
     disabledSubtitle: {
         color: 'transparent',
@@ -219,6 +235,8 @@ interface SubtitleRowProps extends TableRowProps {
     subtitleRef: RefObject<HTMLTableRowElement | null>;
     onClickSubtitle: (index: number) => void;
     onCopySubtitle: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>, index: number) => void;
+    convertRubyText: boolean;
+    subtitleHtml: SubtitleHtml;
 }
 
 const SubtitleRow = React.memo(function SubtitleRow({
@@ -231,6 +249,8 @@ const SubtitleRow = React.memo(function SubtitleRow({
     disabled,
     subtitle,
     showCopyButton,
+    convertRubyText,
+    subtitleHtml,
 }: SubtitleRowProps) {
     const classes = useSubtitleRowStyles();
     const textRef = useRef<HTMLSpanElement>(null);
@@ -238,6 +258,20 @@ const SubtitleRow = React.memo(function SubtitleRow({
     const className = compressed ? classes.compressedSubtitle : classes.subtitle;
     const disabledClassName = disabled ? classes.disabledSubtitle : '';
     const { t } = useTranslation();
+
+    const processedText = useMemo(() => {
+        // Step 1: Convert Netflix-style ruby annotations to HTML <ruby> tags if enabled
+        const textWithRuby = parseRubyText(subtitle.text, convertRubyText);
+
+        // Step 2: Strip all HTML tags if subtitleHtml is set to "remove"
+        if (subtitleHtml === SubtitleHtml.remove) {
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = textWithRuby;
+            return tempDiv.textContent || tempDiv.innerText || '';
+        }
+
+        return textWithRuby;
+    }, [subtitle.text, convertRubyText, subtitleHtml]);
 
     if (subtitle.start < 0 || subtitle.end < 0) {
         return null;
@@ -252,8 +286,12 @@ const SubtitleRow = React.memo(function SubtitleRow({
 
     const content = subtitle.textImage ? (
         <SubtitleTextImage availableWidth={window.screen.availWidth / 2} subtitle={subtitle} scale={1} />
+    ) : subtitleHtml === SubtitleHtml.remove ? (
+        <span ref={textRef} className={disabledClassName}>
+            {processedText}
+        </span>
     ) : (
-        <span ref={textRef} className={disabledClassName} dangerouslySetInnerHTML={{ __html: subtitle.text }} />
+        <span ref={textRef} className={disabledClassName} dangerouslySetInnerHTML={{ __html: processedText }} />
     );
 
     let rowClassName: string;
@@ -1128,6 +1166,8 @@ export default function SubtitlePlayer({
                                     subtitleRef={subtitleRefs[index]}
                                     onClickSubtitle={handleClick}
                                     onCopySubtitle={handleCopy}
+                                    convertRubyText={settings.convertRubyText}
+                                    subtitleHtml={settings.subtitleHtml}
                                 />
                             );
                         })}

@@ -18,3 +18,12 @@
     display: table;
     margin: auto;
 }
+
+.subtitle-line ruby {
+    ruby-position: over;
+}
+
+.subtitle-line rt {
+    font-size: 0.5em;
+    line-height: 1;
+}

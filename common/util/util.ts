@@ -379,3 +379,24 @@ export function seekWithNudge(media: HTMLMediaElement, timestampSeconds: number)
 
     return media.currentTime;
 }
+
+const netflixRubyPattern =
+  /([\p{sc=Hira}\p{sc=Kana}\p{sc=Han}々〆〤ヶ]+)\((?=[^)]*[\p{sc=Hira}\p{sc=Kana}])([^)]+)\)/gu;
+
+/**
+ * Parses and converts ruby text notation to HTML ruby elements.
+ * For now it supports:
+ *  Netflix format(https://partnerhelp.netflixstudios.com/hc/en-us/articles/215767517-Japanese-Timed-Text-Style-Guide)
+ *      漢字(かんじ) -> <ruby><rb>漢字</rb><rt>かんじ</rt></ruby>
+ *
+ * @param text The subtitle text to parse
+ * @param enabled Whether ruby text display is enabled
+ * @returns The text with ruby markup (if enabled) or original text (if disabled)
+ */
+export function parseRubyText(text: string, enabled: boolean): string {
+    if (!enabled) return text;
+
+    return text.replace(netflixRubyPattern, (_match, base, ruby) =>
+        `<ruby><rb>${base}</rb><rt>${ruby}</rt></ruby>`
+    );
+}

@@ -406,6 +406,7 @@
         "tabName": "Nome da guia",
         "subtitleRegexFilter": "Filtro regex da legenda",
         "subtitleRegexFilterTextReplacement": "Substituição de texto do filtro regex da legenda",
+        "convertRubyText": "Convert Ruby Text",
         "subtitleHtml": "HTML da Legenda",
         "subtitleHtmlRemove": "Remover",
         "subtitleHtmlRender": "Renderizar",

@@ -406,6 +406,7 @@
         "tabName": "タブ名",
         "subtitleRegexFilter": "字幕の正規表現フィルタ",
         "subtitleRegexFilterTextReplacement": "字幕の正規表現フィルタの置き換えテキスト",
+        "convertRubyText": "Convert Ruby Text",
         "subtitleHtml": "字幕に含まれるHTML",
         "subtitleHtmlRemove": "削除する",
         "subtitleHtmlRender": "レンダリングする",

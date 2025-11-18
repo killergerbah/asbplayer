@@ -21,6 +21,7 @@ import MenuItem from '@mui/material/MenuItem';
 import DeleteIcon from '@mui/icons-material/Delete';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import Radio from '@mui/material/Radio';
+import Checkbox from '@mui/material/Checkbox';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
@@ -924,6 +925,7 @@ export default function SettingsForm({
         tabName,
         subtitleRegexFilter,
         subtitleRegexFilterTextReplacement,
+        convertRubyText,
         subtitleHtml,
         language,
         customAnkiFields,
@@ -2987,6 +2989,17 @@ export default function SettingsForm({
                                     />
                                 </RadioGroup>
                             </FormControl>
+                            <LabelWithHoverEffect
+                                control={
+                                    <Checkbox
+                                        checked={convertRubyText}
+                                        onChange={(event) =>
+                                            handleSettingChanged('convertRubyText', event.target.checked)
+                                        }
+                                    />
+                                }
+                                label={t('settings.convertRubyText')}
+                            />
                         </FormGroup>
                     </Grid>
                     {(!extensionInstalled || extensionSupportsPauseOnHover) && (

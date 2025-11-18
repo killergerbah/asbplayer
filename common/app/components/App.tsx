@@ -242,9 +242,15 @@ function App({
             regexFilter: settings.subtitleRegexFilter,
             regexFilterTextReplacement: settings.subtitleRegexFilterTextReplacement,
             subtitleHtml: settings.subtitleHtml,
+            convertRubyText: settings.convertRubyText,
             pgsParserWorkerFactory: async () => new pgsParserWorkerFactory(),
         });
-    }, [settings.subtitleRegexFilter, settings.subtitleRegexFilterTextReplacement, settings.subtitleHtml]);
+    }, [
+        settings.subtitleRegexFilter,
+        settings.subtitleRegexFilterTextReplacement,
+        settings.subtitleHtml,
+        settings.convertRubyText,
+    ]);
     const webSocketClient = useAppWebSocketClient({ settings });
     const [subtitles, setSubtitles] = useState<DisplaySubtitleModel[]>([]);
     const playbackPreferences = usePlaybackPreferences(settings, extension);
