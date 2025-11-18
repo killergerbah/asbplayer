@@ -602,6 +602,7 @@ function KeyBindField({ label, keys, boundViaChrome, onKeysChange, onOpenExtensi
                     disabled={boundViaChrome}
                     helperText={boundViaChrome ? t('settings.extensionShortcut') : undefined}
                     value={currentKeyString}
+                    title={currentKeyString}
                     color="primary"
                     slotProps={{
                         input: {
@@ -2798,8 +2799,9 @@ export default function SettingsForm({
                                 <TableContainer variant="outlined" component={Paper} style={{ height: 'auto' }}>
                                     <Table>
                                         <TableBody>
-                                            {Object.entries(pageMetadata).map(([key, metadata]) => {
+                                            {Object.keys(pageConfigs).map((key) => {
                                                 const pageKey = key as keyof PageSettings;
+                                                const metadata = pageMetadata[pageKey];
                                                 const page = settings.streamingPages[pageKey];
 
                                                 return (

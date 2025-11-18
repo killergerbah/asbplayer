@@ -2,7 +2,7 @@ import sanitize from 'sanitize-filename';
 import { Rgb, SubtitleModel } from '../src/model';
 import { TextSubtitleSettings } from '../settings/settings';
 
-export function humanReadableTime(timestamp: number, nearestTenth = false): string {
+export function humanReadableTime(timestamp: number, nearestTenth = false, fullyPadded = false): string {
     const totalSeconds = Math.floor(timestamp / 1000);
     let seconds;
 
@@ -15,11 +15,25 @@ export function humanReadableTime(timestamp: number, nearestTenth = false): stri
     const minutes = Math.floor(totalSeconds / 60) % 60;
     const hours = Math.floor(totalSeconds / 3600);
 
-    if (hours > 0) {
-        return hours + 'h' + String(minutes).padStart(2, '0') + 'm' + String(seconds).padStart(2, '0') + 's';
-    }
+    if (fullyPadded) {
+        let secondsStr: string;
+        if (nearestTenth) {
+            // For decimal seconds, pad integer part to 2 digits (e.g., 8.2 -> 08.2, 1 -> 01.0)
+            const secondsParts = String(seconds).split('.');
+            const integerPart = secondsParts[0];
+            const decimalPart = secondsParts.length > 1 ? '.' + secondsParts[1] : '.0';
+            secondsStr = integerPart.padStart(2, '0') + decimalPart;
+        } else {
+            secondsStr = String(seconds).padStart(2, '0');
+        }
+        return String(hours).padStart(2, '0') + 'h' + String(minutes).padStart(2, '0') + 'm' + secondsStr + 's';
+    } else {
+        if (hours > 0) {
+            return hours + 'h' + String(minutes).padStart(2, '0') + 'm' + String(seconds).padStart(2, '0') + 's';
+        }
 
-    return minutes + 'm' + String(seconds).padStart(2, '0') + 's';
+        return minutes + 'm' + String(seconds).padStart(2, '0') + 's';
+    }
 }
 
 export function surroundingSubtitles(
@@ -365,7 +379,7 @@ export function hexToRgb(hex: string): Rgb {
 }
 
 export function sourceString(subtitleFileName: string, timestamp: number) {
-    return timestamp === 0 ? subtitleFileName : `${subtitleFileName} (${humanReadableTime(timestamp)})`;
+    return timestamp === 0 ? subtitleFileName : `${subtitleFileName} (${humanReadableTime(timestamp, true, true)})`;
 }
 
 export function seekWithNudge(media: HTMLMediaElement, timestampSeconds: number) {
