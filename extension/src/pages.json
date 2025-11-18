@@ -185,8 +185,7 @@
             "syncAllowedAtPath": "video",
             "autoSync": {
                 "enabled": true
-            },
-            "hideRememberTrackPreferenceToggle": true
+            }
         }
     ]
 }
