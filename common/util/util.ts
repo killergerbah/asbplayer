@@ -381,7 +381,7 @@ export function seekWithNudge(media: HTMLMediaElement, timestampSeconds: number)
 }
 
 const netflixRubyPattern =
-  /([\p{sc=Hira}\p{sc=Kana}\p{sc=Han}々〆〤ヶ]+)\((?=[^)]*[\p{sc=Hira}\p{sc=Kana}])([^)]+)\)/gu;
+    /([\p{sc=Hira}\p{sc=Kana}\p{sc=Han}々〆〤ヶ]+)\((?=[^)]*[\p{sc=Hira}\p{sc=Kana}])([^)]+)\)/gu;
 
 /**
  * Parses and converts ruby text notation to HTML ruby elements.
@@ -396,7 +396,5 @@ const netflixRubyPattern =
 export function parseRubyText(text: string, enabled: boolean): string {
     if (!enabled) return text;
 
-    return text.replace(netflixRubyPattern, (_match, base, ruby) =>
-        `<ruby><rb>${base}</rb><rt>${ruby}</rt></ruby>`
-    );
+    return text.replace(netflixRubyPattern, (_match, base, ruby) => `<ruby><rb>${base}</rb><rt>${ruby}</rt></ruby>`);
 }

@@ -493,18 +493,11 @@ export default class SubtitleReader {
     private _decodeHTML(text: string): string {
         helperElement.innerHTML = text;
 
-        // Only remove <rt> elements if ruby text conversion is disabled
-        if (!this._convertRubyText) {
-            const rubyTextElements = [...helperElement.getElementsByTagName('rt')];
-            for (const rubyTextElement of rubyTextElements) {
-                rubyTextElement.remove();
-            }
+        const rubyTextElements = [...helperElement.getElementsByTagName('rt')];
+        for (const rubyTextElement of rubyTextElements) {
+            rubyTextElement.remove();
         }
 
-        // Always remove all HTML tags when _removeXml is true
-        // This respects the Subtitle HTML setting
-        // If convertRubyText is enabled, ruby tags were converted earlier,
-        // and now we strip them to show only the base text
         return helperElement.textContent ?? helperElement.innerText;
     }
 
@@ -524,12 +517,6 @@ export default class SubtitleReader {
             this._textFilter === undefined
                 ? text
                 : text.replace(this._textFilter.regex, this._textFilter.replacement).trim();
-
-        // Convert Netflix-style ruby text to HTML ruby tags, but only if we're rendering HTML
-        // If we're removing HTML, keep Netflix format so the renderer can convert it later
-        if (this._convertRubyText && !this._removeXml) {
-            text = parseRubyText(text, true);
-        }
 
         if (this._removeXml) {
             text = this._decodeHTML(text);

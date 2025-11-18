@@ -465,6 +465,13 @@ export default class SubtitleController {
         if (this.subtitleHtml === SubtitleHtml.remove) {
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = processedText;
+
+            // Remove <rt> (ruby text) elements to show only the base text
+            if (this.convertRubyText) {
+                const rubyTextElements = tempDiv.getElementsByTagName('rt');
+                Array.from(rubyTextElements).forEach((rt) => rt.remove());
+            }
+
             processedText = tempDiv.textContent || tempDiv.innerText || '';
         }
 

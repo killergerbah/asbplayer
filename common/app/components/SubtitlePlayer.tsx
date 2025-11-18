@@ -260,17 +260,23 @@ const SubtitleRow = React.memo(function SubtitleRow({
     const { t } = useTranslation();
 
     const processedText = useMemo(() => {
-        // Step 1: Convert Netflix-style ruby annotations to HTML <ruby> tags if enabled
-        const textWithRuby = parseRubyText(subtitle.text, convertRubyText);
+        let text = subtitle.text;
 
-        // Step 2: Strip all HTML tags if subtitleHtml is set to "remove"
-        if (subtitleHtml === SubtitleHtml.remove) {
+        if (subtitleHtml === SubtitleHtml.remove && convertRubyText) {
+            text = parseRubyText(text, true);
+
             const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = textWithRuby;
+            tempDiv.innerHTML = text;
+
+            const rubyTextElements = tempDiv.getElementsByTagName('rt');
+            Array.from(rubyTextElements).forEach((rt) => rt.remove());
+
             return tempDiv.textContent || tempDiv.innerText || '';
+        } else if (subtitleHtml !== SubtitleHtml.remove && convertRubyText) {
+            return parseRubyText(text, true);
         }
 
-        return textWithRuby;
+        return text;
     }, [subtitle.text, convertRubyText, subtitleHtml]);
 
     if (subtitle.start < 0 || subtitle.end < 0) {
