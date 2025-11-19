@@ -354,6 +354,12 @@ export function isNumeric(str: string) {
     return !isNaN(Number(str));
 }
 
+const KANA_ONLY_REGEX =
+    /^[\u3040-\u309F\u30A0-\u30FF\u31F0-\u31FF\uFF66-\uFF9F\u{1B000}-\u{1B0FF}\u{1B100}-\u{1B12F}]+$/u;
+export function isKanaOnly(text: string) {
+    return KANA_ONLY_REGEX.test(text.normalize('NFC'));
+}
+
 // https://stackoverflow.com/questions/63116039/camelcase-to-kebab-case
 function kebabize(str: string) {
     const kebabized = str.replace(/[A-Z]+(?![a-z])|[A-Z]/g, ($, ofs) => (ofs ? '-' : '') + $.toLowerCase());

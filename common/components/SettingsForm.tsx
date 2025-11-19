@@ -1341,8 +1341,8 @@ export default function SettingsForm({
     const [dictionaryYomitanUrlError, setDictionaryYomitanUrlError] = useState<string>();
     const dictionaryRequestYomitan = useCallback(async () => {
         try {
-            const yomitan = new Yomitan(selectedDictionary);
-            await yomitan.version();
+            const yomitan = new Yomitan();
+            await yomitan.version(selectedDictionary.dictionaryYomitanUrl);
             setDictionaryYomitanUrlError(undefined);
         } catch (e) {
             console.error(e);
@@ -1354,7 +1354,7 @@ export default function SettingsForm({
                 setDictionaryYomitanUrlError(String(e));
             }
         }
-    }, [selectedDictionary]);
+    }, [selectedDictionary.dictionaryYomitanUrl]);
 
     useEffect(() => {
         let canceled = false;
@@ -2737,7 +2737,7 @@ export default function SettingsForm({
                             label={t('settings.dictionaryTokenStylingOutline')}
                         />
                     </RadioGroup>
-                    {selectedDictionary.tokenStyling === TokenStyling.OUTLINE && (subtitleOutlineThickness || null) && (
+                    {selectedDictionary.tokenStyling === TokenStyling.OUTLINE && (
                         <Typography variant="caption" color="textSecondary">
                             {t('settings.dictionaryTokenStylingOutlineHelperText')}
                         </Typography>
