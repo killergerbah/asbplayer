@@ -9,7 +9,7 @@ import {
     TokenStatus,
     TokenStyling,
 } from '@project/common/settings';
-import { SubtitleCollection } from '@project/common/subtitle-collection';
+import { SubtitleCollection, SubtitleCollectionOptions } from '@project/common/subtitle-collection';
 import { arrayEquals, filterAsync, inBatches } from '@project/common/util';
 import { Yomitan } from '@project/common/yomitan/yomitan';
 
@@ -30,10 +30,9 @@ interface TrackState {
     ankiSuspendedCardIds: Set<number>;
 }
 
-export class SubtitleColoring {
+export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
     private _subtitles: RichSubtitleModel[];
-    private settings: AsbplayerSettings;
-    private subtitleCollection: SubtitleCollection<RichSubtitleModel>;
+    private settings?: AsbplayerSettings;
     private subtitlesInterval?: NodeJS.Timeout;
     private showingSubtitles?: RichSubtitleModel[];
     private showingNeedsRefreshCount: number;
@@ -58,19 +57,20 @@ export class SubtitleColoring {
     private readonly getMediaTimeMs?: () => number;
 
     constructor(
-        settings: AsbplayerSettings,
+        settingsPromise: Promise<AsbplayerSettings>,
+        options: SubtitleCollectionOptions,
         subtitleColorsUpdated: (updatedSubtitles: RichSubtitleModel[]) => void,
         getMediaTimeMs?: () => number,
         fetcher?: Fetcher
     ) {
+        super([], { ...options, returnNextToShow: true });
         this._subtitles = [];
-        this.settings = settings;
+        settingsPromise.then((settings) => (this.settings = settings));
         this.fetcher = fetcher;
         this.yomitan = new Yomitan(this.fetcher);
         this.trackStates = [];
         this.subtitleColorsUpdated = subtitleColorsUpdated;
         this.getMediaTimeMs = getMediaTimeMs;
-        this.subtitleCollection = new SubtitleCollection(this._subtitles);
         this.showingNeedsRefreshCount = 0;
         this.erroredCache = new Set();
         this.uncollectedCache = new Set();
@@ -90,18 +90,21 @@ export class SubtitleColoring {
     }
 
     set subtitles(subtitles) {
-        this._subtitles = subtitles.map((subtitle) => ({ ...subtitle })); // Deep copy to ensure no external mutations
-        this.subtitleCollection = new SubtitleCollection(this._subtitles, {
-            showingCheckRadiusMs: 150,
-            returnNextToShow: true,
-        });
-        this.resetCache(this.settings);
-        this._initColorCache();
+        const needsReset =
+            subtitles.length !== this._subtitles.length ||
+            subtitles.some((s) => s.text !== this._subtitles[s.index].text);
+        if (!needsReset) subtitles.forEach((s) => (s.richText = this._subtitles[s.index].richText)); // Preserve existing cache here so callers don't need to be aware of it
+        this._subtitles = subtitles;
+        this.initSubtitleCollection(this._subtitles);
+        if (needsReset) {
+            this.resetCache();
+            void this._initColorCache();
+        }
     }
 
-    resetCache(settings: AsbplayerSettings) {
+    resetCache(settings?: AsbplayerSettings) {
         if (this.colorCacheBuilding) this.shouldCancelBuild = true;
-        this.settings = settings;
+        if (settings) this.settings = settings;
         this.trackStates = [];
         this.anki = undefined;
         this.erroredCache.clear();
@@ -214,7 +217,7 @@ export class SubtitleColoring {
             if (!this._subtitles.length) return;
 
             if (this.getMediaTimeMs) {
-                const slice = this.subtitleCollection.subtitlesAt(this.getMediaTimeMs());
+                const slice = this.subtitlesAt(this.getMediaTimeMs());
                 const subtitlesAreNew =
                     this.showingSubtitles === undefined ||
                     !arrayEquals(slice.showing, this.showingSubtitles, (a, b) => a.index === b.index);
@@ -233,7 +236,7 @@ export class SubtitleColoring {
                 }
                 if (this.showingNeedsRefreshCount) {
                     const { colorBufferStartIndex, colorBufferEndIndex } = this._getColorBufferIndexes(slice.showing);
-                    this._buildColorCache(this._subtitles.slice(colorBufferStartIndex, colorBufferEndIndex)).then(
+                    void this._buildColorCache(this._subtitles.slice(colorBufferStartIndex, colorBufferEndIndex)).then(
                         (res) => {
                             if (res) this.showingNeedsRefreshCount = Math.max(0, this.showingNeedsRefreshCount - 1);
                         }
@@ -243,11 +246,11 @@ export class SubtitleColoring {
                 }
             }
             if (Date.now() - this.colorCacheLastRefresh >= TOKEN_CACHE_ERROR_REFRESH_INTERVAL) {
-                this._initColorCache();
+                void this._initColorCache();
                 this.colorCacheLastRefresh = Date.now();
             }
             if (Date.now() - this.ankiLastRecentlyModifiedCheck >= ANKI_RECENTLY_MODIFIED_INTERVAL) {
-                this._checkAnkiRecentlyModifiedCards();
+                void this._checkAnkiRecentlyModifiedCards();
                 this.ankiLastRecentlyModifiedCheck = Date.now();
             }
         }, 100);
@@ -256,7 +259,7 @@ export class SubtitleColoring {
     private _getColorBufferIndexes(subtitles?: RichSubtitleModel[]) {
         if (!subtitles) {
             if (this.getMediaTimeMs) {
-                const slice = this.subtitleCollection.subtitlesAt(this.getMediaTimeMs());
+                const slice = this.subtitlesAt(this.getMediaTimeMs());
                 subtitles = slice.showing;
                 if (!subtitles.length) subtitles = slice.nextToShow ?? [];
             } else {
@@ -277,7 +280,8 @@ export class SubtitleColoring {
     private async _buildColorCache(subtitles: RichSubtitleModel[]): Promise<boolean> {
         if (!subtitles.length) return true;
         if (!this.trackStates.length) {
-            this.trackStates = this.settings.dictionaryTracks.map((dt, track) => ({
+            if (!this.settings) await new Promise((resolve) => setTimeout(resolve, 100));
+            this.trackStates = this.settings!.dictionaryTracks.map((dt, track) => ({
                 track,
                 dt,
                 yomitanHealthy: false,
@@ -307,7 +311,7 @@ export class SubtitleColoring {
             }
             if (!this.anki && this.trackStates.some((t) => this._dictionaryTrackAnkiEnabled(t.dt))) {
                 try {
-                    this.anki = new Anki(this.settings, this.fetcher);
+                    this.anki = new Anki(this.settings!, this.fetcher);
                     const permission = (await this.anki.requestPermission()).permission;
                     if (permission !== 'granted') throw new Error(`permission ${permission}`);
                     await this._updateAnkiCache();

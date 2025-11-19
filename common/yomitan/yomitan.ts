@@ -39,16 +39,16 @@ export class Yomitan {
                     if (source.originalText !== token) continue;
                     if (!source.isPrimary) continue;
                     if (source.matchType !== 'exact') continue;
-                    const lemma = source.deinflectedText; // This is the term or reading form, whatever the input is
+                    const lemma = source.deinflectedText; // This is either the term or reading, whatever the form of the input is
                     if (lookForKanji && lemma !== headword.term && lemma === headword.reading) {
                         lookForKanji = false;
                         if (headword.term !== token && !lemmas.includes(headword.term)) lemmas.unshift(headword.term); // e.g. すぎます -> 過ぎる
                     }
                     if (foundLemma) continue;
                     foundLemma = true;
-                    if (lemma !== token && !lemmas.includes(lemma)) lemmas.push(lemma);
                     if (headword.term !== token && !lemmas.includes(headword.term)) lemmas.unshift(headword.term);
                     if (headword.reading !== token && !lemmas.includes(headword.reading)) lemmas.push(headword.reading);
+                    if (lemma !== token && !lemmas.includes(lemma)) lemmas.push(lemma); // Usually redundant but matchSource can be 'sequence' which could be different
                 }
             }
         }

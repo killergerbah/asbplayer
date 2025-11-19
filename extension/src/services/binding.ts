@@ -426,11 +426,6 @@ export default class Binding {
             this.videoDataSyncController.requestSubtitles();
         });
         this.subtitleController.bind();
-        this.subtitleController.subtitleColoring
-            ? this.subtitleController.subtitleColoring.bind()
-            : this.subtitleController
-                  .createSubtitleColoring()
-                  .then(() => this.subtitleController.subtitleColoring!.bind());
         this.dragController.bind(this);
         this.mobileGestureController.bind();
         this.bulkExportController.bind();
@@ -640,11 +635,8 @@ export default class Binding {
                         break;
                     }
                     case 'request-subtitles': {
-                        const subtitles = this.subtitleController.subtitleColoring?.subtitles?.length
-                            ? this.subtitleController.subtitleColoring.subtitles
-                            : this.subtitleController.subtitles;
                         sendResponse({
-                            subtitles,
+                            subtitles: this.subtitleController.subtitles,
                             subtitleFileNames: this.subtitleController.subtitleFileNames ?? [],
                         });
                         break;
@@ -722,11 +714,11 @@ export default class Binding {
                         switch (cardMessage.command) {
                             case 'card-updated':
                                 locKey = 'info.updatedCard';
-                                this.subtitleController.subtitleColoring?.ankiCardWasUpdated();
+                                this.subtitleController.subtitleColoring.ankiCardWasUpdated();
                                 break;
                             case 'card-exported':
                                 locKey = 'info.exportedCard';
-                                this.subtitleController.subtitleColoring?.ankiCardWasUpdated();
+                                this.subtitleController.subtitleColoring.ankiCardWasUpdated();
                                 break;
                             case 'card-saved':
                                 locKey = 'info.copiedSubtitle2';
@@ -954,7 +946,7 @@ export default class Binding {
         this.subtitleController.surroundingSubtitlesCountRadius = currentSettings.surroundingSubtitlesCountRadius;
         this.subtitleController.surroundingSubtitlesTimeRadius = currentSettings.surroundingSubtitlesTimeRadius;
         this.subtitleController.autoCopyCurrentSubtitle = currentSettings.autoCopyCurrentSubtitle;
-        this.subtitleController.subtitleColoring?.resetCache(await this.settings.getAll());
+        this.subtitleController.subtitleColoring.resetCache(currentSettings);
         this.subtitleController.setSubtitleSettings(currentSettings);
         this.subtitleController.refresh();
 
@@ -1035,11 +1027,6 @@ export default class Binding {
         }
 
         this.subtitleController.unbind();
-        this.subtitleController.subtitleColoring
-            ? this.subtitleController.subtitleColoring.unbind()
-            : this.subtitleController
-                  .createSubtitleColoring()
-                  .then(() => this.subtitleController.subtitleColoring!.unbind());
         this.dragController.unbind();
         this.keyBindings.unbind();
         this.videoDataSyncController.unbind();
