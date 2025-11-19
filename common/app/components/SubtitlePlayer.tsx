@@ -606,10 +606,11 @@ export default function SubtitlePlayer({
         });
     }, [channel, onSubtitles]);
 
-    // Poll to catch ones that slip if request fails
+    // Request all colors from extension if page was hidden
     useEffect(() => {
         if (!tab) return;
-        const poll = async () => {
+
+        const refreshColors = async () => {
             const response = (await extension.requestSubtitles(tab.id, tab.src)) as
                 | RequestSubtitlesResponse
                 | undefined;
@@ -622,9 +623,15 @@ export default function SubtitlePlayer({
                 onSubtitles(allSubtitles);
             }
         };
-        const interval = setInterval(poll, 10000);
-        void poll();
-        return () => clearInterval(interval);
+
+        let wasHidden = document.visibilityState === 'hidden';
+        const handleVisibilityChange = () => {
+            const nowHidden = document.visibilityState === 'hidden';
+            if (wasHidden && !nowHidden) void refreshColors();
+            wasHidden = nowHidden;
+        };
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
     }, [extension, tab, onSubtitles]);
 
     const scrollToCurrentSubtitle = useCallback(() => {
