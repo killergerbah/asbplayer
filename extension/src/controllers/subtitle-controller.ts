@@ -18,7 +18,7 @@ import {
     TextSubtitleSettings,
     allTextSubtitleSettings,
 } from '@project/common/settings';
-import { SubtitleCollection, SubtitleSlice } from '@project/common/subtitle-collection';
+import { SubtitleSlice } from '@project/common/subtitle-collection';
 import { SubtitleColoring } from '@project/common/subtitle-coloring';
 import { arrayEquals, computeStyleString, surroundingSubtitles } from '@project/common/util';
 import i18n from 'i18next';
@@ -79,9 +79,7 @@ export default class SubtitleController {
     private subtitleStyles?: string[];
     private subtitleClasses?: string[];
     private notificationElementOverlayHideTimeout?: NodeJS.Timeout;
-    private _subtitles: IndexedSubtitleModel[];
-    private subtitleCollection: SubtitleCollection<IndexedSubtitleModel>;
-    subtitleColoring?: SubtitleColoring;
+    subtitleColoring: SubtitleColoring;
     private bottomSubtitlesElementOverlay: ElementOverlay;
     private topSubtitlesElementOverlay: ElementOverlay;
     private notificationElementOverlay: ElementOverlay;
@@ -112,8 +110,6 @@ export default class SubtitleController {
         this.video = video;
         this.settings = settings;
         this._preCacheDom = false;
-        this._subtitles = [];
-        this.subtitleCollection = new SubtitleCollection<IndexedSubtitleModel>([]);
         this.showingSubtitles = [];
         this.shouldRenderBottomOverlay = true;
         this.shouldRenderTopOverlay = false;
@@ -136,12 +132,9 @@ export default class SubtitleController {
         this.bottomSubtitlesElementOverlay = subtitlesElementOverlay;
         this.topSubtitlesElementOverlay = topSubtitlesElementOverlay;
         this.notificationElementOverlay = notificationElementOverlay;
-        this.createSubtitleColoring();
-    }
-
-    async createSubtitleColoring() {
         this.subtitleColoring = new SubtitleColoring(
-            await this.settings.getAll(),
+            this.settings.getAll(),
+            { showingCheckRadiusMs: 150 },
             (updatedSubtitles) => this._subtitleColorsUpdated(updatedSubtitles),
             () => this.video.currentTime * 1000,
             new VideoFetcher(() => this.video.src)
@@ -149,28 +142,19 @@ export default class SubtitleController {
     }
 
     get subtitles() {
-        return this._subtitles;
+        return this.subtitleColoring.subtitles;
     }
 
     set subtitles(subtitles) {
-        this._subtitles = subtitles;
-        this.subtitleCollection = new SubtitleCollection(subtitles, {
-            showingCheckRadiusMs: 150,
-            returnNextToShow: true,
-        });
+        this.subtitleColoring.subtitles = subtitles;
         this.autoPauseContext.clear();
-        if (this.subtitleColoring) {
-            this.subtitleColoring.subtitles = subtitles;
-        } else {
-            this.createSubtitleColoring().then(() => (this.subtitleColoring!.subtitles = subtitles));
-        }
     }
 
     reset() {
         this.subtitles = [];
         this.subtitleFileNames = undefined;
         this.cacheHtml();
-        this.subtitleColoring?.reset();
+        this.subtitleColoring.reset();
     }
 
     cacheHtml() {
@@ -371,6 +355,8 @@ export default class SubtitleController {
     }
 
     bind() {
+        this.subtitleColoring.bind();
+
         this.subtitlesInterval = setInterval(() => {
             if (this.lastLoadedMessageTimestamp > 0 && Date.now() - this.lastLoadedMessageTimestamp < 1000) {
                 return;
@@ -388,7 +374,7 @@ export default class SubtitleController {
 
             const showOffset = this.lastOffsetChangeTimestamp > 0 && Date.now() - this.lastOffsetChangeTimestamp < 1000;
             const offset = showOffset ? this._computeOffset() : 0;
-            const slice = this.subtitleCollection.subtitlesAt(this.video.currentTime * 1000);
+            const slice = this.subtitleColoring.subtitlesAt(this.video.currentTime * 1000);
             const showingSubtitles = this._findShowingSubtitles(slice);
 
             this.onSlice?.(slice);
@@ -527,7 +513,7 @@ export default class SubtitleController {
                             </div>
                         `;
                     } else {
-                        return this._buildTextHtml(subtitle.text, subtitle.track, subtitle.index);
+                        return this._buildTextHtml(subtitle.text, subtitle.track, subtitle.richText);
                     }
                 },
                 key: String(subtitle.index),
@@ -535,14 +521,15 @@ export default class SubtitleController {
         });
     }
 
-    private _buildTextHtml(text: string, track?: number, index?: number) {
-        const richText = index !== undefined ? this.subtitleColoring?.subtitles[index]?.richText : undefined;
+    private _buildTextHtml(text: string, track?: number, richText?: string) {
         return `<span data-track="${track ?? 0}" class="${this._subtitleClasses(track)}" style="${this._subtitleStyles(
             track
         )}">${richText ?? text}</span>`;
     }
 
     unbind() {
+        this.subtitleColoring.unbind();
+
         if (this.subtitlesInterval) {
             clearInterval(this.subtitlesInterval);
             this.subtitlesInterval = undefined;

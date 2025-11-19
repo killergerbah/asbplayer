@@ -11,11 +11,14 @@ import {
     PlayMode,
     PostMineAction,
     PostMinePlayback,
+    RequestSubtitlesResponse,
+    RichSubtitleModel,
     SubtitleModel,
     VideoTabModel,
 } from '@project/common';
 import { AsbplayerSettings } from '@project/common/settings';
 import { SubtitleCollection } from '@project/common/subtitle-collection';
+import { SubtitleColoring } from '@project/common/subtitle-coloring';
 import { SubtitleReader } from '@project/common/subtitle-reader';
 import { KeyBinder } from '@project/common/key-binder';
 import { timeDurationDisplay } from '../services/util';
@@ -171,15 +174,6 @@ const Player = React.memo(function Player({
     const [subtitlesSentThroughChannel, setSubtitlesSentThroughChannel] = useState<boolean>();
     const subtitlesRef = useRef<DisplaySubtitleModel[]>(undefined);
     subtitlesRef.current = subtitles;
-    const subtitleCollection = useMemo<SubtitleCollection<DisplaySubtitleModel>>(
-        () =>
-            new SubtitleCollection(subtitles ?? [], {
-                returnLastShown: true,
-                returnNextToShow: playMode === PlayMode.condensed || playMode === PlayMode.fastForward,
-                showingCheckRadiusMs: 100,
-            }),
-        [subtitles, playMode]
-    );
     const subtitleFiles = sources?.subtitleFiles;
     const flattenSubtitleFiles = sources?.flattenSubtitleFiles;
     const videoFile = sources?.videoFile;
@@ -211,6 +205,8 @@ const Player = React.memo(function Player({
         return new MediaAdapter({ current: undefined });
     }, [channel, videoFileUrl, tab]);
     const clock = useMemo<Clock>(() => new Clock(), []);
+    const clockRef = useRef<Clock>(clock);
+    clockRef.current = clock;
     const appBarHeight = useAppBarHeight();
     const classes = useStyles({ appBarHidden, appBarHeight });
     const calculateLength = () => trackLength(channelRef.current, subtitlesRef.current);
@@ -394,6 +390,86 @@ const Player = React.memo(function Player({
 
         init().then(() => onLoaded(subtitleFiles ?? []));
     }, [subtitleReader, onLoaded, onError, subtitleFiles, flattenSubtitleFiles, onSubtitles]);
+
+    const [subtitleCollection, setSubtitleCollection] = useState<
+        SubtitleColoring | SubtitleCollection<DisplaySubtitleModel>
+    >(SubtitleCollection.empty<DisplaySubtitleModel>());
+    const subtitleCollectionRef = useRef<SubtitleColoring | SubtitleCollection<DisplaySubtitleModel>>(
+        subtitleCollection
+    );
+
+    useEffect(() => {
+        if (tab) {
+            const newCol = new SubtitleCollection(subtitlesRef.current ?? [], {
+                returnLastShown: true,
+                returnNextToShow: true,
+                showingCheckRadiusMs: 150,
+            });
+            setSubtitleCollection(newCol);
+            subtitleCollectionRef.current = newCol;
+            return; // Handled by extension
+        }
+
+        const subtitleColoring = new SubtitleColoring(
+            Promise.resolve(settings),
+            { showingCheckRadiusMs: 150 },
+            (updatedSubtitles) => {
+                channel?.subtitlesUpdated(updatedSubtitles);
+                if (!subtitlesRef.current) return;
+                const allSubtitles = subtitlesRef.current.slice();
+                updatedSubtitles.forEach((s) => (allSubtitles[s.index].richText = s.richText));
+                onSubtitles(allSubtitles);
+            },
+            () => clockRef.current.time(calculateLength())
+        );
+        if (subtitlesRef.current) subtitleColoring.subtitles = subtitlesRef.current;
+        subtitleColoring.bind();
+        setSubtitleCollection(subtitleColoring);
+        subtitleCollectionRef.current = subtitleColoring;
+
+        return () => {
+            if (!(subtitleCollectionRef.current instanceof SubtitleColoring)) return;
+            subtitleCollectionRef.current.unbind();
+        };
+    }, [channel, settings, tab, onSubtitles]);
+
+    useEffect(() => {
+        if (!subtitleCollectionRef.current) return;
+        if (subtitleCollectionRef.current instanceof SubtitleColoring) {
+            subtitleCollectionRef.current.subtitles = subtitles;
+        } else {
+            subtitleCollectionRef.current.initSubtitleCollection(subtitles);
+        }
+    }, [subtitles]);
+
+    // Immediate update of subtitle colors when changed (from extension)
+    useEffect(() => {
+        return channel?.onSubtitlesUpdated((updatedSubtitles) => {
+            if (!subtitlesRef.current) return;
+            const allSubtitles = subtitlesRef.current.slice();
+            updatedSubtitles.forEach((s) => (allSubtitles[s.index].richText = s.richText));
+            onSubtitles(allSubtitles);
+        });
+    }, [channel, onSubtitles]);
+
+    // If the user is on the app's tab in the same window where the chrome side panel is now displaying
+    // the mining history, the subtitle side panel on the video will not receive the updated subtitles.
+    // Once the subtitle side panel is active, we only need to refresh the colors once to get anything missed.
+    useEffect(() => {
+        if (!tab) return; // Only matters for extension
+        const refreshColors = async () => {
+            if (!subtitlesRef.current) return;
+            const response = (await extension.requestSubtitles(tab.id, tab.src)) as
+                | RequestSubtitlesResponse
+                | undefined;
+            if (!response) return;
+            const { subtitles: updatedSubtitles } = response;
+            const allSubtitles = subtitlesRef.current.slice();
+            updatedSubtitles.forEach((s) => (allSubtitles[s.index].richText = s.richText));
+            onSubtitles(allSubtitles);
+        };
+        void refreshColors();
+    }, [extension, tab, onSubtitles]);
 
     useEffect(() => {
         setSubtitlesSentThroughChannel(false);

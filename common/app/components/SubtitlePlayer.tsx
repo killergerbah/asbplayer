@@ -14,7 +14,6 @@ import {
     CardTextFieldValues,
     VideoTabModel,
     RichSubtitleModel,
-    RequestSubtitlesResponse,
 } from '@project/common';
 import { AsbplayerSettings } from '@project/common/settings';
 import {
@@ -209,22 +208,6 @@ const useSubtitleRowStyles = makeStyles<Theme>((theme) => ({
     },
 }));
 
-function updateSubtitleColors(
-    subtitles: DisplaySubtitleModel[] | undefined,
-    updatedSubtitles: RichSubtitleModel[]
-): DisplaySubtitleModel[] {
-    if (!subtitles?.length) return [];
-    const newSubtitles: DisplaySubtitleModel[] = [];
-    for (const updatedSubtitle of updatedSubtitles) {
-        if (!updatedSubtitle.richText) continue;
-        if (subtitles[updatedSubtitle.index]?.richText === updatedSubtitle.richText) continue;
-        const newSubtitle = subtitles[updatedSubtitle.index];
-        newSubtitle.richText = updatedSubtitle.richText;
-        newSubtitles.push(newSubtitle);
-    }
-    return newSubtitles;
-}
-
 export interface DisplaySubtitleModel extends RichSubtitleModel {
     displayTime: string;
 }
@@ -377,7 +360,7 @@ interface SubtitlePlayerProps {
     onSubtitles: (subtitles: DisplaySubtitleModel[]) => void;
     autoPauseContext: AutoPauseContext;
     subtitles?: DisplaySubtitleModel[];
-    subtitleCollection?: SubtitleCollection<DisplaySubtitleModel>;
+    subtitleCollection: SubtitleColoring | SubtitleCollection<DisplaySubtitleModel>;
     length: number;
     jumpToSubtitle?: SubtitleModel;
     compressed: boolean;
@@ -410,7 +393,6 @@ export default function SubtitlePlayer({
     onSubtitlesHighlighted,
     onResizeStart,
     onResizeEnd,
-    onSubtitles,
     autoPauseContext,
     subtitles,
     subtitleCollection,
@@ -432,8 +414,6 @@ export default function SubtitlePlayer({
     keyBinder,
     maxResizeWidth,
     webSocketClient,
-    tab,
-    channel,
 }: SubtitlePlayerProps) {
     const { t } = useTranslation();
     const clockRef = useRef<Clock>(clock);
@@ -457,10 +437,9 @@ export default function SubtitlePlayer({
         subtitleRefsRef.current.length = 0;
     }
 
-    const subtitleCollectionRef = useRef<SubtitleCollection<DisplaySubtitleModel>>(
-        SubtitleCollection.empty<DisplaySubtitleModel>()
+    const subtitleCollectionRef = useRef<SubtitleColoring | SubtitleCollection<DisplaySubtitleModel>>(
+        subtitleCollection
     );
-    subtitleCollectionRef.current = subtitleCollection ?? SubtitleCollection.empty<DisplaySubtitleModel>();
     const highlightedSubtitleIndexesRef = useRef<{ [index: number]: boolean }>({});
     const [selectedSubtitleIndexes, setSelectedSubtitleIndexes] = useState<boolean[]>();
     const [highlightedJumpToSubtitleIndex, setHighlightedJumpToSubtitleIndex] = useState<number>();
@@ -553,86 +532,6 @@ export default function SubtitlePlayer({
             }
         };
     }, []);
-
-    const subtitleColoringRef = useRef<SubtitleColoring | undefined>(undefined);
-
-    useEffect(() => {
-        if (tab) return; // Handled by extension
-
-        const subtitleColoring = new SubtitleColoring(
-            settings,
-            (updatedSubtitles) => {
-                const newSubtitles = updateSubtitleColors(subtitleListRef.current, updatedSubtitles);
-                if (newSubtitles.length) {
-                    channel?.subtitlesUpdated(newSubtitles);
-                    const allSubtitles = subtitleListRef.current?.slice() ?? [];
-                    newSubtitles.forEach((s) => (allSubtitles[s.index] = s));
-                    onSubtitles(allSubtitles);
-                }
-            },
-            () => clockRef.current.time(lengthRef.current)
-        );
-        if (subtitleListRef.current) subtitleColoring.subtitles = subtitleListRef.current;
-        subtitleColoring.bind();
-        subtitleColoringRef.current = subtitleColoring;
-
-        return () => {
-            subtitleColoringRef.current?.unbind();
-            subtitleColoringRef.current = undefined;
-        };
-    }, [channel, settings, tab, onSubtitles]);
-
-    useEffect(() => {
-        if (!subtitleColoringRef.current || !subtitleListRef.current) return;
-        const subtitleColoring = subtitleColoringRef.current;
-        const subtitleList = subtitleListRef.current;
-        if (
-            subtitleColoring.subtitles.length !== subtitleList.length ||
-            subtitleColoring.subtitles.some((s) => s.originalEnd !== subtitleList[s.index].originalEnd)
-        ) {
-            subtitleColoring.subtitles = subtitleList; // Only update if it's a completely new set of subtitles
-        }
-    }, [subtitles]);
-
-    // Immediate update of subtitle colors when changed (from extension)
-    useEffect(() => {
-        return channel?.onSubtitlesUpdated((updatedSubtitles) => {
-            const newSubtitles = updateSubtitleColors(subtitleListRef.current, updatedSubtitles);
-            if (newSubtitles.length) {
-                const allSubtitles = subtitleListRef.current?.slice() ?? [];
-                newSubtitles.forEach((s) => (allSubtitles[s.index] = s));
-                onSubtitles(allSubtitles);
-            }
-        });
-    }, [channel, onSubtitles]);
-
-    // Request all colors from extension if page was hidden
-    useEffect(() => {
-        if (!tab) return;
-
-        const refreshColors = async () => {
-            const response = (await extension.requestSubtitles(tab.id, tab.src)) as
-                | RequestSubtitlesResponse
-                | undefined;
-            if (!response) return;
-            const { subtitles: updatedSubtitles } = response;
-            const newSubtitles = updateSubtitleColors(subtitleListRef.current, updatedSubtitles);
-            if (newSubtitles.length) {
-                const allSubtitles = subtitleListRef.current?.slice() ?? [];
-                newSubtitles.forEach((s) => (allSubtitles[s.index] = s));
-                onSubtitles(allSubtitles);
-            }
-        };
-
-        let wasHidden = document.visibilityState === 'hidden';
-        const handleVisibilityChange = () => {
-            const nowHidden = document.visibilityState === 'hidden';
-            if (wasHidden && !nowHidden) void refreshColors();
-            wasHidden = nowHidden;
-        };
-        document.addEventListener('visibilitychange', handleVisibilityChange);
-        return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-    }, [extension, tab, onSubtitles]);
 
     const scrollToCurrentSubtitle = useCallback(() => {
         const highlightedSubtitleIndexes = highlightedSubtitleIndexesRef.current;
