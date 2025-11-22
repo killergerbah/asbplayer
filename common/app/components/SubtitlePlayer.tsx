@@ -29,7 +29,7 @@ import {
     mockSurroundingSubtitles,
     surroundingSubtitlesAroundInterval,
     extractText,
-    parseRubyText,
+    convertNetflixRubyToHtml,
 } from '@project/common/util';
 import { SubtitleCollection } from '@project/common/subtitle-collection';
 import { KeyBinder } from '@project/common/key-binder';
@@ -235,7 +235,7 @@ interface SubtitleRowProps extends TableRowProps {
     subtitleRef: RefObject<HTMLTableRowElement | null>;
     onClickSubtitle: (index: number) => void;
     onCopySubtitle: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>, index: number) => void;
-    convertRubyText: boolean;
+    convertNetflixRuby: boolean;
     subtitleHtml: SubtitleHtml;
 }
 
@@ -249,7 +249,7 @@ const SubtitleRow = React.memo(function SubtitleRow({
     disabled,
     subtitle,
     showCopyButton,
-    convertRubyText,
+    convertNetflixRuby,
     subtitleHtml,
 }: SubtitleRowProps) {
     const classes = useSubtitleRowStyles();
@@ -262,8 +262,8 @@ const SubtitleRow = React.memo(function SubtitleRow({
     const processedText = useMemo(() => {
         let text = subtitle.text;
 
-        if (subtitleHtml === SubtitleHtml.remove && convertRubyText) {
-            text = parseRubyText(text, true);
+        if (subtitleHtml === SubtitleHtml.remove && convertNetflixRuby) {
+            text = convertNetflixRubyToHtml(text, true);
 
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = text;
@@ -272,12 +272,12 @@ const SubtitleRow = React.memo(function SubtitleRow({
             Array.from(rubyTextElements).forEach((rt) => rt.remove());
 
             return tempDiv.textContent || tempDiv.innerText || '';
-        } else if (subtitleHtml !== SubtitleHtml.remove && convertRubyText) {
-            return parseRubyText(text, true);
+        } else if (subtitleHtml !== SubtitleHtml.remove && convertNetflixRuby) {
+            return convertNetflixRubyToHtml(text, true);
         }
 
         return text;
-    }, [subtitle.text, convertRubyText, subtitleHtml]);
+    }, [subtitle.text, convertNetflixRuby, subtitleHtml]);
 
     if (subtitle.start < 0 || subtitle.end < 0) {
         return null;
@@ -1172,7 +1172,7 @@ export default function SubtitlePlayer({
                                     subtitleRef={subtitleRefs[index]}
                                     onClickSubtitle={handleClick}
                                     onCopySubtitle={handleCopy}
-                                    convertRubyText={settings.convertRubyText}
+                                    convertNetflixRuby={settings.convertNetflixRuby}
                                     subtitleHtml={settings.subtitleHtml}
                                 />
                             );

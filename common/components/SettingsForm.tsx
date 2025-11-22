@@ -926,7 +926,7 @@ export default function SettingsForm({
         tabName,
         subtitleRegexFilter,
         subtitleRegexFilterTextReplacement,
-        convertRubyText,
+        convertNetflixRuby,
         subtitleHtml,
         language,
         customAnkiFields,
@@ -2994,13 +2994,13 @@ export default function SettingsForm({
                             <LabelWithHoverEffect
                                 control={
                                     <Checkbox
-                                        checked={convertRubyText}
+                                        checked={convertNetflixRuby}
                                         onChange={(event) =>
-                                            handleSettingChanged('convertRubyText', event.target.checked)
+                                            handleSettingChanged('convertNetflixRuby', event.target.checked)
                                         }
                                     />
                                 }
-                                label={t('settings.convertRubyText')}
+                                label={t('settings.convertNetflixRuby')}
                             />
                         </FormGroup>
                     </Grid>

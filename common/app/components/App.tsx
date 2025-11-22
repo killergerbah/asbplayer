@@ -242,14 +242,14 @@ function App({
             regexFilter: settings.subtitleRegexFilter,
             regexFilterTextReplacement: settings.subtitleRegexFilterTextReplacement,
             subtitleHtml: settings.subtitleHtml,
-            convertRubyText: settings.convertRubyText,
+            convertNetflixRuby: settings.convertNetflixRuby,
             pgsParserWorkerFactory: async () => new pgsParserWorkerFactory(),
         });
     }, [
         settings.subtitleRegexFilter,
         settings.subtitleRegexFilterTextReplacement,
         settings.subtitleHtml,
-        settings.convertRubyText,
+        settings.convertNetflixRuby,
     ]);
     const webSocketClient = useAppWebSocketClient({ settings });
     const [subtitles, setSubtitles] = useState<DisplaySubtitleModel[]>([]);

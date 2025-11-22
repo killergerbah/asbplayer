@@ -321,7 +321,7 @@ const settingsSchema = {
         subtitleRegexFilterTextReplacement: {
             type: 'string',
         },
-        convertRubyText: {
+        convertNetflixRuby: {
             type: 'boolean',
         },
         language: {

@@ -406,7 +406,7 @@
         "tabName": "Sarkaimen nimi",
         "subtitleRegexFilter": "Tekstityksen regex suodatin",
         "subtitleRegexFilterTextReplacement": "Tekstitys regex suodatin tekstin korvaaminen",
-        "convertRubyText": "Convert Ruby Text",
+        "convertNetflixRuby": "Detect and Display Ruby",
         "subtitleHtml": "Tekstityksen HTML",
         "subtitleHtmlRemove": "Poista",
         "subtitleHtmlRender": "Renderöi",

@@ -406,7 +406,7 @@
         "tabName": "Nazwa karty",
         "subtitleRegexFilter": "Filtr Regex napisów",
         "subtitleRegexFilterTextReplacement": "Zamiana tekstu z filtru Regex napisów",
-        "convertRubyText": "Convert Ruby Text",
+        "convertNetflixRuby": "Detect and Display Ruby",
         "subtitleHtml": "Subtitle HTML",
         "subtitleHtmlRemove": "Remove",
         "subtitleHtmlRender": "Render",

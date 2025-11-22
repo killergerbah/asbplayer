@@ -406,7 +406,7 @@
         "tabName": "Nombre de la pestaña",
         "subtitleRegexFilter": "Filtro regex para subtítulos",
         "subtitleRegexFilterTextReplacement": "Texto de reemplazo para el filtro regex",
-        "convertRubyText": "Convert Ruby Text",
+        "convertNetflixRuby": "Detect and Display Ruby",
         "subtitleHtml": "Subtitle HTML",
         "subtitleHtmlRemove": "Remove",
         "subtitleHtmlRender": "Render",

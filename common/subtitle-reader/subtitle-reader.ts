@@ -3,7 +3,6 @@ import SrtParser from '@qgustavor/srt-parser';
 import { WebVTT } from 'vtt.js';
 import { XMLParser } from 'fast-xml-parser';
 import { SubtitleHtml, SubtitleTextImage } from '@project/common';
-import { parseRubyText } from '../util';
 
 const vttClassRegex = /<(\/)?c(\.[^>]*)?>/g;
 const assNewLineRegex = RegExp(/\\[nN]/, 'ig');
@@ -59,7 +58,7 @@ const sortVttCues = (list: VTTCue[]) => {
 export default class SubtitleReader {
     private readonly _textFilter?: TextFilter;
     private readonly _removeXml: boolean;
-    private readonly _convertRubyText: boolean;
+    private readonly _convertNetflixRuby: boolean;
     private readonly _pgsWorkerFactory: () => Promise<Worker>;
     private xmlParser?: XMLParser;
 
@@ -67,13 +66,13 @@ export default class SubtitleReader {
         regexFilter,
         regexFilterTextReplacement,
         subtitleHtml,
-        convertRubyText,
+        convertNetflixRuby,
         pgsParserWorkerFactory: pgsWorkerFactory,
     }: {
         regexFilter: string;
         regexFilterTextReplacement: string;
         subtitleHtml: SubtitleHtml;
-        convertRubyText: boolean;
+        convertNetflixRuby: boolean;
         pgsParserWorkerFactory: () => Promise<Worker>;
     }) {
         let regex: RegExp | undefined;
@@ -91,7 +90,7 @@ export default class SubtitleReader {
         }
 
         this._removeXml = subtitleHtml === SubtitleHtml.remove;
-        this._convertRubyText = convertRubyText;
+        this._convertNetflixRuby = convertNetflixRuby;
 
         this._pgsWorkerFactory = pgsWorkerFactory;
     }

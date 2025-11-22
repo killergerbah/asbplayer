@@ -406,7 +406,7 @@
         "tabName": "탭 이름",
         "subtitleRegexFilter": "자막 정규식 필터",
         "subtitleRegexFilterTextReplacement": "자막 정규식 필터 텍스트 치환",
-        "convertRubyText": "Convert Ruby Text",
+        "convertNetflixRuby": "Detect and Display Ruby",
         "subtitleHtml": "자막 HTML",
         "subtitleHtmlRemove": "삭제",
         "subtitleHtmlRender": "렌더링",

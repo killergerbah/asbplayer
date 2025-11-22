@@ -407,7 +407,7 @@ const netflixRubyPattern =
  * @param enabled Whether ruby text display is enabled
  * @returns The text with ruby markup (if enabled) or original text (if disabled)
  */
-export function parseRubyText(text: string, enabled: boolean): string {
+export function convertNetflixRubyToHtml(text: string, enabled: boolean): string {
     if (!enabled) return text;
 
     return text.replace(netflixRubyPattern, (_match, base, ruby) => `<ruby><rb>${base}</rb><rt>${ruby}</rt></ruby>`);
