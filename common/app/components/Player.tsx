@@ -397,14 +397,13 @@ const Player = React.memo(function Player({
     const subtitleCollectionRef = useRef<SubtitleColoring | SubtitleCollection<DisplaySubtitleModel>>(
         subtitleCollection
     );
+    subtitleCollectionRef.current = subtitleCollection;
 
     useEffect(() => {
+        const options = { returnLastShown: true, returnNextToShow: true, showingCheckRadiusMs: 150 };
         if (tab) {
-            const newCol = new SubtitleCollection(subtitlesRef.current ?? [], {
-                returnLastShown: true,
-                returnNextToShow: true,
-                showingCheckRadiusMs: 150,
-            });
+            const newCol = new SubtitleCollection<DisplaySubtitleModel>(options);
+            newCol.setSubtitles(subtitlesRef.current ?? []);
             setSubtitleCollection(newCol);
             subtitleCollectionRef.current = newCol;
             return; // Handled by extension
@@ -412,7 +411,7 @@ const Player = React.memo(function Player({
 
         const subtitleColoring = new SubtitleColoring(
             Promise.resolve(settings),
-            { showingCheckRadiusMs: 150 },
+            options,
             (updatedSubtitles) => {
                 channel?.subtitlesUpdated(updatedSubtitles);
                 if (!subtitlesRef.current) return;
@@ -422,7 +421,7 @@ const Player = React.memo(function Player({
             },
             () => clockRef.current.time(calculateLength())
         );
-        if (subtitlesRef.current) subtitleColoring.subtitles = subtitlesRef.current;
+        if (subtitlesRef.current) subtitleColoring.setSubtitles(subtitlesRef.current);
         subtitleColoring.bind();
         setSubtitleCollection(subtitleColoring);
         subtitleCollectionRef.current = subtitleColoring;
@@ -435,11 +434,7 @@ const Player = React.memo(function Player({
 
     useEffect(() => {
         if (!subtitleCollectionRef.current) return;
-        if (subtitleCollectionRef.current instanceof SubtitleColoring) {
-            subtitleCollectionRef.current.subtitles = subtitles;
-        } else {
-            subtitleCollectionRef.current.initSubtitleCollection(subtitles);
-        }
+        subtitleCollectionRef.current.setSubtitles(subtitles);
     }, [subtitles]);
 
     // Immediate update of subtitle colors when changed (from extension)
@@ -1146,14 +1141,11 @@ const Player = React.memo(function Player({
                         onSubtitlesHighlighted={handleSubtitlesHighlighted}
                         onResizeStart={handleSubtitlePlayerResizeStart}
                         onResizeEnd={handleSubtitlePlayerResizeEnd}
-                        onSubtitles={onSubtitles}
                         maxResizeWidth={subtitlePlayerMaxResizeWidth}
                         autoPauseContext={autoPauseContext}
                         settings={settings}
                         keyBinder={keyBinder}
                         webSocketClient={webSocketClient}
-                        tab={tab}
-                        channel={channel}
                     />
                 </Grid>
             </Grid>

@@ -3,19 +3,33 @@ import { isKanaOnly } from '@project/common/util';
 
 export class Yomitan {
     private readonly fetcher: Fetcher;
+    private readonly tokenizeCache: Map<number, Map<string, string[]>>;
+    private readonly lemmatizeCache: Map<number, Map<string, string[]>>;
 
     constructor(fetcher = new HttpFetcher()) {
         this.fetcher = fetcher;
+        this.tokenizeCache = new Map();
+        this.lemmatizeCache = new Map();
     }
 
-    async tokenize(text: string, scanLength: number, yomitanUrl: string) {
-        const response = await this._executeAction('tokenize', { text, scanLength }, yomitanUrl);
-        const tokens: string[] = [];
-        for (const res of response) {
+    resetCache() {
+        this.tokenizeCache.clear();
+        this.lemmatizeCache.clear();
+    }
+
+    async tokenize(track: number, text: string, scanLength: number, yomitanUrl: string) {
+        let tokens = this.tokenizeCache.get(track)?.get(text);
+        if (tokens) return tokens;
+        tokens = [];
+
+        for (const res of await this._executeAction('tokenize', { text, scanLength }, yomitanUrl)) {
             for (const tokenParts of res['content']) {
                 tokens.push(tokenParts.map((p: any) => p['text']).join('')); // [[the], [c, a, r]] -> [the, car]
             }
         }
+
+        if (!this.tokenizeCache.has(track)) this.tokenizeCache.set(track, new Map());
+        this.tokenizeCache.get(track)!.set(text, tokens);
         return tokens;
     }
 
@@ -28,12 +42,14 @@ export class Yomitan {
      * すぎる   ->  過ぎる
      * すぎます ->  すぎる, 過ぎる
      */
-    async lemmatize(token: string, yomitanUrl: string): Promise<string[]> {
-        const response = await this._executeAction('termEntries', { term: token }, yomitanUrl); // These are roughly sorted by best match, we can't do much better
-        const lemmas: string[] = [];
+    async lemmatize(track: number, token: string, yomitanUrl: string): Promise<string[]> {
+        let lemmas = this.lemmatizeCache.get(track)?.get(token);
+        if (lemmas) return lemmas;
+        lemmas = [];
+
         let foundLemma = false; // Only add the first valid lemma
         let lookForKanji = isKanaOnly(token); // Use the first valid kanji form if the token is only Hiragana/Katakana
-        for (const entry of response.dictionaryEntries) {
+        for (const entry of (await this._executeAction('termEntries', { term: token }, yomitanUrl)).dictionaryEntries) {
             for (const headword of entry.headwords) {
                 for (const source of headword.sources) {
                     if (source.originalText !== token) continue;
@@ -52,6 +68,9 @@ export class Yomitan {
                 }
             }
         }
+
+        if (!this.lemmatizeCache.has(track)) this.lemmatizeCache.set(track, new Map());
+        this.lemmatizeCache.get(track)!.set(token, lemmas);
         return lemmas;
     }
 

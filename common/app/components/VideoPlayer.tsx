@@ -352,14 +352,14 @@ export default function VideoPlayer({
     const [selectedAudioTrack, setSelectedAudioTrack] = useState<string>();
     const [wasPlayingOnAnkiDialogRequest, setWasPlayingOnAnkiDialogRequest] = useState<boolean>(false);
     const [subtitles, setSubtitles] = useState<RichSubtitleModel[]>([]);
-    const subtitleCollection = useMemo<SubtitleCollection<RichSubtitleModel>>(
-        () =>
-            new SubtitleCollection<RichSubtitleModel>(subtitles, {
-                returnLastShown: false,
-                showingCheckRadiusMs: 150,
-            }),
-        [subtitles]
-    );
+    const subtitleCollection = useMemo<SubtitleCollection<RichSubtitleModel>>(() => {
+        const newCol = new SubtitleCollection<RichSubtitleModel>({
+            returnLastShown: false,
+            showingCheckRadiusMs: 150,
+        });
+        newCol.setSubtitles(subtitles);
+        return newCol;
+    }, [subtitles]);
     const [showSubtitles, setShowSubtitles] = useState<RichSubtitleModel[]>([]);
     const [miscSettings, setMiscSettings] = useState<MiscSettings>(settings);
     const [subtitleSettings, setSubtitleSettings] = useState<SubtitleSettings>(settings);

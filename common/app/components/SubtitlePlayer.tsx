@@ -357,7 +357,6 @@ interface SubtitlePlayerProps {
     onSubtitlesHighlighted: (subtitles: SubtitleModel[]) => void;
     onResizeStart?: () => void;
     onResizeEnd?: () => void;
-    onSubtitles: (subtitles: DisplaySubtitleModel[]) => void;
     autoPauseContext: AutoPauseContext;
     subtitles?: DisplaySubtitleModel[];
     subtitleCollection: SubtitleColoring | SubtitleCollection<DisplaySubtitleModel>;
@@ -379,8 +378,6 @@ interface SubtitlePlayerProps {
     keyBinder: KeyBinder;
     maxResizeWidth: number;
     webSocketClient?: WebSocketClient;
-    tab?: VideoTabModel;
-    channel: VideoChannel | undefined;
 }
 
 export default function SubtitlePlayer({
@@ -440,6 +437,8 @@ export default function SubtitlePlayer({
     const subtitleCollectionRef = useRef<SubtitleColoring | SubtitleCollection<DisplaySubtitleModel>>(
         subtitleCollection
     );
+    subtitleCollectionRef.current = subtitleCollection;
+
     const highlightedSubtitleIndexesRef = useRef<{ [index: number]: boolean }>({});
     const [selectedSubtitleIndexes, setSelectedSubtitleIndexes] = useState<boolean[]>();
     const [highlightedJumpToSubtitleIndex, setHighlightedJumpToSubtitleIndex] = useState<number>();

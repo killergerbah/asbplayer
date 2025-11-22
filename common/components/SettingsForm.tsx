@@ -1327,10 +1327,9 @@ export default function SettingsForm({
 
     const [selectedDictionaryTrack, setSelectedDictionaryTrack] = useState<number>(0);
     const selectedDictionary = dictionaryTracks[selectedDictionaryTrack];
-    const showTokenMatchStrategyPriority = ![
-        TokenMatchStrategy.LEMMA_FORM_COLLECTED,
-        TokenMatchStrategy.EXACT_FORM_COLLECTED,
-    ].includes(selectedDictionary.dictionaryTokenMatchStrategy);
+    const showTokenMatchStrategyPriority =
+        selectedDictionary.dictionaryTokenMatchStrategy === TokenMatchStrategy.ANY_FORM_COLLECTED ||
+        selectedDictionary.dictionaryTokenMatchStrategy === TokenMatchStrategy.LEMMA_OR_EXACT_FORM_COLLECTED;
     const selectedDictionaryShowThickness =
         selectedDictionary.tokenStyling === TokenStyling.UNDERLINE ||
         selectedDictionary.tokenStyling === TokenStyling.OVERLINE ||

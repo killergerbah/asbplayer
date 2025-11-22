@@ -146,7 +146,7 @@ export default class SubtitleController {
     }
 
     set subtitles(subtitles) {
-        this.subtitleColoring.subtitles = subtitles;
+        this.subtitleColoring.setSubtitles(subtitles);
         this.autoPauseContext.clear();
     }
 
