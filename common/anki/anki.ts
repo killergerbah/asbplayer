@@ -289,7 +289,7 @@ export class Anki {
                 modelName: this.settingsProvider.noteType,
                 tags: tags,
                 options: {
-                    allowDuplicate: false,
+                    allowDuplicate: true,
                     duplicateScope: 'deck',
                     duplicateScopeOptions: {
                         deckName: this.settingsProvider.deck,
