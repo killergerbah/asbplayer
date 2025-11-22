@@ -1,14 +1,4 @@
-import React, {
-    ForwardedRef,
-    useCallback,
-    useEffect,
-    useState,
-    useMemo,
-    useRef,
-    createRef,
-    RefObject,
-    ReactNode,
-} from 'react';
+import React, { ForwardedRef, useCallback, useEffect, useState, useRef, createRef, RefObject, ReactNode } from 'react';
 import { makeStyles } from '@mui/styles';
 import { type Theme } from '@mui/material';
 import { keysAreEqual } from '../services/util';
@@ -21,6 +11,8 @@ import {
     AutoPauseContext,
     CopySubtitleWithAdditionalFieldsMessage,
     CardTextFieldValues,
+    VideoTabModel,
+    RichSubtitleModel,
 } from '@project/common';
 import { AsbplayerSettings } from '@project/common/settings';
 import {
@@ -30,6 +22,7 @@ import {
     extractText,
 } from '@project/common/util';
 import { SubtitleCollection } from '@project/common/subtitle-collection';
+import { SubtitleColoring } from '@project/common/subtitle-coloring';
 import { KeyBinder } from '@project/common/key-binder';
 import SubtitleTextImage from '@project/common/components/SubtitleTextImage';
 import NoteAddIcon from '@mui/icons-material/NoteAdd';
@@ -48,6 +41,7 @@ import { MineSubtitleParams } from '../hooks/use-app-web-socket-client';
 import { isMobile } from 'react-device-detect';
 import ChromeExtension, { ExtensionMessage } from '../services/chrome-extension';
 import { MineSubtitleCommand, WebSocketClient } from '../../web-socket-client';
+import VideoChannel from '../services/video-channel';
 
 let lastKnownWidth: number | undefined;
 export const minSubtitlePlayerWidth = 200;
@@ -199,9 +193,8 @@ const useSubtitleRowStyles = makeStyles<Theme>((theme) => ({
     },
 }));
 
-export interface DisplaySubtitleModel extends SubtitleModel {
+export interface DisplaySubtitleModel extends RichSubtitleModel {
     displayTime: string;
-    index: number;
 }
 
 enum SelectionState {
@@ -253,7 +246,11 @@ const SubtitleRow = React.memo(function SubtitleRow({
     const content = subtitle.textImage ? (
         <SubtitleTextImage availableWidth={window.screen.availWidth / 2} subtitle={subtitle} scale={1} />
     ) : (
-        <span ref={textRef} className={disabledClassName} dangerouslySetInnerHTML={{ __html: subtitle.text }} />
+        <span
+            ref={textRef}
+            className={disabledClassName}
+            dangerouslySetInnerHTML={{ __html: subtitle.richText ?? subtitle.text }}
+        />
     );
 
     let rowClassName: string;
@@ -343,9 +340,10 @@ interface SubtitlePlayerProps {
     onSubtitlesHighlighted: (subtitles: SubtitleModel[]) => void;
     onResizeStart?: () => void;
     onResizeEnd?: () => void;
+    onSubtitles: (subtitles: DisplaySubtitleModel[]) => void;
     autoPauseContext: AutoPauseContext;
     subtitles?: DisplaySubtitleModel[];
-    subtitleCollection?: SubtitleCollection<DisplaySubtitleModel>;
+    subtitleCollection: SubtitleColoring | SubtitleCollection<DisplaySubtitleModel>;
     length: number;
     jumpToSubtitle?: SubtitleModel;
     compressed: boolean;
@@ -364,6 +362,8 @@ interface SubtitlePlayerProps {
     keyBinder: KeyBinder;
     maxResizeWidth: number;
     webSocketClient?: WebSocketClient;
+    tab?: VideoTabModel;
+    channel: VideoChannel | undefined;
 }
 
 export default function SubtitlePlayer({
@@ -403,21 +403,26 @@ export default function SubtitlePlayer({
     clockRef.current = clock;
     const subtitleListRef = useRef<DisplaySubtitleModel[]>(undefined);
     subtitleListRef.current = subtitles;
-    const subtitleRefs = useMemo<RefObject<HTMLTableRowElement | null>[]>(
-        () =>
-            subtitles
-                ? Array(subtitles.length)
-                      .fill(undefined)
-                      .map((_) => createRef<HTMLTableRowElement>())
-                : [],
-        [subtitles]
-    );
-    const subtitleCollectionRef = useRef<SubtitleCollection<DisplaySubtitleModel>>(
-        SubtitleCollection.empty<DisplaySubtitleModel>()
-    );
-    subtitleCollectionRef.current = subtitleCollection ?? SubtitleCollection.empty<DisplaySubtitleModel>();
+
+    // Maintain a stable array of refs across subtitle list changes so that
+    // individual row refs don't get a new identity on every subtitles update.
+    // This prevents jumping to subtitle when their color is updated.
     const subtitleRefsRef = useRef<RefObject<HTMLTableRowElement | null>[]>([]);
-    subtitleRefsRef.current = subtitleRefs;
+    const subtitleRefs = subtitleRefsRef.current;
+    if (subtitles) {
+        while (subtitleRefs.length < subtitles.length) {
+            subtitleRefs.push(createRef<HTMLTableRowElement>());
+        }
+        while (subtitleRefs.length > subtitles.length) {
+            subtitleRefs.pop();
+        }
+    } else {
+        subtitleRefsRef.current.length = 0;
+    }
+
+    const subtitleCollectionRef = useRef<SubtitleColoring | SubtitleCollection<DisplaySubtitleModel>>(
+        subtitleCollection
+    );
     const highlightedSubtitleIndexesRef = useRef<{ [index: number]: boolean }>({});
     const [selectedSubtitleIndexes, setSelectedSubtitleIndexes] = useState<boolean[]>();
     const [highlightedJumpToSubtitleIndex, setHighlightedJumpToSubtitleIndex] = useState<number>();

@@ -26,6 +26,8 @@ class CopyHistoryDatabase extends Dexie {
                             originalStart: item.originalStart,
                             originalEnd: item.originalEnd,
                             track: item.track,
+                            index: item.index,
+                            richText: item.richText,
                         };
                         item.subtitle = subtitle;
                         delete item.text;
