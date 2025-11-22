@@ -50,6 +50,7 @@ import {
 } from '@project/common';
 import Mp3Encoder from '@project/common/audio-clip/mp3-encoder';
 import { adjacentSubtitle } from '@project/common/key-binder';
+import PlayModeManager from '@project/common/app/services/play-mode-manager';
 import {
     extractAnkiSettings,
     PauseOnHoverMode,
@@ -125,9 +126,11 @@ export default class Binding {
     private recordingMediaStartedTimestamp?: number;
     private recordingMediaWithScreenshot: boolean;
     private pausedDueToHover = false;
-    private _playMode: PlayMode = PlayMode.normal;
+    private _playModes: Set<PlayMode> = new Set([PlayMode.normal]);
     private _seekDuration = 3;
     private _speedChangeStep = 0.1;
+    private _pendingRepeatTime = 0;
+    private _lastKnownTime = 0;
 
     readonly video: HTMLMediaElement;
     readonly hasPageScript: boolean;
@@ -227,37 +230,91 @@ export default class Binding {
         return this._seekDuration;
     }
 
-    get playMode() {
-        return this._playMode;
+    get playModes() {
+        return this._playModes;
     }
 
-    set playMode(newPlayMode: PlayMode) {
-        if (this._playMode === newPlayMode) {
-            return;
+    set playModes(modes: Set<PlayMode>) {
+        const oldModes = new Set(this._playModes);
+        const normalizedModes = PlayModeManager.normalizePlayModes(modes, oldModes);
+        const { added, removed } = PlayModeManager.getModeChanges(oldModes, normalizedModes);
+
+        for (const mode of removed) {
+            this._disablePlayMode(mode, false);
         }
 
-        // Disable old play mode
-        switch (this._playMode) {
+        for (const mode of added) {
+            this._enablePlayMode(mode);
+        }
+
+        this._playModes = normalizedModes;
+        this.mobileVideoOverlayController.updateModel();
+    }
+
+    togglePlayMode(targetMode: PlayMode) {
+        const manager = new PlayModeManager(this._playModes);
+        const newModes = manager.toggle(targetMode);
+        const { added, removed } = PlayModeManager.getModeChanges(this._playModes, newModes);
+
+        for (const mode of removed) {
+            const showNotif = mode === targetMode && targetMode !== PlayMode.normal;
+            this._disablePlayMode(mode, showNotif);
+        }
+
+        for (const mode of added) {
+            this._enablePlayMode(mode);
+        }
+
+        this._playModes = newModes;
+        this.mobileVideoOverlayController.updateModel();
+    }
+
+    private _disablePlayMode(mode: PlayMode, showNotif: boolean) {
+        switch (mode) {
             case PlayMode.autoPause:
                 this.subtitleController.autoPauseContext.onStartedShowing = undefined;
-                this.subtitleController.autoPauseContext.onWillStopShowing = undefined;
+                if (this._playModes.has(PlayMode.repeat)) {
+                    this.subtitleController.autoPauseContext.onWillStopShowing = (subtitle) => {
+                        this._pendingRepeatTime = 0;
+                        this.seek(subtitle.start / 1000);
+                    };
+                } else {
+                    this.subtitleController.autoPauseContext.onWillStopShowing = undefined;
+                }
+
+                if (showNotif) this.subtitleController.notification('info.disabledAutoPause');
                 break;
             case PlayMode.condensed:
                 this.subtitleController.onNextToShow = undefined;
+
+                if (showNotif) this.subtitleController.notification('info.disabledCondensedPlayback');
                 break;
             case PlayMode.fastForward:
                 this.subtitleController.onSlice = undefined;
                 this.video.playbackRate = 1;
+
+                if (showNotif) this.subtitleController.notification('info.disabledFastForwardPlayback');
                 break;
             case PlayMode.repeat:
-                this.subtitleController.autoPauseContext.onWillStopShowing = undefined;
+                if (this._playModes.has(PlayMode.autoPause)) {
+                    this.subtitleController.autoPauseContext.onWillStopShowing = () => {
+                        if (this.recordingMedia || this.autoPausePreference !== AutoPausePreference.atEnd) {
+                            return;
+                        }
+
+                        this.pause();
+                    };
+                } else {
+                    this.subtitleController.autoPauseContext.onWillStopShowing = undefined;
+                }
+
+                if (showNotif) this.subtitleController.notification('info.disabledRepeatPlayback');
                 break;
         }
+    }
 
-        let changed = false;
-
-        // Enable new play mode
-        switch (newPlayMode) {
+    private _enablePlayMode(mode: PlayMode) {
+        switch (mode) {
             case PlayMode.autoPause:
                 this.subtitleController.autoPauseContext.onStartedShowing = () => {
                     if (this.recordingMedia || this.autoPausePreference !== AutoPausePreference.atStart) {
@@ -266,15 +323,23 @@ export default class Binding {
 
                     this.pause();
                 };
-                this.subtitleController.autoPauseContext.onWillStopShowing = () => {
-                    if (this.recordingMedia || this.autoPausePreference !== AutoPausePreference.atEnd) {
-                        return;
-                    }
+                this.subtitleController.autoPauseContext.onWillStopShowing = (subtitle) => {
+                    const shouldRepeat = this._playModes.has(PlayMode.repeat);
 
-                    this.pause();
+                    if (this.autoPausePreference === AutoPausePreference.atEnd) {
+                        if (!this.recordingMedia) {
+                            this.pause();
+                        }
+
+                        this._pendingRepeatTime = 0;
+                        if (shouldRepeat) {
+                            this._pendingRepeatTime = subtitle.start / 1000;
+                        }
+                    } else if (shouldRepeat) {
+                        this.seek(subtitle.start / 1000);
+                    }
                 };
                 this.subtitleController.notification('info.enabledAutoPause');
-                changed = true;
                 break;
             case PlayMode.condensed:
                 let seeking = false;
@@ -299,7 +364,6 @@ export default class Binding {
                     }
                 };
                 this.subtitleController.notification('info.enabledCondensedPlayback');
-                changed = true;
                 break;
             case PlayMode.fastForward:
                 this.subtitleController.onSlice = async (slice: SubtitleSlice<SubtitleModelWithIndex>) => {
@@ -333,37 +397,31 @@ export default class Binding {
                     }
                 };
                 this.subtitleController.notification('info.enabledFastForwardPlayback');
-                changed = true;
                 break;
             case PlayMode.repeat:
-                const [currentSubtitle] = this.subtitleController.currentSubtitle();
-                if (currentSubtitle) {
-                    this.subtitleController.autoPauseContext.onWillStopShowing = () => {
-                        this.seek(currentSubtitle.start / 1000);
-                    };
-                    this.subtitleController.notification('info.enabledRepeatPlayback');
-                    changed = true;
-                }
+                this.subtitleController.autoPauseContext.onWillStopShowing = (subtitle) => {
+                    const shouldAutoPause =
+                        this._playModes.has(PlayMode.autoPause) &&
+                        this.autoPausePreference === AutoPausePreference.atEnd &&
+                        !this.recordingMedia;
+
+                    this._pendingRepeatTime = 0;
+
+                    if (shouldAutoPause) {
+                        this.pause();
+                        this._pendingRepeatTime = subtitle.start / 1000;
+                    } else {
+                        this.seek(subtitle.start / 1000);
+                    }
+                };
+
+                this.subtitleController.notification('info.enabledRepeatPlayback');
                 break;
             case PlayMode.normal:
-                if (this._playMode === PlayMode.repeat) {
-                    this.subtitleController.notification('info.disabledRepeatPlayback');
-                } else if (this._playMode === PlayMode.autoPause) {
-                    this.subtitleController.notification('info.disabledAutoPause');
-                } else if (this._playMode === PlayMode.condensed) {
-                    this.subtitleController.notification('info.disabledCondensedPlayback');
-                } else if (this._playMode === PlayMode.fastForward) {
-                    this.subtitleController.notification('info.disabledFastForwardPlayback');
-                }
-                changed = true;
+                this.subtitleController.notification('info.disabledAllPlayModes');
                 break;
             default:
-                console.error('Unknown play mode ' + newPlayMode);
-        }
-
-        if (changed) {
-            this._playMode = newPlayMode;
-            this.mobileVideoOverlayController.updateModel();
+                console.error('Unknown play mode ' + mode);
         }
     }
 
@@ -447,6 +505,8 @@ export default class Binding {
     }
 
     _notifyReady() {
+        this._lastKnownTime = this.video.currentTime;
+
         const command: VideoToExtensionCommand<ReadyFromVideoMessage> = {
             sender: 'asbplayer-video',
             message: {
@@ -497,11 +557,20 @@ export default class Binding {
         };
 
         this.seekedListener = (event) => {
+            const currentTime = this.video.currentTime;
+            const timeDifference = Math.abs(currentTime - this._lastKnownTime);
+
+            if (timeDifference > 0.5) {
+                this._pendingRepeatTime = 0;
+            }
+
+            this._lastKnownTime = currentTime;
+
             const currentTimeCommand: VideoToExtensionCommand<CurrentTimeFromVideoMessage> = {
                 sender: 'asbplayer-video',
                 message: {
                     command: 'currentTime',
-                    value: this.video.currentTime,
+                    value: currentTime,
                     echo: false,
                 },
                 src: this.video.src,
@@ -534,7 +603,7 @@ export default class Binding {
 
             browser.runtime.sendMessage(command);
 
-            if (this._synced && this._playMode !== PlayMode.fastForward) {
+            if (this._synced && !this._playModes.has(PlayMode.fastForward)) {
                 this.subtitleController.notification('info.playbackRate', {
                     rate: this.video.playbackRate.toFixed(1),
                 });
@@ -1269,6 +1338,11 @@ export default class Binding {
     }
 
     async play() {
+        if (this._playModes.has(PlayMode.repeat) && this._pendingRepeatTime > 0) {
+            this.seek(this._pendingRepeatTime);
+            this._pendingRepeatTime = 0;
+        }
+
         if (netflix) {
             await this._playNetflix();
             return;
@@ -1419,8 +1493,8 @@ export default class Binding {
         this.subtitleController.subtitleFileNames = subtitleFileNames;
         this.subtitleController.cacheHtml();
 
-        if (this._playMode !== PlayMode.normal && (!subtitles || subtitles.length === 0)) {
-            this.playMode = PlayMode.normal;
+        if (!this._playModes.has(PlayMode.normal) && (!subtitles || subtitles.length === 0)) {
+            this._playModes = new Set([PlayMode.normal]);
         }
 
         let nonEmptyTrackIndex: number[] = [];

@@ -38,6 +38,7 @@ import Clock from '../services/clock';
 import Controls, { Point } from './Controls';
 import PlayerChannel from '../services/player-channel';
 import ChromeExtension from '../services/chrome-extension';
+import PlayModeManager from '../services/play-mode-manager';
 import { type AlertColor } from '@mui/material/Alert';
 import Alert from './Alert';
 import { useSubtitleDomCache } from '../hooks/use-subtitle-dom-cache';
@@ -283,7 +284,7 @@ interface Props {
     onSettingsChanged: (settings: Partial<AsbplayerSettings>) => void;
     onAnkiDialogRewind: () => void;
     onError: (error: string) => void;
-    onPlayModeChangedViaBind: (oldPlayMode: PlayMode, newPlayMode: PlayMode) => void;
+    onPlayModeChangedViaBind: (playModes: Set<PlayMode>, targetMode: PlayMode) => void;
 }
 
 interface IndexedSubtitleModel extends SubtitleModel {
@@ -371,7 +372,7 @@ export default function VideoPlayer({
     const playbackPreferences = usePlaybackPreferences({ ...miscSettings, ...subtitleSettings }, extension);
     const [displaySubtitles, setDisplaySubtitles] = useState(playbackPreferences.displaySubtitles);
     const [disabledSubtitleTracks, setDisabledSubtitleTracks] = useState<{ [index: number]: boolean }>({});
-    const [playMode, setPlayMode] = useState<PlayMode>(PlayMode.normal);
+    const [playModes, setPlayModes] = useState<Set<PlayMode>>(new Set([PlayMode.normal]));
     const [subtitlePlayerHidden, setSubtitlePlayerHidden] = useState<boolean>(false);
     const [appBarHidden, setAppBarHidden] = useState<boolean>(playbackPreferences.theaterMode);
     const [subtitleAlignments, setSubtitleAlignments] = useState<SubtitleAlignment[]>(
@@ -412,21 +413,24 @@ export default function VideoPlayer({
     const autoPauseContext = useMemo(() => {
         const context = new AutoPauseContext();
         context.onStartedShowing = () => {
-            if (playMode !== PlayMode.autoPause || miscSettings.autoPausePreference !== AutoPausePreference.atStart) {
+            if (
+                !playModes.has(PlayMode.autoPause) ||
+                miscSettings.autoPausePreference !== AutoPausePreference.atStart
+            ) {
                 return;
             }
 
             playerChannel.pause();
         };
         context.onWillStopShowing = () => {
-            if (playMode !== PlayMode.autoPause || miscSettings.autoPausePreference !== AutoPausePreference.atEnd) {
+            if (!playModes.has(PlayMode.autoPause) || miscSettings.autoPausePreference !== AutoPausePreference.atEnd) {
                 return;
             }
 
             playerChannel.pause();
         };
         return context;
-    }, [playerChannel, miscSettings, playMode]);
+    }, [playerChannel, miscSettings, playModes]);
     const autoPauseContextRef = useRef<AutoPauseContext>(undefined);
     autoPauseContextRef.current = autoPauseContext;
 
@@ -606,7 +610,9 @@ export default function VideoPlayer({
             autoPauseContextRef.current?.clear();
         });
 
-        playerChannel.onPlayMode((playMode) => setPlayMode(playMode));
+        playerChannel.onPlayModes((modes) => {
+            setPlayModes(modes);
+        });
         playerChannel.onHideSubtitlePlayerToggle((hidden) => setSubtitlePlayerHidden(hidden));
         playerChannel.onAppBarToggle((hidden) => setAppBarHidden(hidden));
         playerChannel.onFullscreenToggle((fullscreen) => requestFullscreen(fullscreen));
@@ -1341,17 +1347,19 @@ export default function VideoPlayer({
     }, [keyBinder, playerChannel]);
 
     const togglePlayMode = useCallback(
-        (event: KeyboardEvent, togglePlayMode: PlayMode) => {
+        (event: KeyboardEvent, targetMode: PlayMode) => {
             if (subtitles.length === 0) {
                 return;
             }
 
             event.preventDefault();
-            const newPlayMode = playMode === togglePlayMode ? PlayMode.normal : togglePlayMode;
-            playerChannel.playMode(newPlayMode);
-            onPlayModeChangedViaBind(playMode, newPlayMode);
+
+            const manager = new PlayModeManager(playModes);
+            const newPlayModes = manager.toggle(targetMode);
+            playerChannel.playModes(newPlayModes);
+            onPlayModeChangedViaBind(playModes, targetMode);
         },
-        [playMode, playerChannel, subtitles, onPlayModeChangedViaBind]
+        [playModes, playerChannel, subtitles, onPlayModeChangedViaBind]
     );
 
     useEffect(() => {
@@ -1410,10 +1418,12 @@ export default function VideoPlayer({
     }, [playerChannel, popOut]);
 
     const handlePlayMode = useCallback(
-        (playMode: PlayMode) => {
-            playerChannel.playMode(playMode);
+        (targetMode: PlayMode) => {
+            const manager = new PlayModeManager(playModes);
+            const newModes = manager.toggle(targetMode);
+            playerChannel.playModes(newModes);
         },
-        [playerChannel]
+        [playerChannel, playModes]
     );
 
     const handleClose = useCallback(() => {
@@ -1601,7 +1611,7 @@ export default function VideoPlayer({
             postMineAction: settings.clickToMineDefaultAction,
             subtitleDisplaying: showSubtitles.length > 0,
             subtitlesAreVisible: displaySubtitles,
-            playMode,
+            playModes: Array.from(playModes),
             themeType: settings.themeType,
         };
     };
@@ -1683,7 +1693,7 @@ export default function VideoPlayer({
                 volumeEnabled={true}
                 popOutEnabled={!isMobile}
                 playModeEnabled={subtitles && subtitles.length > 0}
-                playMode={playMode}
+                playModes={playModes}
                 hideSubtitlePlayerToggleEnabled={
                     subtitles?.length > 0 && !popOut && !fullscreen && !notEnoughRoomForSubtitlePlayer
                 }
