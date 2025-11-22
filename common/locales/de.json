@@ -406,6 +406,7 @@
         "tabName": "Reiterbezeichnung",
         "subtitleRegexFilter": "Untertitelfilter (Regulärer Ausdruck)",
         "subtitleRegexFilterTextReplacement": "Untertitelfilter Ersetzung",
+        "convertNetflixRuby": "Detect and Display Ruby",
         "subtitleHtml": "Subtitle HTML",
         "subtitleHtmlRemove": "Remove",
         "subtitleHtmlRender": "Render",

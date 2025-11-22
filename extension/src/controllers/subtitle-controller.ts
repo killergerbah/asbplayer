@@ -3,6 +3,7 @@ import {
     CopyToClipboardMessage,
     OffsetFromVideoMessage,
     SubtitleModel,
+    SubtitleHtml,
     VideoToExtensionCommand,
 } from '@project/common';
 import {
@@ -13,7 +14,7 @@ import {
     allTextSubtitleSettings,
 } from '@project/common/settings';
 import { SubtitleCollection, SubtitleSlice } from '@project/common/subtitle-collection';
-import { computeStyleString, surroundingSubtitles } from '@project/common/util';
+import { computeStyleString, convertNetflixRubyToHtml, surroundingSubtitles } from '@project/common/util';
 import i18n from 'i18next';
 import {
     CachingElementOverlay,
@@ -69,6 +70,8 @@ export default class SubtitleController {
     surroundingSubtitlesCountRadius: number;
     surroundingSubtitlesTimeRadius: number;
     autoCopyCurrentSubtitle: boolean;
+    convertNetflixRuby: boolean;
+    subtitleHtml: SubtitleHtml;
     _preCacheDom;
 
     readonly autoPauseContext: AutoPauseContext = new AutoPauseContext();
@@ -99,6 +102,8 @@ export default class SubtitleController {
         this.surroundingSubtitlesTimeRadius = 5000;
         this.showingLoadedMessage = false;
         this.autoCopyCurrentSubtitle = false;
+        this.convertNetflixRuby = false;
+        this.subtitleHtml = SubtitleHtml.remove;
         const { subtitlesElementOverlay, topSubtitlesElementOverlay, notificationElementOverlay } = this._overlays();
         this.bottomSubtitlesElementOverlay = subtitlesElementOverlay;
         this.topSubtitlesElementOverlay = topSubtitlesElementOverlay;
@@ -455,9 +460,11 @@ export default class SubtitleController {
     }
 
     private _buildTextHtml(text: string, track?: number) {
+        let processedText = convertNetflixRubyToHtml(text, this.convertNetflixRuby);
+
         return `<span data-track="${track ?? 0}" class="${this._subtitleClasses(track)}" style="${this._subtitleStyles(
             track
-        )}">${text}</span>`;
+        )}">${processedText}</span>`;
     }
 
     unbind() {

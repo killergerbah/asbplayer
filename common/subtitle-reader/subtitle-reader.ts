@@ -58,6 +58,7 @@ const sortVttCues = (list: VTTCue[]) => {
 export default class SubtitleReader {
     private readonly _textFilter?: TextFilter;
     private readonly _removeXml: boolean;
+    private readonly _convertNetflixRuby: boolean;
     private readonly _pgsWorkerFactory: () => Promise<Worker>;
     private xmlParser?: XMLParser;
 
@@ -65,11 +66,13 @@ export default class SubtitleReader {
         regexFilter,
         regexFilterTextReplacement,
         subtitleHtml,
+        convertNetflixRuby,
         pgsParserWorkerFactory: pgsWorkerFactory,
     }: {
         regexFilter: string;
         regexFilterTextReplacement: string;
         subtitleHtml: SubtitleHtml;
+        convertNetflixRuby: boolean;
         pgsParserWorkerFactory: () => Promise<Worker>;
     }) {
         let regex: RegExp | undefined;
@@ -87,6 +90,7 @@ export default class SubtitleReader {
         }
 
         this._removeXml = subtitleHtml === SubtitleHtml.remove;
+        this._convertNetflixRuby = convertNetflixRuby;
 
         this._pgsWorkerFactory = pgsWorkerFactory;
     }
@@ -488,13 +492,11 @@ export default class SubtitleReader {
     private _decodeHTML(text: string): string {
         helperElement.innerHTML = text;
 
-        // Remove <rt> element content
         const rubyTextElements = [...helperElement.getElementsByTagName('rt')];
         for (const rubyTextElement of rubyTextElements) {
             rubyTextElement.remove();
         }
 
-        // Remove all HTML tags
         return helperElement.textContent ?? helperElement.innerText;
     }
 

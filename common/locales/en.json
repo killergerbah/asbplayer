@@ -406,6 +406,7 @@
         "tabName": "Name of the tab",
         "subtitleRegexFilter": "Subtitle regex filter",
         "subtitleRegexFilterTextReplacement": "Subtitle regex filter text replacement",
+        "convertNetflixRuby": "Detect and Display Ruby",
         "subtitleHtml": "Subtitle HTML",
         "subtitleHtmlRemove": "Remove",
         "subtitleHtmlRender": "Render",

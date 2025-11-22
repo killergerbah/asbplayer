@@ -406,6 +406,7 @@
         "tabName": "Nama Tab",
         "subtitleRegexFilter": "Filter regex takarir",
         "subtitleRegexFilterTextReplacement": "Penggantian teks filter regex takarir",
+        "convertNetflixRuby": "Detect and Display Ruby",
         "subtitleHtml": "HTML Takarir",
         "subtitleHtmlRemove": "Hapus",
         "subtitleHtmlRender": "Render",
