@@ -3,10 +3,10 @@ import SrtParser from '@qgustavor/srt-parser';
 import { WebVTT } from 'vtt.js';
 import { XMLParser } from 'fast-xml-parser';
 import { SubtitleHtml, SubtitleTextImage } from '@project/common';
-import { convertNetflixRubyToHtml } from '../util';
 
 const vttClassRegex = /<(\/)?c(\.[^>]*)?>/g;
 const assNewLineRegex = RegExp(/\\[nN]/, 'ig');
+const netflixRubyRegex = /([\p{sc=Hira}\p{sc=Kana}\p{sc=Han}々〆〤ヶ]+)\((?=[^)]*[\p{sc=Hira}\p{sc=Kana}])([^)]+)\)/gu;
 const helperElement = document.createElement('div');
 
 interface SubtitleNode {
@@ -501,6 +501,12 @@ export default class SubtitleReader {
         return helperElement.textContent ?? helperElement.innerText;
     }
 
+    private _convertNetflixRubyToHtml(text: string, enabled: boolean): string {
+        if (!enabled) return text;
+
+        return text.replace(netflixRubyRegex, (_match, base, ruby) => `<ruby><rb>${base}</rb><rt>${ruby}</rt></ruby>`);
+    }
+
     private _xmlParser() {
         if (this.xmlParser === undefined) {
             this.xmlParser = new XMLParser({
@@ -518,7 +524,7 @@ export default class SubtitleReader {
                 ? text
                 : text.replace(this._textFilter.regex, this._textFilter.replacement).trim();
 
-        text = convertNetflixRubyToHtml(text, this._convertNetflixRuby);
+        text = this._convertNetflixRubyToHtml(text, this._convertNetflixRuby);
 
         if (this._removeXml) {
             text = this._decodeHTML(text);
