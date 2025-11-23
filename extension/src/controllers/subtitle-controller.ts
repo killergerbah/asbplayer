@@ -14,7 +14,7 @@ import {
     allTextSubtitleSettings,
 } from '@project/common/settings';
 import { SubtitleCollection, SubtitleSlice } from '@project/common/subtitle-collection';
-import { computeStyleString, convertNetflixRubyToHtml, surroundingSubtitles } from '@project/common/util';
+import { computeStyleString, surroundingSubtitles } from '@project/common/util';
 import i18n from 'i18next';
 import {
     CachingElementOverlay,
@@ -460,11 +460,9 @@ export default class SubtitleController {
     }
 
     private _buildTextHtml(text: string, track?: number) {
-        let processedText = convertNetflixRubyToHtml(text, this.convertNetflixRuby);
-
         return `<span data-track="${track ?? 0}" class="${this._subtitleClasses(track)}" style="${this._subtitleStyles(
             track
-        )}">${processedText}</span>`;
+        )}">${text}</span>`;
     }
 
     unbind() {

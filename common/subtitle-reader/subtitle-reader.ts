@@ -3,6 +3,7 @@ import SrtParser from '@qgustavor/srt-parser';
 import { WebVTT } from 'vtt.js';
 import { XMLParser } from 'fast-xml-parser';
 import { SubtitleHtml, SubtitleTextImage } from '@project/common';
+import { convertNetflixRubyToHtml } from '../util';
 
 const vttClassRegex = /<(\/)?c(\.[^>]*)?>/g;
 const assNewLineRegex = RegExp(/\\[nN]/, 'ig');
@@ -516,6 +517,8 @@ export default class SubtitleReader {
             this._textFilter === undefined
                 ? text
                 : text.replace(this._textFilter.regex, this._textFilter.replacement).trim();
+
+        text = convertNetflixRubyToHtml(text, this._convertNetflixRuby);
 
         if (this._removeXml) {
             text = this._decodeHTML(text);
