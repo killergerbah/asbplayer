@@ -74,6 +74,7 @@ export default function SidePanel({ settings, extension }: Props) {
                 regexFilter: settings.subtitleRegexFilter,
                 regexFilterTextReplacement: settings.subtitleRegexFilterTextReplacement,
                 subtitleHtml: settings.subtitleHtml,
+                convertNetflixRuby: settings.convertNetflixRuby,
                 pgsParserWorkerFactory,
             }),
         [settings]

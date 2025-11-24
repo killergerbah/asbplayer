@@ -84,6 +84,22 @@
     white-space: pre-wrap !important;
 }
 
+.asbplayer-subtitles ruby,
+.asbplayer-fullscreen-subtitles ruby {
+    ruby-position: over !important;
+}
+
+.asbplayer-subtitles rt,
+.asbplayer-fullscreen-subtitles rt {
+    font-size: 0.5em !important;
+    line-height: 1 !important;
+}
+
+.asbplayer-subtitles rb,
+.asbplayer-fullscreen-subtitles rb {
+    ruby-position: under !important;
+}
+
 .asbplayer-ui-frame {
     position: fixed !important;
     top: 0 !important;

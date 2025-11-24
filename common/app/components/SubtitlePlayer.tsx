@@ -18,6 +18,7 @@ import { useTranslation } from 'react-i18next';
 import {
     PostMineAction,
     SubtitleModel,
+    SubtitleHtml,
     AutoPauseContext,
     CopySubtitleWithAdditionalFieldsMessage,
     CardTextFieldValues,
@@ -169,6 +170,13 @@ const useSubtitleRowStyles = makeStyles<Theme>((theme) => ({
         width: '100%',
         overflowWrap: 'anywhere',
         whiteSpace: 'pre-wrap',
+        '& ruby': {
+            rubyPosition: 'over',
+        },
+        '& rt': {
+            fontSize: '0.5em',
+            lineHeight: 1,
+        },
     },
     compressedSubtitle: {
         fontSize: 16,
@@ -176,6 +184,13 @@ const useSubtitleRowStyles = makeStyles<Theme>((theme) => ({
         width: '100%',
         overflowWrap: 'anywhere',
         whiteSpace: 'pre-wrap',
+        '& ruby': {
+            rubyPosition: 'over',
+        },
+        '& rt': {
+            fontSize: '0.5em',
+            lineHeight: 1,
+        },
     },
     disabledSubtitle: {
         color: 'transparent',
@@ -219,6 +234,7 @@ interface SubtitleRowProps extends TableRowProps {
     subtitleRef: RefObject<HTMLTableRowElement | null>;
     onClickSubtitle: (index: number) => void;
     onCopySubtitle: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>, index: number) => void;
+    subtitleHtml: SubtitleHtml;
 }
 
 const SubtitleRow = React.memo(function SubtitleRow({
@@ -231,6 +247,7 @@ const SubtitleRow = React.memo(function SubtitleRow({
     disabled,
     subtitle,
     showCopyButton,
+    subtitleHtml,
 }: SubtitleRowProps) {
     const classes = useSubtitleRowStyles();
     const textRef = useRef<HTMLSpanElement>(null);
@@ -1128,6 +1145,7 @@ export default function SubtitlePlayer({
                                     subtitleRef={subtitleRefs[index]}
                                     onClickSubtitle={handleClick}
                                     onCopySubtitle={handleCopy}
+                                    subtitleHtml={settings.subtitleHtml}
                                 />
                             );
                         })}

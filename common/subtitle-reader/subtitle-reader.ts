@@ -6,6 +6,7 @@ import { SubtitleHtml, SubtitleTextImage } from '@project/common';
 
 const vttClassRegex = /<(\/)?c(\.[^>]*)?>/g;
 const assNewLineRegex = RegExp(/\\[nN]/, 'ig');
+const netflixRubyRegex = /([\p{sc=Hira}\p{sc=Kana}\p{sc=Han}々〆〤ヶ]+)\((?=[^)]*[\p{sc=Hira}\p{sc=Kana}])([^)]+)\)/gu;
 const helperElement = document.createElement('div');
 
 interface SubtitleNode {
@@ -58,6 +59,7 @@ const sortVttCues = (list: VTTCue[]) => {
 export default class SubtitleReader {
     private readonly _textFilter?: TextFilter;
     private readonly _removeXml: boolean;
+    private readonly _convertNetflixRuby: boolean;
     private readonly _pgsWorkerFactory: () => Promise<Worker>;
     private xmlParser?: XMLParser;
 
@@ -65,11 +67,13 @@ export default class SubtitleReader {
         regexFilter,
         regexFilterTextReplacement,
         subtitleHtml,
+        convertNetflixRuby,
         pgsParserWorkerFactory: pgsWorkerFactory,
     }: {
         regexFilter: string;
         regexFilterTextReplacement: string;
         subtitleHtml: SubtitleHtml;
+        convertNetflixRuby: boolean;
         pgsParserWorkerFactory: () => Promise<Worker>;
     }) {
         let regex: RegExp | undefined;
@@ -87,6 +91,7 @@ export default class SubtitleReader {
         }
 
         this._removeXml = subtitleHtml === SubtitleHtml.remove;
+        this._convertNetflixRuby = convertNetflixRuby;
 
         this._pgsWorkerFactory = pgsWorkerFactory;
     }
@@ -488,14 +493,18 @@ export default class SubtitleReader {
     private _decodeHTML(text: string): string {
         helperElement.innerHTML = text;
 
-        // Remove <rt> element content
         const rubyTextElements = [...helperElement.getElementsByTagName('rt')];
         for (const rubyTextElement of rubyTextElements) {
             rubyTextElement.remove();
         }
 
-        // Remove all HTML tags
         return helperElement.textContent ?? helperElement.innerText;
+    }
+
+    private _convertNetflixRubyToHtml(text: string, enabled: boolean): string {
+        if (!enabled) return text;
+
+        return text.replace(netflixRubyRegex, (_match, base, ruby) => `<ruby><rb>${base}</rb><rt>${ruby}</rt></ruby>`);
     }
 
     private _xmlParser() {
@@ -514,6 +523,8 @@ export default class SubtitleReader {
             this._textFilter === undefined
                 ? text
                 : text.replace(this._textFilter.regex, this._textFilter.replacement).trim();
+
+        text = this._convertNetflixRubyToHtml(text, this._convertNetflixRuby);
 
         if (this._removeXml) {
             text = this._decodeHTML(text);

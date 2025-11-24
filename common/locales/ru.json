@@ -406,6 +406,7 @@
         "tabName": "Название вкладки",
         "subtitleRegexFilter": "Пропускать субтитры через фильтр с регулярным выражением",
         "subtitleRegexFilterTextReplacement": "Текст на замену при использовании регулярных выражений",
+        "convertNetflixRuby": "Detect and Display Ruby",
         "subtitleHtml": "HTML субтитров",
         "subtitleHtmlRemove": "Убрать",
         "subtitleHtmlRender": "Рендерить",

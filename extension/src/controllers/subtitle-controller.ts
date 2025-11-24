@@ -3,6 +3,7 @@ import {
     CopyToClipboardMessage,
     OffsetFromVideoMessage,
     SubtitleModel,
+    SubtitleHtml,
     VideoToExtensionCommand,
 } from '@project/common';
 import {
@@ -69,6 +70,8 @@ export default class SubtitleController {
     surroundingSubtitlesCountRadius: number;
     surroundingSubtitlesTimeRadius: number;
     autoCopyCurrentSubtitle: boolean;
+    convertNetflixRuby: boolean;
+    subtitleHtml: SubtitleHtml;
     _preCacheDom;
 
     readonly autoPauseContext: AutoPauseContext = new AutoPauseContext();
@@ -99,6 +102,8 @@ export default class SubtitleController {
         this.surroundingSubtitlesTimeRadius = 5000;
         this.showingLoadedMessage = false;
         this.autoCopyCurrentSubtitle = false;
+        this.convertNetflixRuby = false;
+        this.subtitleHtml = SubtitleHtml.remove;
         const { subtitlesElementOverlay, topSubtitlesElementOverlay, notificationElementOverlay } = this._overlays();
         this.bottomSubtitlesElementOverlay = subtitlesElementOverlay;
         this.topSubtitlesElementOverlay = topSubtitlesElementOverlay;
