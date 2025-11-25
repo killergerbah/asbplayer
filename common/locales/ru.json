@@ -451,7 +451,6 @@
         "dictionaryYomitanUrl": "Yomitan API URL",
         "dictionaryYomitanScanLength": "Максимальная длина слова",
         "dictionaryAnkiSection": "Настройки Anki",
-        "dictionaryAnkiEnabled": "Использовать Anki для статуса узнаваемости",
         "dictionaryAnkiWordFields": "Поля Anki для слова",
         "dictionaryAnkiSentenceFields": "Поля Anki для предложения",
         "dictionarySelectAnkiFields": "Выберите поля Anki для поиска...",

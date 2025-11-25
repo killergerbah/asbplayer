@@ -451,7 +451,6 @@
         "dictionaryYomitanUrl": "Yomitan API URL",
         "dictionaryYomitanScanLength": "Panjang Kata Maksimum",
         "dictionaryAnkiSection": "Konfigurasi Anki",
-        "dictionaryAnkiEnabled": "Gunakan Anki untuk status dikenal",
         "dictionaryAnkiWordFields": "Kolom Kata Anki",
         "dictionaryAnkiSentenceFields": "Kolom Kalimat Anki",
         "dictionarySelectAnkiFields": "Pilih kolom Anki untuk pencarian...",

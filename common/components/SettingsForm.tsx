@@ -78,7 +78,6 @@ import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
-import Checkbox from '@mui/material/Checkbox';
 import Popover from '@mui/material/Popover';
 import Slider from '@mui/material/Slider';
 import Tab from '@mui/material/Tab';
@@ -2422,24 +2421,6 @@ export default function SettingsForm({
                     />
                     <Divider />
                     <Typography variant="h6">{t('settings.dictionaryAnkiSection')}</Typography>
-                    <LabelWithHoverEffect
-                        control={
-                            <Switch
-                                checked={selectedDictionary.dictionaryAnkiEnabled}
-                                onChange={(e) => {
-                                    const newTracks = [...dictionaryTracks];
-                                    newTracks[selectedDictionaryTrack] = {
-                                        ...newTracks[selectedDictionaryTrack],
-                                        dictionaryAnkiEnabled: e.target.checked,
-                                    };
-                                    handleSettingChanged('dictionaryTracks', newTracks);
-                                }}
-                            />
-                        }
-                        label={t('settings.dictionaryAnkiEnabled')}
-                        labelPlacement="start"
-                        className={classes.switchLabel}
-                    />
                     <Autocomplete
                         multiple
                         options={allFieldNames ?? []}

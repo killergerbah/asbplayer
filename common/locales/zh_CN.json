@@ -451,7 +451,6 @@
         "dictionaryYomitanUrl": "Yomitan API URL",
         "dictionaryYomitanScanLength": "最大单词长度",
         "dictionaryAnkiSection": "Anki 配置",
-        "dictionaryAnkiEnabled": "使用 Anki 判定已掌握状态",
         "dictionaryAnkiWordFields": "Anki 单词字段",
         "dictionaryAnkiSentenceFields": "Anki 句子字段",
         "dictionarySelectAnkiFields": "选择用于查找的 Anki 字段...",

@@ -126,10 +126,6 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
         return dt.dictionaryColorizeSubtitles;
     }
 
-    private _dictionaryTrackAnkiEnabled(dt: DictionaryTrack) {
-        return this._dictionaryTrackEnabled(dt) && dt.dictionaryAnkiEnabled;
-    }
-
     private _tokenStatusValid(tokenStatus: TokenStatus | undefined | null) {
         if (tokenStatus === undefined || tokenStatus === null) return false;
         if (tokenStatus === TokenStatus.UNCOLLECTED) return !this.uncollectedNeedsRefresh;
@@ -146,7 +142,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
     private async _updateAnkiCache() {
         if (!this.anki) return;
         for (const ts of this.trackStates) {
-            if (!this._dictionaryTrackAnkiEnabled(ts.dt)) continue;
+            if (!this._dictionaryTrackEnabled(ts.dt)) continue;
             const fields = [...ts.dt.dictionaryAnkiWordFields, ...ts.dt.dictionaryAnkiSentenceFields]
                 .map((field) => `"${field}:_*"`)
                 .join(' OR ');
@@ -157,13 +153,13 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
 
             // AnkiConnect doesn't expose Stability but we can retrieve it using search queries, stability is undefined for new cards
             ts.ankiCardIdStatuses = new Map<number, TokenStatus>();
-            (await this.anki.findCards(`prop:ivl=0 (${fields})`)).forEach((c) =>
+            (await this.anki.findCards(`is:new (${fields})`)).forEach((c) =>
                 ts.ankiCardIdStatuses.set(c, TokenStatus.UNKNOWN)
             );
-            (await this.anki.findCards(`${prop}>0 ${prop}<1 (${fields})`)).forEach((c) =>
+            (await this.anki.findCards(`is:learn (${fields})`)).forEach((c) =>
                 ts.ankiCardIdStatuses.set(c, TokenStatus.LEARNING)
             );
-            (await this.anki.findCards(`${prop}>=1 ${prop}<${graduatedCutoff} (${fields})`)).forEach((c) =>
+            (await this.anki.findCards(`-is:new -is:learn ${prop}<${graduatedCutoff} (${fields})`)).forEach((c) =>
                 ts.ankiCardIdStatuses.set(c, TokenStatus.GRADUATED)
             );
             (await this.anki.findCards(`${prop}>=${graduatedCutoff} ${prop}<${matureCutoff} (${fields})`)).forEach(
@@ -180,7 +176,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
 
         const allFieldsSet: Set<string> = new Set();
         for (const ts of this.trackStates) {
-            if (!this._dictionaryTrackAnkiEnabled(ts.dt)) continue;
+            if (!this._dictionaryTrackEnabled(ts.dt)) continue;
             [...ts.dt.dictionaryAnkiWordFields, ...ts.dt.dictionaryAnkiSentenceFields].forEach((field) =>
                 allFieldsSet.add(field)
             );
@@ -196,12 +192,12 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                 }
                 return;
             }
-            this.uncollectedNeedsRefresh = true;
             this.ankiRecentlyModifiedCardIds = new Set(cardIds);
             if (this.ankiRecentlyModifiedFirstCheck) {
                 this.ankiRecentlyModifiedFirstCheck = false;
                 return;
             }
+            this.uncollectedNeedsRefresh = true;
             await this._updateAnkiCache();
         } catch (e) {
             console.error(`Error checking Anki recently modified cards:`, e);
@@ -306,7 +302,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                     console.warn(`YomitanTrack${ts.track + 1} version request failed:`, e);
                 }
             }
-            if (!this.anki && this.trackStates.some((t) => this._dictionaryTrackAnkiEnabled(t.dt))) {
+            if (!this.anki && this.trackStates.some((t) => this._dictionaryTrackEnabled(t.dt))) {
                 try {
                     this.anki = new Anki(this.settings!, this.fetcher);
                     const permission = (await this.anki.requestPermission()).permission;
@@ -320,6 +316,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
 
             if (this.uncollectedNeedsRefresh) {
                 uncollectedWasRefreshed = true;
+                this.anki?.resetCache(); // If a new card was added, it could be for any token
                 const existingIndexes = new Set(subtitles.map((s) => s.index));
                 const newSubtitles = subtitles.slice();
                 for (const index of this.uncollectedCache) {
@@ -414,51 +411,18 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                     continue;
                 }
 
-                let shouldCheckExactFormWordField = true;
-                if (ts.dt.dictionaryTokenMatchStrategy === TokenMatchStrategy.LEMMA_FORM_COLLECTED) {
-                    const tokenLemmas = await this.yomitan.lemmatize(
-                        ts.track,
-                        trimmedToken,
-                        ts.dt.dictionaryYomitanUrl
-                    );
-                    if (this.shouldCancelBuild) return;
-                    if (tokenLemmas.length) shouldCheckExactFormWordField = false;
-                }
-                let shouldCheckExactFormSentenceField = true;
-                if (ts.dt.dictionaryAnkiSentenceTokenMatchStrategy === TokenMatchStrategy.LEMMA_FORM_COLLECTED) {
-                    const tokenLemmas = await this.yomitan.lemmatize(
-                        ts.track,
-                        trimmedToken,
-                        ts.dt.dictionaryYomitanUrl
-                    );
-                    if (this.shouldCancelBuild) return;
-                    if (tokenLemmas.length) shouldCheckExactFormSentenceField = false;
-                }
-
                 let tokenStatus: TokenStatus | null = null;
                 switch (ts.dt.dictionaryTokenMatchStrategyPriority) {
                     case TokenMatchStrategyPriority.EXACT:
-                        tokenStatus = await this._handlePriorityExact({
-                            trimmedToken,
-                            ts,
-                            shouldCheckExactFormWordField,
-                            shouldCheckExactFormSentenceField,
-                        });
+                        tokenStatus = await this._handlePriorityExact({ trimmedToken, ts });
                         break;
                     case TokenMatchStrategyPriority.LEMMA:
-                        tokenStatus = await this._handlePriorityLemma({
-                            trimmedToken,
-                            ts,
-                            shouldCheckExactFormWordField,
-                            shouldCheckExactFormSentenceField,
-                        });
+                        tokenStatus = await this._handlePriorityLemma({ trimmedToken, ts });
                         break;
                     case TokenMatchStrategyPriority.BEST_KNOWN:
                         tokenStatus = await this._handlePriorityKnown({
                             trimmedToken,
                             ts,
-                            shouldCheckExactFormWordField,
-                            shouldCheckExactFormSentenceField,
                             cmp: (a, b) => (a > b ? a : b),
                         });
                         break;
@@ -466,8 +430,6 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                         tokenStatus = await this._handlePriorityKnown({
                             trimmedToken,
                             ts,
-                            shouldCheckExactFormWordField,
-                            shouldCheckExactFormSentenceField,
                             cmp: (a, b) => (a < b ? a : b),
                         });
                         break;
@@ -494,39 +456,34 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
         }
     }
 
-    private async _handlePriorityExact(options: {
-        trimmedToken: string;
-        ts: TrackState;
-        shouldCheckExactFormWordField: boolean;
-        shouldCheckExactFormSentenceField: boolean;
-    }): Promise<TokenStatus | null> {
-        const { trimmedToken, ts, shouldCheckExactFormWordField, shouldCheckExactFormSentenceField } = options;
-        if (shouldCheckExactFormWordField) {
-            const tokenStatus = await this._getWordFieldColor({ token: trimmedToken, ts });
+    private async _handlePriorityExact(options: { trimmedToken: string; ts: TrackState }): Promise<TokenStatus | null> {
+        const { trimmedToken, ts } = options;
+        if (ts.dt.dictionaryTokenMatchStrategy !== TokenMatchStrategy.LEMMA_FORM_COLLECTED) {
+            const tokenStatus = await this._getWordFieldColor({ trimmedToken, ts });
             if (this.shouldCancelBuild) return null;
             if (tokenStatus !== TokenStatus.UNCOLLECTED) return tokenStatus;
         }
         if (ts.dt.dictionaryTokenMatchStrategy !== TokenMatchStrategy.EXACT_FORM_COLLECTED) {
             const tokenStatus = await this._handleLemmatize({
-                token: trimmedToken,
+                trimmedToken,
                 ts,
                 cacheUncollected: !ts.dt.dictionaryAnkiSentenceFields.length,
-                getFieldColor: (token) => this._getWordFieldColor({ token, ts }),
+                getFieldColor: (trimmedToken) => this._getWordFieldColor({ trimmedToken, ts }),
             });
             if (this.shouldCancelBuild) return null;
             if (tokenStatus !== TokenStatus.UNCOLLECTED) return tokenStatus;
         }
-        if (shouldCheckExactFormSentenceField) {
-            const tokenStatus = await this._getSentenceFieldColor({ token: trimmedToken, ts });
+        if (ts.dt.dictionaryAnkiSentenceTokenMatchStrategy !== TokenMatchStrategy.LEMMA_FORM_COLLECTED) {
+            const tokenStatus = await this._getSentenceFieldColor({ trimmedToken, ts });
             if (this.shouldCancelBuild) return null;
             if (tokenStatus !== TokenStatus.UNCOLLECTED) return tokenStatus;
         }
         if (ts.dt.dictionaryAnkiSentenceTokenMatchStrategy !== TokenMatchStrategy.EXACT_FORM_COLLECTED) {
             const tokenStatus = await this._handleLemmatize({
-                token: trimmedToken,
+                trimmedToken,
                 ts,
                 cacheUncollected: true,
-                getFieldColor: (token) => this._getSentenceFieldColor({ token, ts }),
+                getFieldColor: (token) => this._getSentenceFieldColor({ trimmedToken, ts }),
             });
             if (this.shouldCancelBuild) return null;
             if (tokenStatus !== TokenStatus.UNCOLLECTED) return tokenStatus;
@@ -534,40 +491,35 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
         return TokenStatus.UNCOLLECTED;
     }
 
-    private async _handlePriorityLemma(options: {
-        trimmedToken: string;
-        ts: TrackState;
-        shouldCheckExactFormWordField: boolean;
-        shouldCheckExactFormSentenceField: boolean;
-    }): Promise<TokenStatus | null> {
-        const { trimmedToken, ts, shouldCheckExactFormWordField, shouldCheckExactFormSentenceField } = options;
+    private async _handlePriorityLemma(options: { trimmedToken: string; ts: TrackState }): Promise<TokenStatus | null> {
+        const { trimmedToken, ts } = options;
         if (ts.dt.dictionaryTokenMatchStrategy !== TokenMatchStrategy.EXACT_FORM_COLLECTED) {
             const tokenStatus = await this._handleLemmatize({
-                token: trimmedToken,
+                trimmedToken,
                 ts,
                 cacheUncollected: !ts.dt.dictionaryAnkiSentenceFields.length,
-                getFieldColor: (token) => this._getWordFieldColor({ token, ts }),
+                getFieldColor: (token) => this._getWordFieldColor({ trimmedToken, ts }),
             });
             if (this.shouldCancelBuild) return null;
             if (tokenStatus !== TokenStatus.UNCOLLECTED) return tokenStatus;
         }
-        if (shouldCheckExactFormWordField) {
-            const tokenStatus = await this._getWordFieldColor({ token: trimmedToken, ts });
+        if (ts.dt.dictionaryTokenMatchStrategy !== TokenMatchStrategy.LEMMA_FORM_COLLECTED) {
+            const tokenStatus = await this._getWordFieldColor({ trimmedToken, ts });
             if (this.shouldCancelBuild) return null;
             if (tokenStatus !== TokenStatus.UNCOLLECTED) return tokenStatus;
         }
         if (ts.dt.dictionaryAnkiSentenceTokenMatchStrategy !== TokenMatchStrategy.EXACT_FORM_COLLECTED) {
             const tokenStatus = await this._handleLemmatize({
-                token: trimmedToken,
+                trimmedToken,
                 ts,
                 cacheUncollected: true,
-                getFieldColor: (token) => this._getSentenceFieldColor({ token, ts }),
+                getFieldColor: (trimmedToken) => this._getSentenceFieldColor({ trimmedToken, ts }),
             });
             if (this.shouldCancelBuild) return null;
             if (tokenStatus !== TokenStatus.UNCOLLECTED) return tokenStatus;
         }
-        if (shouldCheckExactFormSentenceField) {
-            const tokenStatus = await this._getSentenceFieldColor({ token: trimmedToken, ts });
+        if (ts.dt.dictionaryAnkiSentenceTokenMatchStrategy !== TokenMatchStrategy.LEMMA_FORM_COLLECTED) {
+            const tokenStatus = await this._getSentenceFieldColor({ trimmedToken, ts });
             if (this.shouldCancelBuild) return null;
             if (tokenStatus !== TokenStatus.UNCOLLECTED) return tokenStatus;
         }
@@ -577,14 +529,12 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
     private async _handlePriorityKnown(options: {
         trimmedToken: string;
         ts: TrackState;
-        shouldCheckExactFormWordField: boolean;
-        shouldCheckExactFormSentenceField: boolean;
         cmp: (a: TokenStatus, b: TokenStatus) => TokenStatus;
     }): Promise<TokenStatus | null> {
-        const { trimmedToken, ts, shouldCheckExactFormWordField, shouldCheckExactFormSentenceField, cmp } = options;
+        const { trimmedToken, ts, cmp } = options;
         let tokenStatusExact: TokenStatus = TokenStatus.UNCOLLECTED;
-        if (shouldCheckExactFormWordField) {
-            const tokenStatus = await this._getWordFieldColor({ token: trimmedToken, ts });
+        if (ts.dt.dictionaryTokenMatchStrategy !== TokenMatchStrategy.LEMMA_FORM_COLLECTED) {
+            const tokenStatus = await this._getWordFieldColor({ trimmedToken, ts });
             if (this.shouldCancelBuild) return null;
             if (tokenStatus === null) return tokenStatus;
             tokenStatusExact = tokenStatus;
@@ -592,10 +542,10 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
         let tokenStatusLemma: TokenStatus = TokenStatus.UNCOLLECTED;
         if (ts.dt.dictionaryTokenMatchStrategy !== TokenMatchStrategy.EXACT_FORM_COLLECTED) {
             const tokenStatus = await this._handleLemmatize({
-                token: trimmedToken,
+                trimmedToken,
                 ts,
                 cacheUncollected: !ts.dt.dictionaryAnkiSentenceFields.length,
-                getFieldColor: (token) => this._getWordFieldColor({ token, ts }),
+                getFieldColor: (trimmedToken) => this._getWordFieldColor({ trimmedToken, ts }),
             });
             if (this.shouldCancelBuild) return null;
             if (tokenStatus === null) return tokenStatus;
@@ -605,18 +555,18 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
             return cmp(tokenStatusExact, tokenStatusLemma);
         }
 
-        if (shouldCheckExactFormSentenceField) {
-            const tokenStatus = await this._getSentenceFieldColor({ token: trimmedToken, ts });
+        if (ts.dt.dictionaryAnkiSentenceTokenMatchStrategy !== TokenMatchStrategy.LEMMA_FORM_COLLECTED) {
+            const tokenStatus = await this._getSentenceFieldColor({ trimmedToken, ts });
             if (this.shouldCancelBuild) return null;
             if (tokenStatus === null) return tokenStatus;
             tokenStatusExact = tokenStatus;
         }
         if (ts.dt.dictionaryAnkiSentenceTokenMatchStrategy !== TokenMatchStrategy.EXACT_FORM_COLLECTED) {
             const tokenStatus = await this._handleLemmatize({
-                token: trimmedToken,
+                trimmedToken,
                 ts,
                 cacheUncollected: true,
-                getFieldColor: (token) => this._getSentenceFieldColor({ token, ts }),
+                getFieldColor: (trimmedToken) => this._getSentenceFieldColor({ trimmedToken, ts }),
             });
             if (this.shouldCancelBuild) return null;
             if (tokenStatus === null) return tokenStatus;
@@ -626,14 +576,14 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
     }
 
     private async _handleLemmatize(options: {
-        token: string;
+        trimmedToken: string;
         ts: TrackState;
         cacheUncollected: boolean;
         getFieldColor: (token: string) => Promise<TokenStatus | null>;
     }): Promise<TokenStatus | null> {
-        const { token, ts, cacheUncollected, getFieldColor } = options;
+        const { trimmedToken, ts, cacheUncollected, getFieldColor } = options;
 
-        const tokenLemmas = await this.yomitan.lemmatize(ts.track, token, ts.dt.dictionaryYomitanUrl);
+        const tokenLemmas = await this.yomitan.lemmatize(ts.track, trimmedToken, ts.dt.dictionaryYomitanUrl);
         if (this.shouldCancelBuild) return null;
         for (const tokenLemma of tokenLemmas) {
             const cachedTokenLemma = ts.tokenStatusCache.get(tokenLemma);
@@ -649,29 +599,36 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
         return TokenStatus.UNCOLLECTED;
     }
 
-    private async _getWordFieldColor(options: { token: string; ts: TrackState }): Promise<TokenStatus | null> {
-        const { token, ts } = options;
+    private async _getWordFieldColor(options: { trimmedToken: string; ts: TrackState }): Promise<TokenStatus | null> {
+        const { trimmedToken, ts } = options;
         try {
             if (!this.anki) throw new Error('Anki not initialized');
-            let cardIds = await this.anki.findCardsWithWord(token, ts.dt.dictionaryAnkiWordFields);
+            let cardIds = await this.anki.findCardsWithWord(ts.track, trimmedToken, ts.dt.dictionaryAnkiWordFields);
             if (!cardIds.length) return TokenStatus.UNCOLLECTED;
             if (this.shouldCancelBuild) return null;
             return this._getTokenStatusFromCutoff({ cardIds, ts });
         } catch (error) {
             this.tokenRequestFailed = true;
             console.error(
-                `Error getting color for Track${ts.track + 1} using word fields for token "${token}":`,
+                `Error getting color for Track${ts.track + 1} using word fields for token "${trimmedToken}":`,
                 error
             );
             return null;
         }
     }
 
-    private async _getSentenceFieldColor(options: { token: string; ts: TrackState }): Promise<TokenStatus | null> {
-        const { token, ts } = options;
+    private async _getSentenceFieldColor(options: {
+        trimmedToken: string;
+        ts: TrackState;
+    }): Promise<TokenStatus | null> {
+        const { trimmedToken, ts } = options;
         try {
             if (!this.anki) throw new Error('Anki not initialized');
-            const cardIds = await this.anki.findCardsContainingWord(token, ts.dt.dictionaryAnkiSentenceFields);
+            const cardIds = await this.anki.findCardsContainingWord(
+                ts.track,
+                trimmedToken,
+                ts.dt.dictionaryAnkiSentenceFields
+            );
             if (!cardIds.length) return TokenStatus.UNCOLLECTED;
             if (this.shouldCancelBuild) return null;
             const rawCardInfos = await this.anki.cardsInfo(cardIds);
@@ -694,7 +651,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                             )
                         ).map((t) => t.trim());
                         if (this.shouldCancelBuild) return false;
-                        if (fieldTokens.includes(token)) return true;
+                        if (fieldTokens.includes(trimmedToken)) return true;
                         if (ts.dt.dictionaryAnkiSentenceTokenMatchStrategy !== TokenMatchStrategy.ANY_FORM_COLLECTED) {
                             continue;
                         }
@@ -705,7 +662,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                                 ts.dt.dictionaryYomitanUrl
                             );
                             if (this.shouldCancelBuild) return false;
-                            if (fieldTokenLemmas.includes(token)) return true;
+                            if (fieldTokenLemmas.includes(trimmedToken)) return true;
                         }
                     }
                     return false;
@@ -718,7 +675,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
         } catch (error) {
             this.tokenRequestFailed = true;
             console.error(
-                `Error getting color for Track${ts.track + 1} using sentence fields for token "${token}":`,
+                `Error getting color for Track${ts.track + 1} using sentence fields for token "${trimmedToken}":`,
                 error
             );
             return null;

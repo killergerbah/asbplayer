@@ -21,9 +21,6 @@ class SettingsAccessor {
     get dictionaryYomitanScanLength() {
         return this.settings.dictionaryYomitanScanLength;
     }
-    get dictionaryAnkiEnabled() {
-        return this.settings.dictionaryAnkiEnabled;
-    }
     get dictionaryAnkiWordFields() {
         return this.settings.dictionaryAnkiWordFields;
     }

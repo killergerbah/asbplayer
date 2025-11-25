@@ -171,14 +171,26 @@ export class DuplicateNoteError extends Error {
 export class Anki {
     private readonly settingsProvider: AnkiSettings;
     private readonly fetcher: Fetcher;
+    private readonly wordCardCache: Map<number, Map<string, number[]>>;
+    private readonly sentenceCardCache: Map<number, Map<string, number[]>>;
+    private readonly cardInfoCache: Map<number, any>;
 
     constructor(settingsProvider: AnkiSettings, fetcher = new HttpFetcher()) {
         this.settingsProvider = settingsProvider;
         this.fetcher = fetcher;
+        this.wordCardCache = new Map();
+        this.sentenceCardCache = new Map();
+        this.cardInfoCache = new Map();
     }
 
     get ankiConnectUrl() {
         return this.settingsProvider.ankiConnectUrl;
+    }
+
+    resetCache() {
+        this.wordCardCache.clear();
+        this.sentenceCardCache.clear();
+        this.cardInfoCache.clear();
     }
 
     async deckNames(ankiConnectUrl?: string) {
@@ -196,24 +208,41 @@ export class Anki {
         return response.result;
     }
 
-    async findCardsWithWord(word: string, fields: string[], ankiConnectUrl?: string): Promise<number[]> {
+    async findCardsWithWord(track: number, word: string, fields: string[], ankiConnectUrl?: string): Promise<number[]> {
         if (!fields.length) return [];
+        let cardIds = this.wordCardCache.get(track)?.get(word);
+        if (cardIds) return cardIds;
+
         const response = await this._executeAction(
             'findCards',
             { query: fields.map((field) => `"${field}:${this._escapeQuery(word)}"`).join(' OR ') },
             ankiConnectUrl
         );
-        return response.result;
+        cardIds = response.result as number[];
+        if (!this.wordCardCache.has(track)) this.wordCardCache.set(track, new Map());
+        this.wordCardCache.get(track)!.set(word, cardIds);
+        return cardIds;
     }
 
-    async findCardsContainingWord(word: string, fields: string[], ankiConnectUrl?: string): Promise<number[]> {
+    async findCardsContainingWord(
+        track: number,
+        word: string,
+        fields: string[],
+        ankiConnectUrl?: string
+    ): Promise<number[]> {
         if (!fields.length) return [];
+        let cardIds = this.sentenceCardCache.get(track)?.get(word);
+        if (cardIds) return cardIds;
+
         const response = await this._executeAction(
             'findCards',
             { query: fields.map((field) => `"${field}:*${this._escapeQuery(word)}*"`).join(' OR ') },
             ankiConnectUrl
         );
-        return response.result;
+        cardIds = response.result as number[];
+        if (!this.sentenceCardCache.has(track)) this.sentenceCardCache.set(track, new Map());
+        this.sentenceCardCache.get(track)!.set(word, cardIds);
+        return cardIds;
     }
 
     async findNotesWithWord(word: string, ankiConnectUrl?: string): Promise<number[]> {
@@ -246,8 +275,21 @@ export class Anki {
     }
 
     async cardsInfo(cardIds: number[], ankiConnectUrl?: string): Promise<any[]> {
-        const response = await this._executeAction('cardsInfo', { cards: cardIds }, ankiConnectUrl);
-        return response.result;
+        const cardInfos = [];
+        const cardIdsToFetch = [];
+        for (const cardId of cardIds) {
+            const cachedInfo = this.cardInfoCache.get(cardId);
+            if (cachedInfo) cardInfos.push(cachedInfo);
+            else cardIdsToFetch.push(cardId);
+        }
+        if (!cardIdsToFetch.length) return cardInfos;
+
+        const response = await this._executeAction('cardsInfo', { cards: cardIdsToFetch }, ankiConnectUrl);
+        response.result.forEach((cardInfo: any) => {
+            this.cardInfoCache.set(cardInfo.cardId, cardInfo);
+            cardInfos.push(cardInfo);
+        });
+        return cardInfos;
     }
 
     async findCards(query: string, ankiConnectUrl?: string): Promise<number[]> {

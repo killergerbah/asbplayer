@@ -451,7 +451,6 @@
         "dictionaryYomitanUrl": "Yomitan API URL",
         "dictionaryYomitanScanLength": "Maksymalna długość słowa",
         "dictionaryAnkiSection": "Konfiguracja Anki",
-        "dictionaryAnkiEnabled": "Użyj Anki do określania statusu znajomości",
         "dictionaryAnkiWordFields": "Pola Anki dla słów",
         "dictionaryAnkiSentenceFields": "Pola Anki dla zdań",
         "dictionarySelectAnkiFields": "Wybierz pola Anki do wyszukiwania...",

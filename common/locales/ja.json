@@ -451,7 +451,6 @@
         "dictionaryYomitanUrl": "Yomitan API の URL",
         "dictionaryYomitanScanLength": "最大単語長",
         "dictionaryAnkiSection": "Anki の設定",
-        "dictionaryAnkiEnabled": "既知状態の判定に Anki を使う",
         "dictionaryAnkiWordFields": "Anki 単語フィールド",
         "dictionaryAnkiSentenceFields": "Anki 文フィールド",
         "dictionarySelectAnkiFields": "ルックアップ用の Anki フィールドを選択...",

@@ -451,7 +451,6 @@
         "dictionaryYomitanUrl": "Yomitan API URL",
         "dictionaryYomitanScanLength": "최대 단어 길이",
         "dictionaryAnkiSection": "Anki 설정",
-        "dictionaryAnkiEnabled": "Anki로 학습/알고 있음 상태 판단",
         "dictionaryAnkiWordFields": "Anki 단어 필드",
         "dictionaryAnkiSentenceFields": "Anki 문장 필드",
         "dictionarySelectAnkiFields": "조회할 Anki 필드 선택...",

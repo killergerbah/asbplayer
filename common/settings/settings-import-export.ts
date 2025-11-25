@@ -45,9 +45,6 @@ const dictionaryTrackSchema = {
         dictionaryYomitanScanLength: {
             type: 'number',
         },
-        dictionaryAnkiEnabled: {
-            type: 'boolean',
-        },
         dictionaryAnkiWordFields: {
             type: 'array',
             items: {

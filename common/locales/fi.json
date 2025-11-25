@@ -451,7 +451,6 @@
         "dictionaryYomitanUrl": "Yomitan API URL",
         "dictionaryYomitanScanLength": "Max sanan pituus",
         "dictionaryAnkiSection": "Anki-asetukset",
-        "dictionaryAnkiEnabled": "Käytä Anki tunnettuusstatukseen",
         "dictionaryAnkiWordFields": "Ankin sanakentät",
         "dictionaryAnkiSentenceFields": "Ankin lausekentät",
         "dictionarySelectAnkiFields": "Valitse Anki-kentät haulle...",

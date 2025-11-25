@@ -233,7 +233,6 @@
         "settings.dictionaryTokenMatchStrategyPriorityLeastKnown": "Give priority to the worst known status when there is a tie.",
         "settings.dictionaryYomitanUrl": "The URL to the yomitan-api server.",
         "settings.dictionaryYomitanScanLength": "The maximum number of characters to scan for a single token. Lower is faster but may miss longer compound words.",
-        "settings.dictionaryAnkiEnabled": "Whether to use Anki data to determine known status of subtitle words.",
         "settings.dictionaryAnkiWordFields": "A list of Anki card word fields to match subtitle words against for known status.",
         "settings.dictionaryAnkiSentenceFields": "A list of Anki card sentence fields to match subtitle words inside of for known status.",
         "settings.dictionarySelectAnkiFields": "Placeholder label for selecting Anki fields for dictionary features.",

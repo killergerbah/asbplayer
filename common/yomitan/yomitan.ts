@@ -35,11 +35,10 @@ export class Yomitan {
 
     /**
      * Lemmatize a token using Yomitan's termEntries API. There will likely always be edge cases but it should perform
-     * well nearly all of the time. Returns the first term and reading lemmas (e.g. kanji and kana for Japanese) if different
-     * from the input. Examples:
-     * 過ぎる   ->  すぎる
+     * well nearly all of the time. Returns the first term and reading lemmas (e.g. kanji and kana for Japanese). Examples:
+     * 過ぎる   ->  過ぎる, すぎる
      * 過ぎます ->  過ぎる, すぎる
-     * すぎる   ->  過ぎる
+     * すぎる   ->  過ぎる, すぎる
      * すぎます ->  すぎる, 過ぎる
      */
     async lemmatize(track: number, token: string, yomitanUrl: string): Promise<string[]> {
@@ -58,13 +57,13 @@ export class Yomitan {
                     const lemma = source.deinflectedText; // This is either the term or reading, whatever the form of the input is
                     if (lookForKanji && lemma !== headword.term && lemma === headword.reading) {
                         lookForKanji = false;
-                        if (headword.term !== token && !lemmas.includes(headword.term)) lemmas.unshift(headword.term); // e.g. すぎます -> 過ぎる
+                        if (!lemmas.includes(headword.term)) lemmas.unshift(headword.term); // e.g. すぎます -> 過ぎる
                     }
                     if (foundLemma) continue;
                     foundLemma = true;
-                    if (headword.term !== token && !lemmas.includes(headword.term)) lemmas.unshift(headword.term);
-                    if (headword.reading !== token && !lemmas.includes(headword.reading)) lemmas.push(headword.reading);
-                    if (lemma !== token && !lemmas.includes(lemma)) lemmas.push(lemma); // Usually redundant but matchSource can be 'sequence' which could be different
+                    if (!lemmas.includes(headword.term)) lemmas.unshift(headword.term);
+                    if (!lemmas.includes(headword.reading)) lemmas.push(headword.reading);
+                    if (!lemmas.includes(lemma)) lemmas.push(lemma); // Usually redundant but matchSource can be 'sequence' which could be different
                 }
             }
         }

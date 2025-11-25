@@ -451,7 +451,6 @@
         "dictionaryYomitanUrl": "Yomitan API URL",
         "dictionaryYomitanScanLength": "Maximale Wortlänge",
         "dictionaryAnkiSection": "Anki-Konfiguration",
-        "dictionaryAnkiEnabled": "Anki für Bekanntheitsstatus verwenden",
         "dictionaryAnkiWordFields": "Anki-Wort-Felder",
         "dictionaryAnkiSentenceFields": "Anki-Satz-Felder",
         "dictionarySelectAnkiFields": "Anki-Felder für Lookup auswählen...",

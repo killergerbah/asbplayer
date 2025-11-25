@@ -41,7 +41,6 @@ const defaultDictionaryTrackSettings: DictionaryTrack = {
     dictionaryTokenMatchStrategyPriority: TokenMatchStrategyPriority.EXACT,
     dictionaryYomitanUrl: 'http://127.0.0.1:19633',
     dictionaryYomitanScanLength: 16,
-    dictionaryAnkiEnabled: true,
     dictionaryAnkiWordFields: [],
     dictionaryAnkiSentenceFields: [],
     dictionaryAnkiSentenceTokenMatchStrategy: TokenMatchStrategy.EXACT_FORM_COLLECTED,
