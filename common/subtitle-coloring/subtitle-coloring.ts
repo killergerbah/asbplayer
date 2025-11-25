@@ -13,10 +13,11 @@ import { SubtitleCollection, SubtitleCollectionOptions } from '@project/common/s
 import { arrayEquals, filterAsync, inBatches } from '@project/common/util';
 import { Yomitan } from '@project/common/yomitan/yomitan';
 
-const TOKEN_CACHE_BUILD_AHEAD = 10;
+const TOKEN_CACHE_BUILD_AHEAD = 50;
 const TOKEN_CACHE_BATCH_SIZE = 1; // Processing more than 1 at a time is slower
 const TOKEN_CACHE_ERROR_REFRESH_INTERVAL = 10000;
 const ANKI_RECENTLY_MODIFIED_INTERVAL = 10000;
+const MAX_CARD_INFOS = 100;
 const HAS_LETTER_REGEX = /\p{L}/u;
 
 interface TrackState {
@@ -624,13 +625,16 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
         const { trimmedToken, ts } = options;
         try {
             if (!this.anki) throw new Error('Anki not initialized');
-            const cardIds = await this.anki.findCardsContainingWord(
+            let cardIds = await this.anki.findCardsContainingWord(
                 ts.track,
                 trimmedToken,
                 ts.dt.dictionaryAnkiSentenceFields
             );
-            if (!cardIds.length) return TokenStatus.UNCOLLECTED;
             if (this.shouldCancelBuild) return null;
+            const suspendedRes = this._handleSuspendedCards({ cardIds, ts });
+            if (!(suspendedRes instanceof Array)) return suspendedRes;
+            cardIds = this._limitCardIds({ cardIds: suspendedRes, ts });
+            if (!cardIds.length) return TokenStatus.UNCOLLECTED;
             const rawCardInfos = await this.anki.cardsInfo(cardIds);
             if (!rawCardInfos.length) return null;
             if (this.shouldCancelBuild) return null;
@@ -682,16 +686,44 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
         }
     }
 
+    private _limitCardIds(options: { cardIds: number[]; ts: TrackState }): number[] {
+        const { cardIds, ts } = options;
+        if (cardIds.length <= MAX_CARD_INFOS) return cardIds;
+
+        const length = getFullyKnownTokenStatus() + 1;
+        const buckets: number[][] = Array.from({ length }, () => []);
+        for (const cardId of cardIds) {
+            buckets[ts.ankiCardIdStatuses.get(cardId) ?? TokenStatus.UNCOLLECTED].push(cardId);
+        }
+
+        const limitedCardIds: number[] = [];
+        for (let status = length - 1; status >= 0; status--) {
+            for (const cardId of buckets[status]) {
+                limitedCardIds.push(cardId);
+                if (limitedCardIds.length >= MAX_CARD_INFOS) return limitedCardIds;
+            }
+        }
+        return limitedCardIds;
+    }
+
+    private _handleSuspendedCards(options: { cardIds: number[]; ts: TrackState }): number[] | TokenStatus {
+        const { cardIds, ts } = options;
+        if (ts.dt.dictionaryAnkiTreatSuspended === 'NORMAL') return cardIds;
+        const unsuspended = cardIds.filter((cardId) => !ts.ankiSuspendedCardIds.has(cardId));
+        if (!unsuspended.length) return ts.dt.dictionaryAnkiTreatSuspended;
+        return unsuspended;
+    }
+
     private async _getTokenStatusFromCutoff(options: {
         cardIds: number[];
         ts: TrackState;
     }): Promise<TokenStatus | null> {
         const { ts } = options;
         let cardIds = options.cardIds;
-        if (ts.dt.dictionaryAnkiTreatSuspended !== 'NORMAL') {
-            cardIds = cardIds.filter((cardId) => !ts.ankiSuspendedCardIds.has(cardId));
-            if (!cardIds.length) return ts.dt.dictionaryAnkiTreatSuspended;
-        }
+        const suspendedRes = this._handleSuspendedCards({ cardIds, ts });
+        if (!(suspendedRes instanceof Array)) return suspendedRes;
+        cardIds = suspendedRes;
+
         if (cardIds.some((c) => ts.ankiCardIdStatuses.get(c) === TokenStatus.MATURE)) return TokenStatus.MATURE;
         if (cardIds.some((c) => ts.ankiCardIdStatuses.get(c) === TokenStatus.YOUNG)) return TokenStatus.YOUNG;
         if (cardIds.some((c) => ts.ankiCardIdStatuses.get(c) === TokenStatus.GRADUATED)) return TokenStatus.GRADUATED;
