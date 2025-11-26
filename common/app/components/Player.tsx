@@ -12,7 +12,6 @@ import {
     PostMineAction,
     PostMinePlayback,
     RequestSubtitlesResponse,
-    RichSubtitleModel,
     SubtitleModel,
     VideoTabModel,
 } from '@project/common';
@@ -121,7 +120,7 @@ interface PlayerProps {
     onHideSubtitlePlayer: () => void;
     onVideoPopOut: () => void;
     onPlayModeChangedViaBind: (oldPlayMode: PlayMode, newPlayMode: PlayMode) => void;
-    onSubtitles: (subtitles: DisplaySubtitleModel[]) => void;
+    onSubtitles: React.Dispatch<React.SetStateAction<DisplaySubtitleModel[] | undefined>>;
     onLoadFiles?: () => void;
     disableKeyEvents: boolean;
     jumpToSubtitle?: SubtitleModel;
@@ -414,12 +413,14 @@ const Player = React.memo(function Player({
             options,
             (updatedSubtitles) => {
                 channel?.subtitlesUpdated(updatedSubtitles);
-                if (!subtitlesRef.current) return;
-                const allSubtitles = subtitlesRef.current.slice();
-                for (const s of updatedSubtitles) {
-                    allSubtitles[s.index] = { ...allSubtitles[s.index], richText: s.richText };
-                }
-                onSubtitles(allSubtitles);
+                onSubtitles((prevSubtitles) => {
+                    if (!prevSubtitles) return prevSubtitles;
+                    const allSubtitles = prevSubtitles.slice();
+                    for (const s of updatedSubtitles) {
+                        allSubtitles[s.index] = { ...allSubtitles[s.index], richText: s.richText };
+                    }
+                    return allSubtitles;
+                });
             },
             () => clockRef.current.time(calculateLength())
         );
@@ -442,12 +443,14 @@ const Player = React.memo(function Player({
     // Immediate update of subtitle colors when changed (from extension)
     useEffect(() => {
         return channel?.onSubtitlesUpdated((updatedSubtitles) => {
-            if (!subtitlesRef.current) return;
-            const allSubtitles = subtitlesRef.current.slice();
-            for (const s of updatedSubtitles) {
-                allSubtitles[s.index] = { ...allSubtitles[s.index], richText: s.richText };
-            }
-            onSubtitles(allSubtitles);
+            onSubtitles((prevSubtitles) => {
+                if (!prevSubtitles) return prevSubtitles;
+                const allSubtitles = prevSubtitles.slice();
+                for (const s of updatedSubtitles) {
+                    allSubtitles[s.index] = { ...allSubtitles[s.index], richText: s.richText };
+                }
+                return allSubtitles;
+            });
         });
     }, [channel, onSubtitles]);
 
@@ -463,11 +466,14 @@ const Player = React.memo(function Player({
                 | undefined;
             if (!response) return;
             const { subtitles: updatedSubtitles } = response;
-            const allSubtitles = subtitlesRef.current.slice();
-            for (const s of updatedSubtitles) {
-                allSubtitles[s.index] = { ...allSubtitles[s.index], richText: s.richText };
-            }
-            onSubtitles(allSubtitles);
+            onSubtitles((prevSubtitles) => {
+                if (!prevSubtitles) return prevSubtitles;
+                const allSubtitles = prevSubtitles.slice();
+                for (const s of updatedSubtitles) {
+                    allSubtitles[s.index] = { ...allSubtitles[s.index], richText: s.richText };
+                }
+                return allSubtitles;
+            });
         };
         void refreshColors();
     }, [extension, tab, onSubtitles]);

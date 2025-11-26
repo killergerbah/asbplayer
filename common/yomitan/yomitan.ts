@@ -39,7 +39,7 @@ export class Yomitan {
      * 過ぎる   ->  過ぎる, すぎる
      * 過ぎます ->  過ぎる, すぎる
      * すぎる   ->  過ぎる, すぎる
-     * すぎます ->  すぎる, 過ぎる
+     * すぎます ->  過ぎる, すぎる
      */
     async lemmatize(track: number, token: string, yomitanUrl: string): Promise<string[]> {
         let lemmas = this.lemmatizeCache.get(track)?.get(token);

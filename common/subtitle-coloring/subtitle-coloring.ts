@@ -398,16 +398,14 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                 // Token is already cached or not a word
                 const cachedTokenStatus = ts.tokenStatusCache.get(trimmedToken);
                 if (this._tokenStatusValid(cachedTokenStatus)) {
-                    const richRes = this._applyTokenStyle({ rawToken, tokenStatus: cachedTokenStatus!, dt: ts.dt });
-                    if (richRes) richText += richRes;
+                    richText += this._applyTokenStyle({ rawToken, tokenStatus: cachedTokenStatus!, dt: ts.dt });
                     if (cachedTokenStatus === TokenStatus.UNCOLLECTED) textHasUncollected = true;
                     else if (cachedTokenStatus === null) textHasError = true;
                     continue;
                 }
                 if (!HAS_LETTER_REGEX.test(trimmedToken)) {
                     const fullyKnownTokenStatus = getFullyKnownTokenStatus();
-                    const richRes = this._applyTokenStyle({ rawToken, tokenStatus: fullyKnownTokenStatus, dt: ts.dt });
-                    if (richRes) richText += richRes;
+                    richText += this._applyTokenStyle({ rawToken, tokenStatus: fullyKnownTokenStatus, dt: ts.dt });
                     ts.tokenStatusCache.set(trimmedToken, fullyKnownTokenStatus);
                     continue;
                 }
@@ -439,8 +437,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                 }
                 if (this.shouldCancelBuild) return;
 
-                const richRes = this._applyTokenStyle({ rawToken, tokenStatus, dt: ts.dt });
-                if (richRes) richText += richRes;
+                richText += this._applyTokenStyle({ rawToken, tokenStatus, dt: ts.dt });
                 if (tokenStatus === TokenStatus.UNCOLLECTED) textHasUncollected = true;
                 else if (tokenStatus === null) textHasError = true;
                 ts.tokenStatusCache.set(trimmedToken, tokenStatus);
@@ -469,7 +466,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                 trimmedToken,
                 ts,
                 cacheUncollected: !ts.dt.dictionaryAnkiSentenceFields.length,
-                getFieldColor: (trimmedToken) => this._getWordFieldColor({ trimmedToken, ts }),
+                getFieldColor: (tokenLemma) => this._getWordFieldColor({ trimmedToken: tokenLemma, ts }),
             });
             if (this.shouldCancelBuild) return null;
             if (tokenStatus !== TokenStatus.UNCOLLECTED) return tokenStatus;
@@ -484,7 +481,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                 trimmedToken,
                 ts,
                 cacheUncollected: true,
-                getFieldColor: (trimmedToken) => this._getSentenceFieldColor({ trimmedToken, ts }),
+                getFieldColor: (tokenLemma) => this._getSentenceFieldColor({ trimmedToken: tokenLemma, ts }),
             });
             if (this.shouldCancelBuild) return null;
             if (tokenStatus !== TokenStatus.UNCOLLECTED) return tokenStatus;
@@ -499,7 +496,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                 trimmedToken,
                 ts,
                 cacheUncollected: !ts.dt.dictionaryAnkiSentenceFields.length,
-                getFieldColor: (trimmedToken) => this._getWordFieldColor({ trimmedToken, ts }),
+                getFieldColor: (tokenLemma) => this._getWordFieldColor({ trimmedToken: tokenLemma, ts }),
             });
             if (this.shouldCancelBuild) return null;
             if (tokenStatus !== TokenStatus.UNCOLLECTED) return tokenStatus;
@@ -514,7 +511,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                 trimmedToken,
                 ts,
                 cacheUncollected: true,
-                getFieldColor: (trimmedToken) => this._getSentenceFieldColor({ trimmedToken, ts }),
+                getFieldColor: (tokenLemma) => this._getSentenceFieldColor({ trimmedToken: tokenLemma, ts }),
             });
             if (this.shouldCancelBuild) return null;
             if (tokenStatus !== TokenStatus.UNCOLLECTED) return tokenStatus;
@@ -546,7 +543,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                 trimmedToken,
                 ts,
                 cacheUncollected: !ts.dt.dictionaryAnkiSentenceFields.length,
-                getFieldColor: (trimmedToken) => this._getWordFieldColor({ trimmedToken, ts }),
+                getFieldColor: (tokenLemma) => this._getWordFieldColor({ trimmedToken: tokenLemma, ts }),
             });
             if (this.shouldCancelBuild) return null;
             if (tokenStatus === null) return tokenStatus;
@@ -567,7 +564,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                 trimmedToken,
                 ts,
                 cacheUncollected: true,
-                getFieldColor: (trimmedToken) => this._getSentenceFieldColor({ trimmedToken, ts }),
+                getFieldColor: (tokenLemma) => this._getSentenceFieldColor({ trimmedToken: tokenLemma, ts }),
             });
             if (this.shouldCancelBuild) return null;
             if (tokenStatus === null) return tokenStatus;
@@ -580,7 +577,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
         trimmedToken: string;
         ts: TrackState;
         cacheUncollected: boolean;
-        getFieldColor: (trimmedToken: string) => Promise<TokenStatus | null>;
+        getFieldColor: (tokenLemma: string) => Promise<TokenStatus | null>;
     }): Promise<TokenStatus | null> {
         const { trimmedToken, ts, cacheUncollected, getFieldColor } = options;
 
@@ -594,7 +591,9 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                 ts.tokenStatusCache.set(tokenLemma, tokenStatus);
                 return tokenStatus;
             }
-            if (cacheUncollected) ts.tokenStatusCache.set(tokenLemma, TokenStatus.UNCOLLECTED);
+            if (cacheUncollected && tokenLemma !== trimmedToken) {
+                ts.tokenStatusCache.set(tokenLemma, TokenStatus.UNCOLLECTED);
+            }
             if (this.shouldCancelBuild) return null;
         }
         return TokenStatus.UNCOLLECTED;

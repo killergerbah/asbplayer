@@ -608,9 +608,11 @@ export default function VideoPlayer({
                 domCacheRef.current?.delete(String(updatedSubtitle.index));
             }
             setSubtitles((prevSubtitles) => {
-                const newSubtitles = prevSubtitles.slice();
-                updatedSubtitles.forEach((s) => (newSubtitles[s.index] = s));
-                return newSubtitles;
+                const allSubtitles = prevSubtitles.slice();
+                for (const s of updatedSubtitles) {
+                    allSubtitles[s.index] = { ...allSubtitles[s.index], richText: s.richText };
+                }
+                return allSubtitles;
             });
         });
 
