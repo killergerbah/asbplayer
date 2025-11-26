@@ -756,3 +756,18 @@ export interface DeleteCopyHistoryMessage extends MessageWithId {
 export interface ClearCopyHistoryMessage extends MessageWithId {
     readonly command: 'clear-copy-history';
 }
+
+export interface ToggleCspMessage extends MessageWithId {
+    readonly command: 'toggle-csp';
+    readonly disable: boolean;
+    readonly pageKey: string;
+}
+
+export interface CheckCspMessage extends MessageWithId {
+    readonly command: 'check-csp';
+    readonly pageKey: string;
+}
+
+export interface CheckCspResponse {
+    readonly disabled: boolean;
+}

@@ -1,4 +1,4 @@
-import { JSX } from 'react';
+import { JSX, useState } from 'react';
 import { MutablePageConfig, Page, PageConfig, PageSettings, YoutubePage } from '../settings';
 import { useTranslation } from 'react-i18next';
 import Dialog from '@mui/material/Dialog';
@@ -16,6 +16,10 @@ import Alert from '@mui/material/Alert';
 import LabelWithHoverEffect from './LabelWithHoverEffect';
 import { pageMetadata } from '../pages';
 import ListField from './ListField';
+import ConfirmDisableCspDialog from './ConfirmDisableCspDialog';
+import Tooltip from './Tooltip';
+import { CspAdapter } from '../csp-adapter';
+import { useDisableCspDnrRule } from '../hooks/use-disable-csp-dns-rule';
 
 const maxAdditionalHostsLength = 50;
 const youtubeTargetLanguageLimit = 3;
@@ -37,69 +41,13 @@ export interface PageSettingsFormProps {
     defaultPageConfig: PageConfig;
     additionalControls?: JSX.Element;
     hasModifications: boolean;
+    cspControlsEnabled: boolean;
+    cspDisabled: boolean;
+    disableCsp: () => Promise<void>;
+    enableCsp: () => Promise<void>;
     onClose: () => void;
     onPageChanged: <K extends keyof PageSettings>(key: K, page: PageSettings[K]) => void;
 }
-
-// Commenting out "disable CSP" functionality in case it's useful later
-// const useDisableCspDnrRule = (pageKey: keyof PageSettings) => {
-//     const [rule, setRule] = useState<Browser.declarativeNetRequest.Rule>();
-//     const refreshRule = useCallback(() => {
-//         setRule(undefined);
-
-//         if (browser.declarativeNetRequest) {
-//             browser.declarativeNetRequest.getDynamicRules().then((rules) => {
-//                 setRule(rules.find((r) => r.id === pageMetadata[pageKey].disableCspRuleId));
-//             });
-//         }
-//     }, [pageKey]);
-//     useEffect(() => refreshRule(), [refreshRule]);
-//     const createDisableCspDnrRule = useCallback(
-//         (hostRegex: string) => {
-//             if (!browser.declarativeNetRequest) {
-//                 return;
-//             }
-
-//             const ruleId = pageMetadata[pageKey].disableCspRuleId;
-//             browser.declarativeNetRequest
-//                 .updateDynamicRules({
-//                     addRules: [
-//                         {
-//                             id: ruleId,
-//                             condition: {
-//                                 regexFilter: hostRegex,
-//                             },
-//                             action: {
-//                                 type: chrome.declarativeNetRequest.RuleActionType.MODIFY_HEADERS,
-//                                 responseHeaders: [
-//                                     {
-//                                         header: 'content-security-policy',
-//                                         operation: chrome.declarativeNetRequest.HeaderOperation.REMOVE,
-//                                     },
-//                                 ],
-//                             },
-//                         },
-//                     ],
-//                 })
-//                 .then(refreshRule)
-//                 .catch(console.error);
-//         },
-//         [refreshRule, pageKey]
-//     );
-
-//     const deleteDisableCspDnrRule = useCallback(() => {
-//         if (!browser.declarativeNetRequest) {
-//             return;
-//         }
-
-//         const ruleId = pageMetadata[pageKey].disableCspRuleId;
-//         browser.declarativeNetRequest
-//             .updateDynamicRules({ removeRuleIds: [ruleId] })
-//             .then(refreshRule)
-//             .catch(console.error);
-//     }, [refreshRule, pageKey]);
-//     return { disableCspDnrRule: rule, createDisableCspDnrRule, deleteDisableCspDnrRule };
-// };
 
 const PageSettingsForm = (props: PageSettingsFormProps) => {
     if (props.pageKey === 'youtube') {
@@ -139,6 +87,10 @@ const DefaultPageSettingsForm = ({
     defaultPageConfig,
     additionalControls,
     hasModifications,
+    cspControlsEnabled,
+    cspDisabled,
+    disableCsp,
+    enableCsp,
     onClose,
     onPageChanged,
 }: PageSettingsFormProps) => {
@@ -154,21 +106,20 @@ const DefaultPageSettingsForm = ({
         const newOverridesAreEmpty = Object.keys(newOverrides).length === 0;
         onPageChanged(pageKey, { ...page, overrides: newOverridesAreEmpty ? undefined : newOverrides });
     };
-    // const { disableCspDnrRule, createDisableCspDnrRule, deleteDisableCspDnrRule } = useDisableCspDnrRule(pageKey);
-    // const doNotAllowDisableCsp = page.additionalHosts !== undefined && page.additionalHosts.length > 0;
-    // const [confirmDisableCspDialogOpen, setConfirmDisableCspDialogOpen] = useState<boolean>(false);
+    const doNotAllowDisableCsp = page.additionalHosts !== undefined && page.additionalHosts.length > 0;
+    const [confirmDisableCspDialogOpen, setConfirmDisableCspDialogOpen] = useState<boolean>(false);
     return (
         <>
-            {/* {browser.declarativeNetRequest && (
+            {cspControlsEnabled && (
                 <ConfirmDisableCspDialog
                     open={confirmDisableCspDialogOpen}
-                    onConfirm={() => {
-                        createDisableCspDnrRule(defaultPageConfig.hostRegex);
+                    onConfirm={async () => {
+                        await disableCsp();
                         setConfirmDisableCspDialogOpen(false);
                     }}
                     onClose={() => setConfirmDisableCspDialogOpen(false)}
                 />
-            )} */}
+            )}
             <Dialog fullWidth open={open} onClose={onClose}>
                 <Toolbar>
                     <Typography variant="h6" sx={{ flexGrow: 1 }}>
@@ -185,14 +136,17 @@ const DefaultPageSettingsForm = ({
                                 severity="warning"
                                 action={
                                     <Button
-                                        onClick={() =>
+                                        onClick={() => {
                                             onPageChanged(pageKey, {
                                                 ...page,
                                                 overrides: undefined,
                                                 additionalHosts: undefined,
                                                 targetLanguages: undefined,
-                                            })
-                                        }
+                                            });
+                                            if (cspDisabled) {
+                                                enableCsp();
+                                            }
+                                        }}
                                         size="small"
                                     >
                                         {t('action.revert')}
@@ -215,9 +169,9 @@ const DefaultPageSettingsForm = ({
                                     return;
                                 }
 
-                                // if (disableCspDnrRule !== undefined) {
-                                //     deleteDisableCspDnrRule();
-                                // }
+                                if (cspDisabled) {
+                                    enableCsp();
+                                }
 
                                 onPageChanged(pageKey, {
                                     ...page,
@@ -298,7 +252,7 @@ const DefaultPageSettingsForm = ({
                             label={t('extension.settings.pages.autoSyncEnabled')}
                             labelPlacement="start"
                         />
-                        {/* {!isFirefoxBuild && browser.declarativeNetRequest && (
+                        {cspControlsEnabled && (
                             <Tooltip
                                 disabled={!doNotAllowDisableCsp}
                                 title={t('extension.settings.pages.disableCspRestrictions')}
@@ -307,16 +261,13 @@ const DefaultPageSettingsForm = ({
                                     control={
                                         <Switch
                                             disabled={doNotAllowDisableCsp}
-                                            checked={disableCspDnrRule !== undefined}
-                                            onClickCapture={(e) => {
-                                                if (disableCspDnrRule === undefined) {
-                                                    e.stopPropagation();
+                                            checked={cspDisabled}
+                                            onClickCapture={async (e) => {
+                                                e.stopPropagation();
+                                                if (cspDisabled) {
+                                                    await enableCsp();
+                                                } else {
                                                     setConfirmDisableCspDialogOpen(true);
-                                                }
-                                            }}
-                                            onChange={(e) => {
-                                                if (!e.target.checked) {
-                                                    deleteDisableCspDnrRule();
                                                 }
                                             }}
                                         />
@@ -325,7 +276,7 @@ const DefaultPageSettingsForm = ({
                                     labelPlacement="start"
                                 />
                             </Tooltip>
-                        )} */}
+                        )}
                     </Stack>
                 </DialogContent>
                 <DialogActions>
