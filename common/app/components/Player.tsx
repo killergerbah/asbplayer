@@ -416,7 +416,9 @@ const Player = React.memo(function Player({
                 channel?.subtitlesUpdated(updatedSubtitles);
                 if (!subtitlesRef.current) return;
                 const allSubtitles = subtitlesRef.current.slice();
-                updatedSubtitles.forEach((s) => (allSubtitles[s.index].richText = s.richText));
+                for (const s of updatedSubtitles) {
+                    allSubtitles[s.index] = { ...allSubtitles[s.index], richText: s.richText };
+                }
                 onSubtitles(allSubtitles);
             },
             () => clockRef.current.time(calculateLength())
@@ -442,7 +444,9 @@ const Player = React.memo(function Player({
         return channel?.onSubtitlesUpdated((updatedSubtitles) => {
             if (!subtitlesRef.current) return;
             const allSubtitles = subtitlesRef.current.slice();
-            updatedSubtitles.forEach((s) => (allSubtitles[s.index].richText = s.richText));
+            for (const s of updatedSubtitles) {
+                allSubtitles[s.index] = { ...allSubtitles[s.index], richText: s.richText };
+            }
             onSubtitles(allSubtitles);
         });
     }, [channel, onSubtitles]);
@@ -460,7 +464,9 @@ const Player = React.memo(function Player({
             if (!response) return;
             const { subtitles: updatedSubtitles } = response;
             const allSubtitles = subtitlesRef.current.slice();
-            updatedSubtitles.forEach((s) => (allSubtitles[s.index].richText = s.richText));
+            for (const s of updatedSubtitles) {
+                allSubtitles[s.index] = { ...allSubtitles[s.index], richText: s.richText };
+            }
             onSubtitles(allSubtitles);
         };
         void refreshColors();

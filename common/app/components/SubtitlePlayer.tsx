@@ -12,7 +12,6 @@ import {
     AutoPauseContext,
     CopySubtitleWithAdditionalFieldsMessage,
     CardTextFieldValues,
-    VideoTabModel,
     RichSubtitleModel,
 } from '@project/common';
 import { AsbplayerSettings } from '@project/common/settings';
@@ -42,7 +41,6 @@ import { MineSubtitleParams } from '../hooks/use-app-web-socket-client';
 import { isMobile } from 'react-device-detect';
 import ChromeExtension, { ExtensionMessage } from '../services/chrome-extension';
 import { MineSubtitleCommand, WebSocketClient } from '../../web-socket-client';
-import VideoChannel from '../services/video-channel';
 
 let lastKnownWidth: number | undefined;
 export const minSubtitlePlayerWidth = 200;
@@ -942,17 +940,18 @@ export default function SubtitlePlayer({
         );
     }, [mineCard, keyBinder, disableKeyEvents, disableMiningBinds]);
 
-    const handleClick = useCallback(
-        (index: number) => {
-            if (!subtitles) {
-                return;
-            }
+    const handleClick = useCallback((index: number) => {
+        const currentSubtitles = subtitleListRef.current;
+        if (!currentSubtitles) {
+            return;
+        }
 
-            const highlightedSubtitleIndexes = highlightedSubtitleIndexesRef.current || {};
-            onSeek(subtitles[index].start, !clock.running && index in highlightedSubtitleIndexes);
-        },
-        [subtitles, onSeek, clock]
-    );
+        const highlightedSubtitleIndexes = highlightedSubtitleIndexesRef.current || {};
+        onSeekRef.current(
+            currentSubtitles[index].start,
+            !clockRef.current.running && index in highlightedSubtitleIndexes
+        );
+    }, []);
 
     // Avoid re-rendering the entire subtitle table by having handleCopy operate on refs
     const calculateSurroundingSubtitlesForIndexRef = useRef(calculateSurroundingSubtitlesForIndex);
@@ -961,25 +960,25 @@ export default function SubtitlePlayer({
     settingsRef.current = settings;
     const onCopyRef = useRef(onCopy);
     onCopyRef.current = onCopy;
+    const onSeekRef = useRef(onSeek);
+    onSeekRef.current = onSeek;
 
-    const handleCopy = useCallback(
-        (e: React.MouseEvent<HTMLButtonElement, MouseEvent>, index: number) => {
-            e.preventDefault();
-            e.stopPropagation();
+    const handleCopy = useCallback((e: React.MouseEvent<HTMLButtonElement, MouseEvent>, index: number) => {
+        e.preventDefault();
+        e.stopPropagation();
 
-            if (!subtitles) {
-                return;
-            }
+        const currentSubtitles = subtitleListRef.current;
+        if (!currentSubtitles) {
+            return;
+        }
 
-            onCopyRef.current(
-                subtitles[index],
-                calculateSurroundingSubtitlesForIndexRef.current(index),
-                settingsRef.current.clickToMineDefaultAction,
-                true
-            );
-        },
-        [subtitles]
-    );
+        onCopyRef.current(
+            currentSubtitles[index],
+            calculateSurroundingSubtitlesForIndexRef.current(index),
+            settingsRef.current.clickToMineDefaultAction,
+            true
+        );
+    }, []);
 
     const resizeHandleRef = useRef<HTMLDivElement>(null);
 

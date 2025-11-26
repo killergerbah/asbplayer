@@ -17,7 +17,7 @@ const TOKEN_CACHE_BUILD_AHEAD = 50;
 const TOKEN_CACHE_BATCH_SIZE = 1; // Processing more than 1 at a time is slower
 const TOKEN_CACHE_ERROR_REFRESH_INTERVAL = 10000;
 const ANKI_RECENTLY_MODIFIED_INTERVAL = 10000;
-const MAX_CARD_INFOS = 100;
+const MAX_CARD_INFOS = 10;
 const HAS_LETTER_REGEX = /\p{L}/u;
 
 interface TrackState {
@@ -94,7 +94,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
             subtitles.length !== this._subtitles.length ||
             subtitles.some((s) => s.text !== this._subtitles[s.index].text);
         if (!needsReset) subtitles.forEach((s) => (s.richText = this._subtitles[s.index].richText)); // Preserve existing cache here so callers don't need to be aware of it
-        this._subtitles = subtitles;
+        this._subtitles = subtitles.map((s) => ({ ...s })); // Separate internals from react state changes
         super.setSubtitles(this._subtitles);
         if (needsReset) {
             this.resetCache();
@@ -484,7 +484,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                 trimmedToken,
                 ts,
                 cacheUncollected: true,
-                getFieldColor: (token) => this._getSentenceFieldColor({ trimmedToken, ts }),
+                getFieldColor: (trimmedToken) => this._getSentenceFieldColor({ trimmedToken, ts }),
             });
             if (this.shouldCancelBuild) return null;
             if (tokenStatus !== TokenStatus.UNCOLLECTED) return tokenStatus;
@@ -499,7 +499,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                 trimmedToken,
                 ts,
                 cacheUncollected: !ts.dt.dictionaryAnkiSentenceFields.length,
-                getFieldColor: (token) => this._getWordFieldColor({ trimmedToken, ts }),
+                getFieldColor: (trimmedToken) => this._getWordFieldColor({ trimmedToken, ts }),
             });
             if (this.shouldCancelBuild) return null;
             if (tokenStatus !== TokenStatus.UNCOLLECTED) return tokenStatus;
@@ -580,7 +580,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
         trimmedToken: string;
         ts: TrackState;
         cacheUncollected: boolean;
-        getFieldColor: (token: string) => Promise<TokenStatus | null>;
+        getFieldColor: (trimmedToken: string) => Promise<TokenStatus | null>;
     }): Promise<TokenStatus | null> {
         const { trimmedToken, ts, cacheUncollected, getFieldColor } = options;
 
