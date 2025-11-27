@@ -450,7 +450,10 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
             this.tokenRequestFailed = true;
             console.error(`Error colorizing subtitle text for Track${ts.track + 1}:`, error);
             this.erroredCache.add(index);
-            return this._applyTokenStyle({ rawToken: text, tokenStatus: null, dt: ts.dt });
+            return text
+                .split('\n')
+                .map((line) => this._applyTokenStyle({ rawToken: line, tokenStatus: null, dt: ts.dt }))
+                .join('\n');
         }
     }
 
