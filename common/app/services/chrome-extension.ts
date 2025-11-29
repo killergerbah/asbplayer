@@ -134,6 +134,10 @@ export default class ChromeExtension {
         window.addEventListener('message', this.windowEventListener);
     }
 
+    get supportsDictionary() {
+        return this.installed && gte(this.version, '1.14.0');
+    }
+
     get supportsPageSettings() {
         return this.installed && gte(this.version, '1.12.0');
     }

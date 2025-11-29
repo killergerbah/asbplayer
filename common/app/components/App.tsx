@@ -1412,7 +1412,11 @@ function App({
                                     onHideSubtitlePlayer={handleHideSubtitlePlayer}
                                     onVideoPopOut={handleVideoPopOut}
                                     onPlayModeChangedViaBind={handleAutoPauseModeChangedViaBind}
-                                    onSubtitles={setSubtitles}
+                                    onSubtitles={
+                                        setSubtitles as React.Dispatch<
+                                            React.SetStateAction<DisplaySubtitleModel[] | undefined>
+                                        >
+                                    }
                                     onLoadFiles={handleFileSelector}
                                     tab={tab}
                                     availableTabs={availableTabs ?? []}

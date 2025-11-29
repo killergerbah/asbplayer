@@ -1,12 +1,4 @@
-import {
-    AsbPlayerToVideoCommandV2,
-    CardExportedMessage,
-    CopySubtitleMessage,
-    Message,
-    PostMineAction,
-    RequestCurrentSubtitleMessage,
-    RequestCurrentSubtitleResponse,
-} from '@project/common';
+import { CardExportedMessage, CopySubtitleMessage, Message, PostMineAction } from '@project/common';
 import { surroundingSubtitlesAroundInterval } from '@project/common/util';
 import Binding from '../services/binding';
 

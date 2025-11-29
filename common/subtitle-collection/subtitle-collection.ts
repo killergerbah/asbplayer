@@ -16,19 +16,23 @@ export interface SubtitleCollectionOptions {
 }
 
 export class SubtitleCollection<T extends SubtitleModel> {
-    static emptySubtitleCollection = new SubtitleCollection([]);
+    static emptySubtitleCollection = new SubtitleCollection({});
 
+    private options: SubtitleCollectionOptions;
     // Tree for subtitles
-    private readonly tree: IntervalTree<T>;
+    private tree: IntervalTree<T>;
     // Tree for gaps between subtitles. The gaps are populated with the last subtitle before the gap.
-    private readonly gapsTree?: IntervalTree<T>;
-    private readonly options: SubtitleCollectionOptions;
+    private gapsTree?: IntervalTree<T>;
 
-    constructor(subtitles: T[], options: SubtitleCollectionOptions = {}) {
-        this.tree = new IntervalTree<T>();
+    constructor(options: SubtitleCollectionOptions) {
         this.options = options;
+        this.tree = new IntervalTree<T>();
+    }
 
-        if (options.returnLastShown || options.returnNextToShow) {
+    setSubtitles(subtitles: T[]) {
+        this.tree = new IntervalTree<T>();
+
+        if (this.options.returnLastShown || this.options.returnNextToShow) {
             let last: T | undefined;
             this.gapsTree = new IntervalTree<T>();
 

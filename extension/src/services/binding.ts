@@ -47,8 +47,8 @@ import {
     VideoDisappearedMessage,
     VideoHeartbeatMessage,
     VideoToExtensionCommand,
+    IndexedSubtitleModel,
 } from '@project/common';
-import Mp3Encoder from '@project/common/audio-clip/mp3-encoder';
 import { adjacentSubtitle } from '@project/common/key-binder';
 import {
     extractAnkiSettings,
@@ -65,7 +65,7 @@ import DragController from '../controllers/drag-controller';
 import { MobileGestureController } from '../controllers/mobile-gesture-controller';
 import { MobileVideoOverlayController } from '../controllers/mobile-video-overlay-controller';
 import NotificationController from '../controllers/notification-controller';
-import SubtitleController, { SubtitleModelWithIndex } from '../controllers/subtitle-controller';
+import SubtitleController from '../controllers/subtitle-controller';
 import BulkExportController from '../controllers/bulk-export-controller';
 import VideoDataSyncController from '../controllers/video-data-sync-controller';
 import AudioRecorder, { TimedRecordingInProgressError } from './audio-recorder';
@@ -302,7 +302,7 @@ export default class Binding {
                 changed = true;
                 break;
             case PlayMode.fastForward:
-                this.subtitleController.onSlice = async (slice: SubtitleSlice<SubtitleModelWithIndex>) => {
+                this.subtitleController.onSlice = async (slice: SubtitleSlice<IndexedSubtitleModel>) => {
                     const subtitlesAreSufficientlyOffsetFromNow = (subtitleEdgeTime: number | undefined) => {
                         return (
                             subtitleEdgeTime &&
@@ -625,7 +625,7 @@ export default class Binding {
                     case 'close':
                         // ignore
                         break;
-                    case 'subtitles':
+                    case 'subtitles': {
                         const subtitlesMessage = request.message as SubtitlesToVideoMessage;
                         const subtitles: SubtitleModel[] = subtitlesMessage.value;
                         this._updateSubtitles(
@@ -633,12 +633,14 @@ export default class Binding {
                             subtitlesMessage.names || [subtitlesMessage.name]
                         );
                         break;
-                    case 'request-subtitles':
+                    }
+                    case 'request-subtitles': {
                         sendResponse({
                             subtitles: this.subtitleController.subtitles,
                             subtitleFileNames: this.subtitleController.subtitleFileNames ?? [],
                         });
                         break;
+                    }
                     // This is useful because when we kick off bulk export the side panel needs to know
                     // what subtitle to start from.
                     case 'request-current-subtitle':
@@ -712,9 +714,11 @@ export default class Binding {
                         switch (cardMessage.command) {
                             case 'card-updated':
                                 locKey = 'info.updatedCard';
+                                this.subtitleController.subtitleColoring.ankiCardWasUpdated();
                                 break;
                             case 'card-exported':
                                 locKey = 'info.exportedCard';
+                                this.subtitleController.subtitleColoring.ankiCardWasUpdated();
                                 break;
                             case 'card-saved':
                                 locKey = 'info.copiedSubtitle2';
@@ -950,6 +954,7 @@ export default class Binding {
         const subtitleHtmlChanged = this.subtitleController.subtitleHtml !== currentSettings.subtitleHtml;
         this.subtitleController.subtitleHtml = currentSettings.subtitleHtml;
 
+        this.subtitleController.subtitleColoring.resetCache(currentSettings);
         this.subtitleController.setSubtitleSettings(currentSettings);
 
         if (convertNetflixRubyChanged || subtitleHtmlChanged) {
@@ -1430,7 +1435,7 @@ export default class Binding {
         }
     }
 
-    private _updateSubtitles(subtitles: SubtitleModelWithIndex[], subtitleFileNames: string[]) {
+    private _updateSubtitles(subtitles: IndexedSubtitleModel[], subtitleFileNames: string[]) {
         this.subtitleController.subtitles = subtitles;
         this.subtitleController.subtitleFileNames = subtitleFileNames;
         this.subtitleController.cacheHtml();

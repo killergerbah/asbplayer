@@ -1,4 +1,4 @@
-import { PauseOnHoverMode } from './settings';
+import { PauseOnHoverMode, TokenMatchStrategyPriority, TokenMatchStrategy, TokenStyling } from './settings';
 import { validateSettings } from './settings-import-export';
 import { defaultSettings } from './settings-provider';
 
@@ -141,5 +141,55 @@ it('validates exported settings', () => {
         streamingSubtitleListPreference: 'app',
         pauseOnHoverMode: PauseOnHoverMode.disabled,
         lastSelectedAnkiExportMode: 'gui',
+        dictionaryTracks: [
+            {
+                dictionaryColorizeSubtitles: true,
+                dictionaryTokenMatchStrategy: TokenMatchStrategy.ANY_FORM_COLLECTED,
+                dictionaryTokenMatchStrategyPriority: TokenMatchStrategyPriority.EXACT,
+                dictionaryYomitanUrl: 'http://127.0.0.1:19633',
+                dictionaryYomitanScanLength: 16,
+                dictionaryAnkiWordFields: ['Word', 'Expression'],
+                dictionaryAnkiSentenceFields: ['Sentence'],
+                dictionaryAnkiSentenceTokenMatchStrategy: TokenMatchStrategy.EXACT_FORM_COLLECTED,
+                dictionaryAnkiMatureCutoff: 21,
+                dictionaryAnkiTreatSuspended: 'NORMAL',
+                tokenStyling: TokenStyling.UNDERLINE,
+                tokenStylingThickness: 1,
+                colorizeFullyKnownTokens: false,
+                tokenStatusColors: ['#FF0000', '#FFA500', '#FFFF00', '#00FF00', '#0000FF', '#FFFFFF'],
+            },
+            {
+                dictionaryColorizeSubtitles: false,
+                dictionaryTokenMatchStrategy: TokenMatchStrategy.LEMMA_OR_EXACT_FORM_COLLECTED,
+                dictionaryTokenMatchStrategyPriority: TokenMatchStrategyPriority.LEMMA,
+                dictionaryYomitanUrl: 'http://127.0.0.1:19634',
+                dictionaryYomitanScanLength: 12,
+                dictionaryAnkiWordFields: [],
+                dictionaryAnkiSentenceFields: [],
+                dictionaryAnkiSentenceTokenMatchStrategy: TokenMatchStrategy.EXACT_FORM_COLLECTED,
+                dictionaryAnkiMatureCutoff: 30,
+                dictionaryAnkiTreatSuspended: 1,
+                tokenStyling: TokenStyling.UNDERLINE,
+                tokenStylingThickness: 1,
+                colorizeFullyKnownTokens: false,
+                tokenStatusColors: ['#FF0000', '#FFA500', '#FFFF00', '#00FF00', '#0000FF', '#FFFFFF'],
+            },
+            {
+                dictionaryColorizeSubtitles: false,
+                dictionaryTokenMatchStrategy: TokenMatchStrategy.LEMMA_FORM_COLLECTED,
+                dictionaryTokenMatchStrategyPriority: TokenMatchStrategyPriority.BEST_KNOWN,
+                dictionaryYomitanUrl: 'http://127.0.0.1:19635',
+                dictionaryYomitanScanLength: 8,
+                dictionaryAnkiWordFields: [],
+                dictionaryAnkiSentenceFields: [],
+                dictionaryAnkiSentenceTokenMatchStrategy: TokenMatchStrategy.EXACT_FORM_COLLECTED,
+                dictionaryAnkiMatureCutoff: 30,
+                dictionaryAnkiTreatSuspended: 2,
+                tokenStyling: TokenStyling.UNDERLINE,
+                tokenStylingThickness: 1,
+                colorizeFullyKnownTokens: false,
+                tokenStatusColors: ['#FF0000', '#FFA500', '#FFFF00', '#00FF00', '#0000FF', '#FFFFFF'],
+            },
+        ],
     });
 });
