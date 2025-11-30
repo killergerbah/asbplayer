@@ -49,7 +49,7 @@ export default defineUnlistedScript(() => {
             ).forEach((sub: { Codec: string; DisplayTitle: any; Language: any; Index: number; Path: string }) => {
                 const extension = 'srt';
                 var url =
-                    window.location.origin +
+                    ApiClient._serverAddress +
                     '/Videos/' +
                     nowPlayingItem.Id +
                     '/' +
