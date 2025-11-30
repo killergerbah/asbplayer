@@ -1,7 +1,6 @@
-import React from 'react';
 import MenuItem from '@mui/material/MenuItem';
-import TextField from '@mui/material/TextField';
 import { useTranslation } from 'react-i18next';
+import SettingsTextField from './SettingsTextField';
 
 const maxTracks = 3;
 
@@ -17,7 +16,7 @@ export default function SubtitleAppearanceTrackSelector({ track, onTrackSelected
 
     return (
         <>
-            <TextField
+            <SettingsTextField
                 select
                 fullWidth
                 color="primary"
@@ -38,7 +37,7 @@ export default function SubtitleAppearanceTrackSelector({ track, onTrackSelected
                         </MenuItem>
                     );
                 })}
-            </TextField>
+            </SettingsTextField>
         </>
     );
 }

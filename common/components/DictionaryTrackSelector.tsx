@@ -1,7 +1,7 @@
 import MenuItem from '@mui/material/MenuItem';
-import TextField from '@mui/material/TextField';
 import { useTranslation } from 'react-i18next';
 import { NUM_DICTIONARY_TRACKS } from '@project/common/settings';
+import SettingsTextField from './SettingsTextField';
 interface Props {
     track: number;
     onTrackSelected: (track: number) => void;
@@ -11,7 +11,7 @@ export default function DictionaryTrackSelector({ track, onTrackSelected }: Prop
     const { t } = useTranslation();
 
     return (
-        <TextField
+        <SettingsTextField
             select
             fullWidth
             color="primary"
@@ -26,6 +26,6 @@ export default function DictionaryTrackSelector({ track, onTrackSelected }: Prop
                     {t('settings.dictionaryTrackChoice', { trackNumber: i + 1 })}
                 </MenuItem>
             ))}
-        </TextField>
+        </SettingsTextField>
     );
 }
