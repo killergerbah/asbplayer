@@ -1,5 +1,5 @@
-import React, { useCallback, useState, useEffect, useMemo } from 'react';
-import { useTranslation } from 'react-i18next';
+import React, { useCallback, useState, useEffect, useMemo, useRef } from 'react';
+import { Trans, useTranslation } from 'react-i18next';
 import FormControl from '@mui/material/FormControl';
 import FormLabel from '@mui/material/FormLabel';
 import IconButton from '@mui/material/IconButton';
@@ -29,6 +29,22 @@ import DictionaryTrackSelector from './DictionaryTrackSelector';
 import SwitchLabelWithHoverEffect from './SwitchLabelWithHoverEffect';
 import SettingsTextField from './SettingsTextField';
 import SettingsSection from './SettingsSection';
+import MuiAlert, { type AlertProps } from '@mui/material/Alert';
+import Link from '@mui/material/Link';
+
+const Alert: React.FC<AlertProps> = ({ children, ...props }) => {
+    return (
+        <MuiAlert
+            style={{
+                // SettingsDialog applies height: 100vh to .MuiPaper-root - override it here
+                height: 'auto',
+            }}
+            {...props}
+        >
+            {children}
+        </MuiAlert>
+    );
+};
 
 interface Props {
     settings: AsbplayerSettings;
@@ -108,8 +124,19 @@ const DictionarySettingsTab: React.FC<Props> = ({ settings, onSettingChanged, an
         })();
     }, [anki, ankiConnectUrl]);
 
+    const yomitanSectionRef = useRef<HTMLSpanElement | null>(null);
+    const handleYomitanHelperTextClicked = () => {
+        yomitanSectionRef.current?.scrollIntoView();
+    };
+
     return (
         <Stack spacing={1}>
+            <Alert severity="info">
+                <Trans
+                    i18nKey={t('settings.colorizationHelperText')}
+                    components={[<Link key={0} onClick={handleYomitanHelperTextClicked} href="javascript:void(0)" />]}
+                />
+            </Alert>
             <DictionaryTrackSelector track={selectedDictionaryTrack} onTrackSelected={setSelectedDictionaryTrack} />
             <SwitchLabelWithHoverEffect
                 control={
@@ -378,7 +405,13 @@ const DictionarySettingsTab: React.FC<Props> = ({ settings, onSettingChanged, an
                     />
                 </RadioGroup>
             </FormControl>
-            <SettingsSection>{t('settings.dictionaryYomitanSection')}</SettingsSection>
+            <SettingsSection ref={yomitanSectionRef}>{t('settings.dictionaryYomitanSection')}</SettingsSection>
+            <Alert severity="info">
+                <Trans
+                    i18nKey={t('settings.yomitanHelperText')}
+                    components={[<Link key={0} target="_blank" href="https://github.com/yomidevs/yomitan-api" />]}
+                />
+            </Alert>
             <SettingsTextField
                 label={t('settings.dictionaryYomitanUrl')}
                 value={selectedDictionary.dictionaryYomitanUrl}
@@ -422,7 +455,7 @@ const DictionarySettingsTab: React.FC<Props> = ({ settings, onSettingChanged, an
                     htmlInput: { min: 1, max: 128, step: 1 },
                 }}
             />
-            <SettingsSection>{t('settings.dictionaryAnkiSection')}</SettingsSection>
+            <SettingsSection>{t('settings.anki')}</SettingsSection>
             <Autocomplete
                 multiple
                 options={allFieldNames ?? []}

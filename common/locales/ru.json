@@ -444,6 +444,7 @@
         "pauseOnHoverMode": "Автоматически ставить на паузу при наведении на субтитры",
         "createTestCard": "Создать тестовую карточку",
         "colorization": "Colorization",
+        "colorizationHelperText": "Colorization requires <0>Yomitan API</0> and Anki Connect to function.",
         "dictionary": "Словарь",
         "dictionaryColorizeSubtitles": "Окрасить субтитры",
         "dictionaryTokenMatchStrategy": "Стратегия сопоставления слова",
@@ -459,7 +460,6 @@
         "dictionaryYomitanSection": "Настройки Yomitan",
         "dictionaryYomitanUrl": "Yomitan API URL",
         "dictionaryYomitanScanLength": "Максимальная длина слова",
-        "dictionaryAnkiSection": "Настройки Anki",
         "dictionaryAnkiWordFields": "Поля Anki для слова",
         "dictionaryAnkiSentenceFields": "Поля Anki для предложения",
         "dictionarySelectAnkiFields": "Выберите поля Anki для поиска...",
@@ -483,7 +483,8 @@
         "dictionaryTokenStatus1": "Цвет неизвестных",
         "dictionaryTokenStatus0": "Цвет несобранных",
         "ui": "UI",
-        "webSocketInterface": "WebSocket interface"
+        "webSocketInterface": "WebSocket interface",
+        "yomitanHelperText": "Instructions to setup Yomitan API are <0>here<0>."
     },
     "subtitlePlayer": {
         "multiSubtitleSelectHelp": "Нажмите, удерживайте и перетащите, чтобы смайнить несколько субтитров"

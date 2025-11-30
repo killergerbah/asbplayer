@@ -444,6 +444,7 @@
         "pauseOnHoverMode": "자막 위에 마우스를 올리면 자동 일시정지",
         "createTestCard": "테스트 카드 생성",
         "colorization": "Colorization",
+        "colorizationHelperText": "Colorization requires <0>Yomitan API</0> and Anki Connect to function.",
         "dictionary": "사전",
         "dictionaryColorizeSubtitles": "자막 색칠",
         "dictionaryTokenMatchStrategy": "단어 일치 전략",
@@ -459,7 +460,6 @@
         "dictionaryYomitanSection": "Yomitan 설정",
         "dictionaryYomitanUrl": "Yomitan API URL",
         "dictionaryYomitanScanLength": "최대 단어 길이",
-        "dictionaryAnkiSection": "Anki 설정",
         "dictionaryAnkiWordFields": "Anki 단어 필드",
         "dictionaryAnkiSentenceFields": "Anki 문장 필드",
         "dictionarySelectAnkiFields": "조회할 Anki 필드 선택...",
@@ -483,7 +483,8 @@
         "dictionaryTokenStatus1": "알 수 없음 색상",
         "dictionaryTokenStatus0": "미수집 색상",
         "ui": "UI",
-        "webSocketInterface": "WebSocket interface"
+        "webSocketInterface": "WebSocket interface",
+        "yomitanHelperText": "Instructions to setup Yomitan API are <0>here<0>."
     },
     "subtitlePlayer": {
         "multiSubtitleSelectHelp": "여러 자막을 추출하려면 클릭한 채로 드래그하세요"

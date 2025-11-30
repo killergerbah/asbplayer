@@ -444,6 +444,7 @@
         "pauseOnHoverMode": "Pysäytä automaattisesti kun hiiri on tekstitysten päällä",
         "createTestCard": "Luo Testikortti",
         "colorization": "Colorization",
+        "colorizationHelperText": "Colorization requires <0>Yomitan API</0> and Anki Connect to function.",
         "dictionary": "Sanakirja",
         "dictionaryColorizeSubtitles": "Värjää tekstitykset",
         "dictionaryTokenMatchStrategy": "Sanan vertausstrategia",
@@ -459,7 +460,6 @@
         "dictionaryYomitanSection": "Yomitan-asetukset",
         "dictionaryYomitanUrl": "Yomitan API URL",
         "dictionaryYomitanScanLength": "Max sanan pituus",
-        "dictionaryAnkiSection": "Anki-asetukset",
         "dictionaryAnkiWordFields": "Ankin sanakentät",
         "dictionaryAnkiSentenceFields": "Ankin lausekentät",
         "dictionarySelectAnkiFields": "Valitse Anki-kentät haulle...",
@@ -483,7 +483,8 @@
         "dictionaryTokenStatus1": "Tuntematon väri",
         "dictionaryTokenStatus0": "Keräämätön väri",
         "ui": "UI",
-        "webSocketInterface": "WebSocket interface"
+        "webSocketInterface": "WebSocket interface",
+        "yomitanHelperText": "Instructions to setup Yomitan API are <0>here<0>."
     },
     "subtitlePlayer": {
         "multiSubtitleSelectHelp": "Napsauta, pidä ja vedä useiden tekstitysten louhintaan"

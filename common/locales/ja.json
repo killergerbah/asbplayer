@@ -444,6 +444,7 @@
         "pauseOnHoverMode": "マウスカーソルを字幕に重ねると自動一時停止",
         "createTestCard": "テストカードを作成",
         "colorization": "Colorization",
+        "colorizationHelperText": "Colorization requires <0>Yomitan API</0> and Anki Connect to function.",
         "dictionary": "辞書",
         "dictionaryColorizeSubtitles": "字幕を色付けする",
         "dictionaryTokenMatchStrategy": "単語照合戦略",
@@ -459,7 +460,6 @@
         "dictionaryYomitanSection": "Yomitan の設定",
         "dictionaryYomitanUrl": "Yomitan API の URL",
         "dictionaryYomitanScanLength": "最大単語長",
-        "dictionaryAnkiSection": "Anki の設定",
         "dictionaryAnkiWordFields": "Anki 単語フィールド",
         "dictionaryAnkiSentenceFields": "Anki 文フィールド",
         "dictionarySelectAnkiFields": "ルックアップ用の Anki フィールドを選択...",
@@ -483,7 +483,8 @@
         "dictionaryTokenStatus1": "不明色",
         "dictionaryTokenStatus0": "未収集色",
         "ui": "UI",
-        "webSocketInterface": "WebSocket interface"
+        "webSocketInterface": "WebSocket interface",
+        "yomitanHelperText": "Instructions to setup Yomitan API are <0>here<0>."
     },
     "subtitlePlayer": {
         "multiSubtitleSelectHelp": "複数の字幕をマイニングするには、クリックし、押し続け、ドラッグしてください"

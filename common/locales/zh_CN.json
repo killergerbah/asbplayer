@@ -444,6 +444,7 @@
         "pauseOnHoverMode": "Auto-pause when mousing over subtitles",
         "createTestCard": "Create Test Card",
         "colorization": "Colorization",
+        "colorizationHelperText": "Colorization requires <0>Yomitan API</0> and Anki Connect to function.",
         "dictionary": "词典",
         "dictionaryColorizeSubtitles": "为字幕着色",
         "dictionaryTokenMatchStrategy": "单词匹配策略",
@@ -459,7 +460,6 @@
         "dictionaryYomitanSection": "Yomitan 配置",
         "dictionaryYomitanUrl": "Yomitan API URL",
         "dictionaryYomitanScanLength": "最大单词长度",
-        "dictionaryAnkiSection": "Anki 配置",
         "dictionaryAnkiWordFields": "Anki 单词字段",
         "dictionaryAnkiSentenceFields": "Anki 句子字段",
         "dictionarySelectAnkiFields": "选择用于查找的 Anki 字段...",
@@ -483,7 +483,8 @@
         "dictionaryTokenStatus1": "未知颜色",
         "dictionaryTokenStatus0": "未收集颜色",
         "ui": "UI",
-        "webSocketInterface": "WebSocket interface"
+        "webSocketInterface": "WebSocket interface",
+        "yomitanHelperText": "Instructions to setup Yomitan API are <0>here<0>."
     },
     "subtitlePlayer": {
         "multiSubtitleSelectHelp": "Click, hold, and drag to mine multiple subtitles"

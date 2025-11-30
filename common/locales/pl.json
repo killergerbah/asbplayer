@@ -444,6 +444,7 @@
         "pauseOnHoverMode": "Auto-pause when mousing over subtitles",
         "createTestCard": "Create Test Card",
         "colorization": "Colorization",
+        "colorizationHelperText": "Colorization requires <0>Yomitan API</0> and Anki Connect to function.",
         "dictionary": "Słownik",
         "dictionaryColorizeSubtitles": "Koloruj napisy",
         "dictionaryTokenMatchStrategy": "Strategia dopasowania słowa",
@@ -459,7 +460,6 @@
         "dictionaryYomitanSection": "Konfiguracja Yomitan",
         "dictionaryYomitanUrl": "Yomitan API URL",
         "dictionaryYomitanScanLength": "Maksymalna długość słowa",
-        "dictionaryAnkiSection": "Konfiguracja Anki",
         "dictionaryAnkiWordFields": "Pola Anki dla słów",
         "dictionaryAnkiSentenceFields": "Pola Anki dla zdań",
         "dictionarySelectAnkiFields": "Wybierz pola Anki do wyszukiwania...",
@@ -483,7 +483,8 @@
         "dictionaryTokenStatus1": "Kolor nieznanych",
         "dictionaryTokenStatus0": "Kolor niezebranych",
         "ui": "UI",
-        "webSocketInterface": "WebSocket interface"
+        "webSocketInterface": "WebSocket interface",
+        "yomitanHelperText": "Instructions to setup Yomitan API are <0>here<0>."
     },
     "subtitlePlayer": {
         "multiSubtitleSelectHelp": "Kliknij, przytrzymaj i przeciągnij, aby wykopać więcej linii napisów"

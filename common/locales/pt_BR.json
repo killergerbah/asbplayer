@@ -444,6 +444,7 @@
         "pauseOnHoverMode": "Pausar automaticamente ao posicionar o mouse sobre as legendas",
         "createTestCard": "Criar Cartão de Teste",
         "colorization": "Colorization",
+        "colorizationHelperText": "Colorization requires <0>Yomitan API</0> and Anki Connect to function.",
         "dictionary": "Dicionário",
         "dictionaryColorizeSubtitles": "Colorir legendas",
         "dictionaryTokenMatchStrategy": "Estratégia de correspondência de palavra",
@@ -459,7 +460,6 @@
         "dictionaryYomitanSection": "Configuração do Yomitan",
         "dictionaryYomitanUrl": "Yomitan API URL",
         "dictionaryYomitanScanLength": "Comprimento máximo da palavra",
-        "dictionaryAnkiSection": "Configuração do Anki",
         "dictionaryAnkiWordFields": "Campos de Palavra do Anki",
         "dictionaryAnkiSentenceFields": "Campos de Sentença do Anki",
         "dictionarySelectAnkiFields": "Selecione campos do Anki para busca...",
@@ -483,7 +483,8 @@
         "dictionaryTokenStatus1": "Cor (desconhecidas)",
         "dictionaryTokenStatus0": "Cor (não coletadas)",
         "ui": "UI",
-        "webSocketInterface": "WebSocket interface"
+        "webSocketInterface": "WebSocket interface",
+        "yomitanHelperText": "Instructions to setup Yomitan API are <0>here<0>."
     },
     "subtitlePlayer": {
         "multiSubtitleSelectHelp": "Clique, segure e arraste para minerar múltiplas legendas"

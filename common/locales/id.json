@@ -444,6 +444,7 @@
         "pauseOnHoverMode": "Jeda otomatis saat kursor diarahkan ke takarir",
         "createTestCard": "Buat Kartu Uji",
         "colorization": "Colorization",
+        "colorizationHelperText": "Colorization requires <0>Yomitan API</0> and Anki Connect to function.",
         "dictionary": "Kamus",
         "dictionaryColorizeSubtitles": "Warnai subtitle",
         "dictionaryTokenMatchStrategy": "Strategi pencocokan kata",
@@ -459,7 +460,6 @@
         "dictionaryYomitanSection": "Konfigurasi Yomitan",
         "dictionaryYomitanUrl": "Yomitan API URL",
         "dictionaryYomitanScanLength": "Panjang Kata Maksimum",
-        "dictionaryAnkiSection": "Konfigurasi Anki",
         "dictionaryAnkiWordFields": "Kolom Kata Anki",
         "dictionaryAnkiSentenceFields": "Kolom Kalimat Anki",
         "dictionarySelectAnkiFields": "Pilih kolom Anki untuk pencarian...",
@@ -483,7 +483,8 @@
         "dictionaryTokenStatus1": "Warna Unknown",
         "dictionaryTokenStatus0": "Warna Uncollected",
         "ui": "UI",
-        "webSocketInterface": "WebSocket interface"
+        "webSocketInterface": "WebSocket interface",
+        "yomitanHelperText": "Instructions to setup Yomitan API are <0>here<0>."
     },
     "subtitlePlayer": {
         "multiSubtitleSelectHelp": "Klik, tahan, dan seret untuk menambang beberapa takarir sekaligus"
