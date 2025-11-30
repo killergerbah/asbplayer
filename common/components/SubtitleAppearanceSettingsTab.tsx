@@ -34,6 +34,7 @@ import SubtitlePreview from './SubtitlePreview';
 import Stack from '@mui/material/Stack';
 import SettingsTextField from './SettingsTextField';
 import SwitchLabelWithHoverEffect from './SwitchLabelWithHoverEffect';
+import SettingsSection from './SettingsSection';
 
 // Filter out keys that look like '0', '1', ... as those are invalid
 const cssStyles = Object.keys(document.body.style).filter((s) => !isNumeric(s));
@@ -214,6 +215,7 @@ const SubtitleAppearanceSettingsTab: React.FC<Props> = ({
                 text={subtitlePreview}
                 onTextChanged={(text) => onSettingChanged('subtitlePreview', text)}
             />
+            <SettingsSection>{t('settings.styling')}</SettingsSection>
             {subtitleColor !== undefined && (
                 <SettingsTextField
                     type="color"
@@ -384,57 +386,6 @@ const SubtitleAppearanceSettingsTab: React.FC<Props> = ({
                 </FormControl>
             )}
 
-            {subtitleBlur !== undefined && (
-                <Tooltip placement="bottom-end" title={t('settings.subtitleBlurDescription')!}>
-                    <SwitchLabelWithHoverEffect
-                        control={
-                            <Switch
-                                checked={subtitleBlur}
-                                onChange={(e) => {
-                                    handleSubtitleTextSettingChanged('subtitleBlur', e.target.checked);
-                                }}
-                            />
-                        }
-                        label={t('settings.subtitleBlur')}
-                        labelPlacement="start"
-                    />
-                </Tooltip>
-            )}
-
-            {subtitleAlignment !== undefined && (
-                <FormControl>
-                    <FormLabel component="legend">{t('settings.subtitleAlignment')}</FormLabel>
-                    <RadioGroup row>
-                        <LabelWithHoverEffect
-                            control={
-                                <Radio
-                                    checked={subtitleAlignment === 'bottom'}
-                                    value={'bottom'}
-                                    onChange={(event) =>
-                                        event.target.checked &&
-                                        handleSubtitleTextSettingChanged('subtitleAlignment', 'bottom')
-                                    }
-                                />
-                            }
-                            label={t('settings.subtitleAlignmentBottom')}
-                        />
-                        <LabelWithHoverEffect
-                            control={
-                                <Radio
-                                    checked={subtitleAlignment === 'top'}
-                                    value={'top'}
-                                    onChange={(event) =>
-                                        event.target.checked &&
-                                        handleSubtitleTextSettingChanged('subtitleAlignment', 'top')
-                                    }
-                                />
-                            }
-                            label={t('settings.subtitleAlignmentTop')}
-                        />
-                    </RadioGroup>
-                </FormControl>
-            )}
-
             {subtitleCustomStyles !== undefined && (
                 <>
                     {subtitleCustomStyles.map((customStyle, index) => {
@@ -470,6 +421,77 @@ const SubtitleAppearanceSettingsTab: React.FC<Props> = ({
                         }
                     />
                 </>
+            )}
+
+            {subtitleBlur !== undefined && (
+                <Tooltip placement="bottom-end" title={t('settings.subtitleBlurDescription')!}>
+                    <SwitchLabelWithHoverEffect
+                        control={
+                            <Switch
+                                checked={subtitleBlur}
+                                onChange={(e) => {
+                                    handleSubtitleTextSettingChanged('subtitleBlur', e.target.checked);
+                                }}
+                            />
+                        }
+                        label={t('settings.subtitleBlur')}
+                        labelPlacement="start"
+                    />
+                </Tooltip>
+            )}
+
+            {selectedSubtitleAppearanceTrack === undefined && (
+                <SettingsTextField
+                    type="number"
+                    label={t('settings.imageBasedSubtitleScaleFactor')}
+                    placeholder="Inherited"
+                    fullWidth
+                    slotProps={{
+                        htmlInput: {
+                            min: 0,
+                            max: 1,
+                            step: 0.1,
+                        },
+                    }}
+                    value={imageBasedSubtitleScaleFactor}
+                    color="primary"
+                    onChange={(event) => onSettingChanged('imageBasedSubtitleScaleFactor', Number(event.target.value))}
+                />
+            )}
+
+            <SettingsSection>{t('settings.layout')}</SettingsSection>
+            {subtitleAlignment !== undefined && (
+                <FormControl>
+                    <FormLabel component="legend">{t('settings.subtitleAlignment')}</FormLabel>
+                    <RadioGroup row>
+                        <LabelWithHoverEffect
+                            control={
+                                <Radio
+                                    checked={subtitleAlignment === 'bottom'}
+                                    value={'bottom'}
+                                    onChange={(event) =>
+                                        event.target.checked &&
+                                        handleSubtitleTextSettingChanged('subtitleAlignment', 'bottom')
+                                    }
+                                />
+                            }
+                            label={t('settings.subtitleAlignmentBottom')}
+                        />
+                        <LabelWithHoverEffect
+                            control={
+                                <Radio
+                                    checked={subtitleAlignment === 'top'}
+                                    value={'top'}
+                                    onChange={(event) =>
+                                        event.target.checked &&
+                                        handleSubtitleTextSettingChanged('subtitleAlignment', 'top')
+                                    }
+                                />
+                            }
+                            label={t('settings.subtitleAlignmentTop')}
+                        />
+                    </RadioGroup>
+                </FormControl>
             )}
 
             {selectedSubtitleAppearanceTrack === undefined && (
@@ -545,24 +567,6 @@ const SubtitleAppearanceSettingsTab: React.FC<Props> = ({
                             }}
                         />
                     )}
-                    <SettingsTextField
-                        type="number"
-                        label={t('settings.imageBasedSubtitleScaleFactor')}
-                        placeholder="Inherited"
-                        fullWidth
-                        slotProps={{
-                            htmlInput: {
-                                min: 0,
-                                max: 1,
-                                step: 0.1,
-                            },
-                        }}
-                        value={imageBasedSubtitleScaleFactor}
-                        color="primary"
-                        onChange={(event) =>
-                            onSettingChanged('imageBasedSubtitleScaleFactor', Number(event.target.value))
-                        }
-                    />
                 </>
             )}
         </Stack>

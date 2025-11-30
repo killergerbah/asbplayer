@@ -28,6 +28,7 @@ import { Yomitan } from '../yomitan/yomitan';
 import DictionaryTrackSelector from './DictionaryTrackSelector';
 import SwitchLabelWithHoverEffect from './SwitchLabelWithHoverEffect';
 import SettingsTextField from './SettingsTextField';
+import SettingsSection from './SettingsSection';
 
 interface Props {
     settings: AsbplayerSettings;
@@ -127,6 +128,7 @@ const DictionarySettingsTab: React.FC<Props> = ({ settings, onSettingChanged, an
                 label={t('settings.dictionaryColorizeSubtitles')}
                 labelPlacement="start"
             />
+            <SettingsSection>{t('settings.coloringStrategy')}</SettingsSection>
             <FormControl>
                 <FormLabel component="legend">{t('settings.dictionaryTokenMatchStrategy')}</FormLabel>
                 <RadioGroup row={false}>
@@ -292,117 +294,6 @@ const DictionarySettingsTab: React.FC<Props> = ({ settings, onSettingChanged, an
                     </RadioGroup>
                 </FormControl>
             )}
-            <Typography variant="h6">{t('settings.dictionaryYomitanSection')}</Typography>
-            <SettingsTextField
-                label={t('settings.dictionaryYomitanUrl')}
-                value={selectedDictionary.dictionaryYomitanUrl}
-                error={Boolean(dictionaryYomitanUrlError)}
-                helperText={dictionaryYomitanUrlError}
-                color="primary"
-                onChange={(e) => {
-                    const newTracks = [...dictionaryTracks];
-                    newTracks[selectedDictionaryTrack] = {
-                        ...newTracks[selectedDictionaryTrack],
-                        dictionaryYomitanUrl: e.target.value,
-                    };
-                    onSettingChanged('dictionaryTracks', newTracks);
-                }}
-                slotProps={{
-                    input: {
-                        endAdornment: (
-                            <InputAdornment position="end">
-                                <IconButton onClick={dictionaryRequestYomitan}>
-                                    <RefreshIcon />
-                                </IconButton>
-                            </InputAdornment>
-                        ),
-                    },
-                }}
-            />
-            <SettingsTextField
-                type="number"
-                label={t('settings.dictionaryYomitanScanLength')}
-                value={selectedDictionary.dictionaryYomitanScanLength}
-                color="primary"
-                onChange={(e) => {
-                    const newTracks = [...dictionaryTracks];
-                    newTracks[selectedDictionaryTrack] = {
-                        ...newTracks[selectedDictionaryTrack],
-                        dictionaryYomitanScanLength: Number(e.target.value),
-                    };
-                    onSettingChanged('dictionaryTracks', newTracks);
-                }}
-                slotProps={{
-                    htmlInput: { min: 1, max: 128, step: 1 },
-                }}
-            />
-            <Typography variant="h6">{t('settings.dictionaryAnkiSection')}</Typography>
-            <Autocomplete
-                multiple
-                options={allFieldNames ?? []}
-                value={selectedDictionary.dictionaryAnkiWordFields}
-                onChange={(_, newValue) => {
-                    const items = newValue as string[];
-                    const newTracks = [...dictionaryTracks];
-                    newTracks[selectedDictionaryTrack] = {
-                        ...newTracks[selectedDictionaryTrack],
-                        dictionaryAnkiWordFields: items,
-                    };
-                    onSettingChanged('dictionaryTracks', newTracks);
-                }}
-                disableCloseOnSelect
-                renderOption={(props, option, { selected }) => (
-                    <li {...props}>
-                        <ListItemIcon>
-                            <Checkbox edge="start" checked={selected} tabIndex={-1} disableRipple />
-                        </ListItemIcon>
-                        <ListItemText primary={option} />
-                    </li>
-                )}
-                renderInput={(params) => (
-                    <SettingsTextField
-                        {...params}
-                        label={t('settings.dictionaryAnkiWordFields')}
-                        placeholder={t('settings.dictionarySelectAnkiFields')}
-                        error={Boolean(ankiError)}
-                        helperText={ankiError}
-                        fullWidth
-                    />
-                )}
-            />
-            <Autocomplete
-                multiple
-                options={allFieldNames ?? []}
-                value={selectedDictionary.dictionaryAnkiSentenceFields}
-                onChange={(_, newValue) => {
-                    const items = newValue as string[];
-                    const newTracks = [...dictionaryTracks];
-                    newTracks[selectedDictionaryTrack] = {
-                        ...newTracks[selectedDictionaryTrack],
-                        dictionaryAnkiSentenceFields: items,
-                    };
-                    onSettingChanged('dictionaryTracks', newTracks);
-                }}
-                disableCloseOnSelect
-                renderOption={(props, option, { selected }) => (
-                    <li {...props}>
-                        <ListItemIcon>
-                            <Checkbox edge="start" checked={selected} tabIndex={-1} disableRipple />
-                        </ListItemIcon>
-                        <ListItemText primary={option} />
-                    </li>
-                )}
-                renderInput={(params) => (
-                    <SettingsTextField
-                        {...params}
-                        label={t('settings.dictionaryAnkiSentenceFields')}
-                        placeholder={t('settings.dictionarySelectAnkiFields')}
-                        // error={Boolean(ankiConnectUrlError)}
-                        // helperText={ankiConnectUrlError}
-                        fullWidth
-                    />
-                )}
-            />
             <FormControl>
                 <FormLabel component="legend">{t('settings.dictionaryAnkiSentenceTokenMatchStrategy')}</FormLabel>
                 <RadioGroup row={false}>
@@ -487,6 +378,117 @@ const DictionarySettingsTab: React.FC<Props> = ({ settings, onSettingChanged, an
                     />
                 </RadioGroup>
             </FormControl>
+            <SettingsSection>{t('settings.dictionaryYomitanSection')}</SettingsSection>
+            <SettingsTextField
+                label={t('settings.dictionaryYomitanUrl')}
+                value={selectedDictionary.dictionaryYomitanUrl}
+                error={Boolean(dictionaryYomitanUrlError)}
+                helperText={dictionaryYomitanUrlError}
+                color="primary"
+                onChange={(e) => {
+                    const newTracks = [...dictionaryTracks];
+                    newTracks[selectedDictionaryTrack] = {
+                        ...newTracks[selectedDictionaryTrack],
+                        dictionaryYomitanUrl: e.target.value,
+                    };
+                    onSettingChanged('dictionaryTracks', newTracks);
+                }}
+                slotProps={{
+                    input: {
+                        endAdornment: (
+                            <InputAdornment position="end">
+                                <IconButton onClick={dictionaryRequestYomitan}>
+                                    <RefreshIcon />
+                                </IconButton>
+                            </InputAdornment>
+                        ),
+                    },
+                }}
+            />
+            <SettingsTextField
+                type="number"
+                label={t('settings.dictionaryYomitanScanLength')}
+                value={selectedDictionary.dictionaryYomitanScanLength}
+                color="primary"
+                onChange={(e) => {
+                    const newTracks = [...dictionaryTracks];
+                    newTracks[selectedDictionaryTrack] = {
+                        ...newTracks[selectedDictionaryTrack],
+                        dictionaryYomitanScanLength: Number(e.target.value),
+                    };
+                    onSettingChanged('dictionaryTracks', newTracks);
+                }}
+                slotProps={{
+                    htmlInput: { min: 1, max: 128, step: 1 },
+                }}
+            />
+            <SettingsSection>{t('settings.dictionaryAnkiSection')}</SettingsSection>
+            <Autocomplete
+                multiple
+                options={allFieldNames ?? []}
+                value={selectedDictionary.dictionaryAnkiWordFields}
+                onChange={(_, newValue) => {
+                    const items = newValue as string[];
+                    const newTracks = [...dictionaryTracks];
+                    newTracks[selectedDictionaryTrack] = {
+                        ...newTracks[selectedDictionaryTrack],
+                        dictionaryAnkiWordFields: items,
+                    };
+                    onSettingChanged('dictionaryTracks', newTracks);
+                }}
+                disableCloseOnSelect
+                renderOption={(props, option, { selected }) => (
+                    <li {...props}>
+                        <ListItemIcon>
+                            <Checkbox edge="start" checked={selected} tabIndex={-1} disableRipple />
+                        </ListItemIcon>
+                        <ListItemText primary={option} />
+                    </li>
+                )}
+                renderInput={(params) => (
+                    <SettingsTextField
+                        {...params}
+                        label={t('settings.dictionaryAnkiWordFields')}
+                        placeholder={t('settings.dictionarySelectAnkiFields')}
+                        error={Boolean(ankiError)}
+                        helperText={ankiError}
+                        fullWidth
+                    />
+                )}
+            />
+            <Autocomplete
+                multiple
+                options={allFieldNames ?? []}
+                value={selectedDictionary.dictionaryAnkiSentenceFields}
+                onChange={(_, newValue) => {
+                    const items = newValue as string[];
+                    const newTracks = [...dictionaryTracks];
+                    newTracks[selectedDictionaryTrack] = {
+                        ...newTracks[selectedDictionaryTrack],
+                        dictionaryAnkiSentenceFields: items,
+                    };
+                    onSettingChanged('dictionaryTracks', newTracks);
+                }}
+                disableCloseOnSelect
+                renderOption={(props, option, { selected }) => (
+                    <li {...props}>
+                        <ListItemIcon>
+                            <Checkbox edge="start" checked={selected} tabIndex={-1} disableRipple />
+                        </ListItemIcon>
+                        <ListItemText primary={option} />
+                    </li>
+                )}
+                renderInput={(params) => (
+                    <SettingsTextField
+                        {...params}
+                        label={t('settings.dictionaryAnkiSentenceFields')}
+                        placeholder={t('settings.dictionarySelectAnkiFields')}
+                        error={Boolean(ankiError)}
+                        helperText={ankiError}
+                        fullWidth
+                    />
+                )}
+            />
             <SettingsTextField
                 type="number"
                 label={t('settings.dictionaryAnkiMatureCutoff')}
@@ -551,7 +553,7 @@ const DictionarySettingsTab: React.FC<Props> = ({ settings, onSettingChanged, an
                     })}
                 </RadioGroup>
             </FormControl>
-            <Typography variant="h6">{t('settings.dictionaryTokenStylingSection')}</Typography>
+            <SettingsSection>{t('settings.styling')}</SettingsSection>
             <FormControl>
                 <FormLabel component="legend">{t('settings.dictionaryTokenStyling')}</FormLabel>
                 <RadioGroup row={false}>
@@ -662,9 +664,13 @@ const DictionarySettingsTab: React.FC<Props> = ({ settings, onSettingChanged, an
                             min: 0.1,
                             step: 0.1,
                         },
+                        input: {
+                            endAdornment: <InputAdornment position="end">px</InputAdornment>,
+                        },
                     }}
                 />
             )}
+            <SettingsSection>{t('settings.colors')}</SettingsSection>
             <SwitchLabelWithHoverEffect
                 control={
                     <Switch

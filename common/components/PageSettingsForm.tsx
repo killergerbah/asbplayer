@@ -9,13 +9,14 @@ import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import CloseIcon from '@mui/icons-material/Close';
 import IconButton from '@mui/material/IconButton';
-import TextField from '@mui/material/TextField';
+import TextField from './SettingsTextField';
 import Stack from '@mui/material/Stack';
 import Switch from '@mui/material/Switch';
 import Alert from '@mui/material/Alert';
 import LabelWithHoverEffect from './LabelWithHoverEffect';
 import { pageMetadata } from '../pages';
 import ListField from './ListField';
+import SettingsTextField from './SettingsTextField';
 
 const maxAdditionalHostsLength = 50;
 const youtubeTargetLanguageLimit = 3;
@@ -119,6 +120,7 @@ const YoutubePageSettingsForm = (props: PageSettingsFormProps) => {
             {...props}
             additionalControls={
                 <ListField
+                    textFieldComponent={SettingsTextField}
                     label={t('extension.settings.pages.youtube.targetLanguages')}
                     items={targetLanguages ?? []}
                     onItemsChange={(newTargetLanguages) => {
@@ -179,7 +181,7 @@ const DefaultPageSettingsForm = ({
                     </IconButton>
                 </Toolbar>
                 <DialogContent>
-                    <Stack spacing={1.5}>
+                    <Stack spacing={1}>
                         {hasModifications && (
                             <Alert
                                 severity="warning"

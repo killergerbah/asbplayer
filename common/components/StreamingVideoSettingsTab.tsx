@@ -18,6 +18,7 @@ import TuneIcon from '@mui/icons-material/Tune';
 import { PageConfigMap } from './SettingsForm';
 import { useState } from 'react';
 import PageSettingsForm from './PageSettingsForm';
+import SettingsSection from './SettingsSection';
 
 const pageSettingsHasModifications = (page: Page) => {
     return (
@@ -81,6 +82,7 @@ const StreamingVideoSettingsTab: React.FC<Props> = ({
                 />
             )}
             <Stack spacing={1}>
+                <SettingsSection>{t('settings.appIntegration')}</SettingsSection>
                 <SwitchLabelWithHoverEffect
                     control={
                         <Switch
@@ -98,6 +100,16 @@ const StreamingVideoSettingsTab: React.FC<Props> = ({
                     label={t('extension.settings.openSubtitleList')}
                     labelPlacement="start"
                 />
+                {!insideApp && (
+                    <SettingsTextField
+                        color="primary"
+                        fullWidth
+                        label={t('extension.settings.asbplayerUrl')}
+                        value={streamingAppUrl}
+                        onChange={(e) => onSettingChanged('streamingAppUrl', e.target.value)}
+                    />
+                )}
+                <SettingsSection>{t('settings.ui')}</SettingsSection>
                 {extensionSupportsOverlay && (
                     <SwitchLabelWithHoverEffect
                         control={
@@ -120,6 +132,7 @@ const StreamingVideoSettingsTab: React.FC<Props> = ({
                     label={t('extension.settings.displaySubtitles')}
                     labelPlacement="start"
                 />
+                <SettingsSection>{t('settings.mining')}</SettingsSection>
                 <SwitchLabelWithHoverEffect
                     control={
                         <Switch
@@ -177,7 +190,7 @@ const StreamingVideoSettingsTab: React.FC<Props> = ({
                         },
                     }}
                 />
-
+                <SettingsSection>{t('settings.subtitles')}</SettingsSection>
                 <SwitchLabelWithHoverEffect
                     control={
                         <Switch
@@ -208,7 +221,7 @@ const StreamingVideoSettingsTab: React.FC<Props> = ({
                     label={t('extension.settings.autoLoadDetectedSubsFailure')}
                     labelPlacement="start"
                 />
-
+                <SettingsSection>{t('settings.misc')}</SettingsSection>
                 <SettingsTextField
                     type="number"
                     color="primary"
@@ -228,60 +241,54 @@ const StreamingVideoSettingsTab: React.FC<Props> = ({
                         },
                     }}
                 />
-                {!insideApp && (
-                    <SettingsTextField
-                        color="primary"
-                        fullWidth
-                        label={t('extension.settings.asbplayerUrl')}
-                        value={streamingAppUrl}
-                        onChange={(e) => onSettingChanged('streamingAppUrl', e.target.value)}
-                    />
-                )}
                 {pageConfigs && (
-                    <TableContainer variant="outlined" component={Paper} style={{ height: 'auto' }}>
-                        <Table>
-                            <TableBody>
-                                {Object.keys(pageConfigs).map((key) => {
-                                    const pageKey = key as keyof PageSettings;
-                                    const metadata = pageMetadata[pageKey];
-                                    const page = settings.streamingPages[pageKey];
+                    <>
+                        <SettingsSection>{t('settings.pages')}</SettingsSection>
+                        <TableContainer variant="outlined" component={Paper} style={{ height: 'auto' }}>
+                            <Table>
+                                <TableBody>
+                                    {Object.keys(pageConfigs).map((key) => {
+                                        const pageKey = key as keyof PageSettings;
+                                        const metadata = pageMetadata[pageKey];
+                                        const page = settings.streamingPages[pageKey];
 
-                                    return (
-                                        <TableRowWithHoverEffect
-                                            key={key}
-                                            onClick={() => {
-                                                setPageSettingsFormKey(pageKey);
-                                                setPageSettingsFormOpen(true);
-                                            }}
-                                        >
-                                            <TableCell
-                                                sx={{
-                                                    width: 48,
-                                                    background: `url(${pageConfigs[pageKey].faviconUrl})`,
-                                                    backgroundRepeat: 'no-repeat',
-                                                    backgroundPosition: '75%',
-                                                    backgroundSize: 24,
+                                        return (
+                                            <TableRowWithHoverEffect
+                                                key={key}
+                                                onClick={() => {
+                                                    setPageSettingsFormKey(pageKey);
+                                                    setPageSettingsFormOpen(true);
                                                 }}
-                                            />
-                                            <TableCell align="left">{metadata.title}</TableCell>
-                                            <TableCell align="right">
-                                                <Badge
-                                                    invisible={!pageSettingsHasModifications(page)}
-                                                    color="warning"
-                                                    badgeContent=" "
-                                                    variant="dot"
-                                                >
-                                                    <IconButton>
-                                                        <TuneIcon />
-                                                    </IconButton>
-                                                </Badge>
-                                            </TableCell>
-                                        </TableRowWithHoverEffect>
-                                    );
-                                })}
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
+                                            >
+                                                <TableCell
+                                                    sx={{
+                                                        width: 48,
+                                                        background: `url(${pageConfigs[pageKey].faviconUrl})`,
+                                                        backgroundRepeat: 'no-repeat',
+                                                        backgroundPosition: '75%',
+                                                        backgroundSize: 24,
+                                                    }}
+                                                />
+                                                <TableCell align="left">{metadata.title}</TableCell>
+                                                <TableCell align="right">
+                                                    <Badge
+                                                        invisible={!pageSettingsHasModifications(page)}
+                                                        color="warning"
+                                                        badgeContent=" "
+                                                        variant="dot"
+                                                    >
+                                                        <IconButton>
+                                                            <TuneIcon />
+                                                        </IconButton>
+                                                    </Badge>
+                                                </TableCell>
+                                            </TableRowWithHoverEffect>
+                                        );
+                                    })}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+                    </>
                 )}
             </Stack>
         </>

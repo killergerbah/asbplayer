@@ -18,6 +18,7 @@ import { WebSocketClient } from '../web-socket-client';
 import InputAdornment from '@mui/material/InputAdornment';
 import IconButton from '@mui/material/IconButton';
 import RefreshIcon from '@mui/icons-material/Refresh';
+import SettingsSection from './SettingsSection';
 
 function regexIsValid(regex: string) {
     try {
@@ -120,6 +121,7 @@ const MiscSettingTab: React.FC<Props> = ({
     return (
         <>
             <Stack spacing={1}>
+                <SettingsSection>{t('settings.ui')}</SettingsSection>
                 <FormControl>
                     <FormLabel>{t('settings.theme')}</FormLabel>
                     <RadioGroup row>
@@ -158,6 +160,7 @@ const MiscSettingTab: React.FC<Props> = ({
                         </MenuItem>
                     ))}
                 </SettingsTextField>
+                <SettingsSection>{t('settings.subtitles')}</SettingsSection>
                 <SwitchLabelWithHoverEffect
                     control={
                         <Switch
@@ -178,29 +181,6 @@ const MiscSettingTab: React.FC<Props> = ({
                     label={t('settings.autoCopy')}
                     labelPlacement="start"
                 />
-                <SettingsTextField
-                    type="number"
-                    label={t('settings.miningHistoryStorageLimit')}
-                    fullWidth
-                    value={miningHistoryStorageLimit}
-                    color="primary"
-                    onChange={(event) => onSettingChanged('miningHistoryStorageLimit', Number(event.target.value))}
-                    slotProps={{
-                        htmlInput: {
-                            min: 0,
-                            step: 1,
-                        },
-                    }}
-                />
-                {insideApp && (
-                    <SettingsTextField
-                        label={t('settings.tabName')}
-                        fullWidth
-                        value={tabName}
-                        color="primary"
-                        onChange={(event) => onSettingChanged('tabName', event.target.value)}
-                    />
-                )}
                 <SettingsTextField
                     label={t('settings.subtitleRegexFilter')}
                     fullWidth
@@ -302,6 +282,7 @@ const MiscSettingTab: React.FC<Props> = ({
                         </RadioGroup>
                     </FormControl>
                 )}
+                <SettingsSection>{t('settings.webSocketInterface')}</SettingsSection>
                 <SwitchLabelWithHoverEffect
                     control={
                         <Switch
@@ -333,6 +314,31 @@ const MiscSettingTab: React.FC<Props> = ({
                         },
                     }}
                 />
+                <SettingsSection>{t('settings.mining')}</SettingsSection>
+                <SettingsTextField
+                    type="number"
+                    label={t('settings.miningHistoryStorageLimit')}
+                    fullWidth
+                    value={miningHistoryStorageLimit}
+                    color="primary"
+                    onChange={(event) => onSettingChanged('miningHistoryStorageLimit', Number(event.target.value))}
+                    slotProps={{
+                        htmlInput: {
+                            min: 0,
+                            step: 1,
+                        },
+                    }}
+                />
+                {insideApp && (
+                    <SettingsTextField
+                        label={t('settings.tabName')}
+                        fullWidth
+                        value={tabName}
+                        color="primary"
+                        onChange={(event) => onSettingChanged('tabName', event.target.value)}
+                    />
+                )}
+                <SettingsSection>{t('settings.title')}</SettingsSection>
                 <Button variant="contained" color="primary" style={{ width: '100%' }} onClick={handleImportSettings}>
                     {t('action.importSettings')}
                 </Button>

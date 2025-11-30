@@ -17,13 +17,13 @@ export default function DictionaryTrackSelector({ track, onTrackSelected }: Prop
             color="primary"
             variant="outlined"
             size="small"
-            label={t('settings.dictionaryTrack')!}
+            label={t('settings.subtitleTrack')!}
             value={track}
             onChange={(e) => onTrackSelected(Number(e.target.value))}
         >
             {[...Array(NUM_DICTIONARY_TRACKS).keys()].map((i) => (
                 <MenuItem key={i} value={i}>
-                    {t('settings.dictionaryTrackChoice', { trackNumber: i + 1 })}
+                    {t('settings.subtitleTrackChoice', { trackNumber: i + 1 })}
                 </MenuItem>
             ))}
         </SettingsTextField>

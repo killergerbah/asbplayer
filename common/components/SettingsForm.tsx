@@ -237,9 +237,9 @@ export default function SettingsForm({
         const tabs = [
             'anki-settings',
             'mining-settings',
-            'dictionary',
             'subtitle-appearance',
             'keyboard-shortcuts',
+            'dictionary',
             'streaming-video',
             'misc-settings',
             'about',
@@ -297,9 +297,9 @@ export default function SettingsForm({
             >
                 <Tab tabIndex={0} label={t('settings.anki')} id="anki-settings" />
                 <Tab tabIndex={1} label={t('settings.mining')} id="mining-settings" />
-                <Tab tabIndex={2} label={t('settings.dictionary')} id="dictionary" />
-                <Tab tabIndex={3} label={t('settings.subtitleAppearance')} id="subtitle-appearance" />
-                <Tab tabIndex={4} label={t('settings.keyboardShortcuts')} id="keyboard-shortcuts" />
+                <Tab tabIndex={2} label={t('settings.subtitleAppearance')} id="subtitle-appearance" />
+                <Tab tabIndex={3} label={t('settings.keyboardShortcuts')} id="keyboard-shortcuts" />
+                <Tab tabIndex={4} label={t('settings.colorization')} id="dictionary" />
                 {extensionSupportsAppIntegration && (
                     <Tab tabIndex={5} label={t('settings.streamingVideo')} id="streaming-video" />
                 )}

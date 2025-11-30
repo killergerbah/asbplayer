@@ -12,6 +12,7 @@ import Switch from '@mui/material/Switch';
 import RadioGroup from '@mui/material/RadioGroup';
 import Stack from '@mui/material/Stack';
 import { FormControl } from '@mui/material';
+import SettingsSection from './SettingsSection';
 
 interface Props {
     settings: AsbplayerSettings;
@@ -140,6 +141,17 @@ const MiningSettingsTab: React.FC<Props> = ({ settings, onSettingChanged }) => {
             <SwitchLabelWithHoverEffect
                 control={
                     <Switch
+                        checked={copyToClipboardOnMine}
+                        onChange={(event) => onSettingChanged('copyToClipboardOnMine', event.target.checked)}
+                    />
+                }
+                label={t('settings.copyOnMine')}
+                labelPlacement="start"
+            />
+            <SettingsSection>{t('settings.audio')}</SettingsSection>
+            <SwitchLabelWithHoverEffect
+                control={
+                    <Switch
                         checked={recordWithAudioPlayback}
                         onChange={(event) => onSettingChanged('recordWithAudioPlayback', event.target.checked)}
                     />
@@ -157,16 +169,7 @@ const MiningSettingsTab: React.FC<Props> = ({ settings, onSettingChanged }) => {
                 label={t('settings.mp3Preference')}
                 labelPlacement="start"
             />
-            <SwitchLabelWithHoverEffect
-                control={
-                    <Switch
-                        checked={copyToClipboardOnMine}
-                        onChange={(event) => onSettingChanged('copyToClipboardOnMine', event.target.checked)}
-                    />
-                }
-                label={t('settings.copyOnMine')}
-                labelPlacement="start"
-            />
+
             <TextField
                 type="number"
                 label={t('settings.audioPaddingStart')}
@@ -201,6 +204,7 @@ const MiningSettingsTab: React.FC<Props> = ({ settings, onSettingChanged }) => {
                     },
                 }}
             />
+            <SettingsSection>{t('settings.screenshots')}</SettingsSection>
             <TextField
                 type="number"
                 label={t('settings.maxImageWidth')}
@@ -229,6 +233,7 @@ const MiningSettingsTab: React.FC<Props> = ({ settings, onSettingChanged }) => {
                     },
                 }}
             />
+            <SettingsSection>{t('settings.exportDialog')}</SettingsSection>
             <TextField
                 type="number"
                 label={t('settings.surroundingSubtitlesCountRadius')}
