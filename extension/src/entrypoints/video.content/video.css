@@ -34,6 +34,20 @@
     filter: none;
 }
 
+.asbplayer-subtitle-rich {
+    display: none;
+}
+
+.asbplayer-subtitles:hover .asbplayer-subtitle-text,
+.asbplayer-fullscreen-subtitles:hover .asbplayer-subtitle-text {
+    display: none;
+}
+
+.asbplayer-subtitles:hover .asbplayer-subtitle-rich,
+.asbplayer-fullscreen-subtitles:hover .asbplayer-subtitle-rich {
+    display: inline;
+}
+
 .asbplayer-notification-container-bottom {
     position: absolute !important;
     left: 50%;

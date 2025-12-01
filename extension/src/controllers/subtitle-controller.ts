@@ -522,9 +522,10 @@ export default class SubtitleController {
     }
 
     private _buildTextHtml(text: string, track?: number, richText?: string) {
-        return `<span data-track="${track ?? 0}" class="${this._subtitleClasses(track)}" style="${this._subtitleStyles(
-            track
-        )}">${richText ?? text}</span>`;
+        if (richText && this.subtitleColoring.hoverOnly(track!)) {
+            return `<span data-track="${track!}" class="${this._subtitleClasses(track)}" style="${this._subtitleStyles(track)}"><span class="asbplayer-subtitle-text">${text}</span><span class="asbplayer-subtitle-rich">${richText}</span></span>`;
+        }
+        return `<span data-track="${track ?? 0}" class="${this._subtitleClasses(track)}" style="${this._subtitleStyles(track)}">${richText ?? text}</span>`;
     }
 
     unbind() {

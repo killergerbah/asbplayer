@@ -89,12 +89,30 @@ export function getFullyKnownTokenStatus(): TokenStatus {
     return TokenStatus.MATURE; // If future statuses are optional, this logic may need to change
 }
 
+export enum TokenReadingAnnotation {
+    ALWAYS = 'ALWAYS',
+    LEARNING_OR_BELOW = 'LEARNING_OR_BELOW',
+    UNKNOWN_OR_BELOW = 'UNKNOWN_OR_BELOW',
+    NEVER = 'NEVER',
+}
+
+export function dictionaryTrackEnabled(dt: DictionaryTrack): boolean {
+    return dt.dictionaryColorizeSubtitles;
+}
+
+export function dictionaryTrackHoverOnly(dt: DictionaryTrack | undefined): boolean {
+    if (!dt) return false;
+    return dictionaryTrackEnabled(dt) && dt.dictionaryColorizeOnHoverOnly;
+}
+
 export interface DictionaryTrack {
     readonly dictionaryColorizeSubtitles: boolean;
+    readonly dictionaryColorizeOnHoverOnly: boolean;
     readonly dictionaryTokenMatchStrategy: TokenMatchStrategy;
     readonly dictionaryTokenMatchStrategyPriority: TokenMatchStrategyPriority;
     readonly dictionaryYomitanUrl: string;
     readonly dictionaryYomitanScanLength: number;
+    readonly dictionaryTokenReadingAnnotation: TokenReadingAnnotation;
     readonly dictionaryAnkiWordFields: string[];
     readonly dictionaryAnkiSentenceFields: string[];
     readonly dictionaryAnkiSentenceTokenMatchStrategy: TokenMatchStrategy;

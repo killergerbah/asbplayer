@@ -9,6 +9,9 @@ class SettingsAccessor {
     get dictionaryColorizeSubtitles() {
         return this.settings.dictionaryColorizeSubtitles;
     }
+    get dictionaryColorizeOnHoverOnly() {
+        return this.settings.dictionaryColorizeOnHoverOnly;
+    }
     get dictionaryTokenMatchStrategy() {
         return this.settings.dictionaryTokenMatchStrategy;
     }
@@ -20,6 +23,9 @@ class SettingsAccessor {
     }
     get dictionaryYomitanScanLength() {
         return this.settings.dictionaryYomitanScanLength;
+    }
+    get dictionaryTokenReadingAnnotation() {
+        return this.settings.dictionaryTokenReadingAnnotation;
     }
     get dictionaryAnkiWordFields() {
         return this.settings.dictionaryAnkiWordFields;

@@ -13,6 +13,7 @@ import {
     AsbplayerSettings,
     TokenMatchStrategy,
     TokenMatchStrategyPriority,
+    TokenReadingAnnotation,
     TokenStyling,
     getFullyKnownTokenStatus,
     NUM_TOKEN_STYLINGS,
@@ -153,6 +154,23 @@ const DictionarySettingsTab: React.FC<Props> = ({ settings, onSettingChanged, an
                     />
                 }
                 label={t('settings.dictionaryColorizeSubtitles')}
+                labelPlacement="start"
+            />
+            <SwitchLabelWithHoverEffect
+                control={
+                    <Switch
+                        checked={selectedDictionary.dictionaryColorizeOnHoverOnly}
+                        onChange={(e) => {
+                            const newTracks = [...dictionaryTracks];
+                            newTracks[selectedDictionaryTrack] = {
+                                ...newTracks[selectedDictionaryTrack],
+                                dictionaryColorizeOnHoverOnly: e.target.checked,
+                            };
+                            onSettingChanged('dictionaryTracks', newTracks);
+                        }}
+                    />
+                }
+                label={t('settings.dictionaryColorizeOnHoverOnly')}
                 labelPlacement="start"
             />
             <SettingsSection>{t('settings.coloringStrategy')}</SettingsSection>
@@ -455,6 +473,86 @@ const DictionarySettingsTab: React.FC<Props> = ({ settings, onSettingChanged, an
                     htmlInput: { min: 1, max: 128, step: 1 },
                 }}
             />
+            <FormControl>
+                <FormLabel component="legend">{t('settings.dictionaryTokenReadingAnnotation')}</FormLabel>
+                <RadioGroup row={false}>
+                    <LabelWithHoverEffect
+                        control={
+                            <Radio
+                                checked={
+                                    selectedDictionary.dictionaryTokenReadingAnnotation ===
+                                    TokenReadingAnnotation.ALWAYS
+                                }
+                                onChange={() => {
+                                    const newTracks = [...dictionaryTracks];
+                                    newTracks[selectedDictionaryTrack] = {
+                                        ...newTracks[selectedDictionaryTrack],
+                                        dictionaryTokenReadingAnnotation: TokenReadingAnnotation.ALWAYS,
+                                    };
+                                    onSettingChanged('dictionaryTracks', newTracks);
+                                }}
+                            />
+                        }
+                        label={t('settings.dictionaryTokenReadingAnnotationAlways')}
+                    />
+                    <LabelWithHoverEffect
+                        control={
+                            <Radio
+                                checked={
+                                    selectedDictionary.dictionaryTokenReadingAnnotation ===
+                                    TokenReadingAnnotation.LEARNING_OR_BELOW
+                                }
+                                onChange={() => {
+                                    const newTracks = [...dictionaryTracks];
+                                    newTracks[selectedDictionaryTrack] = {
+                                        ...newTracks[selectedDictionaryTrack],
+                                        dictionaryTokenReadingAnnotation: TokenReadingAnnotation.LEARNING_OR_BELOW,
+                                    };
+                                    onSettingChanged('dictionaryTracks', newTracks);
+                                }}
+                            />
+                        }
+                        label={t('settings.dictionaryTokenReadingAnnotationLearningOrBelow')}
+                    />
+                    <LabelWithHoverEffect
+                        control={
+                            <Radio
+                                checked={
+                                    selectedDictionary.dictionaryTokenReadingAnnotation ===
+                                    TokenReadingAnnotation.UNKNOWN_OR_BELOW
+                                }
+                                onChange={() => {
+                                    const newTracks = [...dictionaryTracks];
+                                    newTracks[selectedDictionaryTrack] = {
+                                        ...newTracks[selectedDictionaryTrack],
+                                        dictionaryTokenReadingAnnotation: TokenReadingAnnotation.UNKNOWN_OR_BELOW,
+                                    };
+                                    onSettingChanged('dictionaryTracks', newTracks);
+                                }}
+                            />
+                        }
+                        label={t('settings.dictionaryTokenReadingAnnotationUnknownOrBelow')}
+                    />
+                    <LabelWithHoverEffect
+                        control={
+                            <Radio
+                                checked={
+                                    selectedDictionary.dictionaryTokenReadingAnnotation === TokenReadingAnnotation.NEVER
+                                }
+                                onChange={() => {
+                                    const newTracks = [...dictionaryTracks];
+                                    newTracks[selectedDictionaryTrack] = {
+                                        ...newTracks[selectedDictionaryTrack],
+                                        dictionaryTokenReadingAnnotation: TokenReadingAnnotation.NEVER,
+                                    };
+                                    onSettingChanged('dictionaryTracks', newTracks);
+                                }}
+                            />
+                        }
+                        label={t('settings.dictionaryTokenReadingAnnotationNever')}
+                    />
+                </RadioGroup>
+            </FormControl>
             <SettingsSection>{t('settings.anki')}</SettingsSection>
             <Autocomplete
                 multiple
