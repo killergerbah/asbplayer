@@ -1,9 +1,14 @@
 import { Fetcher, HttpFetcher } from '@project/common';
 import { isKanaOnly } from '@project/common/util';
 
+export interface TokenPart {
+    text: string;
+    reading: string;
+}
+
 export class Yomitan {
     private readonly fetcher: Fetcher;
-    private readonly tokenizeCache: Map<number, Map<string, string[]>>;
+    private readonly tokenizeCache: Map<number, Map<string, TokenPart[][]>>;
     private readonly lemmatizeCache: Map<number, Map<string, string[]>>;
 
     constructor(fetcher = new HttpFetcher()) {
@@ -17,14 +22,14 @@ export class Yomitan {
         this.lemmatizeCache.clear();
     }
 
-    async tokenize(track: number, text: string, scanLength: number, yomitanUrl: string) {
+    async tokenize(track: number, text: string, scanLength: number, yomitanUrl: string): Promise<TokenPart[][]> {
         let tokens = this.tokenizeCache.get(track)?.get(text);
         if (tokens) return tokens;
         tokens = [];
 
         for (const res of await this._executeAction('tokenize', { text, scanLength }, yomitanUrl)) {
             for (const tokenParts of res['content']) {
-                tokens.push(tokenParts.map((p: any) => p['text']).join('')); // [[the], [c, a, r]] -> [the, car]
+                tokens.push(tokenParts);
             }
         }
 

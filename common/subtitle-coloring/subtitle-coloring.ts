@@ -3,15 +3,18 @@ import { Anki } from '@project/common/anki';
 import {
     AsbplayerSettings,
     DictionaryTrack,
+    dictionaryTrackEnabled,
+    dictionaryTrackHoverOnly,
     getFullyKnownTokenStatus,
     TokenMatchStrategy,
     TokenMatchStrategyPriority,
+    TokenReadingAnnotation,
     TokenStatus,
     TokenStyling,
 } from '@project/common/settings';
 import { SubtitleCollection, SubtitleCollectionOptions } from '@project/common/subtitle-collection';
 import { arrayEquals, filterAsync, inBatches } from '@project/common/util';
-import { Yomitan } from '@project/common/yomitan/yomitan';
+import { TokenPart, Yomitan } from '@project/common/yomitan/yomitan';
 
 const TOKEN_CACHE_BUILD_AHEAD = 50;
 const TOKEN_CACHE_BATCH_SIZE = 1; // Processing more than 1 at a time is slower
@@ -123,8 +126,8 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
         this.uncollectedNeedsRefresh = true;
     }
 
-    private _dictionaryTrackEnabled(dt: DictionaryTrack) {
-        return dt.dictionaryColorizeSubtitles;
+    hoverOnly(track: number) {
+        return dictionaryTrackHoverOnly(this.trackStates[track].dt);
     }
 
     private _tokenStatusValid(tokenStatus: TokenStatus | undefined | null) {
@@ -143,7 +146,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
     private async _updateAnkiCache() {
         if (!this.anki) return;
         for (const ts of this.trackStates) {
-            if (!this._dictionaryTrackEnabled(ts.dt)) continue;
+            if (!dictionaryTrackEnabled(ts.dt)) continue;
             const fields = [...ts.dt.dictionaryAnkiWordFields, ...ts.dt.dictionaryAnkiSentenceFields]
                 .map((field) => `"${field}:_*"`)
                 .join(' OR ');
@@ -177,7 +180,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
 
         const allFieldsSet: Set<string> = new Set();
         for (const ts of this.trackStates) {
-            if (!this._dictionaryTrackEnabled(ts.dt)) continue;
+            if (!dictionaryTrackEnabled(ts.dt)) continue;
             [...ts.dt.dictionaryAnkiWordFields, ...ts.dt.dictionaryAnkiSentenceFields].forEach((field) =>
                 allFieldsSet.add(field)
             );
@@ -286,7 +289,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                 ankiSuspendedCardIds: new Set(),
             }));
         }
-        if (this.trackStates.every((t) => !this._dictionaryTrackEnabled(t.dt))) return true;
+        if (this.trackStates.every((t) => !dictionaryTrackEnabled(t.dt))) return true;
         if (this.colorCacheBuilding) return false;
 
         let uncollectedWasRefreshed = false;
@@ -295,7 +298,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
             this.colorCacheBuilding = true;
             this.tokenRequestFailed = false;
             for (const ts of this.trackStates) {
-                if (!this._dictionaryTrackEnabled(ts.dt) || ts.yomitanHealthy) continue;
+                if (!dictionaryTrackEnabled(ts.dt) || ts.yomitanHealthy) continue;
                 try {
                     await this.yomitan.version(ts.dt.dictionaryYomitanUrl);
                     ts.yomitanHealthy = true;
@@ -303,7 +306,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                     console.warn(`YomitanTrack${ts.track + 1} version request failed:`, e);
                 }
             }
-            if (!this.anki && this.trackStates.some((t) => this._dictionaryTrackEnabled(t.dt))) {
+            if (!this.anki && this.trackStates.some((t) => dictionaryTrackEnabled(t.dt))) {
                 try {
                     this.anki = new Anki(this.settings!, this.fetcher);
                     const permission = (await this.anki.requestPermission()).permission;
@@ -336,7 +339,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                             try {
                                 this.colorCacheBuildingCurrentIndexes.add(index);
                                 const ts = this.trackStates[track];
-                                if (!this._dictionaryTrackEnabled(ts.dt)) return;
+                                if (!dictionaryTrackEnabled(ts.dt)) return;
                                 const cachedRichText = this._subtitles[index].richText;
                                 if (this._colorCacheValid(cachedRichText, index)) return;
                                 const richText = await this._colorizeText({ text, index, ts });
@@ -385,27 +388,30 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
             let richText: string = '';
             let textHasError = false;
             let textHasUncollected = false;
-            const rawTokens = await this.yomitan.tokenize(
+            const tokenizeRes = await this.yomitan.tokenize(
                 ts.track,
                 text,
                 ts.dt.dictionaryYomitanScanLength,
                 ts.dt.dictionaryYomitanUrl
             );
             if (this.shouldCancelBuild) return;
-            for (const rawToken of rawTokens) {
-                const trimmedToken = rawToken.trim();
+            for (const rawTokenParts of tokenizeRes) {
+                const trimmedToken = rawTokenParts
+                    .map((p) => p.text)
+                    .join('')
+                    .trim();
 
                 // Token is already cached or not a word
                 const cachedTokenStatus = ts.tokenStatusCache.get(trimmedToken);
                 if (this._tokenStatusValid(cachedTokenStatus)) {
-                    richText += this._applyTokenStyle({ rawToken, tokenStatus: cachedTokenStatus!, dt: ts.dt });
+                    richText += this._applyTokenStyle({ rawTokenParts, tokenStatus: cachedTokenStatus!, dt: ts.dt });
                     if (cachedTokenStatus === TokenStatus.UNCOLLECTED) textHasUncollected = true;
                     else if (cachedTokenStatus === null) textHasError = true;
                     continue;
                 }
                 if (!HAS_LETTER_REGEX.test(trimmedToken)) {
                     const fullyKnownTokenStatus = getFullyKnownTokenStatus();
-                    richText += this._applyTokenStyle({ rawToken, tokenStatus: fullyKnownTokenStatus, dt: ts.dt });
+                    richText += this._applyTokenStyle({ rawTokenParts, tokenStatus: fullyKnownTokenStatus, dt: ts.dt });
                     ts.tokenStatusCache.set(trimmedToken, fullyKnownTokenStatus);
                     continue;
                 }
@@ -437,7 +443,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                 }
                 if (this.shouldCancelBuild) return;
 
-                richText += this._applyTokenStyle({ rawToken, tokenStatus, dt: ts.dt });
+                richText += this._applyTokenStyle({ rawTokenParts, tokenStatus, dt: ts.dt });
                 if (tokenStatus === TokenStatus.UNCOLLECTED) textHasUncollected = true;
                 else if (tokenStatus === null) textHasError = true;
                 ts.tokenStatusCache.set(trimmedToken, tokenStatus);
@@ -452,7 +458,13 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
             this.erroredCache.add(index);
             return text
                 .split('\n')
-                .map((line) => this._applyTokenStyle({ rawToken: line, tokenStatus: null, dt: ts.dt }))
+                .map((line) =>
+                    this._applyTokenStyle({
+                        rawTokenParts: [{ text: line, reading: '' }],
+                        tokenStatus: null,
+                        dt: ts.dt,
+                    })
+                )
                 .join('\n');
         }
     }
@@ -655,7 +667,12 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                                 ts.dt.dictionaryYomitanScanLength,
                                 ts.dt.dictionaryYomitanUrl
                             )
-                        ).map((t) => t.trim());
+                        ).map((t) =>
+                            t
+                                .map((p) => p.text)
+                                .join('')
+                                .trim()
+                        );
                         if (this.shouldCancelBuild) return false;
                         if (fieldTokens.includes(trimmedToken)) return true;
                         if (ts.dt.dictionaryAnkiSentenceTokenMatchStrategy !== TokenMatchStrategy.ANY_FORM_COLLECTED) {
@@ -734,28 +751,53 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
     }
 
     private _applyTokenStyle(options: {
-        rawToken: string;
+        rawTokenParts: TokenPart[];
         tokenStatus: TokenStatus | null;
         dt: DictionaryTrack;
     }): string {
-        const { rawToken, tokenStatus, dt } = options;
-        if (tokenStatus === null) return `<span style="text-decoration: line-through red 3px;">${rawToken}</span>`;
-        if (!dt.colorizeFullyKnownTokens && tokenStatus === getFullyKnownTokenStatus()) return rawToken;
+        const { rawTokenParts, tokenStatus, dt } = options;
+        const token = this._applyReadingAnnotation({ rawTokenParts, tokenStatus, dt });
+        if (tokenStatus === null) return `<span style="text-decoration: line-through red 3px;">${token}</span>`;
+        if (!dt.colorizeFullyKnownTokens && tokenStatus === getFullyKnownTokenStatus()) return token;
         const c = dt.tokenStatusColors[tokenStatus];
         const t = dt.tokenStylingThickness;
         switch (dt.tokenStyling) {
             case TokenStyling.TEXT:
-                return `<span style="-webkit-text-fill-color: ${c};">${rawToken}</span>`;
+                return `<span style="-webkit-text-fill-color: ${c};">${token}</span>`;
             case TokenStyling.BACKGROUND:
-                return `<span style="background-color: ${c};">${rawToken}</span>`;
+                return `<span style="background-color: ${c};">${token}</span>`;
             case TokenStyling.UNDERLINE:
             case TokenStyling.OVERLINE:
-                return `<span style="text-decoration: ${dt.tokenStyling} ${c} ${t}px;">${rawToken}</span>`;
+                return `<span style="text-decoration: ${dt.tokenStyling} ${c} ${t}px;">${token}</span>`;
             case TokenStyling.OUTLINE:
-                return `<span style="-webkit-text-stroke: ${t}px ${c};">${rawToken}</span>`;
+                return `<span style="-webkit-text-stroke: ${t}px ${c};">${token}</span>`;
             default:
-                return `<span style="text-decoration: line-through red 3px double;">${rawToken}</span>`;
+                return `<span style="text-decoration: line-through red 3px double;">${token}</span>`;
         }
+    }
+
+    private _applyReadingAnnotation(options: {
+        rawTokenParts: TokenPart[];
+        tokenStatus: TokenStatus | null;
+        dt: DictionaryTrack;
+    }): string {
+        const { rawTokenParts, tokenStatus, dt } = options;
+        if (rawTokenParts.every((p) => !HAS_LETTER_REGEX.test(p.text))) {
+            return rawTokenParts.map((p) => p.text).join(''); // Prevent 。 -> まる
+        }
+        const ano = dt.dictionaryTokenReadingAnnotation;
+        if (ano === TokenReadingAnnotation.NEVER) return rawTokenParts.map((p) => p.text).join('');
+        if (tokenStatus !== null) {
+            if (
+                (ano === TokenReadingAnnotation.LEARNING_OR_BELOW && tokenStatus > TokenStatus.LEARNING) ||
+                (ano === TokenReadingAnnotation.UNKNOWN_OR_BELOW && tokenStatus > TokenStatus.UNKNOWN)
+            ) {
+                return rawTokenParts.map((p) => p.text).join('');
+            }
+        }
+        return rawTokenParts
+            .map((p) => (p.reading.length ? `<ruby>${p.text}<rt>${p.reading}</rt></ruby>` : p.text))
+            .join('');
     }
 
     unbind() {

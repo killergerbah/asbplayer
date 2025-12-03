@@ -12,6 +12,18 @@
     filter: none;
 }
 
+.asbplayer-subtitle-rich {
+    display: none;
+}
+
+.asbplayer-subtitle-hover-group:hover .asbplayer-subtitle-text {
+    display: none;
+}
+
+.asbplayer-subtitle-hover-group:hover .asbplayer-subtitle-rich {
+    display: inline;
+}
+
 .subtitle-line {
     margin: 0;
     padding: 0;

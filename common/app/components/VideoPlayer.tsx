@@ -25,6 +25,8 @@ import {
     textSubtitleSettingsForTrack,
     PauseOnHoverMode,
     allTextSubtitleSettings,
+    DictionaryTrack,
+    dictionaryTrackHoverOnly,
 } from '@project/common/settings';
 import {
     arrayEquals,
@@ -158,7 +160,8 @@ const showingSubtitleHtml = (
     videoRef: MutableRefObject<ExperimentalHTMLVideoElement | undefined>,
     subtitleStyles: string,
     subtitleClasses: string,
-    imageBasedSubtitleScaleFactor: number
+    imageBasedSubtitleScaleFactor: number,
+    dictionaryTracks: DictionaryTrack[]
 ) => {
     if (subtitle.textImage) {
         const imageScale =
@@ -177,10 +180,20 @@ const showingSubtitleHtml = (
 `;
     }
     const allSubtitleClasses = subtitleClasses ? `${subtitleClasses} subtitle-line` : 'subtitle-line';
-    const wrappedText = (subtitle.richText?.split('\n') ?? subtitle.text.split('\n'))
+    if (subtitle.richText && dictionaryTrackHoverOnly(dictionaryTracks?.[subtitle.track])) {
+        const richLines = subtitle.richText.split('\n');
+        const linesHtml = subtitle.text
+            .split('\n')
+            .map(
+                (t, i) =>
+                    `<p class="${allSubtitleClasses}" style="${subtitleStyles}"><span class="asbplayer-subtitle-text">${t}</span><span class="asbplayer-subtitle-rich">${richLines[i]}</span></p>`
+            )
+            .join('');
+        return `<span class="asbplayer-subtitle-hover-group">${linesHtml}</span>`;
+    }
+    return (subtitle.richText?.split('\n') ?? subtitle.text.split('\n'))
         .map((line) => `<p class="${allSubtitleClasses}" style="${subtitleStyles}">${line}</p>`)
         .join('');
-    return wrappedText;
 };
 
 interface CachedShowingSubtitleProps {
@@ -1499,9 +1512,10 @@ export default function VideoPlayer({
                 videoRef,
                 trackStyles[subtitle.track]?.styleString ?? trackStyles[0].styleString,
                 trackStyles[subtitle.track]?.classes ?? trackStyles[0].classes,
-                subtitleSettings.imageBasedSubtitleScaleFactor
+                subtitleSettings.imageBasedSubtitleScaleFactor,
+                settings.dictionaryTracks
             ),
-        [trackStyles, subtitleSettings.imageBasedSubtitleScaleFactor]
+        [trackStyles, subtitleSettings.imageBasedSubtitleScaleFactor, settings.dictionaryTracks]
     );
 
     const { getSubtitleDomCache } = useSubtitleDomCache(subtitles, getSubtitleHtml);

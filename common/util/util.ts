@@ -355,9 +355,15 @@ export function isNumeric(str: string) {
 }
 
 const KANA_ONLY_REGEX =
-    /^[\u3040-\u309F\u30A0-\u30FF\u31F0-\u31FF\uFF66-\uFF9F\u{1B000}-\u{1B0FF}\u{1B100}-\u{1B12F}]+$/u;
+    /^[\u3040-\u309F\u30A0-\u30FF\u31F0-\u31FF\uFF61-\uFF9F\u{1B000}-\u{1B0FF}\u{1B100}-\u{1B12F}\u{1B130}-\u{1B16F}\u{1AFF0}-\u{1AFFF}]+$/u;
 export function isKanaOnly(text: string) {
     return KANA_ONLY_REGEX.test(text.normalize('NFC'));
+}
+
+const KATAKANA_ONLY_REGEX =
+    /^[\u30A0-\u30FF\u31F0-\u31FF\u3099\u309A\uFF61-\uFF9F\u{1B000}-\u{1B0FF}\u{1B100}-\u{1B12F}\u{1B130}-\u{1B16F}\u{1AFF0}-\u{1AFFF}]+$/u;
+export function isKatakanaOnly(text: string) {
+    return KATAKANA_ONLY_REGEX.test(text.normalize('NFC'));
 }
 
 // https://stackoverflow.com/questions/63116039/camelcase-to-kebab-case
