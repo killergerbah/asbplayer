@@ -26,7 +26,7 @@ const HAS_LETTER_REGEX = /\p{L}/u;
 interface TrackState {
     track: number;
     dt: DictionaryTrack;
-    yomitanHealthy: boolean;
+    yt: Yomitan | undefined;
     tokenStatusCache: Map<string, TokenStatus | null>;
     ankiCardIdStatuses: Map<number, TokenStatus>;
     ankiSuspendedCardIds: Set<number>;
@@ -40,7 +40,6 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
     private showingSubtitles?: RichSubtitleModel[];
     private showingNeedsRefreshCount: number;
 
-    private yomitan: Yomitan;
     private anki: Anki | undefined;
     private readonly fetcher?: Fetcher;
     private trackStates: TrackState[];
@@ -70,7 +69,6 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
         this._subtitles = [];
         this.initialSettings = initialSettings;
         this.fetcher = fetcher;
-        this.yomitan = new Yomitan(this.fetcher);
         this.trackStates = [];
         this.subtitleColorsUpdated = subtitleColorsUpdated;
         this.getMediaTimeMs = getMediaTimeMs;
@@ -108,7 +106,6 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
     resetCache(settings?: AsbplayerSettings) {
         if (this.colorCacheBuilding) this.shouldCancelBuild = true;
         if (settings) this.settings = settings;
-        this.yomitan.resetCache();
         this.anki = undefined;
         this.trackStates = [];
         this.erroredCache.clear();
@@ -283,7 +280,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
             this.trackStates = this.settings!.dictionaryTracks.map((dt, track) => ({
                 track,
                 dt,
-                yomitanHealthy: false,
+                yt: undefined,
                 tokenStatusCache: new Map(),
                 ankiCardIdStatuses: new Map(),
                 ankiSuspendedCardIds: new Set(),
@@ -298,10 +295,11 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
             this.colorCacheBuilding = true;
             this.tokenRequestFailed = false;
             for (const ts of this.trackStates) {
-                if (!dictionaryTrackEnabled(ts.dt) || ts.yomitanHealthy) continue;
+                if (!dictionaryTrackEnabled(ts.dt) || ts.yt) continue;
                 try {
-                    await this.yomitan.version(ts.dt.dictionaryYomitanUrl);
-                    ts.yomitanHealthy = true;
+                    const yt = new Yomitan(ts.dt, this.fetcher);
+                    await yt.version();
+                    ts.yt = yt;
                 } catch (e) {
                     console.warn(`YomitanTrack${ts.track + 1} version request failed:`, e);
                 }
@@ -329,6 +327,19 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                 }
                 subtitles = newSubtitles;
             }
+
+            const eventsPerTrack = new Map<number, string[]>();
+            for (const { text, track } of subtitles) {
+                if (!eventsPerTrack.has(track)) eventsPerTrack.set(track, []);
+                eventsPerTrack.get(track)!.push(text);
+            }
+            for (const [track, texts] of eventsPerTrack.entries()) {
+                const ts = this.trackStates[track];
+                if (!dictionaryTrackEnabled(ts.dt)) continue;
+                if (!ts.yt?.supportsConcurrentTokenization) continue;
+                await ts.yt.cacheTokenizations(texts);
+            }
+            eventsPerTrack.clear();
 
             await inBatches(
                 subtitles,
@@ -366,7 +377,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
         } finally {
             if (this.tokenRequestFailed) {
                 this.tokenRequestFailed = false;
-                this.trackStates.forEach((ts) => (ts.yomitanHealthy = false));
+                this.trackStates.forEach((ts) => (ts.yt = undefined));
                 this.anki = undefined;
             }
             if (uncollectedWasRefreshed) this.uncollectedNeedsRefresh = false;
@@ -380,7 +391,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
         const { text, index, ts } = options;
         try {
             if (!this.anki) throw new Error('Anki not initialized');
-            if (!ts.yomitanHealthy) throw new Error(`Yomitan not initialized for Track${ts.track + 1}`);
+            if (!ts.yt) throw new Error(`Yomitan not initialized for Track${ts.track + 1}`);
             if (!ts.dt.dictionaryAnkiWordFields.length && !ts.dt.dictionaryAnkiSentenceFields.length) {
                 throw new Error('No Anki fields defined');
             }
@@ -388,12 +399,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
             let richText: string = '';
             let textHasError = false;
             let textHasUncollected = false;
-            const tokenizeRes = await this.yomitan.tokenize(
-                ts.track,
-                text,
-                ts.dt.dictionaryYomitanScanLength,
-                ts.dt.dictionaryYomitanUrl
-            );
+            const tokenizeRes = await ts.yt.tokenize(text);
             if (this.shouldCancelBuild) return;
             for (const rawTokenParts of tokenizeRes) {
                 const trimmedToken = rawTokenParts
@@ -596,7 +602,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
     }): Promise<TokenStatus | null> {
         const { trimmedToken, ts, cacheUncollected, getFieldColor } = options;
 
-        const tokenLemmas = await this.yomitan.lemmatize(ts.track, trimmedToken, ts.dt.dictionaryYomitanUrl);
+        const tokenLemmas = await ts.yt!.lemmatize(trimmedToken);
         if (this.shouldCancelBuild) return null;
         for (const tokenLemma of tokenLemmas) {
             const cachedTokenLemma = ts.tokenStatusCache.get(tokenLemma);
@@ -653,6 +659,18 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
             if (!rawCardInfos.length) return null;
             if (this.shouldCancelBuild) return null;
 
+            if (ts.yt?.supportsConcurrentTokenization) {
+                const sentenceFieldValues: string[] = [];
+                for (const sentenceField of ts.dt.dictionaryAnkiSentenceFields) {
+                    for (const cardInfo of rawCardInfos) {
+                        const field = cardInfo.fields[sentenceField];
+                        if (!field) continue;
+                        sentenceFieldValues.push(field.value);
+                    }
+                }
+                await ts.yt.cacheTokenizations(sentenceFieldValues);
+            }
+
             // Tokenize the sentence field and filter cards that actually contain the token
             const validCardInfos = await filterAsync(
                 rawCardInfos,
@@ -660,14 +678,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                     for (const sentenceField of ts.dt.dictionaryAnkiSentenceFields) {
                         const field = cardInfo.fields[sentenceField];
                         if (!field) continue;
-                        const fieldTokens = (
-                            await this.yomitan.tokenize(
-                                ts.track,
-                                field.value,
-                                ts.dt.dictionaryYomitanScanLength,
-                                ts.dt.dictionaryYomitanUrl
-                            )
-                        ).map((t) =>
+                        const fieldTokens = (await ts.yt!.tokenize(field.value)).map((t) =>
                             t
                                 .map((p) => p.text)
                                 .join('')
@@ -679,11 +690,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                             continue;
                         }
                         for (const fieldToken of fieldTokens) {
-                            const fieldTokenLemmas = await this.yomitan.lemmatize(
-                                ts.track,
-                                fieldToken,
-                                ts.dt.dictionaryYomitanUrl
-                            );
+                            const fieldTokenLemmas = await ts.yt!.lemmatize(fieldToken);
                             if (this.shouldCancelBuild) return false;
                             if (fieldTokenLemmas.includes(trimmedToken)) return true;
                         }
@@ -727,7 +734,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
 
     private _handleSuspendedCards(options: { cardIds: number[]; ts: TrackState }): number[] | TokenStatus {
         const { cardIds, ts } = options;
-        if (ts.dt.dictionaryAnkiTreatSuspended === 'NORMAL') return cardIds;
+        if (!cardIds.length || ts.dt.dictionaryAnkiTreatSuspended === 'NORMAL') return cardIds;
         const unsuspended = cardIds.filter((cardId) => !ts.ankiSuspendedCardIds.has(cardId));
         if (!unsuspended.length) return ts.dt.dictionaryAnkiTreatSuspended;
         return unsuspended;

@@ -1,5 +1,7 @@
 import { Fetcher, HttpFetcher } from '@project/common';
 import { isKanaOnly } from '@project/common/util';
+import gt from 'semver/functions/gt';
+import { DictionaryTrack } from '../settings';
 
 export interface TokenPart {
     text: string;
@@ -7,14 +9,22 @@ export interface TokenPart {
 }
 
 export class Yomitan {
+    private readonly dt: DictionaryTrack;
     private readonly fetcher: Fetcher;
-    private readonly tokenizeCache: Map<number, Map<string, TokenPart[][]>>;
-    private readonly lemmatizeCache: Map<number, Map<string, string[]>>;
+    private _supportsConcurrentTokenization: boolean;
+    private readonly tokenizeCache: Map<string, TokenPart[][]>;
+    private readonly lemmatizeCache: Map<string, string[]>;
 
-    constructor(fetcher = new HttpFetcher()) {
+    constructor(dictionaryTrack: DictionaryTrack, fetcher = new HttpFetcher()) {
+        this.dt = dictionaryTrack;
         this.fetcher = fetcher;
+        this._supportsConcurrentTokenization = false;
         this.tokenizeCache = new Map();
         this.lemmatizeCache = new Map();
+    }
+
+    get supportsConcurrentTokenization() {
+        return this._supportsConcurrentTokenization;
     }
 
     resetCache() {
@@ -22,20 +32,56 @@ export class Yomitan {
         this.lemmatizeCache.clear();
     }
 
-    async tokenize(track: number, text: string, scanLength: number, yomitanUrl: string): Promise<TokenPart[][]> {
-        let tokens = this.tokenizeCache.get(track)?.get(text);
+    async tokenize(text: string, yomitanUrl?: string): Promise<TokenPart[][]> {
+        let tokens = this.tokenizeCache.get(text);
         if (tokens) return tokens;
         tokens = [];
-
-        for (const res of await this._executeAction('tokenize', { text, scanLength }, yomitanUrl)) {
-            for (const tokenParts of res['content']) {
+        const response = await this._executeAction(
+            'tokenize',
+            { text, scanLength: this.dt.dictionaryYomitanScanLength },
+            yomitanUrl
+        );
+        for (const res of response) {
+            for (const tokenParts of res.content) {
                 tokens.push(tokenParts);
+                if (tokenParts[0]?.headwords) {
+                    const token = tokenParts
+                        .map((p: any) => p.text)
+                        .join('')
+                        .trim();
+                    if (!this.lemmatizeCache.has(token)) this.extractLemmas(token, tokenParts[0].headwords);
+                }
             }
         }
-
-        if (!this.tokenizeCache.has(track)) this.tokenizeCache.set(track, new Map());
-        this.tokenizeCache.get(track)!.set(text, tokens);
+        this.tokenizeCache.set(text, tokens);
         return tokens;
+    }
+
+    async cacheTokenizations(texts: string[], yomitanUrl?: string): Promise<void> {
+        const tokensToFetch = [];
+        for (const text of texts) {
+            if (!this.tokenizeCache.has(text)) tokensToFetch.push(text);
+        }
+        if (!tokensToFetch.length) return;
+        const response = await this._executeAction(
+            'tokenize',
+            { text: tokensToFetch, scanLength: this.dt.dictionaryYomitanScanLength },
+            yomitanUrl
+        );
+        for (const res of response) {
+            const tokens: TokenPart[][] = [];
+            for (const tokenParts of res.content) {
+                tokens.push(tokenParts);
+                if (tokenParts[0]?.headwords) {
+                    const token = tokenParts
+                        .map((p: any) => p.text)
+                        .join('')
+                        .trim();
+                    if (!this.lemmatizeCache.has(token)) this.extractLemmas(token, tokenParts[0].headwords);
+                }
+            }
+            this.tokenizeCache.set(tokensToFetch[res.index], tokens);
+        }
     }
 
     /**
@@ -46,15 +92,12 @@ export class Yomitan {
      * すぎる   ->  過ぎる, すぎる
      * すぎます ->  過ぎる, すぎる
      */
-    async lemmatize(track: number, token: string, yomitanUrl: string): Promise<string[]> {
-        let lemmas = this.lemmatizeCache.get(track)?.get(token);
-        if (lemmas) return lemmas;
-        lemmas = [];
-
+    private extractLemmas(token: string, entries: any[]): string[] {
         let foundLemma = false; // Only add the first valid lemma
         let lookForKanji = isKanaOnly(token); // Use the first valid kanji form if the token is only Hiragana/Katakana
-        for (const entry of (await this._executeAction('termEntries', { term: token }, yomitanUrl)).dictionaryEntries) {
-            for (const headword of entry.headwords) {
+        const lemmas: string[] = [];
+        for (const headwords of entries) {
+            for (const headword of headwords) {
                 for (const source of headword.sources) {
                     if (source.originalText !== token) continue;
                     if (!source.isPrimary) continue;
@@ -72,18 +115,28 @@ export class Yomitan {
                 }
             }
         }
-
-        if (!this.lemmatizeCache.has(track)) this.lemmatizeCache.set(track, new Map());
-        this.lemmatizeCache.get(track)!.set(token, lemmas);
+        this.lemmatizeCache.set(token, lemmas);
         return lemmas;
     }
 
-    async version(yomitanUrl: string) {
-        return this._executeAction('yomitanVersion', {}, yomitanUrl);
+    async lemmatize(token: string, yomitanUrl?: string): Promise<string[]> {
+        const lemmas = this.lemmatizeCache.get(token);
+        if (lemmas) return lemmas;
+        const entries = (await this._executeAction('termEntries', { term: token }, yomitanUrl)).dictionaryEntries;
+        return this.extractLemmas(
+            token,
+            entries.map((entry: any) => entry.headwords)
+        );
     }
 
-    private async _executeAction(path: string, body: object, yomitanUrl: string) {
-        const json = await this.fetcher.fetch(`${yomitanUrl}/${path}`, body);
+    async version(yomitanUrl?: string) {
+        const version = (await this._executeAction('yomitanVersion', {}, yomitanUrl)).version;
+        // if (version === '0.0.0.0' || gt(version, '25.11.11.0')) this._supportsConcurrentTokenization = true;
+        return version;
+    }
+
+    private async _executeAction(path: string, body: object, yomitanUrl?: string) {
+        const json = await this.fetcher.fetch(`${yomitanUrl ?? this.dt.dictionaryYomitanUrl}/${path}`, body);
         if (!json || json === '{}') throw new Error(`Yomitan API error for ${path}: ${json}`);
         return json;
     }
