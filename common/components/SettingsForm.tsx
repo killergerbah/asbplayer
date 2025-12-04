@@ -299,7 +299,7 @@ export default function SettingsForm({
                 <Tab tabIndex={1} label={t('settings.mining')} id="mining-settings" />
                 <Tab tabIndex={2} label={t('settings.subtitleAppearance')} id="subtitle-appearance" />
                 <Tab tabIndex={3} label={t('settings.keyboardShortcuts')} id="keyboard-shortcuts" />
-                <Tab tabIndex={4} label={t('settings.colorization')} id="dictionary" />
+                <Tab tabIndex={4} label={t('settings.annotation')} id="dictionary" />
                 {extensionSupportsAppIntegration && (
                     <Tab tabIndex={5} label={t('settings.streamingVideo')} id="streaming-video" />
                 )}
