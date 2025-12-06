@@ -75,8 +75,8 @@ const DictionarySettingsTab: React.FC<Props> = ({ settings, onSettingChanged, an
     const [dictionaryYomitanUrlError, setDictionaryYomitanUrlError] = useState<string>();
     const dictionaryRequestYomitan = useCallback(async () => {
         try {
-            const yomitan = new Yomitan();
-            await yomitan.version(selectedDictionary.dictionaryYomitanUrl);
+            const yomitan = new Yomitan(selectedDictionary);
+            await yomitan.version();
             setDictionaryYomitanUrlError(undefined);
         } catch (e) {
             console.error(e);
