@@ -6,16 +6,6 @@ export function adjacentSubtitle(forward: boolean, time: number, subtitles: Subt
     const now = time;
     let adjacentSubtitleIndex = -1;
     let minDiff = Number.MAX_SAFE_INTEGER;
-    let currentSubtitleTrack: number | undefined;
-
-    // First, determine the track of the current subtitle (if we're inside one)
-    for (let i = 0; i < subtitles.length; ++i) {
-        const s = subtitles[i];
-        if (now >= s.start && now < s.end) {
-            currentSubtitleTrack = s.track;
-            break;
-        }
-    }
 
     for (let i = 0; i < subtitles.length; ++i) {
         const s = subtitles[i];
@@ -31,19 +21,15 @@ export function adjacentSubtitle(forward: boolean, time: number, subtitles: Subt
         } else if (!forward && now > s.start) {
             minDiff = diff;
             // If we're currently inside a subtitle, find previous subtitle of the same track
-            if (now < s.end && currentSubtitleTrack !== undefined) {
-                // Find the previous subtitle with the same track
+            if (now < s.end) {
+                adjacentSubtitleIndex = i;
+                // Search backward for the previous subtitle of the same track
                 for (let j = i - 1; j >= 0; --j) {
-                    if (subtitles[j].track === currentSubtitleTrack) {
+                    if (subtitles[j].track === s.track) {
                         adjacentSubtitleIndex = j;
                         break;
                     }
                 }
-                // If no previous subtitle found for this track, stay at current position
-                if (adjacentSubtitleIndex === -1) {
-                    adjacentSubtitleIndex = i;
-                }
-                // Break out of outer loop - we found the result
                 break;
             } else {
                 adjacentSubtitleIndex = i;
