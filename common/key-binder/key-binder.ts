@@ -2,7 +2,7 @@ import { SubtitleModel } from '../src/model';
 import hotkeys from 'hotkeys-js';
 import { KeyBindSet } from '../settings/settings';
 
-function findCurrentSubtitle(time: number, subtitles: SubtitleModel[]): number {
+export function findCurrentSubtitle(time: number, subtitles: SubtitleModel[]): number | null {
     let left = 0;
     let right = subtitles.length - 1;
 
@@ -19,45 +19,75 @@ function findCurrentSubtitle(time: number, subtitles: SubtitleModel[]): number {
         }
     }
 
-    return -1;
+    return null;
 }
 
-export function adjacentSubtitle(forward: boolean, time: number, subtitles: SubtitleModel[]) {
-    const now = time;
-    let adjacentSubtitleIndex = -1;
-    let minDiff = Number.MAX_SAFE_INTEGER;
+export function findAllCurrentSubtitles(time: number, subtitles: SubtitleModel[]): number[] {
+    const firstIndex = findCurrentSubtitle(time, subtitles);
+    if (firstIndex === null) {
+        return [];
+    }
 
-    if (!forward) {
-        const currentIndex = findCurrentSubtitle(now, subtitles);
+    const matches: number[] = [];
 
-        if (currentIndex !== -1) {
-            // We found a current subtitle - search backward for previous of same track
-            const currentTrack = subtitles[currentIndex].track;
-            for (let i = currentIndex - 1; i >= 0; --i) {
-                if (subtitles[i].track === currentTrack) {
-                    return subtitles[i];
-                }
-            }
-            return null;
+    // Search backward from the found index to find all overlapping subtitles
+    for (let i = firstIndex; i >= 0; --i) {
+        if (time >= subtitles[i].start && time < subtitles[i].end) {
+            matches.unshift(i);
+        } else {
+            break;
         }
+    }
 
-        // No current subtitle - find the last one before 'now'
-        for (let i = subtitles.length - 1; i >= 0; --i) {
-            if (subtitles[i].start < now) {
+    // Search forward from the found index to find all overlapping subtitles
+    for (let i = firstIndex + 1; i < subtitles.length; ++i) {
+        if (time >= subtitles[i].start && time < subtitles[i].end) {
+            matches.push(i);
+        } else {
+            break;
+        }
+    }
+
+    return matches;
+}
+
+function seekPreviousSubtitle(time: number, currentIndex: number | null, subtitles: SubtitleModel[]): SubtitleModel | null {
+    if (currentIndex !== null) {
+        // We found a current subtitle
+        const currentStartTime = subtitles[currentIndex].start;
+        const threshold = 100; // Consider subtitles within 100ms as "same time"
+
+        // Search backward, skipping all subtitles that start at roughly the same time
+        for (let i = currentIndex - 1; i >= 0; --i) {
+            const timeDiff = Math.abs(subtitles[i].start - currentStartTime);
+            if (timeDiff > threshold) {
+                // Found a subtitle that starts at a different time - this is our target
                 return subtitles[i];
             }
         }
         return null;
-    } else {
-        // Forward seeking logic remains unchanged
-        for (let i = 0; i < subtitles.length; ++i) {
-            const s = subtitles[i];
-            const diff = s.start - now;
+    }
 
-            if (diff > 0 && diff < minDiff) {
-                minDiff = diff;
-                adjacentSubtitleIndex = i;
-            }
+    // No current subtitle - find the last one before 'time'
+    for (let i = subtitles.length - 1; i >= 0; --i) {
+        if (subtitles[i].start < time) {
+            return subtitles[i];
+        }
+    }
+    return null;
+}
+
+function seekNextSubtitle(time: number, currentIndex: number | null, subtitles: SubtitleModel[]): SubtitleModel | null {
+    let adjacentSubtitleIndex = -1;
+    let minDiff = Number.MAX_SAFE_INTEGER;
+
+    for (let i = 0; i < subtitles.length; ++i) {
+        const s = subtitles[i];
+        const diff = s.start - time;
+
+        if (diff > 0 && diff < minDiff) {
+            minDiff = diff;
+            adjacentSubtitleIndex = i;
         }
     }
 
@@ -66,6 +96,11 @@ export function adjacentSubtitle(forward: boolean, time: number, subtitles: Subt
     }
 
     return null;
+}
+
+export function adjacentSubtitle(forward: boolean, time: number, subtitles: SubtitleModel[]) {
+    const currentIndex = findCurrentSubtitle(time, subtitles);
+    return forward ? seekNextSubtitle(time, currentIndex, subtitles) : seekPreviousSubtitle(time, currentIndex, subtitles);
 }
 
 export interface KeyBinder {
