@@ -12,7 +12,9 @@ export function findCurrentSubtitle(time: number, subtitles: SubtitleModel[]): n
 
         if (time >= s.start && time < s.end) {
             return mid;
-        } else if (time < s.start) {
+        }
+
+        if (time < s.start) {
             right = mid - 1;
         } else {
             left = mid + 1;
@@ -34,18 +36,18 @@ export function findAllCurrentSubtitles(time: number, subtitles: SubtitleModel[]
     for (let i = firstIndex; i >= 0; --i) {
         if (time >= subtitles[i].start && time < subtitles[i].end) {
             matches.unshift(i);
-        } else {
-            break;
+            continue;
         }
+        break;
     }
 
     // Search forward from the found index to find all overlapping subtitles
     for (let i = firstIndex + 1; i < subtitles.length; ++i) {
         if (time >= subtitles[i].start && time < subtitles[i].end) {
             matches.push(i);
-        } else {
-            break;
+            continue;
         }
+        break;
     }
 
     return matches;
