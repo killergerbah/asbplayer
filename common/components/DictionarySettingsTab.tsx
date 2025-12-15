@@ -88,7 +88,7 @@ const DictionarySettingsTab: React.FC<Props> = ({ settings, onSettingChanged, an
                 setDictionaryYomitanUrlError(String(e));
             }
         }
-    }, [selectedDictionary.dictionaryYomitanUrl]);
+    }, [selectedDictionary]);
 
     useEffect(() => {
         let canceled = false;
