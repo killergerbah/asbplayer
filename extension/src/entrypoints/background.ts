@@ -65,6 +65,8 @@ import ClearCopyHistoryHandler from '@/handlers/asbplayerv2/clear-copy-history-h
 import SaveCopyHistoryHandler from '@/handlers/asbplayerv2/save-copy-history-handler';
 import PageConfigHandler from '@/handlers/asbplayerv2/page-config-handler';
 import EncodeMp3Handler from '@/handlers/video/encode-mp3-handler';
+import { DictionaryDB } from '@project/common/dictionary-db/dictionary-db';
+import DictionaryHandler from '@/handlers/dictionary/dictionary-handler';
 
 export default defineBackground(() => {
     if (!isFirefoxBuild) {
@@ -123,6 +125,7 @@ export default defineBackground(() => {
     );
     const imageCapturer = new ImageCapturer(settings);
     const cardPublisher = new CardPublisher(settings);
+    const dictionaryDB = new DictionaryDB();
 
     const handlers: CommandHandler[] = [
         new VideoHeartbeatHandler(tabRegistry),
@@ -138,6 +141,7 @@ export default defineBackground(() => {
         new OpenAsbplayerSettingsHandler(),
         new CopyToClipboardHandler(),
         new EncodeMp3Handler(),
+        new DictionaryHandler(dictionaryDB),
         new VideoDisappearedHandler(tabRegistry),
         new RequestingActiveTabPermissionHandler(),
         new CopySubtitleHandler(tabRegistry),

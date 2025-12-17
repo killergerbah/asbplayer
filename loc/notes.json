@@ -219,6 +219,7 @@
         "settings.deck": "Deck refers to an Anki deck (of flashcards).",
         "settings.definitionField": "The field of the Anki card that will be populated with the definition.",
         "settings.dictionary": "Section heading for dictionary-related settings.",
+        "settings.buildAnkiCache": "Trigger a manual rebuild of the Anki cache used for dictionary features.",
         "settings.dictionaryTrack": "Choice of subtitle track that dictionary features will be applied to.",
         "settings.dictionaryColorizeSubtitles": "Whether to colorize subtitle words based on known status.",
         "settings.dictionaryColorizeOnHoverOnly": "Whether to only colorize subtitle words when hovering over them with the mouse.",

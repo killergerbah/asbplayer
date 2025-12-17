@@ -3,12 +3,16 @@ import { AnkiExportMode, CardModel, Image } from '@project/common';
 import { HttpFetcher, Fetcher } from '@project/common';
 import { AnkiSettings, AnkiSettingsFieldKey } from '@project/common/settings';
 import sanitize from 'sanitize-filename';
-import { extractText, sourceString } from '@project/common/util';
+import { extractText, fromBatches, sourceString } from '@project/common/util';
 
 const ankiQuerySpecialCharacters = ['"', '*', '_', '\\', ':'];
 const alphaNumericCharacters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 const unsafeURLChars = /[:\/\?#\[\]@!$&'()*+,;= "<>%{}|\\^`]/g;
 const replacement = '_';
+
+// No Anki memory impacts, increasing offers negligible speedup
+const ANKI_INFO_BATCH_SIZE = 10000;
+const ANKI_MOD_BATCH_SIZE = 100000;
 
 const randomString = () => {
     let string = '';
@@ -168,29 +172,48 @@ export class DuplicateNoteError extends Error {
     }
 }
 
+export interface CardInfo {
+    answer: string;
+    question: string;
+    deckName: string;
+    modelName: string;
+    fieldOrder: number;
+    fields: { [fieldName: string]: { value: string; order: number } };
+    css: string;
+    cardId: number;
+    interval: number;
+    note: number;
+    ord: number;
+    type: number;
+    queue: number;
+    due: number;
+    reps: number;
+    lapses: number;
+    left: number;
+    mod: number;
+}
+
+export interface NoteInfo {
+    noteId: number;
+    profile: string;
+    modelName: string;
+    tags: string[];
+    fields: { [fieldName: string]: { value: string; order: number } };
+    mod: number;
+    cards: number[];
+}
+
 export class Anki {
     private readonly settingsProvider: AnkiSettings;
     private readonly fetcher: Fetcher;
-    private readonly wordCardCache: Map<number, Map<string, number[]>>;
-    private readonly sentenceCardCache: Map<number, Map<string, number[]>>;
-    private readonly cardInfoCache: Map<number, any>;
 
     constructor(settingsProvider: AnkiSettings, fetcher = new HttpFetcher()) {
         this.settingsProvider = settingsProvider;
         this.fetcher = fetcher;
-        this.wordCardCache = new Map();
-        this.sentenceCardCache = new Map();
-        this.cardInfoCache = new Map();
     }
 
     get ankiConnectUrl() {
         return this.settingsProvider.ankiConnectUrl;
-    }
-
-    resetCache() {
-        this.wordCardCache.clear();
-        this.sentenceCardCache.clear();
-        this.cardInfoCache.clear();
     }
 
     async deckNames(ankiConnectUrl?: string) {
@@ -208,41 +231,31 @@ export class Anki {
         return response.result;
     }
 
-    async findCardsWithWord(track: number, word: string, fields: string[], ankiConnectUrl?: string): Promise<number[]> {
-        if (!fields.length) return [];
-        let cardIds = this.wordCardCache.get(track)?.get(word);
-        if (cardIds) return cardIds;
-
-        const response = await this._executeAction(
-            'findCards',
-            { query: fields.map((field) => `"${field}:${this._escapeQuery(word)}"`).join(' OR ') },
-            ankiConnectUrl
-        );
-        cardIds = response.result as number[];
-        if (!this.wordCardCache.has(track)) this.wordCardCache.set(track, new Map());
-        this.wordCardCache.get(track)!.set(word, cardIds);
-        return cardIds;
+    async findCards(query: string, ankiConnectUrl?: string): Promise<number[]> {
+        const response = await this._executeAction('findCards', { query: query }, ankiConnectUrl);
+        return response.result;
     }
 
-    async findCardsContainingWord(
-        track: number,
-        word: string,
-        fields: string[],
-        ankiConnectUrl?: string
-    ): Promise<number[]> {
+    async findCardsWithWord(word: string, fields: string[], ankiConnectUrl?: string): Promise<number[]> {
         if (!fields.length) return [];
-        let cardIds = this.sentenceCardCache.get(track)?.get(word);
-        if (cardIds) return cardIds;
+        return (
+            await this._executeAction(
+                'findCards',
+                { query: fields.map((field) => `"${field}:${this._escapeQuery(word)}"`).join(' OR ') },
+                ankiConnectUrl
+            )
+        ).result;
+    }
 
-        const response = await this._executeAction(
-            'findCards',
-            { query: fields.map((field) => `"${field}:*${this._escapeQuery(word)}*"`).join(' OR ') },
-            ankiConnectUrl
-        );
-        cardIds = response.result as number[];
-        if (!this.sentenceCardCache.has(track)) this.sentenceCardCache.set(track, new Map());
-        this.sentenceCardCache.get(track)!.set(word, cardIds);
-        return cardIds;
+    async findCardsContainingWord(word: string, fields: string[], ankiConnectUrl?: string): Promise<number[]> {
+        if (!fields.length) return [];
+        return (
+            await this._executeAction(
+                'findCards',
+                { query: fields.map((field) => `"${field}:*${this._escapeQuery(word)}*"`).join(' OR ') },
+                ankiConnectUrl
+            )
+        ).result;
     }
 
     async findNotesWithWord(word: string, ankiConnectUrl?: string): Promise<number[]> {
@@ -263,38 +276,89 @@ export class Anki {
         return response.result;
     }
 
-    async findRecentlyEditedCards(fields: string[], sinceDays: number, ankiConnectUrl?: string): Promise<number[]> {
+    async findRecentlyEditedOrReviewedCards(
+        fields: string[],
+        sinceDays: number,
+        ankiConnectUrl?: string
+    ): Promise<number[]> {
         if (!fields.length) return [];
         if (sinceDays < 1) sinceDays = 1;
         const response = await this._executeAction(
             'findCards',
-            { query: `edited:${sinceDays} (${fields.map((field) => `"${field}:_*"`).join(' OR ')})` },
+            {
+                query: `(rated:${sinceDays} OR edited:${sinceDays}) (${fields.map((field) => `"${field}:_*"`).join(' OR ')})`,
+            },
             ankiConnectUrl
         );
         return response.result;
     }
 
-    async cardsInfo(cardIds: number[], ankiConnectUrl?: string): Promise<any[]> {
-        const cardInfos = [];
-        const cardIdsToFetch = [];
-        for (const cardId of cardIds) {
-            const cachedInfo = this.cardInfoCache.get(cardId);
-            if (cachedInfo) cardInfos.push(cachedInfo);
-            else cardIdsToFetch.push(cardId);
-        }
-        if (!cardIdsToFetch.length) return cardInfos;
-
-        const response = await this._executeAction('cardsInfo', { cards: cardIdsToFetch }, ankiConnectUrl);
-        response.result.forEach((cardInfo: any) => {
-            this.cardInfoCache.set(cardInfo.cardId, cardInfo);
-            cardInfos.push(cardInfo);
-        });
-        return cardInfos;
+    async cardsInfo(allCards: number[], ankiConnectUrl?: string): Promise<CardInfo[]> {
+        if (!allCards.length) return [];
+        return (
+            await fromBatches(
+                allCards,
+                async (cards) => {
+                    return (await this._executeAction('cardsInfo', { cards }, ankiConnectUrl)).result as CardInfo[];
+                },
+                { batchSize: ANKI_INFO_BATCH_SIZE }
+            )
+        ).flat();
     }
 
-    async findCards(query: string, ankiConnectUrl?: string): Promise<number[]> {
-        const response = await this._executeAction('findCards', { query: query }, ankiConnectUrl);
+    async cardsModTime(allCards: number[], ankiConnectUrl?: string): Promise<{ cardId: number; mod: number }[]> {
+        if (!allCards.length) return [];
+        return (
+            await fromBatches(
+                allCards,
+                async (cards) => {
+                    return (await this._executeAction('cardsModTime', { cards }, ankiConnectUrl)).result as {
+                        cardId: number;
+                        mod: number;
+                    }[];
+                },
+                { batchSize: ANKI_MOD_BATCH_SIZE }
+            )
+        ).flat();
+    }
+
+    async areSuspended(cards: number[], ankiConnectUrl?: string): Promise<(boolean | null)[]> {
+        if (!cards.length) return [];
+        return (await this._executeAction('areSuspended', { cards }, ankiConnectUrl)).result;
+    }
+
+    async findNotes(query: string, ankiConnectUrl?: string): Promise<number[]> {
+        const response = await this._executeAction('findNotes', { query: query }, ankiConnectUrl);
         return response.result;
+    }
+
+    async notesInfo(allNotes: number[], ankiConnectUrl?: string): Promise<NoteInfo[]> {
+        if (!allNotes.length) return [];
+        return (
+            await fromBatches(
+                allNotes,
+                async (notes) => {
+                    return (await this._executeAction('notesInfo', { notes }, ankiConnectUrl)).result as NoteInfo[];
+                },
+                { batchSize: ANKI_INFO_BATCH_SIZE }
+            )
+        ).flat();
+    }
+
+    async notesModTime(allNotes: number[], ankiConnectUrl?: string): Promise<{ noteId: number; mod: number }[]> {
+        if (!allNotes.length) return [];
+        return (
+            await fromBatches(
+                allNotes,
+                async (notes) => {
+                    return (await this._executeAction('notesModTime', { notes }, ankiConnectUrl)).result as {
+                        noteId: number;
+                        mod: number;
+                    }[];
+                },
+                { batchSize: ANKI_MOD_BATCH_SIZE }
+            )
+        ).flat();
     }
 
     async createDeck(name: string, ankiConnectUrl?: string) {

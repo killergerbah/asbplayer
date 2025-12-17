@@ -15,7 +15,13 @@ import {
     DictionaryTrack,
     TokenReadingAnnotation,
 } from '.';
-import { AutoPausePreference, PostMineAction, PostMinePlayback, SubtitleHtml } from '..';
+import { AutoPausePreference, DictionaryBuildAnkiCacheState, PostMineAction, PostMinePlayback, SubtitleHtml } from '..';
+import {
+    DictionaryLocalTokenInput,
+    DictionaryTokenKey,
+    LemmaResults,
+    TokenResults,
+} from '../dictionary-db/dictionary-db';
 
 // @ts-ignore
 const isMacOs = (navigator.userAgentData?.platform ?? navigator.platform)?.toUpperCase()?.indexOf('MAC') > -1;
@@ -43,7 +49,7 @@ const defaultDictionaryTrackSettings: DictionaryTrack = {
     dictionaryTokenMatchStrategyPriority: TokenMatchStrategyPriority.EXACT,
     dictionaryYomitanUrl: 'http://127.0.0.1:19633',
     dictionaryYomitanScanLength: 16,
-    dictionaryTokenReadingAnnotation: TokenReadingAnnotation.UNKNOWN_OR_BELOW,
+    dictionaryTokenReadingAnnotation: TokenReadingAnnotation.NEVER,
     dictionaryAnkiWordFields: [],
     dictionaryAnkiSentenceFields: [],
     dictionaryAnkiSentenceTokenMatchStrategy: TokenMatchStrategy.EXACT_FORM_COLLECTED,
@@ -587,6 +593,30 @@ export class SettingsProvider {
     async removeProfile(name: string) {
         await this._storage.removeProfile(name);
     }
+
+    async dictionaryGetBulk(profile: string | undefined, track: number, tokens: string[]) {
+        return await this._storage.dictionaryGetBulk(profile, track, tokens);
+    }
+
+    async dictionaryGetByLemmaBulk(profile: string | undefined, track: number, lemmas: string[]) {
+        return await this._storage.dictionaryGetByLemmaBulk(profile, track, lemmas);
+    }
+
+    async dictionarySaveRecordLocalBulk(profile: string | undefined, localTokenInputs: DictionaryLocalTokenInput[]) {
+        return await this._storage.dictionarySaveRecordLocalBulk(profile, localTokenInputs);
+    }
+
+    async dictionaryDeleteRecordLocalBulk(profile: string | undefined, tokens: string[]) {
+        return await this._storage.dictionaryDeleteRecordLocalBulk(profile, tokens);
+    }
+
+    async buildAnkiCache(
+        profile: string | undefined,
+        settings: AsbplayerSettings,
+        options?: { useOriginTab?: boolean }
+    ) {
+        return this._storage.buildAnkiCache(profile, settings, options);
+    }
 }
 
 export type AsbplayerSettingsProfile<P extends string> = {
@@ -642,4 +672,16 @@ export interface SettingsStorage {
     profiles: () => Promise<Profile[]>;
     addProfile: (name: string) => Promise<void>;
     removeProfile: (name: string) => Promise<void>;
+    dictionaryGetBulk: (profile: string | undefined, track: number, tokens: string[]) => Promise<TokenResults>;
+    dictionaryGetByLemmaBulk: (profile: string | undefined, track: number, lemmas: string[]) => Promise<LemmaResults>;
+    dictionarySaveRecordLocalBulk: (
+        profile: string | undefined,
+        localTokenInputs: DictionaryLocalTokenInput[]
+    ) => Promise<DictionaryTokenKey[]>;
+    dictionaryDeleteRecordLocalBulk: (profile: string | undefined, tokens: string[]) => Promise<number>;
+    buildAnkiCache: (
+        profile: string | undefined,
+        settings: AsbplayerSettings,
+        options?: { useOriginTab?: boolean }
+    ) => Promise<DictionaryBuildAnkiCacheState>;
 }

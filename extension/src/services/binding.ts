@@ -954,7 +954,7 @@ export default class Binding {
         const subtitleHtmlChanged = this.subtitleController.subtitleHtml !== currentSettings.subtitleHtml;
         this.subtitleController.subtitleHtml = currentSettings.subtitleHtml;
 
-        this.subtitleController.subtitleColoring.resetCache(currentSettings);
+        this.subtitleController.subtitleColoring.settingsUpdated(currentSettings);
         this.subtitleController.setSubtitleSettings(currentSettings);
 
         if (convertNetflixRubyChanged || subtitleHtmlChanged) {

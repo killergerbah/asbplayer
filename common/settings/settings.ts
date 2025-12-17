@@ -1,4 +1,5 @@
 import { AnkiExportMode, AutoPausePreference, PostMineAction, PostMinePlayback, SubtitleHtml } from '../src/model';
+import { arrayEquals } from '../util';
 
 export enum PauseOnHoverMode {
     disabled = 0,
@@ -29,6 +30,12 @@ export interface MiscSettings {
     readonly lastSelectedAnkiExportMode: AnkiExportMode;
     readonly tabName: string;
     readonly pauseOnHoverMode: PauseOnHoverMode;
+}
+
+export enum DictionaryTokenSource {
+    LOCAL = 0,
+    ANKI_WORD = 1,
+    ANKI_SENTENCE = 2,
 }
 
 /*
@@ -97,12 +104,15 @@ export enum TokenReadingAnnotation {
 }
 
 export function dictionaryTrackEnabled(dt: DictionaryTrack): boolean {
-    return dt.dictionaryColorizeSubtitles;
+    return dt.dictionaryColorizeSubtitles || dt.dictionaryTokenReadingAnnotation !== TokenReadingAnnotation.NEVER;
 }
 
-export function dictionaryTrackHoverOnly(dt: DictionaryTrack | undefined): boolean {
-    if (!dt) return false;
-    return dictionaryTrackEnabled(dt) && dt.dictionaryColorizeOnHoverOnly;
+export function dictionaryStatusEnabled(dt: DictionaryTrack): boolean {
+    return (
+        dt.dictionaryColorizeSubtitles ||
+        dt.dictionaryTokenReadingAnnotation === TokenReadingAnnotation.LEARNING_OR_BELOW ||
+        dt.dictionaryTokenReadingAnnotation === TokenReadingAnnotation.UNKNOWN_OR_BELOW
+    );
 }
 
 export interface DictionaryTrack {
@@ -126,6 +136,41 @@ export interface DictionaryTrack {
 
 export interface DictionarySettings {
     readonly dictionaryTracks: DictionaryTrack[];
+}
+
+const dictionaryTrackComparators: {
+    [K in keyof DictionaryTrack]: (a: DictionaryTrack[K], b: DictionaryTrack[K]) => boolean;
+} = {
+    dictionaryColorizeSubtitles: (a, b) => a === b,
+    dictionaryColorizeOnHoverOnly: (a, b) => a === b,
+    dictionaryTokenMatchStrategy: (a, b) => a === b,
+    dictionaryTokenMatchStrategyPriority: (a, b) => a === b,
+    dictionaryYomitanUrl: (a, b) => a === b,
+    dictionaryYomitanScanLength: (a, b) => a === b,
+    dictionaryTokenReadingAnnotation: (a, b) => a === b,
+    dictionaryAnkiWordFields: (a, b) => arrayEquals(a, b),
+    dictionaryAnkiSentenceFields: (a, b) => arrayEquals(a, b),
+    dictionaryAnkiSentenceTokenMatchStrategy: (a, b) => a === b,
+    dictionaryAnkiMatureCutoff: (a, b) => a === b,
+    dictionaryAnkiTreatSuspended: (a, b) => a === b,
+    tokenStyling: (a, b) => a === b,
+    tokenStylingThickness: (a, b) => a === b,
+    colorizeFullyKnownTokens: (a, b) => a === b,
+    tokenStatusColors: (a, b) => arrayEquals(a, b),
+};
+
+function compareField<K extends keyof DictionaryTrack>(key: K, a: DictionaryTrack, b: DictionaryTrack): boolean {
+    return dictionaryTrackComparators[key](a[key], b[key]);
+}
+
+export function areDictionaryTracksEqual(dt1: DictionaryTrack, dt2: DictionaryTrack): boolean {
+    if (dt1 === dt2) return true;
+    for (const key in dictionaryTrackComparators) {
+        if (!compareField(key as keyof DictionaryTrack, dt1, dt2)) {
+            return false;
+        }
+    }
+    return true;
 }
 
 export type AnkiSettingsFieldKey =

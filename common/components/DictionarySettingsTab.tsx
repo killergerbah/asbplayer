@@ -8,6 +8,7 @@ import Radio from '@mui/material/Radio';
 import Checkbox from '@mui/material/Checkbox';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import Stack from '@mui/material/Stack';
+import Button from '@mui/material/Button';
 import InputAdornment from '@mui/material/InputAdornment';
 import {
     AsbplayerSettings,
@@ -32,6 +33,8 @@ import SettingsTextField from './SettingsTextField';
 import SettingsSection from './SettingsSection';
 import MuiAlert, { type AlertProps } from '@mui/material/Alert';
 import Link from '@mui/material/Link';
+import { DictionaryBuildAnkiCacheState } from '../src/message';
+import { ExtensionToAsbPlayerCommand } from '../src/command';
 
 const Alert: React.FC<AlertProps> = ({ children, ...props }) => {
     return (
@@ -47,22 +50,82 @@ const Alert: React.FC<AlertProps> = ({ children, ...props }) => {
     );
 };
 
+const command = 'dictionary-build-anki-cache-state';
+
 interface Props {
     settings: AsbplayerSettings;
+    extensionInstalled: boolean;
     onSettingChanged: <K extends keyof AsbplayerSettings>(key: K, value: AsbplayerSettings[K]) => Promise<void>;
     anki: Anki;
+    buildAnkiCache: () => Promise<DictionaryBuildAnkiCacheState>;
 }
 
-const DictionarySettingsTab: React.FC<Props> = ({ settings, onSettingChanged, anki }) => {
+const DictionarySettingsTab: React.FC<Props> = ({
+    settings,
+    extensionInstalled,
+    onSettingChanged,
+    anki,
+    buildAnkiCache,
+}) => {
     const { t } = useTranslation();
     const { ankiConnectUrl, dictionaryTracks } = settings;
+    const initialDictionaryTracksRef = useRef(dictionaryTracks);
     const [selectedDictionaryTrack, setSelectedDictionaryTrack] = useState<number>(0);
+    const selectedDictionary = dictionaryTracks[selectedDictionaryTrack];
+
+    const isDirty = useCallback(
+        (key: keyof typeof selectedDictionary) => {
+            const initialTrack = initialDictionaryTracksRef.current[selectedDictionaryTrack];
+
+            if (!initialTrack) {
+                return false;
+            }
+
+            const initialValue = initialTrack[key];
+            const currentValue = selectedDictionary[key];
+
+            if (Array.isArray(initialValue) && Array.isArray(currentValue)) {
+                if (initialValue.length !== currentValue.length) {
+                    return true;
+                }
+
+                const sortedInitial = [...initialValue].sort();
+                const sortedCurrent = [...currentValue].sort();
+
+                for (let i = 0; i < sortedInitial.length; ++i) {
+                    if (sortedInitial[i] !== sortedCurrent[i]) {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            return initialValue !== currentValue;
+        },
+        [selectedDictionary, selectedDictionaryTrack]
+    );
+
+    const getHelperText = (fieldName: string, key: keyof typeof selectedDictionary, error?: string) => {
+        if (error) {
+            return error;
+        }
+
+        if (isDirty(key)) {
+            return t('settings.ankiCacheDependentSettingsHelperText', { field: fieldName });
+        }
+
+        return undefined;
+    };
+
     const [allFieldNames, setAllFieldNames] = useState<string[]>();
     const [ankiError, setAnkiError] = useState<string>();
-    const selectedDictionary = dictionaryTracks[selectedDictionaryTrack];
-    const showTokenMatchStrategyPriority =
-        selectedDictionary.dictionaryTokenMatchStrategy === TokenMatchStrategy.ANY_FORM_COLLECTED ||
-        selectedDictionary.dictionaryTokenMatchStrategy === TokenMatchStrategy.LEMMA_OR_EXACT_FORM_COLLECTED;
+    const showTokenMatchStrategyPriority = [
+        selectedDictionary.dictionaryTokenMatchStrategy,
+        selectedDictionary.dictionaryAnkiSentenceTokenMatchStrategy,
+    ].some(
+        (s) => s === TokenMatchStrategy.ANY_FORM_COLLECTED || s === TokenMatchStrategy.LEMMA_OR_EXACT_FORM_COLLECTED
+    );
     const selectedDictionaryShowThickness =
         selectedDictionary.tokenStyling === TokenStyling.UNDERLINE ||
         selectedDictionary.tokenStyling === TokenStyling.OVERLINE ||
@@ -130,14 +193,87 @@ const DictionarySettingsTab: React.FC<Props> = ({ settings, onSettingChanged, an
         yomitanSectionRef.current?.scrollIntoView();
     };
 
+    useEffect(() => {
+        const listener = (data: ExtensionToAsbPlayerCommand<DictionaryBuildAnkiCacheState>) => {
+            if (data.sender !== 'asbplayer-extension-to-player') return;
+            if (data.message.command !== command) return;
+            setBuildAnkiCacheResult(data.message);
+        };
+        const windowListener = (event: MessageEvent) => {
+            if (event.type === 'message') listener(event.data);
+        };
+        const browserListener = (message: any) => listener(message);
+
+        let extensionContext = true;
+        try {
+            // @ts-ignore
+            browser.runtime.onMessage.addListener(browserListener);
+        } catch {
+            extensionContext = false;
+            window.addEventListener('message', windowListener);
+        }
+
+        return () => {
+            window.removeEventListener('message', windowListener);
+            // @ts-ignore
+            if (extensionContext) browser.runtime.onMessage.removeListener(browserListener);
+        };
+    }, []);
+    const [buildingAnkiCache, setBuildingAnkiCache] = useState<boolean>(false);
+    const [buildAnkiCacheResult, setBuildAnkiCacheResult] = useState<DictionaryBuildAnkiCacheState | undefined>(
+        undefined
+    );
+    const handleBuildAnkiCache = useCallback(async () => {
+        try {
+            setBuildingAnkiCache(true);
+            const result = await buildAnkiCache();
+            if (result && typeof result.msg === 'string' && result.msg.length > 0) {
+                setBuildAnkiCacheResult({
+                    command,
+                    msg: result.msg,
+                    error: Boolean(result.error),
+                    modifiedTokens: result.modifiedTokens,
+                });
+            }
+        } catch (e) {
+            console.error('Failed to send build Anki cache message', e);
+            const message = e instanceof Error ? e.message : String(e);
+            setBuildAnkiCacheResult({ command, msg: message, error: true, modifiedTokens: [] });
+        } finally {
+            setBuildingAnkiCache(false);
+        }
+    }, [buildAnkiCache]);
+
     return (
         <Stack spacing={1}>
             <Alert severity="info">
                 <Trans
-                    i18nKey={t('settings.annotationHelperText')}
+                    i18nKey={`${t('settings.annotationHelperText')}${extensionInstalled ? '' : ` ${t('settings.annotationNoExtensionWarn')}`}`}
                     components={[<Link key={0} onClick={handleYomitanHelperTextClicked} href="javascript:void(0)" />]}
                 />
             </Alert>
+            <div>
+                <Button
+                    variant="contained"
+                    color="primary"
+                    style={{ width: '100%' }}
+                    onClick={handleBuildAnkiCache}
+                    loading={buildingAnkiCache}
+                    startIcon={<RefreshIcon />}
+                >
+                    {t('settings.buildAnkiCache')}
+                </Button>
+                <Typography variant="caption" color="textSecondary">
+                    {t('settings.buildAnkiCacheHelperText')}
+                </Typography>
+                {buildAnkiCacheResult && (
+                    <div style={{ marginTop: 8 }}>
+                        <Alert severity={buildAnkiCacheResult.error ? 'error' : 'success'}>
+                            {buildAnkiCacheResult.msg}
+                        </Alert>
+                    </div>
+                )}
+            </div>
             <DictionaryTrackSelector track={selectedDictionaryTrack} onTrackSelected={setSelectedDictionaryTrack} />
             <SwitchLabelWithHoverEffect
                 control={
@@ -514,7 +650,11 @@ const DictionarySettingsTab: React.FC<Props> = ({ settings, onSettingChanged, an
                 label={t('settings.dictionaryYomitanUrl')}
                 value={selectedDictionary.dictionaryYomitanUrl}
                 error={Boolean(dictionaryYomitanUrlError)}
-                helperText={dictionaryYomitanUrlError}
+                helperText={getHelperText(
+                    t('settings.dictionaryYomitanUrl'),
+                    'dictionaryYomitanUrl',
+                    dictionaryYomitanUrlError
+                )}
                 color="primary"
                 onChange={(e) => {
                     const newTracks = [...dictionaryTracks];
@@ -540,6 +680,7 @@ const DictionarySettingsTab: React.FC<Props> = ({ settings, onSettingChanged, an
                 type="number"
                 label={t('settings.dictionaryYomitanScanLength')}
                 value={selectedDictionary.dictionaryYomitanScanLength}
+                helperText={getHelperText(t('settings.dictionaryYomitanScanLength'), 'dictionaryYomitanScanLength')}
                 color="primary"
                 onChange={(e) => {
                     const newTracks = [...dictionaryTracks];
@@ -582,7 +723,11 @@ const DictionarySettingsTab: React.FC<Props> = ({ settings, onSettingChanged, an
                         label={t('settings.dictionaryAnkiWordFields')}
                         placeholder={t('settings.dictionarySelectAnkiFields')}
                         error={Boolean(ankiError)}
-                        helperText={ankiError}
+                        helperText={getHelperText(
+                            t('settings.dictionaryAnkiWordFields'),
+                            'dictionaryAnkiWordFields',
+                            ankiError
+                        )}
                         fullWidth
                     />
                 )}
@@ -615,7 +760,11 @@ const DictionarySettingsTab: React.FC<Props> = ({ settings, onSettingChanged, an
                         label={t('settings.dictionaryAnkiSentenceFields')}
                         placeholder={t('settings.dictionarySelectAnkiFields')}
                         error={Boolean(ankiError)}
-                        helperText={ankiError}
+                        helperText={getHelperText(
+                            t('settings.dictionaryAnkiSentenceFields'),
+                            'dictionaryAnkiSentenceFields',
+                            ankiError
+                        )}
                         fullWidth
                     />
                 )}
@@ -624,6 +773,7 @@ const DictionarySettingsTab: React.FC<Props> = ({ settings, onSettingChanged, an
                 type="number"
                 label={t('settings.dictionaryAnkiMatureCutoff')}
                 value={selectedDictionary.dictionaryAnkiMatureCutoff}
+                helperText={getHelperText(t('settings.dictionaryAnkiMatureCutoff'), 'dictionaryAnkiMatureCutoff')}
                 color="primary"
                 onChange={(e) => {
                     const newTracks = [...dictionaryTracks];

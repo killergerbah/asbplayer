@@ -1,5 +1,5 @@
 import Grid from '@mui/material/Grid';
-import { HttpPostMessage, PopupToExtensionCommand } from '@project/common';
+import { DictionaryBuildAnkiCacheState, HttpPostMessage, PopupToExtensionCommand } from '@project/common';
 import { AsbplayerSettings, Profile, chromeCommandBindsToKeyBinds } from '@project/common/settings';
 import SettingsForm from '@project/common/components/SettingsForm';
 import PanelIcon from '@project/common/components/PanelIcon';
@@ -35,6 +35,7 @@ interface Props {
     onNewProfile: (name: string) => void;
     onRemoveProfile: (name: string) => void;
     onSetActiveProfile: (name: string | undefined) => void;
+    buildAnkiCache: () => Promise<DictionaryBuildAnkiCacheState>;
 }
 
 class ExtensionFetcher implements Fetcher {
@@ -60,6 +61,7 @@ const Popup = ({
     onSettingsChanged,
     onOpenExtensionShortcuts,
     onOpenUserGuide,
+    buildAnkiCache,
     ...profilesContext
 }: Props) => {
     const { t } = useTranslation();
@@ -126,6 +128,7 @@ const Popup = ({
                         onSettingsChanged={onSettingsChanged}
                         onOpenChromeExtensionShortcuts={onOpenExtensionShortcuts}
                         onUnlockLocalFonts={handleUnlockLocalFonts}
+                        buildAnkiCache={buildAnkiCache}
                     />
                 </Grid>
                 <Grid item>

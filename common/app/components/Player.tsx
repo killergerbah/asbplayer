@@ -6,8 +6,13 @@ import {
     AudioTrackModel,
     AutoPauseContext,
     AutoPausePreference,
+    CardExportedDialogMessage,
     CardModel,
     CardTextFieldValues,
+    CardUpdatedDialogMessage,
+    DictionaryBuildAnkiCacheState,
+    ExtensionToAsbPlayerCommand,
+    ExtensionToVideoCommand,
     PlayMode,
     PostMineAction,
     PostMinePlayback,
@@ -15,7 +20,7 @@ import {
     SubtitleModel,
     VideoTabModel,
 } from '@project/common';
-import { AsbplayerSettings } from '@project/common/settings';
+import { AsbplayerSettings, SettingsProvider } from '@project/common/settings';
 import { SubtitleCollection } from '@project/common/subtitle-collection';
 import { SubtitleColoring } from '@project/common/subtitle-coloring';
 import { SubtitleReader } from '@project/common/subtitle-reader';
@@ -93,6 +98,7 @@ interface PlayerProps {
     sources?: MediaSources;
     subtitles: DisplaySubtitleModel[];
     subtitleReader: SubtitleReader;
+    settingsProvider: SettingsProvider;
     settings: AsbplayerSettings;
     playbackPreferences: PlaybackPreferences;
     keyBinder: KeyBinder;
@@ -134,6 +140,7 @@ const Player = React.memo(function Player({
     sources,
     subtitles,
     subtitleReader,
+    settingsProvider,
     settings,
     playbackPreferences,
     keyBinder,
@@ -409,12 +416,12 @@ const Player = React.memo(function Player({
         }
 
         const subtitleColoring = new SubtitleColoring(
-            Promise.resolve(settings),
+            settingsProvider,
             options,
             (updatedSubtitles) => {
                 channel?.subtitlesUpdated(updatedSubtitles);
                 onSubtitles((prevSubtitles) => {
-                    if (!prevSubtitles) return prevSubtitles;
+                    if (!prevSubtitles?.length) return prevSubtitles;
                     const allSubtitles = prevSubtitles.slice();
                     for (const s of updatedSubtitles) {
                         allSubtitles[s.index] = { ...allSubtitles[s.index], richText: s.richText };
@@ -429,22 +436,37 @@ const Player = React.memo(function Player({
         setSubtitleCollection(subtitleColoring);
         subtitleCollectionRef.current = subtitleColoring;
 
+        const tokensUpdatedListener = (event: MessageEvent) => {
+            if (event.type !== 'message') return;
+            const data: ExtensionToAsbPlayerCommand<DictionaryBuildAnkiCacheState> = event.data;
+            if (data.sender !== 'asbplayer-extension-to-player') return;
+            if (data.message.command !== 'dictionary-build-anki-cache-state') return;
+            subtitleColoring.tokensWereModified(data.message.modifiedTokens);
+        };
+        window.addEventListener('message', tokensUpdatedListener);
+
         return () => {
+            window.removeEventListener('message', tokensUpdatedListener);
             if (!(subtitleCollectionRef.current instanceof SubtitleColoring)) return;
             subtitleCollectionRef.current.unbind();
         };
-    }, [channel, settings, tab, onSubtitles]);
+    }, [channel, settingsProvider, tab, onSubtitles]);
 
     useEffect(() => {
         if (!subtitleCollectionRef.current) return;
         subtitleCollectionRef.current.setSubtitles(subtitles);
     }, [subtitles]);
 
+    useEffect(() => {
+        if (!(subtitleCollectionRef.current instanceof SubtitleColoring)) return;
+        subtitleCollectionRef.current.settingsUpdated(settings);
+    }, [settings]);
+
     // Immediate update of subtitle colors when changed (from extension)
     useEffect(() => {
         return channel?.onSubtitlesUpdated((updatedSubtitles) => {
             onSubtitles((prevSubtitles) => {
-                if (!prevSubtitles) return prevSubtitles;
+                if (!prevSubtitles?.length) return prevSubtitles;
                 const allSubtitles = prevSubtitles.slice();
                 for (const s of updatedSubtitles) {
                     allSubtitles[s.index] = { ...allSubtitles[s.index], richText: s.richText };
@@ -467,7 +489,7 @@ const Player = React.memo(function Player({
             if (!response) return;
             const { subtitles: updatedSubtitles } = response;
             onSubtitles((prevSubtitles) => {
-                if (!prevSubtitles) return prevSubtitles;
+                if (!prevSubtitles?.length) return prevSubtitles;
                 const allSubtitles = prevSubtitles.slice();
                 for (const s of updatedSubtitles) {
                     allSubtitles[s.index] = { ...allSubtitles[s.index], richText: s.richText };
@@ -477,6 +499,23 @@ const Player = React.memo(function Player({
         };
         void refreshColors();
     }, [extension, tab, onSubtitles]);
+
+    useEffect(() => {
+        const windowListener = (event: MessageEvent) => {
+            if (event.type !== 'message') return;
+            const data: ExtensionToVideoCommand<CardUpdatedDialogMessage | CardExportedDialogMessage> = event.data;
+            if (data.sender !== 'asbplayer-extension-to-video') return;
+            if (data.message.command !== 'card-updated-dialog' && data.message.command !== 'card-exported-dialog') {
+                return;
+            }
+            if (!(subtitleCollectionRef.current instanceof SubtitleColoring)) return;
+            subtitleCollectionRef.current.ankiCardWasUpdated();
+        };
+        window.addEventListener('message', windowListener);
+        return () => {
+            window.removeEventListener('message', windowListener);
+        };
+    }, []);
 
     useEffect(() => {
         setSubtitlesSentThroughChannel(false);

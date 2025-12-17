@@ -15,6 +15,7 @@ import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
 import { type Theme } from '@mui/material';
+import { DictionaryBuildAnkiCacheState } from '../../src/message';
 
 const appTestCard = () => {
     const basePath = window.location.pathname === '/' ? '' : window.location.pathname;
@@ -53,6 +54,7 @@ interface Props {
     onNewProfile: (name: string) => void;
     onRemoveProfile: (name: string) => void;
     onSetActiveProfile: (name: string | undefined) => void;
+    buildAnkiCache: () => Promise<DictionaryBuildAnkiCacheState>;
 }
 
 export default function SettingsDialog({
@@ -63,6 +65,7 @@ export default function SettingsDialog({
     scrollToId,
     onSettingsChanged,
     onClose,
+    buildAnkiCache,
     ...profilesContext
 }: Props) {
     const { t } = useTranslation();
@@ -118,6 +121,7 @@ export default function SettingsDialog({
                     supportedLanguages={supportedLanguages}
                     testCard={appTestCard}
                     onUnlockLocalFonts={handleUnlockLocalFonts}
+                    buildAnkiCache={buildAnkiCache}
                 />
             </DialogContent>
             {(!extension.installed || extension.supportsSettingsProfiles) && (

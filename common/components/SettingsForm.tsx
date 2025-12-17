@@ -4,7 +4,7 @@ import { type CreateCSSProperties, makeStyles } from '@mui/styles';
 import { useTheme } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import { type Theme } from '@mui/material';
-import { CardModel } from '@project/common';
+import { CardModel, DictionaryBuildAnkiCacheState } from '@project/common';
 import { AsbplayerSettings, PageConfig, PageSettings } from '@project/common/settings';
 import { isNumeric } from '@project/common/util';
 import { isMobile } from 'react-device-detect';
@@ -186,6 +186,7 @@ interface Props {
     onSettingsChanged: (settings: Partial<AsbplayerSettings>) => void;
     onOpenChromeExtensionShortcuts: () => void;
     onUnlockLocalFonts: () => void;
+    buildAnkiCache: () => Promise<DictionaryBuildAnkiCacheState>;
 }
 
 // Filter out keys that look like '0', '1', ... as those are invalid
@@ -221,6 +222,7 @@ export default function SettingsForm({
     onSettingsChanged,
     onOpenChromeExtensionShortcuts,
     onUnlockLocalFonts,
+    buildAnkiCache,
 }: Props) {
     const theme = useTheme();
     const smallScreen = useMediaQuery(theme.breakpoints.down(500)) && !forceVerticalTabs;
@@ -331,7 +333,13 @@ export default function SettingsForm({
                 <MiningSettingsTab settings={settings} onSettingChanged={handleSettingChanged} />
             </TabPanel>
             <TabPanel value={tabIndex} index={tabIndicesById['dictionary']} tabsOrientation={tabsOrientation}>
-                <DictionarySettingsTab anki={anki} settings={settings} onSettingChanged={handleSettingChanged} />
+                <DictionarySettingsTab
+                    anki={anki}
+                    settings={settings}
+                    extensionInstalled={extensionInstalled}
+                    onSettingChanged={handleSettingChanged}
+                    buildAnkiCache={buildAnkiCache}
+                />
             </TabPanel>
             <TabPanel value={tabIndex} index={tabIndicesById['subtitle-appearance']} tabsOrientation={tabsOrientation}>
                 <SubtitleAppearanceSettingsTab

@@ -29,7 +29,19 @@ import {
     ClearCopyHistoryMessage,
     SetGlobalStateMessage,
     GetGlobalStateMessage,
+    DictionaryBuildAnkiCacheMessage,
+    DictionaryGetBulkMessage,
+    DictionaryGetByLemmaBulkMessage,
+    DictionarySaveRecordLocalBulkMessage,
+    DictionaryDeleteRecordLocalBulkMessage,
+    DictionaryBuildAnkiCacheState,
 } from '@project/common';
+import {
+    DictionaryLocalTokenInput,
+    DictionaryTokenKey,
+    LemmaResults,
+    TokenResults,
+} from '@project/common/dictionary-db';
 import { AsbplayerSettings, PageSettings, Profile, SettingsFormPageConfig } from '@project/common/settings';
 import { GlobalState } from '@project/common/global-state';
 import { v4 as uuidv4 } from 'uuid';
@@ -521,7 +533,86 @@ export default class ChromeExtension {
         return this._createResponsePromise(messageId);
     }
 
-    private _createResponsePromise<T>(messageId: string) {
+    async dictionaryGetBulk(profile: string | undefined, track: number, tokens: string[]): Promise<TokenResults> {
+        const messageId = uuidv4();
+        const command: AsbPlayerCommand<DictionaryGetBulkMessage> = {
+            sender: 'asbplayerv2',
+            message: {
+                command: 'dictionary-get-bulk',
+                profile,
+                track,
+                tokens,
+                messageId,
+            },
+        };
+        window.postMessage(command);
+        return await this._createResponsePromise(messageId);
+    }
+
+    async dictionaryGetByLemmaBulk(
+        profile: string | undefined,
+        track: number,
+        lemmas: string[]
+    ): Promise<LemmaResults> {
+        const messageId = uuidv4();
+        const command: AsbPlayerCommand<DictionaryGetByLemmaBulkMessage> = {
+            sender: 'asbplayerv2',
+            message: {
+                command: 'dictionary-get-by-lemma-bulk',
+                profile,
+                track,
+                lemmas,
+                messageId,
+            },
+        };
+        window.postMessage(command);
+        return await this._createResponsePromise(messageId);
+    }
+
+    async dictionarySaveRecordLocalBulk(
+        profile: string | undefined,
+        localTokenInputs: DictionaryLocalTokenInput[]
+    ): Promise<DictionaryTokenKey[]> {
+        const messageId = uuidv4();
+        const command: AsbPlayerCommand<DictionarySaveRecordLocalBulkMessage> = {
+            sender: 'asbplayerv2',
+            message: {
+                command: 'dictionary-save-record-local-bulk',
+                profile,
+                localTokenInputs,
+                messageId,
+            },
+        };
+        window.postMessage(command);
+        return await this._createResponsePromise(messageId);
+    }
+
+    async dictionaryDeleteRecordLocalBulk(profile: string | undefined, tokens: string[]): Promise<number> {
+        const messageId = uuidv4();
+        const command: AsbPlayerCommand<DictionaryDeleteRecordLocalBulkMessage> = {
+            sender: 'asbplayerv2',
+            message: {
+                command: 'dictionary-delete-record-local-bulk',
+                profile,
+                tokens,
+                messageId,
+            },
+        };
+        window.postMessage(command);
+        return await this._createResponsePromise(messageId);
+    }
+
+    buildAnkiCache(profile: string | undefined, settings: AsbplayerSettings): Promise<DictionaryBuildAnkiCacheState> {
+        const messageId = uuidv4();
+        const command: AsbPlayerCommand<DictionaryBuildAnkiCacheMessage> = {
+            sender: 'asbplayerv2',
+            message: { command: 'dictionary-build-anki-cache', messageId, profile, settings },
+        };
+        window.postMessage(command);
+        return this._createResponsePromise(messageId, 60000); // Usually <10s
+    }
+
+    private _createResponsePromise<T>(messageId: string, timeout = 5000) {
         return new Promise<T>((resolve, reject) => {
             this._responseResolves[messageId] = resolve;
             setTimeout(() => {
@@ -529,7 +620,7 @@ export default class ChromeExtension {
                     delete this._responseResolves[messageId];
                     reject('Request timed out');
                 }
-            }, 5000);
+            }, timeout);
         });
     }
 

@@ -9,6 +9,8 @@ import {
     settingsDeserializers,
     unprefixKey,
 } from '@project/common/settings';
+import { DictionaryDB, DictionaryLocalTokenInput } from '@project/common/dictionary-db';
+import { DictionaryBuildAnkiCacheState, ExtensionToAsbPlayerCommand } from '@project/common';
 
 const cachedLocalStorage = new CachedLocalStorage();
 const activeProfileKey = 'activeSettingsProfile';
@@ -17,6 +19,12 @@ const profilesKey = 'settingsProfiles';
 export class LocalSettingsStorage implements AppSettingsStorage {
     private readonly _settingsUpdatedCallbacks: (() => void)[] = [];
     private _storageListener?: (event: StorageEvent) => void;
+    private dictionaryDB?: DictionaryDB;
+
+    private async _ensureDictionaryDB() {
+        if (!this.dictionaryDB) this.dictionaryDB = new DictionaryDB();
+        return this.dictionaryDB;
+    }
 
     async get(keysAndDefaults: Partial<AsbplayerSettings>) {
         const activeProfile = this._activeProfile();
@@ -137,6 +145,7 @@ export class LocalSettingsStorage implements AppSettingsStorage {
     }
 
     async removeProfile(name: string): Promise<void> {
+        await (await this._ensureDictionaryDB()).deleteProfile(name);
         const profiles = this._profiles();
         const activeProfile = this._activeProfile();
 
@@ -152,6 +161,39 @@ export class LocalSettingsStorage implements AppSettingsStorage {
         }
 
         cachedLocalStorage.set(profilesKey, JSON.stringify(newProfiles));
+    }
+
+    async dictionaryGetBulk(profile: string | undefined, track: number, tokens: string[]) {
+        return (await this._ensureDictionaryDB()).getBulk(profile, track, tokens);
+    }
+
+    async dictionaryGetByLemmaBulk(profile: string | undefined, track: number, lemmas: string[]) {
+        return (await this._ensureDictionaryDB()).getByLemmaBulk(profile, track, lemmas);
+    }
+
+    async dictionarySaveRecordLocalBulk(profile: string | undefined, localTokenInputs: DictionaryLocalTokenInput[]) {
+        return (await this._ensureDictionaryDB()).saveRecordLocalBulk(profile, localTokenInputs);
+    }
+
+    async dictionaryDeleteRecordLocalBulk(profile: string | undefined, tokens: string[]) {
+        return (await this._ensureDictionaryDB()).deleteRecordLocalBulk(profile, tokens);
+    }
+
+    async buildAnkiCache(
+        profile: string | undefined,
+        settings: AsbplayerSettings
+    ): Promise<DictionaryBuildAnkiCacheState> {
+        return (await this._ensureDictionaryDB()).buildAnkiCache(
+            profile,
+            settings,
+            (state: DictionaryBuildAnkiCacheState) => {
+                const message: ExtensionToAsbPlayerCommand<DictionaryBuildAnkiCacheState> = {
+                    sender: 'asbplayer-extension-to-player',
+                    message: state,
+                };
+                window.postMessage(message);
+            }
+        );
     }
 
     onSettingsUpdated(callback: () => void) {

@@ -11,6 +11,7 @@ import {
     textSubtitleSettingsForTrack,
     unprefixedSettings,
 } from '@project/common/settings';
+import { DictionaryBuildAnkiCacheState } from '../src/message';
 
 export class MockSettingsStorage implements SettingsStorage {
     private _activeProfile?: string;
@@ -72,6 +73,26 @@ export class MockSettingsStorage implements SettingsStorage {
         }
 
         this._profiles = this._profiles.filter((p) => p.name !== name);
+    }
+
+    async dictionaryGetBulk() {
+        return {};
+    }
+
+    async dictionaryGetByLemmaBulk() {
+        return {};
+    }
+
+    async dictionarySaveRecordLocalBulk() {
+        return [];
+    }
+
+    async dictionaryDeleteRecordLocalBulk() {
+        return 0;
+    }
+
+    async buildAnkiCache(): Promise<DictionaryBuildAnkiCacheState> {
+        return { command: 'dictionary-build-anki-cache-state', msg: '', error: false, modifiedTokens: [] };
     }
 
     setData(data: any) {

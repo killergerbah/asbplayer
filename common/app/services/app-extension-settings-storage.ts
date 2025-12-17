@@ -1,6 +1,7 @@
 import { AsbplayerSettings, Profile } from '@project/common/settings';
 import { ChromeExtension } from '@project/common/app';
 import { AppSettingsStorage } from '@project/common/app/services/app-settings-storage';
+import { DictionaryLocalTokenInput } from '@project/common/dictionary-db';
 
 export class AppExtensionSettingsStorage implements AppSettingsStorage {
     private readonly _extension: ChromeExtension;
@@ -37,6 +38,26 @@ export class AppExtensionSettingsStorage implements AppSettingsStorage {
 
     removeProfile(name: string): Promise<void> {
         return this._extension.removeSettingsProfile(name);
+    }
+
+    async dictionaryGetBulk(profile: string | undefined, track: number, tokens: string[]) {
+        return this._extension.dictionaryGetBulk(profile, track, tokens);
+    }
+
+    async dictionaryGetByLemmaBulk(profile: string | undefined, track: number, lemmas: string[]) {
+        return this._extension.dictionaryGetByLemmaBulk(profile, track, lemmas);
+    }
+
+    async dictionarySaveRecordLocalBulk(profile: string | undefined, localTokenInputs: DictionaryLocalTokenInput[]) {
+        return this._extension.dictionarySaveRecordLocalBulk(profile, localTokenInputs);
+    }
+
+    async dictionaryDeleteRecordLocalBulk(profile: string | undefined, tokens: string[]) {
+        return this._extension.dictionaryDeleteRecordLocalBulk(profile, tokens);
+    }
+
+    buildAnkiCache(profile: string | undefined, settings: AsbplayerSettings) {
+        return this._extension.buildAnkiCache(profile, settings);
     }
 
     onSettingsUpdated(callback: () => void) {

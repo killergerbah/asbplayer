@@ -1,4 +1,15 @@
 import {
+    DictionaryBuildAnkiCacheMessage,
+    DictionaryBuildAnkiCacheState,
+    DictionaryDBCommand,
+    DictionaryDeleteProfileMessage,
+    DictionaryDeleteRecordLocalBulkMessage,
+    DictionaryGetBulkMessage,
+    DictionaryGetByLemmaBulkMessage,
+    DictionarySaveRecordLocalBulkMessage,
+} from '@project/common';
+import { DictionaryLocalTokenInput } from '@project/common/dictionary-db';
+import {
     AsbplayerSettings,
     SettingsStorage,
     unprefixedSettings,
@@ -6,6 +17,7 @@ import {
     defaultSettings,
     Profile,
 } from '@project/common/settings';
+import { v4 as uuidv4 } from 'uuid';
 
 const activeProfileKey = 'activeSettingsProfile';
 const profilesKey = 'settingsProfiles';
@@ -96,6 +108,12 @@ export class ExtensionSettingsStorage implements SettingsStorage {
     }
 
     async removeProfile(name: string): Promise<void> {
+        const message: DictionaryDBCommand<DictionaryDeleteProfileMessage> = {
+            sender: 'asbplayer-dictionary',
+            message: { command: 'dictionary-delete-profile', profile: name, messageId: uuidv4() },
+        };
+        await browser.runtime.sendMessage(message);
+
         const profiles = await this.profiles();
         const activeProfile = await this.activeProfile();
 
@@ -107,6 +125,73 @@ export class ExtensionSettingsStorage implements SettingsStorage {
         const prefixedKeys = Object.keys(prefixedSettings(defaultSettings, name));
         await this._storage.remove(prefixedKeys);
         await this._storage.set({ [profilesKey]: newProfiles });
+    }
+
+    async dictionaryGetBulk(profile: string | undefined, track: number, tokens: string[]) {
+        const message: DictionaryDBCommand<DictionaryGetBulkMessage> = {
+            sender: 'asbplayer-dictionary',
+            message: {
+                command: 'dictionary-get-bulk',
+                profile,
+                track,
+                tokens,
+                messageId: uuidv4(),
+            },
+        };
+        return browser.runtime.sendMessage(message);
+    }
+
+    async dictionaryGetByLemmaBulk(profile: string | undefined, track: number, lemmas: string[]) {
+        const message: DictionaryDBCommand<DictionaryGetByLemmaBulkMessage> = {
+            sender: 'asbplayer-dictionary',
+            message: {
+                command: 'dictionary-get-by-lemma-bulk',
+                profile,
+                track,
+                lemmas,
+                messageId: uuidv4(),
+            },
+        };
+        return browser.runtime.sendMessage(message);
+    }
+
+    async dictionarySaveRecordLocalBulk(profile: string | undefined, localTokenInputs: DictionaryLocalTokenInput[]) {
+        const message: DictionaryDBCommand<DictionarySaveRecordLocalBulkMessage> = {
+            sender: 'asbplayer-dictionary',
+            message: {
+                command: 'dictionary-save-record-local-bulk',
+                profile,
+                localTokenInputs,
+                messageId: uuidv4(),
+            },
+        };
+        return browser.runtime.sendMessage(message);
+    }
+
+    async dictionaryDeleteRecordLocalBulk(profile: string | undefined, tokens: string[]) {
+        const message: DictionaryDBCommand<DictionaryDeleteRecordLocalBulkMessage> = {
+            sender: 'asbplayer-dictionary',
+            message: {
+                command: 'dictionary-delete-record-local-bulk',
+                profile,
+                tokens,
+                messageId: uuidv4(),
+            },
+        };
+        return browser.runtime.sendMessage(message);
+    }
+
+    async buildAnkiCache(
+        profile: string | undefined,
+        settings: AsbplayerSettings,
+        options?: { useOriginTab?: boolean }
+    ): Promise<DictionaryBuildAnkiCacheState> {
+        const message: DictionaryDBCommand<DictionaryBuildAnkiCacheMessage> = {
+            sender: 'asbplayer-dictionary',
+            useOriginTab: options?.useOriginTab,
+            message: { command: 'dictionary-build-anki-cache', messageId: uuidv4(), profile, settings },
+        };
+        return browser.runtime.sendMessage(message);
     }
 
     async clear() {

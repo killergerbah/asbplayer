@@ -1,5 +1,6 @@
 import type {
     AddProfileMessage,
+    DictionaryBuildAnkiCacheMessage,
     GetGlobalStateMessage,
     GetSettingsMessage,
     RemoveProfileMessage,
@@ -94,6 +95,46 @@ export default defineContentScript({
                             messageId: command.message.messageId,
                         });
                         break;
+                    case 'dictionary-get-bulk': {
+                        const { profile, track, tokens } = command.message;
+                        sendMessageToPlayer({
+                            response: await settingsStorage.dictionaryGetBulk(profile, track, tokens),
+                            messageId: command.message.messageId,
+                        });
+                        break;
+                    }
+                    case 'dictionary-get-by-lemma-bulk': {
+                        const { profile, track, lemmas } = command.message;
+                        sendMessageToPlayer({
+                            response: await settingsStorage.dictionaryGetByLemmaBulk(profile, track, lemmas),
+                            messageId: command.message.messageId,
+                        });
+                        break;
+                    }
+                    case 'dictionary-save-record-local-bulk': {
+                        const { profile, localTokenInputs } = command.message;
+                        await settingsStorage.dictionarySaveRecordLocalBulk(profile, localTokenInputs);
+                        sendMessageToPlayer({
+                            messageId: command.message.messageId,
+                        });
+                        break;
+                    }
+                    case 'dictionary-delete-record-local-bulk': {
+                        const { profile, localTokenInputs } = command.message;
+                        await settingsStorage.dictionaryDeleteRecordLocalBulk(profile, localTokenInputs);
+                        sendMessageToPlayer({
+                            messageId: command.message.messageId,
+                        });
+                        break;
+                    }
+                    case 'dictionary-build-anki-cache': {
+                        const { profile, settings } = command.message as DictionaryBuildAnkiCacheMessage;
+                        await settingsStorage.buildAnkiCache(profile, settings, { useOriginTab: true }); // App with extension doesn't have full extension context
+                        sendMessageToPlayer({
+                            messageId: command.message.messageId,
+                        });
+                        break;
+                    }
                     case 'request-subtitles':
                         sendMessageToPlayer({
                             response: (await browser.runtime.sendMessage(command)) as

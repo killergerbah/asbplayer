@@ -37,7 +37,7 @@ const SidePanelUi = () => {
             <ThemeProvider theme={theme}>
                 <CssBaseline />
                 <Paper square style={{ width: '100%', height: '100%' }}>
-                    <SidePanel settings={settings} extension={extension} />
+                    <SidePanel settingsProvider={settingsProvider} settings={settings} extension={extension} />
                 </Paper>
             </ThemeProvider>
         </StyledEngineProvider>

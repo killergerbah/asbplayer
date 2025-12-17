@@ -94,6 +94,11 @@ export function PopupUi({ commands }: Props) {
 
     const profilesContext = useSettingsProfileContext({ settingsProvider, onProfileChanged: handleProfileChanged });
 
+    const buildAnkiCache = useCallback(() => {
+        if (!settings) return Promise.reject('Settings not loaded');
+        return settingsProvider.buildAnkiCache(profilesContext.activeProfile, settings);
+    }, [settingsProvider, profilesContext.activeProfile, settings]);
+
     if (!settings || !theme || requestingActiveTabPermission === undefined) {
         return null;
     }
@@ -121,6 +126,7 @@ export function PopupUi({ commands }: Props) {
                             onOpenSidePanel={handleOpenSidePanel}
                             onOpenExtensionShortcuts={handleOpenExtensionShortcuts}
                             onOpenUserGuide={handleOpenUserGuide}
+                            buildAnkiCache={buildAnkiCache}
                             {...profilesContext}
                         />
                     </Box>

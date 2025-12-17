@@ -1,7 +1,9 @@
 import { Fetcher, HttpFetcher } from '@project/common';
-import { isKanaOnly } from '@project/common/util';
-import gt from 'semver/functions/gt';
+import { fromBatches, HAS_LETTER_REGEX, isKanaOnly } from '@project/common/util';
+import lt from 'semver/functions/lte';
 import { DictionaryTrack } from '../settings';
+
+const YOMITAN_BATCH_SIZE = 100; // 1k can cause 1.5GB memory on Yomitan for subtitles, Anki cards may be larger too
 
 export interface TokenPart {
     text: string;
@@ -11,20 +13,14 @@ export interface TokenPart {
 export class Yomitan {
     private readonly dt: DictionaryTrack;
     private readonly fetcher: Fetcher;
-    private _supportsConcurrentTokenization: boolean;
     private readonly tokenizeCache: Map<string, TokenPart[][]>;
     private readonly lemmatizeCache: Map<string, string[]>;
 
     constructor(dictionaryTrack: DictionaryTrack, fetcher = new HttpFetcher()) {
         this.dt = dictionaryTrack;
         this.fetcher = fetcher;
-        this._supportsConcurrentTokenization = false;
         this.tokenizeCache = new Map();
         this.lemmatizeCache = new Map();
-    }
-
-    get supportsConcurrentTokenization() {
-        return this._supportsConcurrentTokenization;
     }
 
     resetCache() {
@@ -57,31 +53,45 @@ export class Yomitan {
         return tokens;
     }
 
-    async cacheTokenizations(texts: string[], yomitanUrl?: string): Promise<void> {
-        const tokensToFetch = [];
-        for (const text of texts) {
-            if (!this.tokenizeCache.has(text)) tokensToFetch.push(text);
-        }
-        if (!tokensToFetch.length) return;
-        const response = await this._executeAction(
-            'tokenize',
-            { text: tokensToFetch, scanLength: this.dt.dictionaryYomitanScanLength },
-            yomitanUrl
-        );
-        for (const res of response) {
-            const tokens: TokenPart[][] = [];
-            for (const tokenParts of res.content) {
-                tokens.push(tokenParts);
-                if (tokenParts[0]?.headwords) {
-                    const token = tokenParts
-                        .map((p: any) => p.text)
-                        .join('')
-                        .trim();
-                    if (!this.lemmatizeCache.has(token)) this.extractLemmas(token, tokenParts[0].headwords);
+    async tokenizeBulk(allTexts: string[], yomitanUrl?: string): Promise<TokenPart[][]> {
+        return fromBatches(
+            allTexts,
+            async (texts) => {
+                const tokens: TokenPart[][] = [];
+                const tokensToFetch = [];
+                for (const text of texts) {
+                    const tokensForText = this.tokenizeCache.get(text);
+                    if (tokensForText) {
+                        for (const token of tokensForText) tokens.push(token);
+                        continue;
+                    }
+                    tokensToFetch.push(text);
                 }
-            }
-            this.tokenizeCache.set(tokensToFetch[res.index], tokens);
-        }
+                if (!tokensToFetch.length) return tokens;
+                const response = await this._executeAction(
+                    'tokenize',
+                    { text: tokensToFetch, scanLength: this.dt.dictionaryYomitanScanLength },
+                    yomitanUrl
+                );
+                for (const res of response) {
+                    const tokensForText: TokenPart[][] = [];
+                    for (const tokenParts of res.content) {
+                        tokensForText.push(tokenParts);
+                        if (tokenParts[0]?.headwords) {
+                            const token = tokenParts
+                                .map((p: any) => p.text)
+                                .join('')
+                                .trim();
+                            if (!this.lemmatizeCache.has(token)) this.extractLemmas(token, tokenParts[0].headwords);
+                        }
+                    }
+                    this.tokenizeCache.set(tokensToFetch[res.index], tokensForText);
+                    for (const token of tokensForText) tokens.push(token);
+                }
+                return tokens;
+            },
+            { batchSize: YOMITAN_BATCH_SIZE }
+        );
     }
 
     /**
@@ -122,6 +132,10 @@ export class Yomitan {
     async lemmatize(token: string, yomitanUrl?: string): Promise<string[]> {
         const lemmas = this.lemmatizeCache.get(token);
         if (lemmas) return lemmas;
+        if (!HAS_LETTER_REGEX.test(token)) {
+            this.lemmatizeCache.set(token, []);
+            return [];
+        }
         const entries = (await this._executeAction('termEntries', { term: token }, yomitanUrl)).dictionaryEntries;
         return this.extractLemmas(
             token,
@@ -131,7 +145,9 @@ export class Yomitan {
 
     async version(yomitanUrl?: string) {
         const version = (await this._executeAction('yomitanVersion', {}, yomitanUrl)).version;
-        // if (version === '0.0.0.0' || gt(version, '25.11.11.0')) this._supportsConcurrentTokenization = true;
+        if (version !== '0.0.0.0' && lt(version, '25.12.16.0')) {
+            throw new Error(`Minimum Yomitan version is 25.12.16.0, found ${version}`);
+        }
         return version;
     }
 

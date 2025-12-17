@@ -1,4 +1,4 @@
-import { CardModel, HttpFetcher } from '@project/common';
+import { CardModel, DictionaryBuildAnkiCacheState, HttpFetcher } from '@project/common';
 import { useCallback, useMemo } from 'react';
 import { makeStyles } from '@mui/styles';
 import { useTranslation } from 'react-i18next';
@@ -43,6 +43,7 @@ interface Props {
     onNewProfile: (name: string) => void;
     onRemoveProfile: (name: string) => void;
     onSetActiveProfile: (name: string | undefined) => void;
+    buildAnkiCache: () => Promise<DictionaryBuildAnkiCacheState>;
 }
 
 const extensionTestCard: () => Promise<CardModel> = () => {
@@ -52,7 +53,7 @@ const extensionTestCard: () => Promise<CardModel> = () => {
     });
 };
 
-const SettingsPage = ({ settings, inTutorial, onSettingsChanged, ...profileContext }: Props) => {
+const SettingsPage = ({ settings, inTutorial, onSettingsChanged, buildAnkiCache, ...profileContext }: Props) => {
     const { t } = useTranslation();
     const theme = useTheme();
     const anki = useMemo(
@@ -124,6 +125,7 @@ const SettingsPage = ({ settings, inTutorial, onSettingsChanged, ...profileConte
                         scrollToId={section}
                         inTutorial={inTutorial}
                         testCard={extensionTestCard}
+                        buildAnkiCache={buildAnkiCache}
                     />
                 </DialogContent>
                 <Box style={{ marginBottom: theme.spacing(2) }} className={classes.profilesContainer}>

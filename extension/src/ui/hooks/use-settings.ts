@@ -45,5 +45,11 @@ export const useSettings = () => {
     }, [refreshSettings, notifySettingsUpdated]);
 
     const profileContext = useSettingsProfileContext({ settingsProvider, onProfileChanged: handleProfileChanged });
-    return { settings, onSettingsChanged, profileContext };
+
+    const buildAnkiCache = useCallback(() => {
+        if (!settings) return Promise.reject('Settings not loaded');
+        return settingsProvider.buildAnkiCache(profileContext.activeProfile, settings);
+    }, [settingsProvider, profileContext.activeProfile, settings]);
+
+    return { settings, onSettingsChanged, profileContext, buildAnkiCache };
 };

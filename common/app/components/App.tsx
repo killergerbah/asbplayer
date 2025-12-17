@@ -21,9 +21,13 @@ import {
     CardTextFieldValues,
     ImageErrorCode,
     RequestSubtitlesResponse,
+    DictionaryBuildAnkiCacheState,
+    ExtensionToVideoCommand,
+    CardUpdatedDialogMessage,
+    CardExportedDialogMessage,
 } from '@project/common';
 import { createTheme } from '@project/common/theme';
-import { AsbplayerSettings, Profile } from '@project/common/settings';
+import { AsbplayerSettings, Profile, SettingsProvider } from '@project/common/settings';
 import { humanReadableTime, download, extractText } from '@project/common/util';
 import { AudioClip, Mp3Encoder } from '@project/common/audio-clip';
 import { ExportParams } from '@project/common/anki';
@@ -212,6 +216,7 @@ function Content(props: ContentProps) {
 interface Props {
     origin: string;
     logoUrl: string;
+    settingsProvider: SettingsProvider;
     settings: AsbplayerSettings;
     globalState?: GlobalState;
     extension: ChromeExtension;
@@ -223,17 +228,20 @@ interface Props {
     onRemoveProfile: (name: string) => void;
     onSetActiveProfile: (name: string | undefined) => void;
     onGlobalStateChanged: (globalState: Partial<GlobalState>) => void;
+    buildAnkiCache: () => Promise<DictionaryBuildAnkiCacheState>;
 }
 
 function App({
     origin,
     logoUrl,
+    settingsProvider,
     settings,
     globalState,
     extension,
     fetcher,
     onSettingsChanged,
     onGlobalStateChanged,
+    buildAnkiCache,
     ...profilesContext
 }: Props) {
     const { t } = useTranslation();
@@ -424,6 +432,20 @@ function App({
 
                 if (settings.lastSelectedAnkiExportMode !== params.mode) {
                     onSettingsChanged({ lastSelectedAnkiExportMode: params.mode });
+                }
+
+                if (params.mode === 'updateLast') {
+                    const cardUpdatedCommand: ExtensionToVideoCommand<CardUpdatedDialogMessage> = {
+                        sender: 'asbplayer-extension-to-video',
+                        message: { command: 'card-updated-dialog' },
+                    };
+                    window.postMessage(cardUpdatedCommand);
+                } else if (params.mode === 'default') {
+                    const cardExportedCommand: ExtensionToVideoCommand<CardExportedDialogMessage> = {
+                        sender: 'asbplayer-extension-to-video',
+                        message: { command: 'card-exported-dialog' },
+                    };
+                    window.postMessage(cardExportedCommand);
                 }
             } catch (e) {
                 handleError(e);
@@ -1346,6 +1368,7 @@ function App({
                                 onClose={handleCloseSettings}
                                 settings={settings}
                                 scrollToId={settingsDialogScrollToId}
+                                buildAnkiCache={buildAnkiCache}
                                 {...profilesContext}
                             />
                             <NeedRefreshDialog
@@ -1400,6 +1423,7 @@ function App({
                                     subtitleReader={subtitleReader}
                                     subtitles={subtitles}
                                     settings={settings}
+                                    settingsProvider={settingsProvider}
                                     playbackPreferences={playbackPreferences}
                                     onCopy={handleCopy}
                                     onError={handleError}

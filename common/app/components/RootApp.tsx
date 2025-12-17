@@ -67,6 +67,11 @@ const RootApp = ({ extension, origin, logoUrl, settingsStorage, globalStateProvi
         [globalStateProvider]
     );
 
+    const buildAnkiCache = useCallback(() => {
+        if (!settings) return Promise.reject('Settings not loaded');
+        return settingsProvider.buildAnkiCache(profilesContext.activeProfile, settings);
+    }, [settingsProvider, profilesContext.activeProfile, settings]);
+
     if (settings === undefined) {
         return null;
     }
@@ -75,12 +80,14 @@ const RootApp = ({ extension, origin, logoUrl, settingsStorage, globalStateProvi
         <App
             origin={origin}
             logoUrl={logoUrl}
+            settingsProvider={settingsProvider}
             settings={settings}
             globalState={globalState}
             extension={extension}
             fetcher={fetcher}
             onSettingsChanged={handleSettingsChanged}
             onGlobalStateChanged={handleGlobalStateChanged}
+            buildAnkiCache={buildAnkiCache}
             {...profilesContext}
         />
     );
