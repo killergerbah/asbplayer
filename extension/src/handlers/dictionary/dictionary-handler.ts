@@ -72,34 +72,29 @@ export default class DictionaryHandler {
                         ? sender.tab.id
                         : undefined;
                 this.dictionaryDB
-                    .buildAnkiCache(
-                        message.profile,
-                        message.settings,
-                        async (state: DictionaryBuildAnkiCacheState) => {
-                            const message: ExtensionToAsbPlayerCommand<DictionaryBuildAnkiCacheState> = {
-                                sender: 'asbplayer-extension-to-player',
-                                message: state,
-                            };
+                    .buildAnkiCache(message.profile, message.settings, async (state: DictionaryBuildAnkiCacheState) => {
+                        const message: ExtensionToAsbPlayerCommand<DictionaryBuildAnkiCacheState> = {
+                            sender: 'asbplayer-extension-to-player',
+                            message: state,
+                        };
 
-                            try {
-                                await browser.runtime.sendMessage(message); // Post updates throughout extension
-                            } catch {
-                                // No one is currently listening
-                            }
+                        try {
+                            await browser.runtime.sendMessage(message); // Post updates throughout extension
+                        } catch {
+                            // No one is currently listening
+                        }
 
-                            if (typeof originTabId !== 'number') return; // Only used when triggered from the App with extension installed
-                            try {
-                                await browser.tabs.sendMessage(originTabId, message);
-                            } catch (e) {
-                                console.error(
-                                    'Failed to send build Anki cache status update to origin tab, stopping updates to tab',
-                                    e
-                                );
-                                originTabId = undefined;
-                            }
-                        },
-                        { extensionInstalled: true }
-                    )
+                        if (typeof originTabId !== 'number') return; // Only used when triggered from the App with extension installed
+                        try {
+                            await browser.tabs.sendMessage(originTabId, message);
+                        } catch (e) {
+                            console.error(
+                                'Failed to send build Anki cache status update to origin tab, stopping updates to tab',
+                                e
+                            );
+                            originTabId = undefined;
+                        }
+                    })
                     .then((result) => sendResponse(result));
                 return true;
             }

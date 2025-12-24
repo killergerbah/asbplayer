@@ -50,6 +50,7 @@ const defaultDictionaryTrackSettings: DictionaryTrack = {
     dictionaryYomitanUrl: 'http://127.0.0.1:19633',
     dictionaryYomitanScanLength: 16,
     dictionaryTokenReadingAnnotation: TokenReadingAnnotation.NEVER,
+    dictionaryAnkiDecks: [],
     dictionaryAnkiWordFields: [],
     dictionaryAnkiSentenceFields: [],
     dictionaryAnkiSentenceTokenMatchStrategy: TokenMatchStrategy.EXACT_FORM_COLLECTED,

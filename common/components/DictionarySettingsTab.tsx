@@ -118,6 +118,7 @@ const DictionarySettingsTab: React.FC<Props> = ({
         return undefined;
     };
 
+    const [deckNames, setDeckNames] = useState<string[]>();
     const [allFieldNames, setAllFieldNames] = useState<string[]>();
     const [ankiError, setAnkiError] = useState<string>();
     const showTokenMatchStrategyPriority = [
@@ -173,6 +174,7 @@ const DictionarySettingsTab: React.FC<Props> = ({
     useEffect(() => {
         (async () => {
             try {
+                setDeckNames((await anki.deckNames(ankiConnectUrl)).sort((a, b) => a.localeCompare(b)));
                 const modelNames = await anki.modelNames(ankiConnectUrl);
                 const allFieldNamesSet = new Set<string>();
                 for (const modelName of modelNames) {
@@ -183,6 +185,8 @@ const DictionarySettingsTab: React.FC<Props> = ({
                 }
                 setAllFieldNames(Array.from(allFieldNamesSet).sort((a, b) => a.localeCompare(b)));
             } catch (e) {
+                setDeckNames(undefined);
+                setAllFieldNames(undefined);
                 setAnkiError(e instanceof Error ? e.message : String(e));
             }
         })();
@@ -697,6 +701,39 @@ const DictionarySettingsTab: React.FC<Props> = ({
             <SettingsSection>{t('settings.anki')}</SettingsSection>
             <Autocomplete
                 multiple
+                options={deckNames ?? []}
+                value={selectedDictionary.dictionaryAnkiDecks}
+                onChange={(_, newValue) => {
+                    const items = newValue as string[];
+                    const newTracks = [...dictionaryTracks];
+                    newTracks[selectedDictionaryTrack] = {
+                        ...newTracks[selectedDictionaryTrack],
+                        dictionaryAnkiDecks: items,
+                    };
+                    onSettingChanged('dictionaryTracks', newTracks);
+                }}
+                disableCloseOnSelect
+                renderOption={(props, option, { selected }) => (
+                    <li {...props}>
+                        <ListItemIcon>
+                            <Checkbox edge="start" checked={selected} tabIndex={-1} disableRipple />
+                        </ListItemIcon>
+                        <ListItemText primary={option} />
+                    </li>
+                )}
+                renderInput={(params) => (
+                    <SettingsTextField
+                        {...params}
+                        label={t('settings.dictionaryAnkiDecks')}
+                        placeholder={t('settings.dictionaryAnkiSelectDecks')}
+                        error={Boolean(ankiError)}
+                        helperText={getHelperText(t('settings.dictionaryAnkiDecks'), 'dictionaryAnkiDecks', ankiError)}
+                        fullWidth
+                    />
+                )}
+            />
+            <Autocomplete
+                multiple
                 options={allFieldNames ?? []}
                 value={selectedDictionary.dictionaryAnkiWordFields}
                 onChange={(_, newValue) => {
@@ -721,7 +758,7 @@ const DictionarySettingsTab: React.FC<Props> = ({
                     <SettingsTextField
                         {...params}
                         label={t('settings.dictionaryAnkiWordFields')}
-                        placeholder={t('settings.dictionarySelectAnkiFields')}
+                        placeholder={t('settings.dictionaryAnkiSelectFields')}
                         error={Boolean(ankiError)}
                         helperText={getHelperText(
                             t('settings.dictionaryAnkiWordFields'),
@@ -758,7 +795,7 @@ const DictionarySettingsTab: React.FC<Props> = ({
                     <SettingsTextField
                         {...params}
                         label={t('settings.dictionaryAnkiSentenceFields')}
-                        placeholder={t('settings.dictionarySelectAnkiFields')}
+                        placeholder={t('settings.dictionaryAnkiSelectFields')}
                         error={Boolean(ankiError)}
                         helperText={getHelperText(
                             t('settings.dictionaryAnkiSentenceFields'),

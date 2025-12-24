@@ -36,6 +36,7 @@ export interface AnkiCacheSettingsDependencies {
     ankiConnectUrl: string;
     dictionaryYomitanUrl: string;
     dictionaryYomitanScanLength: number;
+    dictionaryAnkiDecks: string[];
     dictionaryAnkiWordFields: string[];
     dictionaryAnkiSentenceFields: string[];
     dictionaryAnkiMatureCutoff: number;
@@ -99,6 +100,7 @@ type CardsForDB = Map<
     number,
     {
         noteId: number;
+        deckName: string;
         fields: Map<string, string>;
         modifiedAt: number;
         statuses: Map<number, TokenStatus>;
@@ -592,8 +594,7 @@ export class DictionaryDB {
     async buildAnkiCache(
         inputProfile: string | undefined,
         settings: AsbplayerSettings,
-        statusUpdates: (state: DictionaryBuildAnkiCacheState) => void,
-        options?: { extensionInstalled?: boolean }
+        statusUpdates: (state: DictionaryBuildAnkiCacheState) => void
     ): Promise<DictionaryBuildAnkiCacheState> {
         let msg = 'Unknown error querying Anki for cache';
         let error = true;
@@ -654,6 +655,7 @@ export class DictionaryDB {
                     ankiConnectUrl: settings.ankiConnectUrl,
                     dictionaryYomitanUrl: dt.dictionaryYomitanUrl,
                     dictionaryYomitanScanLength: dt.dictionaryYomitanScanLength,
+                    dictionaryAnkiDecks: dt.dictionaryAnkiDecks,
                     dictionaryAnkiWordFields: dt.dictionaryAnkiWordFields,
                     dictionaryAnkiSentenceFields: dt.dictionaryAnkiSentenceFields,
                     dictionaryAnkiMatureCutoff: dt.dictionaryAnkiMatureCutoff,
@@ -736,11 +738,10 @@ export class DictionaryDB {
                 trackBuildIdsToClear,
                 numUpdatedCards,
                 buildTs,
-                statusUpdates,
-                options
+                statusUpdates
             );
             if (numUpdatedCards) {
-                msg = `Building Anki cache${options?.extensionInstalled ? '' : ' (keep tab open)'}: ${numUpdatedCards.toLocaleString('en-US')} modified card(s) across ${trackStates.size} track(s)`;
+                msg = `Building Anki cache: ${numUpdatedCards.toLocaleString('en-US')} modified card(s) across ${trackStates.size} track(s)`;
             } else {
                 msg = `No Anki cards were modified since the last build for any of the ${trackStates.size} track(s)`;
             }
@@ -779,6 +780,11 @@ export class DictionaryDB {
         orphanedTrackCardIds: Map<number, number[]>,
         anki: Anki
     ): Promise<number> {
+        const allDecksQuery = Array.from(
+            new Set(Array.from(trackStates.values()).flatMap((ts) => ts.dt.dictionaryAnkiDecks))
+        )
+            .map((deck) => `"deck:${deck}"`)
+            .join(' OR ');
         const allFieldsQuery = Array.from(
             new Set(
                 Array.from(trackStates.values()).flatMap((ts) => [
@@ -789,7 +795,8 @@ export class DictionaryDB {
         )
             .map((field) => `"${field}:_*"`)
             .join(' OR ');
-        const noteIds = await anki.findNotes(allFieldsQuery);
+        const query = allDecksQuery.length ? `(${allDecksQuery}) (${allFieldsQuery})` : `${allFieldsQuery}`;
+        const noteIds = await anki.findNotes(query);
         if (!noteIds.length) {
             for (const [k, v] of (await this._orphanAllCardIds(profile, Array.from(trackStates.keys()))).entries()) {
                 orphanedTrackCardIds.set(k, v);
@@ -842,6 +849,9 @@ export class DictionaryDB {
 
         if (modifiedNotes.length) {
             const modifiedCardIds = Array.from(modifiedCardIdsSet);
+            const modifiedCardInfosMap = new Map(
+                (await anki.cardsInfo(modifiedCardIds)).map((cardInfo) => [cardInfo.cardId, cardInfo])
+            );
             const suspendedCards = new Set<number>();
             const areSuspended = await anki.areSuspended(modifiedCardIds);
             for (let i = 0; i < modifiedCardIds.length; i++) {
@@ -858,6 +868,7 @@ export class DictionaryDB {
                 for (const cardId of modifiedNote.cards) {
                     modifiedCards.set(cardId, {
                         noteId: modifiedNote.noteId,
+                        deckName: modifiedCardInfosMap.get(cardId)!.deckName,
                         fields,
                         modifiedAt: modifiedNote.mod,
                         statuses: new Map(),
@@ -891,6 +902,10 @@ export class DictionaryDB {
             }
             if (!modifiedCardIdsSet.has(cardId)) continue; // Card unchanged
             const modifiedCard = modifiedCards.get(cardId)!;
+            if (ts.dt.dictionaryAnkiDecks.length && !ts.dt.dictionaryAnkiDecks.includes(modifiedCard.deckName)) {
+                orphanedTrackCardIds.get(track)!.push(cardId); // Card no longer in relevant deck
+                continue;
+            }
             const hasWordField = ts.dt.dictionaryAnkiWordFields.some((f) => modifiedCard.fields.has(f));
             const hasSentenceField = ts.dt.dictionaryAnkiSentenceFields.some((f) => modifiedCard.fields.has(f));
             if (!hasWordField && !hasSentenceField) orphanedTrackCardIds.get(track)!.push(cardId); // Card no longer has any relevant fields
@@ -910,7 +925,9 @@ export class DictionaryDB {
             new Set([...ts.dt.dictionaryAnkiWordFields, ...ts.dt.dictionaryAnkiSentenceFields])
         );
         if (!ankiFields.length) return;
+        const decks = ts.dt.dictionaryAnkiDecks.map((deck) => `"deck:${deck}"`).join(' OR ');
         const fields = ankiFields.map((field) => `"${field}:_*"`).join(' OR ');
+        const query = decks.length ? `(${decks}) (${fields})` : fields;
         const matureCutoff = ts.dt.dictionaryAnkiMatureCutoff;
         const gradCutoff = Math.ceil(matureCutoff / 2);
         let numRemaining = Array.from(modifiedCards.values()).filter((card) =>
@@ -919,7 +936,7 @@ export class DictionaryDB {
 
         numRemaining = this._processAnkiCardStatuses(
             track,
-            await anki.findCards(`is:new (${fields})`),
+            await anki.findCards(`is:new (${query})`),
             modifiedCards,
             TokenStatus.UNKNOWN,
             numRemaining
@@ -927,7 +944,7 @@ export class DictionaryDB {
         if (numRemaining === 0) return;
         numRemaining = this._processAnkiCardStatuses(
             track,
-            await anki.findCards(`is:learn (${fields})`),
+            await anki.findCards(`is:learn (${query})`),
             modifiedCards,
             TokenStatus.LEARNING,
             numRemaining
@@ -937,12 +954,12 @@ export class DictionaryDB {
         // AnkiConnect doesn't expose Stability but we can retrieve it using search queries.
         // Stability is undefined for cards reviewed without FSRS so some cards may need to fallback to Interval.
         const props = ['prop:s', 'prop:ivl'];
-        const startIndex = (await anki.findCards(`prop:s>=0 (${fields})`)).length ? 0 : 1; // No cards are returned if FSRS is disabled
+        const startIndex = (await anki.findCards(`prop:s>=0 (${query})`)).length ? 0 : 1; // No cards are returned if FSRS is disabled
         for (let i = startIndex; i < props.length; i++) {
             const prop = props[i];
             numRemaining = this._processAnkiCardStatuses(
                 track,
-                await anki.findCards(`-is:new -is:learn ${prop}<${gradCutoff} (${fields})`),
+                await anki.findCards(`-is:new -is:learn ${prop}<${gradCutoff} (${query})`),
                 modifiedCards,
                 TokenStatus.GRADUATED,
                 numRemaining
@@ -950,7 +967,7 @@ export class DictionaryDB {
             if (numRemaining === 0) return;
             numRemaining = this._processAnkiCardStatuses(
                 track,
-                await anki.findCards(`-is:new -is:learn ${prop}>=${gradCutoff} ${prop}<${matureCutoff} (${fields})`),
+                await anki.findCards(`-is:new -is:learn ${prop}>=${gradCutoff} ${prop}<${matureCutoff} (${query})`),
                 modifiedCards,
                 TokenStatus.YOUNG,
                 numRemaining
@@ -958,7 +975,7 @@ export class DictionaryDB {
             if (numRemaining === 0) return;
             numRemaining = this._processAnkiCardStatuses(
                 track,
-                await anki.findCards(`-is:new -is:learn ${prop}>=${matureCutoff} (${fields})`),
+                await anki.findCards(`-is:new -is:learn ${prop}>=${matureCutoff} (${query})`),
                 modifiedCards,
                 TokenStatus.MATURE,
                 numRemaining
@@ -1030,8 +1047,8 @@ export class DictionaryDB {
         buildId: string,
         trackBuildIdsToClear: DictionaryMetaKey[],
         progress: BuildAnkiCacheProgress,
-        statusUpdates: (state: DictionaryBuildAnkiCacheState) => void,
-        options?: { extensionInstalled?: boolean }
+        modifiedTokens: string[],
+        statusUpdates: (state: DictionaryBuildAnkiCacheState) => void
     ): Promise<void> {
         const rate = progress.current / (Date.now() - progress.startedAt);
         const eta = rate ? Math.ceil((progress.total - progress.current) / rate) : 0;
@@ -1056,8 +1073,8 @@ export class DictionaryDB {
         if (etaHours) etaStr += `${etaHours}h`;
         if (etaMinutes) etaStr += `${etaMinutes}m`;
         etaStr += `${etaSeconds}s`;
-        const msg = `Building Anki cache${options?.extensionInstalled ? '' : ' (keep tab open)'}: ${progress.current.toLocaleString('en-US')} / ${progress.total.toLocaleString('en-US')} cards processed [ETA: ${time} (${etaStr})]`;
-        statusUpdates({ command, msg, error: false, modifiedTokens: [] });
+        const msg = `Building Anki cache: ${progress.current.toLocaleString('en-US')} / ${progress.total.toLocaleString('en-US')} cards processed [ETA: ${time} (${etaStr})]`;
+        statusUpdates({ command, msg, error: false, modifiedTokens });
     }
 
     private async _processTracks(
@@ -1074,8 +1091,7 @@ export class DictionaryDB {
         trackBuildIdsToClear: DictionaryMetaKey[],
         numUpdatedCards: number,
         buildTs: number,
-        statusUpdates: (state: DictionaryBuildAnkiCacheState) => void,
-        options?: { extensionInstalled?: boolean }
+        statusUpdates: (state: DictionaryBuildAnkiCacheState) => void
     ): Promise<void> {
         let msg = 'Unknown error during Anki cache build for tracks';
         let error = true;
@@ -1105,8 +1121,7 @@ export class DictionaryDB {
                 modifiedTokens,
                 trackBuildIdsToClear,
                 progress,
-                statusUpdates,
-                options
+                statusUpdates
             );
 
             const duration = Math.ceil((Date.now() - buildTs) / 1000);
@@ -1142,8 +1157,7 @@ export class DictionaryDB {
         modifiedTokens: Set<string>,
         trackBuildIdsToClear: DictionaryMetaKey[],
         progress: BuildAnkiCacheProgress,
-        statusUpdates: (state: DictionaryBuildAnkiCacheState) => void,
-        options?: { extensionInstalled?: boolean }
+        statusUpdates: (state: DictionaryBuildAnkiCacheState) => void
     ): Promise<void> {
         if (!modifiedCards.size) return;
         const ankiTokenStatus = null; // Calculate when getting due to certain settings (e.g. dictionaryAnkiMatureCutoff dictionaryAnkiTreatSuspended)
@@ -1269,6 +1283,7 @@ export class DictionaryDB {
                     }
                 }
 
+                const newModifiedTokens: Set<string> = new Set();
                 await this.db.transaction('rw', this.db.meta, this.db.tokens, this.db.ankiCards, async () => {
                     await this._buildIdHealthCheck(buildId, trackBuildIdsToClear);
                     await this._saveTokensForDB(
@@ -1278,6 +1293,7 @@ export class DictionaryDB {
                         ankiCards,
                         modifiedCardsBatch,
                         trackTokensMap,
+                        newModifiedTokens,
                         modifiedTokens
                     );
                 });
@@ -1287,8 +1303,8 @@ export class DictionaryDB {
                     buildId,
                     trackBuildIdsToClear,
                     progress,
-                    statusUpdates,
-                    options
+                    Array.from(newModifiedTokens),
+                    statusUpdates
                 );
             },
             { batchSize: 100 } // Batch for memory usage and yomitan cache size
@@ -1305,11 +1321,16 @@ export class DictionaryDB {
             number,
             Map<DictionaryTokenSource, Map<string, { lemmas: string[]; cardIds: Set<number> }>>
         >,
+        newModifiedTokens: Set<string>,
         modifiedTokens: Set<string>
     ): Promise<void> {
         for (const record of records) {
+            newModifiedTokens.add(record.token);
             modifiedTokens.add(record.token);
-            for (const lemma of record.lemmas) modifiedTokens.add(lemma);
+            for (const lemma of record.lemmas) {
+                newModifiedTokens.add(lemma);
+                modifiedTokens.add(lemma);
+            }
         }
         return this.db.transaction('rw', this.db.tokens, this.db.ankiCards, async () => {
             await Promise.all([this._saveRecordBulk(records), this.db.ankiCards.bulkPut(ankiCards)]);
@@ -1329,12 +1350,20 @@ export class DictionaryDB {
                     if (trackTokensMap.get(record.track)!.get(record.source)!.has(record.token)) return; // We want tokens that were not updated but refers to updated cards (e.g. field value changed, different tokens)
                     const validCardIds = record.cardIds.filter((id) => !modifiedCardsBatch.has(id));
                     if (!validCardIds.length) {
+                        newModifiedTokens.add(record.token);
                         modifiedTokens.add(record.token);
-                        for (const lemma of record.lemmas) modifiedTokens.add(lemma);
+                        for (const lemma of record.lemmas) {
+                            newModifiedTokens.add(lemma);
+                            modifiedTokens.add(lemma);
+                        }
                         delete (ref as any).value;
                     } else if (validCardIds.length !== record.cardIds.length) {
+                        newModifiedTokens.add(record.token);
                         modifiedTokens.add(record.token);
-                        for (const lemma of record.lemmas) modifiedTokens.add(lemma);
+                        for (const lemma of record.lemmas) {
+                            newModifiedTokens.add(lemma);
+                            modifiedTokens.add(lemma);
+                        }
                         record.cardIds = validCardIds;
                     }
                 });

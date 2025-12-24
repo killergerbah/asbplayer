@@ -216,17 +216,17 @@ export class Anki {
         return this.settingsProvider.ankiConnectUrl;
     }
 
-    async deckNames(ankiConnectUrl?: string) {
+    async deckNames(ankiConnectUrl?: string): Promise<string[]> {
         const response = await this._executeAction('deckNames', null, ankiConnectUrl);
         return response.result;
     }
 
-    async modelNames(ankiConnectUrl?: string) {
+    async modelNames(ankiConnectUrl?: string): Promise<string[]> {
         const response = await this._executeAction('modelNames', null, ankiConnectUrl);
         return response.result;
     }
 
-    async modelFieldNames(modelName: string, ankiConnectUrl?: string) {
+    async modelFieldNames(modelName: string, ankiConnectUrl?: string): Promise<string[]> {
         const response = await this._executeAction('modelFieldNames', { modelName: modelName }, ankiConnectUrl);
         return response.result;
     }

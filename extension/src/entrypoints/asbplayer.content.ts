@@ -1,6 +1,10 @@
 import type {
     AddProfileMessage,
     DictionaryBuildAnkiCacheMessage,
+    DictionaryDeleteRecordLocalBulkMessage,
+    DictionaryGetBulkMessage,
+    DictionaryGetByLemmaBulkMessage,
+    DictionarySaveRecordLocalBulkMessage,
     GetGlobalStateMessage,
     GetSettingsMessage,
     RemoveProfileMessage,
@@ -96,7 +100,7 @@ export default defineContentScript({
                         });
                         break;
                     case 'dictionary-get-bulk': {
-                        const { profile, track, tokens } = command.message;
+                        const { profile, track, tokens } = command.message as DictionaryGetBulkMessage;
                         sendMessageToPlayer({
                             response: await settingsStorage.dictionaryGetBulk(profile, track, tokens),
                             messageId: command.message.messageId,
@@ -104,7 +108,7 @@ export default defineContentScript({
                         break;
                     }
                     case 'dictionary-get-by-lemma-bulk': {
-                        const { profile, track, lemmas } = command.message;
+                        const { profile, track, lemmas } = command.message as DictionaryGetByLemmaBulkMessage;
                         sendMessageToPlayer({
                             response: await settingsStorage.dictionaryGetByLemmaBulk(profile, track, lemmas),
                             messageId: command.message.messageId,
@@ -112,7 +116,7 @@ export default defineContentScript({
                         break;
                     }
                     case 'dictionary-save-record-local-bulk': {
-                        const { profile, localTokenInputs } = command.message;
+                        const { profile, localTokenInputs } = command.message as DictionarySaveRecordLocalBulkMessage;
                         await settingsStorage.dictionarySaveRecordLocalBulk(profile, localTokenInputs);
                         sendMessageToPlayer({
                             messageId: command.message.messageId,
@@ -120,8 +124,8 @@ export default defineContentScript({
                         break;
                     }
                     case 'dictionary-delete-record-local-bulk': {
-                        const { profile, localTokenInputs } = command.message;
-                        await settingsStorage.dictionaryDeleteRecordLocalBulk(profile, localTokenInputs);
+                        const { profile, tokens } = command.message as DictionaryDeleteRecordLocalBulkMessage;
+                        await settingsStorage.dictionaryDeleteRecordLocalBulk(profile, tokens);
                         sendMessageToPlayer({
                             messageId: command.message.messageId,
                         });

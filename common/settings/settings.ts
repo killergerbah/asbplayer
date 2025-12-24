@@ -123,6 +123,7 @@ export interface DictionaryTrack {
     readonly dictionaryYomitanUrl: string;
     readonly dictionaryYomitanScanLength: number;
     readonly dictionaryTokenReadingAnnotation: TokenReadingAnnotation;
+    readonly dictionaryAnkiDecks: string[];
     readonly dictionaryAnkiWordFields: string[];
     readonly dictionaryAnkiSentenceFields: string[];
     readonly dictionaryAnkiSentenceTokenMatchStrategy: TokenMatchStrategy;
@@ -148,6 +149,7 @@ const dictionaryTrackComparators: {
     dictionaryYomitanUrl: (a, b) => a === b,
     dictionaryYomitanScanLength: (a, b) => a === b,
     dictionaryTokenReadingAnnotation: (a, b) => a === b,
+    dictionaryAnkiDecks: (a, b) => arrayEquals(a, b),
     dictionaryAnkiWordFields: (a, b) => arrayEquals(a, b),
     dictionaryAnkiSentenceFields: (a, b) => arrayEquals(a, b),
     dictionaryAnkiSentenceTokenMatchStrategy: (a, b) => a === b,
