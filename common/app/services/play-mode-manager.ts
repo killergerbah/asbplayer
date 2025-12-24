@@ -40,31 +40,6 @@ export default class PlayModeManager {
         return { added, removed };
     }
 
-    static normalizePlayModes(modes: Set<PlayMode>, oldModes: Set<PlayMode>): Set<PlayMode> {
-        const normalizedModes = new Set(modes);
-
-        if (normalizedModes.has(PlayMode.normal)) {
-            if (normalizedModes.size > 1) {
-                normalizedModes.clear();
-                normalizedModes.add(PlayMode.normal);
-            }
-            return normalizedModes;
-        }
-
-        if (normalizedModes.has(PlayMode.condensed) && normalizedModes.has(PlayMode.fastForward)) {
-            const fastForwardWasOld = oldModes.has(PlayMode.fastForward);
-            const condensedWasOld = oldModes.has(PlayMode.condensed);
-
-            if (!fastForwardWasOld && condensedWasOld) {
-                normalizedModes.delete(PlayMode.condensed);
-            } else {
-                normalizedModes.delete(PlayMode.fastForward);
-            }
-        }
-
-        return normalizedModes;
-    }
-
     getModes(): Set<PlayMode> {
         return new Set(this._modes);
     }

@@ -231,23 +231,6 @@ export default class Binding {
         return this._playModes;
     }
 
-    set playModes(modes: Set<PlayMode>) {
-        const oldModes = new Set(this._playModes);
-        const normalizedModes = PlayModeManager.normalizePlayModes(modes, oldModes);
-        const { added, removed } = PlayModeManager.getModeChanges(oldModes, normalizedModes);
-
-        for (const mode of removed) {
-            this._disablePlayMode(mode, false);
-        }
-
-        for (const mode of added) {
-            this._enablePlayMode(mode);
-        }
-
-        this._playModes = normalizedModes;
-        this.mobileVideoOverlayController.updateModel();
-    }
-
     togglePlayMode(targetMode: PlayMode) {
         const manager = new PlayModeManager(this._playModes);
         const newModes = manager.toggle(targetMode);
@@ -255,7 +238,7 @@ export default class Binding {
 
         for (const mode of removed) {
             const showNotif = mode === targetMode && targetMode !== PlayMode.normal;
-            this._disablePlayMode(mode, showNotif);
+            this._disablePlayMode(mode, newModes, showNotif);
         }
 
         for (const mode of added) {
@@ -266,11 +249,11 @@ export default class Binding {
         this.mobileVideoOverlayController.updateModel();
     }
 
-    private _disablePlayMode(mode: PlayMode, showNotif: boolean) {
+    private _disablePlayMode(mode: PlayMode, newModes: Set<PlayMode>, showNotif: boolean) {
         switch (mode) {
             case PlayMode.autoPause:
                 this.subtitleController.autoPauseContext.onStartedShowing = undefined;
-                if (this._playModes.has(PlayMode.repeat)) {
+                if (newModes.has(PlayMode.repeat)) {
                     this.subtitleController.autoPauseContext.onWillStopShowing = (subtitle) => {
                         this._pendingRepeatTime = 0;
                         this.seek(subtitle.start / 1000);
@@ -293,7 +276,7 @@ export default class Binding {
                 if (showNotif) this.subtitleController.notification('info.disabledFastForwardPlayback');
                 break;
             case PlayMode.repeat:
-                if (this._playModes.has(PlayMode.autoPause)) {
+                if (newModes.has(PlayMode.autoPause)) {
                     this.subtitleController.autoPauseContext.onWillStopShowing = () => {
                         if (this.recordingMedia || this.autoPausePreference !== AutoPausePreference.atEnd) {
                             return;
@@ -1468,7 +1451,7 @@ export default class Binding {
         this.subtitleController.cacheHtml();
 
         if (!this._playModes.has(PlayMode.normal) && (!subtitles || subtitles.length === 0)) {
-            this._playModes = new Set([PlayMode.normal]);
+            this.togglePlayMode(PlayMode.normal);
         }
 
         let nonEmptyTrackIndex: number[] = [];
