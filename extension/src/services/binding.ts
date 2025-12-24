@@ -533,6 +533,11 @@ export default class Binding {
 
             browser.runtime.sendMessage(command);
             this.pausedDueToHover = false;
+
+            if (this._playModes.has(PlayMode.repeat) && this._pendingRepeatTime > 0) {
+                this.seek(this._pendingRepeatTime);
+                this._pendingRepeatTime = 0;
+            }
         };
 
         this.pauseListener = (event) => {
@@ -1311,10 +1316,6 @@ export default class Binding {
     }
 
     async play() {
-        if (this._playModes.has(PlayMode.repeat) && this._pendingRepeatTime > 0) {
-            this.seek(this._pendingRepeatTime);
-            this._pendingRepeatTime = 0;
-        }
 
         if (netflix) {
             await this._playNetflix();
