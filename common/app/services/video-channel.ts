@@ -445,7 +445,7 @@ export default class VideoChannel {
     playModes(playModes: Set<PlayMode>) {
         const message: PlayModesMessage = {
             command: 'playModes',
-            playModes: Array.from(playModes),
+            playModes: [...playModes],
         };
         this.protocol.postMessage(message);
     }
