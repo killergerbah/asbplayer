@@ -1355,11 +1355,15 @@ export default function VideoPlayer({
             event.preventDefault();
 
             const manager = new PlayModeManager(playModes);
-            const newPlayModes = manager.toggle(targetMode);
+            const newPlayModes = manager.toggle(targetMode, ({ shouldResetPlaybackRate }) => {
+                if (shouldResetPlaybackRate) {
+                    updatePlaybackRate(1, true);
+                }
+            });
             playerChannel.playModes(newPlayModes);
             onPlayModeChangedViaBind(playModes, targetMode);
         },
-        [playModes, playerChannel, subtitles, onPlayModeChangedViaBind]
+        [playModes, playerChannel, subtitles, onPlayModeChangedViaBind, updatePlaybackRate]
     );
 
     useEffect(() => {
@@ -1420,10 +1424,14 @@ export default function VideoPlayer({
     const handlePlayMode = useCallback(
         (targetMode: PlayMode) => {
             const manager = new PlayModeManager(playModes);
-            const newModes = manager.toggle(targetMode);
+            const newModes = manager.toggle(targetMode, ({ shouldResetPlaybackRate }) => {
+                if (shouldResetPlaybackRate) {
+                    updatePlaybackRate(1, true);
+                }
+            });
             playerChannel.playModes(newModes);
         },
-        [playerChannel, playModes]
+        [playerChannel, playModes, updatePlaybackRate]
     );
 
     const handleClose = useCallback(() => {
