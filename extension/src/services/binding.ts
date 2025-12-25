@@ -128,8 +128,12 @@ export default class Binding {
     private _playModes: Set<PlayMode> = new Set([PlayMode.normal]);
     private _seekDuration = 3;
     private _speedChangeStep = 0.1;
-    private _pendingRepeatTime = 0;
+    private _pendingAutoRepeatTargetTimestamp = 0;
     private _lastKnownTime = 0;
+
+    private _resetPendingAutoRepeatTargetTimestamp() {
+        this._pendingAutoRepeatTargetTimestamp = 0;
+    }
 
     readonly video: HTMLMediaElement;
     readonly hasPageScript: boolean;
@@ -255,7 +259,7 @@ export default class Binding {
                 this.subtitleController.autoPauseContext.onStartedShowing = undefined;
                 if (newModes.has(PlayMode.repeat)) {
                     this.subtitleController.autoPauseContext.onWillStopShowing = (subtitle) => {
-                        this._pendingRepeatTime = 0;
+                        this._resetPendingAutoRepeatTargetTimestamp();
                         this.seek(subtitle.start / 1000);
                     };
                 } else {
@@ -311,9 +315,9 @@ export default class Binding {
                             this.pause();
                         }
 
-                        this._pendingRepeatTime = 0;
+                        this._resetPendingAutoRepeatTargetTimestamp();
                         if (shouldRepeat) {
-                            this._pendingRepeatTime = subtitle.start / 1000;
+                            this._pendingAutoRepeatTargetTimestamp = subtitle.start / 1000;
                         }
                     } else if (shouldRepeat) {
                         this.seek(subtitle.start / 1000);
@@ -385,11 +389,11 @@ export default class Binding {
                         this.autoPausePreference === AutoPausePreference.atEnd &&
                         !this.recordingMedia;
 
-                    this._pendingRepeatTime = 0;
+                    this._resetPendingAutoRepeatTargetTimestamp();
 
                     if (shouldAutoPause) {
                         this.pause();
-                        this._pendingRepeatTime = subtitle.start / 1000;
+                        this._pendingAutoRepeatTargetTimestamp = subtitle.start / 1000;
                     } else {
                         this.seek(subtitle.start / 1000);
                     }
@@ -517,9 +521,9 @@ export default class Binding {
             browser.runtime.sendMessage(command);
             this.pausedDueToHover = false;
 
-            if (this._playModes.has(PlayMode.repeat) && this._pendingRepeatTime > 0) {
-                this.seek(this._pendingRepeatTime);
-                this._pendingRepeatTime = 0;
+            if (this._playModes.has(PlayMode.repeat) && this._pendingAutoRepeatTargetTimestamp > 0) {
+                this.seek(this._pendingAutoRepeatTargetTimestamp);
+                this._resetPendingAutoRepeatTargetTimestamp();
             }
         };
 
@@ -542,12 +546,6 @@ export default class Binding {
 
         this.seekedListener = (event) => {
             const currentTime = this.video.currentTime;
-            const timeDifference = Math.abs(currentTime - this._lastKnownTime);
-
-            if (timeDifference > 0.5) {
-                this._pendingRepeatTime = 0;
-            }
-
             this._lastKnownTime = currentTime;
 
             const currentTimeCommand: VideoToExtensionCommand<CurrentTimeFromVideoMessage> = {
