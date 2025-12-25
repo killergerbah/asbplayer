@@ -49,7 +49,7 @@ export default defineConfig({
         let manifest: UserManifest = {
             name: 'asbplayer: Language-learning with subtitles',
             description: '__MSG_extensionDescription__',
-            version: '1.12.0',
+            version: '1.13.0',
             action: { default_title: 'asbplayer' },
             default_locale: 'en',
             icons: {
@@ -82,6 +82,7 @@ export default defineConfig({
                         'plex-page.js',
                         'areena-yle-page.js',
                         'hbo-max-page.js',
+                        'cijapanese-page.js',
                         'anki-ui.js',
                         'mp3-encoder-worker.js',
                         'pgs-parser-worker.js',

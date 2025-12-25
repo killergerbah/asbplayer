@@ -28,6 +28,16 @@ export interface SubtitleModel {
     readonly originalStart: number;
     readonly originalEnd: number;
     readonly track: number;
+    readonly index?: number;
+    readonly richText?: string;
+}
+
+export interface IndexedSubtitleModel extends SubtitleModel {
+    readonly index: number;
+}
+
+export interface RichSubtitleModel extends IndexedSubtitleModel {
+    richText?: string;
 }
 
 export interface CardTextFieldValues {

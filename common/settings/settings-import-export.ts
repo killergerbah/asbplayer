@@ -26,6 +26,69 @@ const ankiFieldSchema = {
     },
     required: ['order', 'display'],
 };
+const dictionaryTrackSchema = {
+    id: '/DictionaryTrack',
+    type: 'object',
+    properties: {
+        dictionaryColorizeSubtitles: {
+            type: 'boolean',
+        },
+        dictionaryColorizeOnHoverOnly: {
+            type: 'boolean',
+        },
+        dictionaryTokenMatchStrategy: {
+            type: 'string',
+        },
+        dictionaryTokenMatchStrategyPriority: {
+            type: 'string',
+        },
+        dictionaryYomitanUrl: {
+            type: 'string',
+        },
+        dictionaryYomitanScanLength: {
+            type: 'number',
+        },
+        dictionaryTokenReadingAnnotation: {
+            type: 'string',
+        },
+        dictionaryAnkiWordFields: {
+            type: 'array',
+            items: {
+                type: 'string',
+            },
+        },
+        dictionaryAnkiSentenceFields: {
+            type: 'array',
+            items: {
+                type: 'string',
+            },
+        },
+        dictionaryAnkiSentenceTokenMatchStrategy: {
+            type: 'string',
+        },
+        dictionaryAnkiMatureCutoff: {
+            type: 'number',
+        },
+        dictionaryAnkiTreatSuspended: {
+            type: ['string', 'number'],
+        },
+        tokenStyling: {
+            type: 'string',
+        },
+        tokenStylingThickness: {
+            type: 'number',
+        },
+        colorizeFullyKnownTokens: {
+            type: 'boolean',
+        },
+        tokenStatusColors: {
+            type: 'array',
+            items: {
+                type: 'string',
+            },
+        },
+    },
+};
 const textSubtitleSettingsSchema = {
     id: '/TextSubtitleSettings',
     type: 'object',
@@ -321,6 +384,9 @@ const settingsSchema = {
         subtitleRegexFilterTextReplacement: {
             type: 'string',
         },
+        convertNetflixRuby: {
+            type: 'boolean',
+        },
         language: {
             type: 'string',
         },
@@ -416,6 +482,12 @@ const settingsSchema = {
         lastSelectedAnkiExportMode: {
             type: 'string',
         },
+        dictionaryTracks: {
+            type: 'array',
+            items: {
+                $ref: '/DictionaryTrack',
+            },
+        },
         _schema: {
             type: 'number',
         },
@@ -451,6 +523,7 @@ export const validateSettings = (settings: any) => {
     const validator = new Validator();
     validator.addSchema(keyBindSchema);
     validator.addSchema(ankiFieldSchema);
+    validator.addSchema(dictionaryTrackSchema);
     validator.addSchema(textSubtitleSettingsSchema);
     const result = validator.validate(copy, settingsSchema);
     validateAllKnownKeys(copy, []);
@@ -504,6 +577,10 @@ const schemaForRef = (ref: string) => {
 
     if (ref === '/AnkiField') {
         return ankiFieldSchema;
+    }
+
+    if (ref === '/DictionaryTrack') {
+        return dictionaryTrackSchema;
     }
 
     if (ref === '/TextSubtitleSettings') {

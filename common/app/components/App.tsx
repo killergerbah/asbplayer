@@ -67,7 +67,7 @@ import { StyledEngineProvider } from '@mui/material/styles';
 import { useServiceWorker } from '../hooks/use-service-worker';
 import NeedRefreshDialog from './NeedRefreshDialog';
 
-const latestExtensionVersion = '1.11.0';
+const latestExtensionVersion = '1.12.0';
 const extensionUrl =
     'https://chromewebstore.google.com/detail/asbplayer-language-learni/hkledmpjpaehamkiehglnbelcpdflcab';
 
@@ -242,9 +242,15 @@ function App({
             regexFilter: settings.subtitleRegexFilter,
             regexFilterTextReplacement: settings.subtitleRegexFilterTextReplacement,
             subtitleHtml: settings.subtitleHtml,
+            convertNetflixRuby: settings.convertNetflixRuby,
             pgsParserWorkerFactory: async () => new pgsParserWorkerFactory(),
         });
-    }, [settings.subtitleRegexFilter, settings.subtitleRegexFilterTextReplacement, settings.subtitleHtml]);
+    }, [
+        settings.subtitleRegexFilter,
+        settings.subtitleRegexFilterTextReplacement,
+        settings.subtitleHtml,
+        settings.convertNetflixRuby,
+    ]);
     const webSocketClient = useAppWebSocketClient({ settings });
     const [subtitles, setSubtitles] = useState<DisplaySubtitleModel[]>([]);
     const playbackPreferences = usePlaybackPreferences(settings, extension);
@@ -1404,7 +1410,11 @@ function App({
                                     onHideSubtitlePlayer={handleHideSubtitlePlayer}
                                     onVideoPopOut={handleVideoPopOut}
                                     onPlayModeChangedViaBind={handlePlayModeChangedViaBind}
-                                    onSubtitles={setSubtitles}
+                                    onSubtitles={
+                                        setSubtitles as React.Dispatch<
+                                            React.SetStateAction<DisplaySubtitleModel[] | undefined>
+                                        >
+                                    }
                                     onLoadFiles={handleFileSelector}
                                     tab={tab}
                                     availableTabs={availableTabs ?? []}

@@ -20,10 +20,11 @@ function extractTagsFromString(value: string) {
 
 export interface Props {
     items: string[];
+    textFieldComponent?: React.FC<TextFieldProps>;
     onItemsChange: (tags: string[]) => void;
 }
 
-export default function ListField({ items, onItemsChange, ...props }: Props & TextFieldProps) {
+export default function ListField({ items, onItemsChange, textFieldComponent, ...props }: Props & TextFieldProps) {
     const { t } = useTranslation();
     const [value, setValue] = useState('');
 
@@ -52,5 +53,11 @@ export default function ListField({ items, onItemsChange, ...props }: Props & Te
         [value, onItemsChange]
     );
 
-    return <TextField {...props} helperText={t('settings.tagsHelperText')} value={value} onChange={handleChange} />;
+    const textFieldProps = { ...props, helperText: t('settings.tagsHelperText'), value, onChange: handleChange };
+
+    if (textFieldComponent) {
+        return textFieldComponent(textFieldProps);
+    }
+
+    return <TextField {...textFieldProps} />;
 }

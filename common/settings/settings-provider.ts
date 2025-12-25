@@ -9,6 +9,11 @@ import {
     SubtitleSettings,
     TextSubtitleSettings,
     textSubtitleSettingsKeys,
+    TokenMatchStrategyPriority,
+    TokenMatchStrategy,
+    TokenStyling,
+    DictionaryTrack,
+    TokenReadingAnnotation,
 } from '.';
 import { AutoPausePreference, PostMineAction, PostMinePlayback, SubtitleHtml } from '..';
 
@@ -29,6 +34,25 @@ const defaultSubtitleTextSettings = {
     subtitlePreview: 'アあ安Aa',
     subtitleCustomStyles: [],
     subtitleBlur: false,
+};
+
+const defaultDictionaryTrackSettings: DictionaryTrack = {
+    dictionaryColorizeSubtitles: false,
+    dictionaryColorizeOnHoverOnly: false,
+    dictionaryTokenMatchStrategy: TokenMatchStrategy.ANY_FORM_COLLECTED,
+    dictionaryTokenMatchStrategyPriority: TokenMatchStrategyPriority.EXACT,
+    dictionaryYomitanUrl: 'http://127.0.0.1:19633',
+    dictionaryYomitanScanLength: 16,
+    dictionaryTokenReadingAnnotation: TokenReadingAnnotation.UNKNOWN_OR_BELOW,
+    dictionaryAnkiWordFields: [],
+    dictionaryAnkiSentenceFields: [],
+    dictionaryAnkiSentenceTokenMatchStrategy: TokenMatchStrategy.EXACT_FORM_COLLECTED,
+    dictionaryAnkiMatureCutoff: 21,
+    dictionaryAnkiTreatSuspended: 'NORMAL',
+    tokenStyling: TokenStyling.UNDERLINE,
+    tokenStylingThickness: 3,
+    colorizeFullyKnownTokens: false,
+    tokenStatusColors: ['#FF0000', '#FFA500', '#FFFF00', '#00FF00', '#0000FF', '#FFFFFF'],
 };
 
 export const defaultSettings: AsbplayerSettings = {
@@ -129,6 +153,7 @@ export const defaultSettings: AsbplayerSettings = {
     alwaysPlayOnSubtitleRepeat: true,
     subtitleRegexFilter: '',
     subtitleRegexFilterTextReplacement: '',
+    convertNetflixRuby: false,
     language: 'en',
     customAnkiFields: {},
     tags: [],
@@ -167,12 +192,17 @@ export const defaultSettings: AsbplayerSettings = {
         yleAreena: {},
         hboMax: {},
         stremio: {},
+        cijapanese: {},
     },
     webSocketClientEnabled: false,
     webSocketServerUrl: 'ws://127.0.0.1:8766/ws',
     pauseOnHoverMode: 0,
     lastSelectedAnkiExportMode: 'default',
+    dictionaryTracks: [defaultDictionaryTrackSettings, defaultDictionaryTrackSettings, defaultDictionaryTrackSettings],
 };
+
+export const NUM_DICTIONARY_TRACKS = defaultSettings.dictionaryTracks.length;
+export const NUM_TOKEN_STYLINGS = defaultDictionaryTrackSettings.tokenStatusColors.length;
 
 export interface AnkiFieldUiModel {
     key: string;
@@ -494,6 +524,23 @@ export class SettingsProvider {
     }
 
     private async _ensureConsistencyOnWrite(settings: Partial<AsbplayerSettings>) {
+        if (settings.dictionaryTracks !== undefined) {
+            const defaultTrack = defaultSettings.dictionaryTracks[0];
+            for (const dt of settings.dictionaryTracks) {
+                while (dt.tokenStatusColors.length < NUM_TOKEN_STYLINGS) {
+                    const currLength = dt.tokenStatusColors.length;
+                    const color = defaultTrack.tokenStatusColors[currLength];
+                    dt.tokenStatusColors.push(color);
+                }
+            }
+            while (settings.dictionaryTracks.length < NUM_DICTIONARY_TRACKS) {
+                settings.dictionaryTracks.push(defaultTrack);
+            }
+            while (settings.dictionaryTracks.length > NUM_DICTIONARY_TRACKS) {
+                settings.dictionaryTracks.pop();
+            }
+        }
+
         if (settings.customAnkiFields === undefined) {
             return settings;
         }

@@ -47,8 +47,8 @@ import {
     VideoDisappearedMessage,
     VideoHeartbeatMessage,
     VideoToExtensionCommand,
+    IndexedSubtitleModel,
 } from '@project/common';
-import Mp3Encoder from '@project/common/audio-clip/mp3-encoder';
 import { adjacentSubtitle } from '@project/common/key-binder';
 import PlayModeManager from '@project/common/app/services/play-mode-manager';
 import {
@@ -66,7 +66,8 @@ import DragController from '../controllers/drag-controller';
 import { MobileGestureController } from '../controllers/mobile-gesture-controller';
 import { MobileVideoOverlayController } from '../controllers/mobile-video-overlay-controller';
 import NotificationController from '../controllers/notification-controller';
-import SubtitleController, { SubtitleModelWithIndex } from '../controllers/subtitle-controller';
+import SubtitleController from '../controllers/subtitle-controller';
+import BulkExportController from '../controllers/bulk-export-controller';
 import VideoDataSyncController from '../controllers/video-data-sync-controller';
 import AudioRecorder, { TimedRecordingInProgressError } from './audio-recorder';
 import { isMobile } from '@project/common/device-detection/mobile';
@@ -148,6 +149,7 @@ export default class Binding {
     readonly keyBindings: KeyBindings;
     readonly settings: SettingsProvider;
     private readonly _audioRecorder = new AudioRecorder();
+    readonly bulkExportController: BulkExportController;
 
     private copyToClipboardOnMine: boolean;
     private takeScreenshot: boolean;
@@ -199,6 +201,7 @@ export default class Binding {
         this.mobileVideoOverlayController = new MobileVideoOverlayController(this, OffsetAnchor.top);
         this.subtitleController.onOffsetChange = () => this.mobileVideoOverlayController.updateModel();
         this.mobileGestureController = new MobileGestureController(this);
+        this.bulkExportController = new BulkExportController(this);
         this.recordMedia = true;
         this.takeScreenshot = true;
         this.cleanScreenshot = true;
@@ -350,7 +353,7 @@ export default class Binding {
                 this.subtitleController.notification('info.enabledCondensedPlayback');
                 break;
             case PlayMode.fastForward:
-                this.subtitleController.onSlice = async (slice: SubtitleSlice<SubtitleModelWithIndex>) => {
+                this.subtitleController.onSlice = async (slice: SubtitleSlice<IndexedSubtitleModel>) => {
                     const subtitlesAreSufficientlyOffsetFromNow = (subtitleEdgeTime: number | undefined) => {
                         return (
                             subtitleEdgeTime &&
@@ -470,6 +473,7 @@ export default class Binding {
         this.subtitleController.bind();
         this.dragController.bind(this);
         this.mobileGestureController.bind();
+        this.bulkExportController.bind();
 
         const seek = (forward: boolean) => {
             const subtitle = adjacentSubtitle(
@@ -676,7 +680,7 @@ export default class Binding {
                     case 'close':
                         // ignore
                         break;
-                    case 'subtitles':
+                    case 'subtitles': {
                         const subtitlesMessage = request.message as SubtitlesToVideoMessage;
                         const subtitles: SubtitleModel[] = subtitlesMessage.value;
                         this._updateSubtitles(
@@ -684,11 +688,28 @@ export default class Binding {
                             subtitlesMessage.names || [subtitlesMessage.name]
                         );
                         break;
-                    case 'request-subtitles':
+                    }
+                    case 'request-subtitles': {
                         sendResponse({
                             subtitles: this.subtitleController.subtitles,
                             subtitleFileNames: this.subtitleController.subtitleFileNames ?? [],
                         });
+                        break;
+                    }
+                    // This is useful because when we kick off bulk export the side panel needs to know
+                    // what subtitle to start from.
+                    case 'request-current-subtitle':
+                        const [currentSubtitle] = this.subtitleController.currentSubtitle();
+                        sendResponse({
+                            currentSubtitle: currentSubtitle,
+                            currentSubtitleIndex: currentSubtitle?.index ?? null,
+                        });
+                        break;
+                    case 'start-bulk-export':
+                        this.bulkExportController.start();
+                        break;
+                    case 'cancel-bulk-export':
+                        this.bulkExportController.cancel();
                         break;
                     case 'offset':
                         const offsetMessage = request.message as OffsetToVideoMessage;
@@ -748,9 +769,11 @@ export default class Binding {
                         switch (cardMessage.command) {
                             case 'card-updated':
                                 locKey = 'info.updatedCard';
+                                this.subtitleController.subtitleColoring.ankiCardWasUpdated();
                                 break;
                             case 'card-exported':
                                 locKey = 'info.exportedCard';
+                                this.subtitleController.subtitleColoring.ankiCardWasUpdated();
                                 break;
                             case 'card-saved':
                                 locKey = 'info.copiedSubtitle2';
@@ -978,7 +1001,21 @@ export default class Binding {
         this.subtitleController.surroundingSubtitlesCountRadius = currentSettings.surroundingSubtitlesCountRadius;
         this.subtitleController.surroundingSubtitlesTimeRadius = currentSettings.surroundingSubtitlesTimeRadius;
         this.subtitleController.autoCopyCurrentSubtitle = currentSettings.autoCopyCurrentSubtitle;
+
+        const convertNetflixRubyChanged =
+            this.subtitleController.convertNetflixRuby !== currentSettings.convertNetflixRuby;
+        this.subtitleController.convertNetflixRuby = currentSettings.convertNetflixRuby;
+
+        const subtitleHtmlChanged = this.subtitleController.subtitleHtml !== currentSettings.subtitleHtml;
+        this.subtitleController.subtitleHtml = currentSettings.subtitleHtml;
+
+        this.subtitleController.subtitleColoring.resetCache(currentSettings);
         this.subtitleController.setSubtitleSettings(currentSettings);
+
+        if (convertNetflixRubyChanged || subtitleHtmlChanged) {
+            this.subtitleController.cacheHtml();
+        }
+
         this.subtitleController.refresh();
 
         this.videoDataSyncController.updateSettings(currentSettings);
@@ -1064,6 +1101,7 @@ export default class Binding {
         this.mobileVideoOverlayController.unbind();
         this.mobileGestureController.unbind();
         this.notificationController.unbind();
+        this.bulkExportController.unbind();
         this.subscribed = false;
 
         const command: VideoToExtensionCommand<VideoDisappearedMessage> = {
@@ -1107,6 +1145,7 @@ export default class Binding {
         definition,
         word,
         customFieldValues,
+        isBulkExport,
     }: CopySubtitleMessage) {
         if (!subtitle || !surroundingSubtitles) {
             return;
@@ -1159,12 +1198,18 @@ export default class Binding {
                 definition,
                 word,
                 customFieldValues,
+                isBulkExport,
                 ...this._imageCaptureParams,
             },
             src: this.video.src,
         };
 
         browser.runtime.sendMessage(command);
+    }
+
+    // Public helper for controllers to reuse copy-subtitle flow (e.g., bulk export)
+    async copySubtitleForBulk(message: CopySubtitleMessage) {
+        await this._copySubtitle(message);
     }
 
     async _toggleRecordingMedia(postMineAction: PostMineAction) {
@@ -1378,6 +1423,7 @@ export default class Binding {
             rememberSubtitleOffset,
             lastSubtitleOffset,
             subtitleHtml,
+            convertNetflixRuby: convertNetflixRuby,
         } = await this.settings.get([
             'streamingSubtitleListPreference',
             'subtitleRegexFilter',
@@ -1385,6 +1431,7 @@ export default class Binding {
             'rememberSubtitleOffset',
             'lastSubtitleOffset',
             'subtitleHtml',
+            'convertNetflixRuby',
         ]);
         const syncWithAsbplayerTab = async (withSyncedAsbplayerOnly: boolean, withAsbplayerId: string | undefined) => {
             const syncMessage: VideoToExtensionCommand<ExtensionSyncMessage> = {
@@ -1415,6 +1462,7 @@ export default class Binding {
                     regexFilter: subtitleRegexFilter,
                     regexFilterTextReplacement: subtitleRegexFilterTextReplacement,
                     subtitleHtml: subtitleHtml,
+                    convertNetflixRuby: convertNetflixRuby,
                     pgsParserWorkerFactory: pgsParserWorkerFactory,
                 });
                 const offset = rememberSubtitleOffset ? lastSubtitleOffset : 0;
@@ -1443,7 +1491,7 @@ export default class Binding {
         }
     }
 
-    private _updateSubtitles(subtitles: SubtitleModelWithIndex[], subtitleFileNames: string[]) {
+    private _updateSubtitles(subtitles: IndexedSubtitleModel[], subtitleFileNames: string[]) {
         this.subtitleController.subtitles = subtitles;
         this.subtitleController.subtitleFileNames = subtitleFileNames;
         this.subtitleController.cacheHtml();

@@ -20,6 +20,7 @@ export interface MiscSettings {
     readonly subtitleHtml: SubtitleHtml;
     readonly subtitleRegexFilter: string;
     readonly subtitleRegexFilterTextReplacement: string;
+    readonly convertNetflixRuby: boolean;
     readonly miningHistoryStorageLimit: number;
     readonly language: string;
     readonly clickToMineDefaultAction: PostMineAction;
@@ -28,6 +29,103 @@ export interface MiscSettings {
     readonly lastSelectedAnkiExportMode: AnkiExportMode;
     readonly tabName: string;
     readonly pauseOnHoverMode: PauseOnHoverMode;
+}
+
+/*
+These are all the possible scenarios which can result in a match. We don't need to support every possible combination,
+as some are not useful or inconsistent. Inconsistent meaning the order the user collects forms affects what future forms
+are considered collected (e.g collecting the lemma will match all forms but user needs to collect every inflection if
+they don't ever collect the lemma).
+
+Lemma In Subtitle
+-----------------------------------------------------------------
+| User Collection | LEMMA_FORM_COLLECTED | EXACT_FORM_COLLECTED |
+-----------------------------------------------------------------
+| Lemma           |         MATCH        |         MATCH        |
+| Inflection      |          NO          |          NO          |
+-----------------------------------------------------------------
+
+Inflection In Subtitle
+-----------------------------------------------------------------
+| User Collection | LEMMA_FORM_COLLECTED | EXACT_FORM_COLLECTED |
+-----------------------------------------------------------------
+| Lemma           |         MATCH        |          NO          |
+| Same Inflection |          NO          |         MATCH        |
+| Diff Inflection |          NO          |          NO          |
+-----------------------------------------------------------------
+*/
+export enum TokenMatchStrategy {
+    ANY_FORM_COLLECTED = 'ANY_FORM_COLLECTED', // All scenarios above result in MATCH
+    LEMMA_OR_EXACT_FORM_COLLECTED = 'LEMMA_OR_EXACT_FORM_COLLECTED', // See LEMMA_FORM_COLLECTED and EXACT_FORM_COLLECTED columns above
+    LEMMA_FORM_COLLECTED = 'LEMMA_FORM_COLLECTED', // See LEMMA_FORM_COLLECTED column above
+    EXACT_FORM_COLLECTED = 'EXACT_FORM_COLLECTED', // See EXACT_FORM_COLLECTED column above
+}
+
+export enum TokenMatchStrategyPriority {
+    EXACT = 'EXACT',
+    LEMMA = 'LEMMA',
+    BEST_KNOWN = 'BEST_KNOWN',
+    LEAST_KNOWN = 'LEAST_KNOWN',
+}
+
+export enum TokenStyling {
+    TEXT = 'TEXT',
+    BACKGROUND = 'BACKGROUND',
+    UNDERLINE = 'UNDERLINE',
+    OVERLINE = 'OVERLINE',
+    OUTLINE = 'OUTLINE',
+}
+
+export enum TokenStatus {
+    UNCOLLECTED = 0,
+    UNKNOWN = 1,
+    LEARNING = 2,
+    GRADUATED = 3,
+    YOUNG = 4,
+    MATURE = 5, // If ever adding more statuses, they should go after MATURE and getFullyKnownTokenStatus should be updated
+}
+
+export function getFullyKnownTokenStatus(): TokenStatus {
+    return TokenStatus.MATURE; // If future statuses are optional, this logic may need to change
+}
+
+export enum TokenReadingAnnotation {
+    ALWAYS = 'ALWAYS',
+    LEARNING_OR_BELOW = 'LEARNING_OR_BELOW',
+    UNKNOWN_OR_BELOW = 'UNKNOWN_OR_BELOW',
+    NEVER = 'NEVER',
+}
+
+export function dictionaryTrackEnabled(dt: DictionaryTrack): boolean {
+    return dt.dictionaryColorizeSubtitles;
+}
+
+export function dictionaryTrackHoverOnly(dt: DictionaryTrack | undefined): boolean {
+    if (!dt) return false;
+    return dictionaryTrackEnabled(dt) && dt.dictionaryColorizeOnHoverOnly;
+}
+
+export interface DictionaryTrack {
+    readonly dictionaryColorizeSubtitles: boolean;
+    readonly dictionaryColorizeOnHoverOnly: boolean;
+    readonly dictionaryTokenMatchStrategy: TokenMatchStrategy;
+    readonly dictionaryTokenMatchStrategyPriority: TokenMatchStrategyPriority;
+    readonly dictionaryYomitanUrl: string;
+    readonly dictionaryYomitanScanLength: number;
+    readonly dictionaryTokenReadingAnnotation: TokenReadingAnnotation;
+    readonly dictionaryAnkiWordFields: string[];
+    readonly dictionaryAnkiSentenceFields: string[];
+    readonly dictionaryAnkiSentenceTokenMatchStrategy: TokenMatchStrategy;
+    readonly dictionaryAnkiMatureCutoff: number;
+    readonly dictionaryAnkiTreatSuspended: TokenStatus | 'NORMAL';
+    readonly tokenStyling: TokenStyling;
+    readonly tokenStylingThickness: number;
+    readonly colorizeFullyKnownTokens: boolean;
+    readonly tokenStatusColors: string[]; // Indexed by TokenStatus
+}
+
+export interface DictionarySettings {
+    readonly dictionaryTracks: DictionaryTrack[];
 }
 
 export type AnkiSettingsFieldKey =
@@ -310,6 +408,7 @@ export interface PageSettings {
     yleAreena: Page;
     hboMax: Page;
     stremio: Page;
+    cijapanese: Page;
 }
 
 export interface StreamingVideoSettings {
@@ -338,6 +437,7 @@ export interface AsbplayerSettings
     extends MiscSettings,
         AnkiSettings,
         SubtitleSettings,
+        DictionarySettings,
         StreamingVideoSettings,
         WebSocketClientSettings {
     readonly subtitlePreview: string;

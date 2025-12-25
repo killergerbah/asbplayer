@@ -4,10 +4,10 @@ import { type Theme } from '@mui/material';
 
 const LabelWithHoverEffect = styled(FormControlLabel)<Theme>(({ theme }) => ({
     '&:hover .MuiSwitch-thumb': {
-        outline: `9px solid ${theme.palette.secondary.main}29`,
+        outline: `9px solid ${theme.palette.primary.main}29`,
     },
-    '&:hover .MuiRadio-colorSecondary': {
-        background: `${theme.palette.secondary.main}29`,
+    '&:hover .MuiRadio-colorPrimary': {
+        background: `${theme.palette.primary.main}29`,
     },
 }));
 

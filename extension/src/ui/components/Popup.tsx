@@ -102,6 +102,7 @@ const Popup = ({
                     }}
                 >
                     <SettingsForm
+                        heightConstrained
                         extensionInstalled
                         extensionVersion={browser.runtime.getManifest().version}
                         extensionSupportsAppIntegration

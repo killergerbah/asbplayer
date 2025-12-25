@@ -107,7 +107,11 @@ Thank you to all those who have contributed to asbplayer:
 [@fuyuka1d3su](https://github.com/fuyuka1d3su),
 [@SpazzTL](https://github.com/SpazzTL),
 [@mseh1128](https://github.com/mseh1128),
-[@LuqueDaniel](https://github.com/LuqueDaniel)
+[@LuqueDaniel](https://github.com/LuqueDaniel),
+[@agloo](https://github.com/agloo),
+[@Bennycopter](https://github.com/Bennycopter),
+[@extremq](https://github.com/extremq),
+[@iamllama](https://github.com/iamllama)
 
 Thank you to all those who have translated asbplayer:
 

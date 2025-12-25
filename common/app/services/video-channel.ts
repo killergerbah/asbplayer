@@ -7,6 +7,7 @@ import {
     AudioTrackSelectedFromVideoMessage,
     AudioTrackSelectedToVideoMessage,
     CardTextFieldValues,
+    RichSubtitleModel,
     CopyMessage,
     CopyToVideoMessage,
     CurrentTimeFromVideoMessage,
@@ -30,8 +31,10 @@ import {
     SubtitleModel,
     SubtitleSettingsToVideoMessage,
     SubtitlesToVideoMessage,
+    SubtitlesUpdatedFromVideoMessage,
     TakeScreenshotToVideoPlayerMessage,
     ToggleSubtitleTrackInListFromVideoMessage,
+    SubtitlesUpdatedToVideoMessage,
 } from '@project/common';
 import { AnkiSettings, MiscSettings, SubtitleSettings } from '@project/common/settings';
 import { VideoProtocol } from './video-protocol';
@@ -64,6 +67,7 @@ export default class VideoChannel {
     private appBarToggleCallbacks: (() => void)[];
     private ankiDialogRequestCallbacks: (() => void)[];
     private toggleSubtitleTrackInListCallbacks: ((track: number) => void)[];
+    private subtitlesUpdatedCallbacks: ((updatedSubtitles: RichSubtitleModel[]) => void)[];
     private loadFilesCallbacks: (() => void)[];
     private playModesCallbacks: ((modes: Set<PlayMode>) => void)[];
 
@@ -96,6 +100,7 @@ export default class VideoChannel {
         this.appBarToggleCallbacks = [];
         this.ankiDialogRequestCallbacks = [];
         this.toggleSubtitleTrackInListCallbacks = [];
+        this.subtitlesUpdatedCallbacks = [];
         this.loadFilesCallbacks = [];
         this.playModesCallbacks = [];
 
@@ -224,6 +229,13 @@ export default class VideoChannel {
                         callback(toggleSubtitleTrackInListMessage.track);
                     }
                     break;
+                case 'subtitlesUpdated':
+                    const subtitlesUpdatedMessage = event.data as SubtitlesUpdatedFromVideoMessage;
+
+                    for (const callback of that.subtitlesUpdatedCallbacks) {
+                        callback(subtitlesUpdatedMessage.updatedSubtitles);
+                    }
+                    break;
                 case 'loadFiles':
                     for (const callback of that.loadFilesCallbacks) {
                         callback();
@@ -347,6 +359,11 @@ export default class VideoChannel {
         return () => this._remove(callback, this.toggleSubtitleTrackInListCallbacks);
     }
 
+    onSubtitlesUpdated(callback: (updatedSubtitles: RichSubtitleModel[]) => void) {
+        this.subtitlesUpdatedCallbacks.push(callback);
+        return () => this._remove(callback, this.subtitlesUpdatedCallbacks);
+    }
+
     onLoadFiles(callback: () => void) {
         this.loadFilesCallbacks.push(callback);
         return () => this._remove(callback, this.loadFilesCallbacks);
@@ -388,6 +405,13 @@ export default class VideoChannel {
             name: subtitleFileNames.length > 0 ? subtitleFileNames[0] : null,
             names: subtitleFileNames,
         } as SubtitlesToVideoMessage);
+    }
+
+    subtitlesUpdated(subtitles: RichSubtitleModel[]) {
+        this.protocol.postMessage({
+            command: 'subtitlesUpdated',
+            subtitles,
+        } as SubtitlesUpdatedToVideoMessage);
     }
 
     offset(offset: number) {
@@ -550,6 +574,7 @@ export default class VideoChannel {
             subtitleRegexFilter,
             subtitleRegexFilterTextReplacement,
             subtitleHtml,
+            convertNetflixRuby: convertNetflixRuby,
             miningHistoryStorageLimit,
             clickToMineDefaultAction,
             postMiningPlaybackState,
@@ -575,6 +600,7 @@ export default class VideoChannel {
                 subtitleRegexFilter,
                 subtitleRegexFilterTextReplacement,
                 subtitleHtml,
+                convertNetflixRuby: convertNetflixRuby,
                 miningHistoryStorageLimit,
                 clickToMineDefaultAction,
                 postMiningPlaybackState,
@@ -631,6 +657,7 @@ export default class VideoChannel {
         this.appBarToggleCallbacks = [];
         this.ankiDialogRequestCallbacks = [];
         this.toggleSubtitleTrackInListCallbacks = [];
+        this.subtitlesUpdatedCallbacks = [];
         this.loadFilesCallbacks = [];
         this.playModesCallbacks = [];
     }

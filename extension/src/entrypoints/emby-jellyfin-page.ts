@@ -17,7 +17,7 @@ export default defineUnlistedScript(() => {
                 );
             }
 
-            const deviceID = ApiClient?._deviceId;
+            const deviceID = ApiClient.deviceId();
 
             let session;
             for (let attempt = 0; attempt < 5; attempt++) {
@@ -49,7 +49,7 @@ export default defineUnlistedScript(() => {
             ).forEach((sub: { Codec: string; DisplayTitle: any; Language: any; Index: number; Path: string }) => {
                 const extension = 'srt';
                 var url =
-                    window.location.origin +
+                    ApiClient.serverAddress() +
                     '/Videos/' +
                     nowPlayingItem.Id +
                     '/' +

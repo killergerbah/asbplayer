@@ -6,6 +6,7 @@ import {
     AudioTrackSelectedFromVideoMessage,
     AudioTrackSelectedToVideoMessage,
     CardTextFieldValues,
+    RichSubtitleModel,
     CopyMessage,
     CopyToVideoMessage,
     CurrentTimeToVideoMessage,
@@ -27,9 +28,12 @@ import {
     SubtitleModel,
     SubtitleSettingsToVideoMessage,
     SubtitlesToVideoMessage,
+    SubtitlesUpdatedFromVideoMessage,
     ToggleSubtitleTrackInListFromVideoMessage,
+    SubtitlesUpdatedToVideoMessage,
 } from '@project/common';
 import { AnkiSettings, MiscSettings, SubtitleSettings } from '@project/common/settings';
+
 export default class PlayerChannel {
     private channel?: BroadcastChannel;
     private readyCallbacks: ((duration: number, videoFileName?: string) => void)[];
@@ -39,6 +43,7 @@ export default class PlayerChannel {
     private audioTrackSelectedCallbacks: ((id: string) => void)[];
     private closeCallbacks: (() => void)[];
     private subtitlesCallbacks: ((subtitles: SubtitleModel[], subtitleFileName: string) => void)[];
+    private subtitlesUpdatedCallbacks: ((updatedSubtitles: RichSubtitleModel[]) => void)[];
     private offsetCallbacks: ((offset: number) => void)[];
     private playbackRateCallbacks: ((playbackRate: number) => void)[];
     private playModesCallbacks: ((playModes: Set<PlayMode>) => void)[];
@@ -65,6 +70,7 @@ export default class PlayerChannel {
         this.closeCallbacks = [];
         this.readyCallbacks = [];
         this.subtitlesCallbacks = [];
+        this.subtitlesUpdatedCallbacks = [];
         this.offsetCallbacks = [];
         this.playbackRateCallbacks = [];
         this.playModesCallbacks = [];
@@ -128,6 +134,13 @@ export default class PlayerChannel {
                             subtitlesMessage.value,
                             subtitlesMessage.names.length > 0 ? subtitlesMessage.names[0] : ''
                         );
+                    }
+                    break;
+                case 'subtitlesUpdated':
+                    const subtitlesUpdatedMessage = event.data as SubtitlesUpdatedToVideoMessage;
+
+                    for (let callback of that.subtitlesUpdatedCallbacks) {
+                        callback(subtitlesUpdatedMessage.subtitles);
                     }
                     break;
                 case 'offset':
@@ -258,6 +271,11 @@ export default class PlayerChannel {
     onSubtitles(callback: (subtitles: SubtitleModel[], subtitleFileName: string) => void) {
         this.subtitlesCallbacks.push(callback);
         return () => this._remove(callback, this.subtitlesCallbacks);
+    }
+
+    onSubtitlesUpdated(callback: (updatedSubtitles: RichSubtitleModel[]) => void) {
+        this.subtitlesUpdatedCallbacks.push(callback);
+        return () => this._remove(callback, this.subtitlesUpdatedCallbacks);
     }
 
     onOffset(callback: (offset: number) => void) {
@@ -417,6 +435,14 @@ export default class PlayerChannel {
         this.channel?.postMessage(message);
     }
 
+    subtitlesUpdated(updatedSubtitles: RichSubtitleModel[]) {
+        const message: SubtitlesUpdatedFromVideoMessage = {
+            command: 'subtitlesUpdated',
+            updatedSubtitles,
+        };
+        this.channel?.postMessage(message);
+    }
+
     loadFiles() {
         this.channel?.postMessage({ command: 'loadFiles' });
     }
@@ -433,6 +459,7 @@ export default class PlayerChannel {
             this.closeCallbacks = [];
             this.readyCallbacks = [];
             this.subtitlesCallbacks = [];
+            this.subtitlesUpdatedCallbacks = [];
             this.offsetCallbacks = [];
             this.playbackRateCallbacks = [];
             this.playModesCallbacks = [];

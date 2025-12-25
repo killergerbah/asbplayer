@@ -1,17 +1,7 @@
 import React from 'react';
-import Grid from '@mui/material/Grid';
+import Grid2 from '@mui/material/Grid2';
 import Typography from '@mui/material/Typography';
-import { makeStyles } from '@mui/styles';
-import { Theme } from '@mui/material/styles';
-
-const useStyles = makeStyles((theme: Theme) => ({
-    container: {
-        marginBottom: theme.spacing(1),
-    },
-    labelItem: {
-        marginTop: theme.spacing(1),
-    },
-}));
+import { type Theme, useTheme } from '@mui/material/styles';
 
 interface Props {
     label: React.ReactNode;
@@ -19,16 +9,15 @@ interface Props {
 }
 
 export default function KeyBindRelatedSetting({ label, control }: Props) {
-    const classes = useStyles();
-
+    const theme = useTheme<Theme>();
     return (
-        <Grid container className={classes.container} wrap="nowrap" spacing={1}>
-            <Grid item className={classes.labelItem} xs={12}>
+        <Grid2 container wrap="nowrap" spacing={1} sx={{ '&:hover': { background: theme.palette.action.hover }, p: 1 }}>
+            <Grid2 size={7.5}>
                 <Typography>{label}</Typography>
-            </Grid>
-            <Grid item xs={6}>
+            </Grid2>
+            <Grid2 size="grow" sx={{ textAlign: 'right' }}>
                 {control}
-            </Grid>
-        </Grid>
+            </Grid2>
+        </Grid2>
     );
 }

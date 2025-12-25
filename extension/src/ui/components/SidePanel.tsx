@@ -15,7 +15,10 @@ import {
     JumpToSubtitleMessage,
     DownloadImageMessage,
     DownloadAudioMessage,
+    CardExportedMessage,
 } from '@project/common';
+import type { Message } from '@project/common';
+import type { BulkExportStartedPayload } from '../../controllers/bulk-export-controller';
 import { AsbplayerSettings } from '@project/common/settings';
 import { AudioClip } from '@project/common/audio-clip';
 import { ChromeExtension, useCopyHistory } from '@project/common/app';
@@ -44,6 +47,7 @@ import CopyHistoryList from '@project/common/app/components/CopyHistoryList';
 import { useAppKeyBinder } from '@project/common/app/hooks/use-app-key-binder';
 import { download } from '@project/common/util';
 import { MiningContext } from '@project/common/app/services/mining-context';
+import BulkExportModal from '@project/common/app/components/BulkExportModal';
 import { IndexedDBCopyHistoryRepository } from '@project/common/copy-history';
 import { mp3WorkerFactory } from '../../services/mp3-worker-factory';
 import { pgsParserWorkerFactory } from '../../services/pgs-parser-worker-factory';
@@ -69,6 +73,7 @@ export default function SidePanel({ settings, extension }: Props) {
                 regexFilter: settings.subtitleRegexFilter,
                 regexFilterTextReplacement: settings.subtitleRegexFilterTextReplacement,
                 subtitleHtml: settings.subtitleHtml,
+                convertNetflixRuby: settings.convertNetflixRuby,
                 pgsParserWorkerFactory,
             }),
         [settings]
@@ -265,6 +270,61 @@ export default function SidePanel({ settings, extension }: Props) {
             download(new Blob([subtitleReader.subtitlesToSrt(subtitles)], { type: 'text/plain' }), fileName);
         }
     }, [subtitles, subtitleFileNames, subtitleReader]);
+
+    const handleBulkExportSubtitles = useCallback(async () => {
+        if (!syncedVideoTab) return;
+        const startCommand: AsbPlayerToVideoCommandV2<Message> = {
+            sender: 'asbplayerv2',
+            message: { command: 'start-bulk-export' } as Message,
+            tabId: syncedVideoTab.id,
+            src: syncedVideoTab.src,
+        };
+        browser.runtime.sendMessage(startCommand);
+    }, [syncedVideoTab]);
+
+    const handleBulkExportCancel = useCallback(async () => {
+        if (!syncedVideoTab) return;
+        const cancelCommand: AsbPlayerToVideoCommandV2<Message> = {
+            sender: 'asbplayerv2',
+            message: { command: 'cancel-bulk-export' } as Message,
+            tabId: syncedVideoTab.id,
+            src: syncedVideoTab.src,
+        };
+        browser.runtime.sendMessage(cancelCommand);
+    }, [syncedVideoTab]);
+
+    // Local bulk export UI state
+    const [bulkOpen, setBulkOpen] = useState<boolean>(false);
+    const [bulkCurrent, setBulkCurrent] = useState<number>(0);
+    const [bulkTotal, setBulkTotal] = useState<number>(0);
+
+    // Listen for bulk export lifecycle messages from background
+    useEffect(() => {
+        const listener = (message: any) => {
+            if (message?.sender === 'asbplayerv2' && message?.message?.command === 'bulk-export-started') {
+                const total = (message.message as BulkExportStartedPayload).total ?? 0;
+                setBulkOpen(true);
+                setBulkTotal(total);
+                setBulkCurrent(0);
+            } else if (
+                message?.sender === 'asbplayer-extension-to-video' &&
+                message?.message?.command === 'card-exported'
+            ) {
+                const exported = message.message as CardExportedMessage;
+                if (exported.isBulkExport) {
+                    setBulkCurrent((c) => c + 1);
+                }
+            } else if (
+                message?.sender === 'asbplayerv2' &&
+                (message?.message?.command === 'bulk-export-completed' ||
+                    message?.message?.command === 'bulk-export-cancelled')
+            ) {
+                setBulkOpen(false);
+            }
+        };
+        browser.runtime.onMessage.addListener(listener);
+        return () => browser.runtime.onMessage.removeListener(listener);
+    }, []);
 
     const topControlsRef = useRef<HTMLDivElement>(null);
     const [showTopControls, setShowTopControls] = useState<boolean>(false);
@@ -536,6 +596,8 @@ export default function SidePanel({ settings, extension }: Props) {
                                 onLoadSubtitles={handleLoadSubtitles}
                                 canDownloadSubtitles={canDownloadSubtitles}
                                 onDownloadSubtitles={handleDownloadSubtitles}
+                                onBulkExportSubtitles={handleBulkExportSubtitles}
+                                disableBulkExport={recordingAudio}
                                 onShowMiningHistory={handleShowCopyHistory}
                             />
                             <SidePanelBottomControls
@@ -550,6 +612,14 @@ export default function SidePanel({ settings, extension }: Props) {
                     )}
                 </>
             )}
+
+            {/* Bulk Export Modal - rendered outside the main content to ensure it's always on top */}
+            <BulkExportModal
+                open={bulkOpen}
+                currentIndex={bulkCurrent}
+                totalItems={bulkTotal}
+                onCancel={handleBulkExportCancel}
+            />
         </div>
     );
 }

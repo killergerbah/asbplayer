@@ -12,9 +12,30 @@
     filter: none;
 }
 
+.asbplayer-subtitle-rich {
+    display: none;
+}
+
+.asbplayer-subtitle-hover-group:hover .asbplayer-subtitle-text {
+    display: none;
+}
+
+.asbplayer-subtitle-hover-group:hover .asbplayer-subtitle-rich {
+    display: inline;
+}
+
 .subtitle-line {
     margin: 0;
     padding: 0;
     display: table;
     margin: auto;
+}
+
+.subtitle-line ruby {
+    ruby-position: over;
+}
+
+.subtitle-line rt {
+    font-size: 0.5em;
+    line-height: 1;
 }
