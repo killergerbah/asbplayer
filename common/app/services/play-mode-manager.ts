@@ -53,11 +53,16 @@ export default class PlayModeManager {
     }
 
     toggle(targetMode: PlayMode, resolveConflicts?: (context: ConflictResolutionContext) => void): Set<PlayMode> {
+        const hadFastForwardBefore = this._modes.has(PlayMode.fastForward);
+
         if (targetMode === PlayMode.normal) {
             if (this._modes.size === 1 && this._modes.has(PlayMode.normal)) {
                 return this.getModes();
             }
             this._modes = new Set([PlayMode.normal]);
+            if (hadFastForwardBefore && resolveConflicts) {
+                resolveConflicts({ mode: PlayMode.fastForward, shouldResetPlaybackRate: true });
+            }
             return this.getModes();
         }
 
@@ -71,6 +76,10 @@ export default class PlayModeManager {
                 this._modes.delete(PlayMode.normal);
             }
             this._modes.add(targetMode);
+        }
+        
+        if (hadFastForwardBefore && !this._modes.has(PlayMode.fastForward) && resolveConflicts) {
+            resolveConflicts({ mode: PlayMode.fastForward, shouldResetPlaybackRate: true });
         }
 
         this._resolvePlayModeConflicts(targetMode, resolveConflicts);
