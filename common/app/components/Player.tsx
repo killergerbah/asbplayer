@@ -170,8 +170,11 @@ const Player = React.memo(function Player({
 }: PlayerProps) {
     const [playModes, setPlayModes] = useState<Set<PlayMode>>(new Set([PlayMode.normal]));
     const playModesRef = useRef<Set<PlayMode>>(new Set([PlayMode.normal]));
-    const pendingTimeRef = useRef<number>(0);
+    const pendingAutoRepeatTargetTimestamp = useRef<number>(0);
     const lastSeekDurationRef = useRef<number>(0);
+    const resetPendingAutoRepeatTargetTimestamp = useCallback(() => {
+        pendingAutoRepeatTargetTimestamp.current = 0;
+    }, []);
     const [subtitlesSentThroughChannel, setSubtitlesSentThroughChannel] = useState<boolean>();
     const subtitlesRef = useRef<DisplaySubtitleModel[]>(undefined);
     subtitlesRef.current = subtitles;
@@ -224,7 +227,11 @@ const Player = React.memo(function Player({
     }, [playModes]);
 
     const seek = useCallback(
-        async (time: number, clock: Clock, forwardToMedia: boolean) => {
+        async (time: number, clock: Clock, forwardToMedia: boolean, isUserInitiated: boolean = false) => {
+            if (isUserInitiated) {
+                resetPendingAutoRepeatTargetTimestamp();
+            }
+
             clock.setTime(time);
 
             if (forwardToMedia) {
@@ -233,7 +240,7 @@ const Player = React.memo(function Player({
 
             autoPauseContextRef.current?.clear();
         },
-        [mediaAdapter]
+        [mediaAdapter, resetPendingAutoRepeatTargetTimestamp]
     );
 
     const handleSubtitlePlayerResizeStart = useCallback(() => setSubtitlePlayerResizing(true), []);
@@ -253,7 +260,7 @@ const Player = React.memo(function Player({
 
     const handleOnWillStopShowingSubtitle = useCallback(
         async (subtitle: SubtitleModel) => {
-            pendingTimeRef.current = 0;
+            resetPendingAutoRepeatTargetTimestamp();
 
             const isAutoPauseAtEndEnabled =
                 playModes.has(PlayMode.autoPause) && settings.autoPausePreference === AutoPausePreference.atEnd;
@@ -270,7 +277,7 @@ const Player = React.memo(function Player({
 
             if (isRepeatEnabled) {
                 if (isAutoPauseAtEndEnabled) {
-                    pendingTimeRef.current = subtitle.start;
+                    pendingAutoRepeatTargetTimestamp.current = subtitle.start;
                 } else {
                     seek(subtitle.start, clock, true);
                 }
@@ -293,7 +300,7 @@ const Player = React.memo(function Player({
                     }
 
                     if (isAutoPauseAtEndEnabled) {
-                        pendingTimeRef.current = nextSubtitle.start;
+                        pendingAutoRepeatTargetTimestamp.current = nextSubtitle.start;
                     } else {
                         const wasPlaying = clock.running;
 
@@ -308,7 +315,7 @@ const Player = React.memo(function Player({
                 }
             }
         },
-        [playModes, clock, mediaAdapter, videoFileUrl, settings.autoPausePreference, seek, subtitleCollection]
+        [playModes, clock, mediaAdapter, videoFileUrl, settings.autoPausePreference, seek, subtitleCollection, resetPendingAutoRepeatTargetTimestamp]
     );
 
     const autoPauseContext = useMemo(() => {
@@ -580,6 +587,7 @@ const Player = React.memo(function Player({
     useEffect(
         () =>
             channel?.onPlayModes((playModes) => {
+                playModesRef.current = playModes;
                 setPlayModes(playModes);
                 channel?.playModes(playModes);
             }),
@@ -589,15 +597,9 @@ const Player = React.memo(function Player({
         () =>
             channel?.onCurrentTime(async (currentTime, forwardToMedia) => {
                 const playing = clock.running;
-                const currentClockTime = clock.time(calculateLength()) / 1000;
-                const timeDifference = Math.abs(currentTime - currentClockTime);
 
                 if (playing) {
                     clock.stop();
-                }
-
-                if (timeDifference > 0.5) {
-                    pendingTimeRef.current = 0;
                 }
 
                 await seek(currentTime * 1000, clock, forwardToMedia);
@@ -642,10 +644,10 @@ const Player = React.memo(function Player({
     const play = (clock: Clock, mediaAdapter: MediaAdapter, forwardToMedia: boolean) => {
         if (
             (playModesRef.current.has(PlayMode.repeat) || playModesRef.current.has(PlayMode.autoPause)) &&
-            pendingTimeRef.current > 0
+            pendingAutoRepeatTargetTimestamp.current > 0
         ) {
-            seek(pendingTimeRef.current, clock, forwardToMedia);
-            pendingTimeRef.current = 0;
+            seek(pendingAutoRepeatTargetTimestamp.current, clock, forwardToMedia);
+            resetPendingAutoRepeatTargetTimestamp();
         }
 
         clock.start();
@@ -750,6 +752,8 @@ const Player = React.memo(function Player({
         }
 
         const interval = setInterval(async () => {
+            if (!playModesRef.current.has(PlayMode.fastForward)) return;
+
             const timestamp = clock.time(calculateLength());
             const slice = subtitleCollection.subtitlesAt(timestamp);
 
@@ -789,8 +793,7 @@ const Player = React.memo(function Player({
                 clock.stop();
             }
 
-            pendingTimeRef.current = 0;
-            await seek(progress * calculateLength(), clock, true);
+            await seek(progress * calculateLength(), clock, true, true);
 
             if (playing) {
                 clock.start();
@@ -805,8 +808,7 @@ const Player = React.memo(function Player({
                 pause(clock, mediaAdapter, true);
             }
 
-            pendingTimeRef.current = 0;
-            await seek(time, clock, true);
+            await seek(time, clock, true, true);
 
             if (shouldPlay && !clock.running) {
                 // play method will start the clock again
@@ -867,8 +869,7 @@ const Player = React.memo(function Player({
             channel?.audioTrackSelected(id);
             pause(clock, mediaAdapter, true);
 
-            pendingTimeRef.current = 0;
-            await seek(0, clock, true);
+            await seek(0, clock, true, true);
 
             if (clock.running) {
                 play(clock, mediaAdapter, true);
@@ -933,8 +934,7 @@ const Player = React.memo(function Player({
             if (progress >= 1) {
                 pause(clock, mediaAdapter, true);
 
-                pendingTimeRef.current = 0;
-                await seek(0, clock, true);
+                await seek(0, clock, true, true);
                 setLastJumpToTopTimestamp(Date.now());
             }
         }, 1000);
@@ -983,20 +983,14 @@ const Player = React.memo(function Player({
 
             setPlayModes((prevModes) => {
                 const manager = new PlayModeManager(prevModes);
-
-                if (targetMode === PlayMode.normal && prevModes.has(PlayMode.fastForward)) {
-                    updatePlaybackRate(1, true);
-                }
-
-                if (targetMode === PlayMode.fastForward && prevModes.has(PlayMode.fastForward)) {
-                    updatePlaybackRate(1, true);
-                }
-
                 const newModes = manager.toggle(targetMode, ({ shouldResetPlaybackRate }) => {
                     if (shouldResetPlaybackRate) {
                         updatePlaybackRate(1, true);
                     }
                 });
+
+                // Update ref immediately to prevent race conditions with interval callbacks
+                playModesRef.current = newModes;
 
                 channel?.playModes(newModes);
                 onPlayModeChangedViaBind(prevModes, targetMode);
@@ -1053,8 +1047,7 @@ const Player = React.memo(function Player({
 
         pause(clock, mediaAdapter, true);
 
-        pendingTimeRef.current = 0;
-        seek(rewindSubtitle.start, clock, true);
+        seek(rewindSubtitle.start, clock, true, true);
     }, [clock, rewindSubtitle?.start, mediaAdapter, seek]);
 
     useEffect(() => {
@@ -1063,8 +1056,7 @@ const Player = React.memo(function Player({
         }
 
         webSocketClient.onSeekTimestamp = async ({ body: { timestamp } }: SeekTimestampCommand) => {
-            pendingTimeRef.current = 0;
-            seek(timestamp * 1000, clock, true);
+            seek(timestamp * 1000, clock, true, true);
         };
     }, [webSocketClient, extension, seek, clock]);
 
