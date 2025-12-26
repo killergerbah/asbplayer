@@ -15,7 +15,7 @@ import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
 import { type Theme } from '@mui/material';
-import { DictionaryBuildAnkiCacheState } from '../../src/message';
+import { DictionaryProvider } from '../../dictionary-db';
 
 const appTestCard = () => {
     const basePath = window.location.pathname === '/' ? '' : window.location.pathname;
@@ -45,6 +45,7 @@ interface Props {
     anki: Anki;
     extension: ChromeExtension;
     open: boolean;
+    dictionaryProvider: DictionaryProvider;
     settings: AsbplayerSettings;
     scrollToId?: string;
     onSettingsChanged: (settings: Partial<AsbplayerSettings>) => void;
@@ -54,18 +55,17 @@ interface Props {
     onNewProfile: (name: string) => void;
     onRemoveProfile: (name: string) => void;
     onSetActiveProfile: (name: string | undefined) => void;
-    buildAnkiCache: () => Promise<DictionaryBuildAnkiCacheState>;
 }
 
 export default function SettingsDialog({
     anki,
     extension,
     open,
+    dictionaryProvider,
     settings,
     scrollToId,
     onSettingsChanged,
     onClose,
-    buildAnkiCache,
     ...profilesContext
 }: Props) {
     const { t } = useTranslation();
@@ -113,7 +113,9 @@ export default function SettingsDialog({
                     chromeKeyBinds={extension.extensionCommands}
                     onOpenChromeExtensionShortcuts={extension.openShortcuts}
                     onSettingsChanged={onSettingsChanged}
+                    dictionaryProvider={dictionaryProvider}
                     settings={settings}
+                    activeProfile={profilesContext.activeProfile}
                     scrollToId={scrollToId}
                     localFontsAvailable={localFontsAvailable}
                     localFontsPermission={localFontsPermission}
@@ -121,7 +123,6 @@ export default function SettingsDialog({
                     supportedLanguages={supportedLanguages}
                     testCard={appTestCard}
                     onUnlockLocalFonts={handleUnlockLocalFonts}
-                    buildAnkiCache={buildAnkiCache}
                 />
             </DialogContent>
             {(!extension.installed || extension.supportsSettingsProfiles) && (

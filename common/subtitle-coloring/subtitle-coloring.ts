@@ -1,4 +1,4 @@
-import { Fetcher, RichSubtitleModel } from '@project/common';
+import { DictionaryBuildAnkiCacheState, Fetcher, RichSubtitleModel } from '@project/common';
 import { Anki } from '@project/common/anki';
 import {
     areDictionaryTracksEqual,
@@ -15,7 +15,7 @@ import {
     TokenStatus,
     TokenStyling,
 } from '@project/common/settings';
-import { CardStatus, LemmaResults, TokenResults } from '@project/common/dictionary-db/dictionary-db';
+import { CardStatus, DictionaryProvider, LemmaResults, TokenResults } from '@project/common/dictionary-db';
 import { SubtitleCollection, SubtitleCollectionOptions } from '@project/common/subtitle-collection';
 import { arrayEquals, HAS_LETTER_REGEX, inBatches, ONLY_ASCII_LETTERS_REGEX } from '@project/common/util';
 import { TokenPart, Yomitan } from '@project/common/yomitan/yomitan';
@@ -40,7 +40,6 @@ interface TrackState {
     collectedExactForm: Map<string, TokenStatusResult>;
     collectedLemmaForm: Map<string, TokenStatusResult>;
     collectedAnyForm: Map<string, TokenStatusResult[]>;
-    tokenStatusCache: Map<string, TokenStatus | null>;
 }
 
 function shouldUseExactForm(s: TokenMatchStrategy): boolean {
@@ -57,6 +56,7 @@ function shouldUseAnyForm(s: TokenMatchStrategy): boolean {
 
 export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
     private _subtitles: RichSubtitleModel[];
+    private readonly dictionaryProvider: DictionaryProvider;
     private readonly settingsProvider: SettingsProvider;
     private subtitlesInterval?: NodeJS.Timeout;
     private showingSubtitles?: RichSubtitleModel[];
@@ -83,8 +83,11 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
 
     private readonly subtitleColorsUpdated: (updatedSubtitles: RichSubtitleModel[]) => void;
     private readonly getMediaTimeMs?: () => number;
+    private readonly buildAnkiCacheStateChangeCallback: (message: DictionaryBuildAnkiCacheState) => void;
+    private readonly ankiCardModifiedCallback: () => void;
 
     constructor(
+        dictionaryProvider: DictionaryProvider,
         settingsProvider: SettingsProvider,
         options: SubtitleCollectionOptions,
         subtitleColorsUpdated: (updatedSubtitles: RichSubtitleModel[]) => void,
@@ -95,6 +98,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
         this._subtitles = [];
         this.buildLowerThreshold = 0;
         this.buildUpperThreshold = 0;
+        this.dictionaryProvider = dictionaryProvider;
         this.settingsProvider = settingsProvider;
         this.profile = null;
         this.fetcher = fetcher;
@@ -114,6 +118,15 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
         this.colorCacheBuildingCurrentIndexes = new Set();
         this.shouldCancelBuild = false;
         this.tokenRequestFailed = false;
+        this.buildAnkiCacheStateChangeCallback = (message) => {
+            this.tokensWereModified(message.modifiedTokens);
+            if (message.error) {
+                console.warn(`Dictionary Anki cache build error: ${message.msg}`);
+                this.ankiRecentlyModifiedCardIds.clear();
+                this.ankiRecentlyModifiedFirstCheck = false;
+            }
+        };
+        this.ankiCardModifiedCallback = () => this.ankiCardWasModified();
     }
 
     get subtitles() {
@@ -184,16 +197,12 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
         for (const token of modifiedTokens) this.tokensForRefresh.add(token);
     }
 
-    ankiCardWasUpdated() {
+    ankiCardWasModified() {
         this.ankiRecentlyModifiedTrigger = true;
     }
 
     hoverOnly(track: number) {
         return this.trackStates[track]?.dt.dictionaryColorizeOnHoverOnly;
-    }
-
-    private _tokenStatusValid(tokenStatus: TokenStatus | undefined | null) {
-        return tokenStatus !== undefined && tokenStatus !== null;
     }
 
     private _colorCacheValid(cachedRichText: string | undefined, index: number, indexesForRefresh: Set<number>) {
@@ -223,7 +232,12 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                 this.anki = new Anki(await this.settingsProvider.getAll(), this.fetcher);
                 const permission = (await this.anki.requestPermission()).permission;
                 if (permission !== 'granted') throw new Error(`permission ${permission}`);
-                await this.settingsProvider.buildAnkiCache(profile, await this.settingsProvider.getAll(), options); // Keep cache updated without user action
+                const state = await this.dictionaryProvider.buildAnkiCache(
+                    profile,
+                    await this.settingsProvider.getAll(),
+                    options
+                ); // Keep cache updated without user action
+                if (state.error) throw new Error(state.msg);
             } catch (e) {
                 console.warn('Anki permission request failed:', e);
                 this.anki = undefined;
@@ -245,14 +259,23 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                 this.ankiRecentlyModifiedFirstCheck = false;
                 return;
             }
-            await this.settingsProvider.buildAnkiCache(profile, await this.settingsProvider.getAll(), options);
+            const state = await this.dictionaryProvider.buildAnkiCache(
+                profile,
+                await this.settingsProvider.getAll(),
+                options
+            );
+            if (state.error) throw new Error(state.msg);
         } catch (e) {
             console.error(`Error checking Anki recently modified cards:`, e);
             this.anki = undefined;
+            this.ankiRecentlyModifiedCardIds.clear();
+            this.ankiRecentlyModifiedFirstCheck = false;
         }
     }
 
     bind() {
+        this.dictionaryProvider.addBuildAnkiCacheStateChangeCallback(this.buildAnkiCacheStateChangeCallback);
+        this.dictionaryProvider.addAnkiCardModifiedCallback(this.ankiCardModifiedCallback);
         this.subtitlesInterval = setInterval(() => {
             if (!this._subtitles.length) return;
 
@@ -345,7 +368,6 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                 collectedExactForm: new Map(),
                 collectedLemmaForm: new Map(),
                 collectedAnyForm: new Map(),
-                tokenStatusCache: new Map(),
             }));
         }
         const trackStates = this.trackStates;
@@ -493,7 +515,6 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                 ts.collectedExactForm.delete(token);
                 ts.collectedLemmaForm.delete(token);
                 ts.collectedAnyForm.delete(token);
-                ts.tokenStatusCache.delete(token);
             }
 
             const forExactFormQuery = new Set<string>();
@@ -520,13 +541,13 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
 
             const [exactFormResultMap, lemmaFormResultMap, anyFormResultsMap] = await Promise.all([
                 forExactFormQuery.size
-                    ? this.settingsProvider.dictionaryGetBulk(profile, track, Array.from(forExactFormQuery))
+                    ? this.dictionaryProvider.getBulk(profile, track, Array.from(forExactFormQuery))
                     : ({} as TokenResults),
                 forLemmaFormQuery.size
-                    ? this.settingsProvider.dictionaryGetBulk(profile, track, Array.from(forLemmaFormQuery))
+                    ? this.dictionaryProvider.getBulk(profile, track, Array.from(forLemmaFormQuery))
                     : ({} as TokenResults),
                 forAnyFormQuery.size
-                    ? this.settingsProvider.dictionaryGetByLemmaBulk(profile, track, Array.from(forAnyFormQuery))
+                    ? this.dictionaryProvider.getByLemmaBulk(profile, track, Array.from(forAnyFormQuery))
                     : ({} as LemmaResults),
             ]);
             if (this.shouldCancelBuild) return;
@@ -576,21 +597,21 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                     .map((p) => p.text)
                     .join('')
                     .trim();
+
                 const tokenToIndexes = this.tokenToIndexesCache.get(trimmedToken);
                 if (tokenToIndexes) tokenToIndexes.add(index);
                 else this.tokenToIndexesCache.set(trimmedToken, new Set([index]));
-
-                // Token is already cached or not a word
-                const cachedTokenStatus = ts.tokenStatusCache.get(trimmedToken);
-                if (this._tokenStatusValid(cachedTokenStatus)) {
-                    richText += this._applyTokenStyle(tokenParts, cachedTokenStatus!, ts.dt);
-                    if (cachedTokenStatus === null) textHasError = true;
-                    continue;
+                const lemmas = await ts.yt.lemmatize(trimmedToken);
+                if (this.shouldCancelBuild) return;
+                for (const lemma of lemmas) {
+                    const lemmaToIndexes = this.tokenToIndexesCache.get(lemma);
+                    if (lemmaToIndexes) lemmaToIndexes.add(index);
+                    else this.tokenToIndexesCache.set(lemma, new Set([index]));
                 }
+
                 if (!HAS_LETTER_REGEX.test(trimmedToken)) {
                     const fullyKnownTokenStatus = getFullyKnownTokenStatus();
                     richText += this._applyTokenStyle(tokenParts, fullyKnownTokenStatus, ts.dt);
-                    ts.tokenStatusCache.set(trimmedToken, fullyKnownTokenStatus);
                     continue;
                 }
 
@@ -619,7 +640,6 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
 
                 richText += this._applyTokenStyle(tokenParts, tokenStatus, ts.dt);
                 if (tokenStatus === null) textHasError = true;
-                ts.tokenStatusCache.set(trimmedToken, tokenStatus);
             }
 
             textHasError ? this.erroredCache.add(index) : this.erroredCache.delete(index);
@@ -908,6 +928,8 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
 
     unbind() {
         this._resetCache();
+        this.dictionaryProvider.removeBuildAnkiCacheStateChangeCallback(this.buildAnkiCacheStateChangeCallback);
+        this.dictionaryProvider.removeAnkiCardModifiedCallback(this.ankiCardModifiedCallback);
         if (this.subtitlesInterval) {
             clearInterval(this.subtitlesInterval);
             this.subtitlesInterval = undefined;

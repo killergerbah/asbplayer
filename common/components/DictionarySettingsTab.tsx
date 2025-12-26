@@ -34,7 +34,7 @@ import SettingsSection from './SettingsSection';
 import MuiAlert, { type AlertProps } from '@mui/material/Alert';
 import Link from '@mui/material/Link';
 import { DictionaryBuildAnkiCacheState } from '../src/message';
-import { ExtensionToAsbPlayerCommand } from '../src/command';
+import { DictionaryProvider } from '../dictionary-db';
 
 const Alert: React.FC<AlertProps> = ({ children, ...props }) => {
     return (
@@ -54,18 +54,20 @@ const command = 'dictionary-build-anki-cache-state';
 
 interface Props {
     settings: AsbplayerSettings;
+    dictionaryProvider: DictionaryProvider;
     extensionInstalled: boolean;
     onSettingChanged: <K extends keyof AsbplayerSettings>(key: K, value: AsbplayerSettings[K]) => Promise<void>;
+    activeProfile?: string;
     anki: Anki;
-    buildAnkiCache: () => Promise<DictionaryBuildAnkiCacheState>;
 }
 
 const DictionarySettingsTab: React.FC<Props> = ({
+    dictionaryProvider,
     settings,
     extensionInstalled,
     onSettingChanged,
+    activeProfile,
     anki,
-    buildAnkiCache,
 }) => {
     const { t } = useTranslation();
     const { ankiConnectUrl, dictionaryTracks } = settings;
@@ -76,28 +78,17 @@ const DictionarySettingsTab: React.FC<Props> = ({
     const isDirty = useCallback(
         (key: keyof typeof selectedDictionary) => {
             const initialTrack = initialDictionaryTracksRef.current[selectedDictionaryTrack];
-
-            if (!initialTrack) {
-                return false;
-            }
-
+            if (!initialTrack) return false;
             const initialValue = initialTrack[key];
             const currentValue = selectedDictionary[key];
 
             if (Array.isArray(initialValue) && Array.isArray(currentValue)) {
-                if (initialValue.length !== currentValue.length) {
-                    return true;
-                }
-
+                if (initialValue.length !== currentValue.length) return true;
                 const sortedInitial = [...initialValue].sort();
                 const sortedCurrent = [...currentValue].sort();
-
                 for (let i = 0; i < sortedInitial.length; ++i) {
-                    if (sortedInitial[i] !== sortedCurrent[i]) {
-                        return true;
-                    }
+                    if (sortedInitial[i] !== sortedCurrent[i]) return true;
                 }
-
                 return false;
             }
 
@@ -107,14 +98,8 @@ const DictionarySettingsTab: React.FC<Props> = ({
     );
 
     const getHelperText = (fieldName: string, key: keyof typeof selectedDictionary, error?: string) => {
-        if (error) {
-            return error;
-        }
-
-        if (isDirty(key)) {
-            return t('settings.ankiCacheDependentSettingsHelperText', { field: fieldName });
-        }
-
+        if (error) return error;
+        if (isDirty(key)) return t('settings.ankiCacheDependentSettingsHelperText', { field: fieldName });
         return undefined;
     };
 
@@ -198,31 +183,10 @@ const DictionarySettingsTab: React.FC<Props> = ({
     };
 
     useEffect(() => {
-        const listener = (data: ExtensionToAsbPlayerCommand<DictionaryBuildAnkiCacheState>) => {
-            if (data.sender !== 'asbplayer-extension-to-player') return;
-            if (data.message.command !== command) return;
-            setBuildAnkiCacheResult(data.message);
-        };
-        const windowListener = (event: MessageEvent) => {
-            if (event.type === 'message') listener(event.data);
-        };
-        const browserListener = (message: any) => listener(message);
-
-        let extensionContext = true;
-        try {
-            // @ts-ignore
-            browser.runtime.onMessage.addListener(browserListener);
-        } catch {
-            extensionContext = false;
-            window.addEventListener('message', windowListener);
-        }
-
-        return () => {
-            window.removeEventListener('message', windowListener);
-            // @ts-ignore
-            if (extensionContext) browser.runtime.onMessage.removeListener(browserListener);
-        };
-    }, []);
+        const callback = (message: DictionaryBuildAnkiCacheState) => setBuildAnkiCacheResult(message);
+        dictionaryProvider.addBuildAnkiCacheStateChangeCallback(callback);
+        return () => dictionaryProvider.removeBuildAnkiCacheStateChangeCallback(callback);
+    }, [dictionaryProvider]);
     const [buildingAnkiCache, setBuildingAnkiCache] = useState<boolean>(false);
     const [buildAnkiCacheResult, setBuildAnkiCacheResult] = useState<DictionaryBuildAnkiCacheState | undefined>(
         undefined
@@ -230,7 +194,7 @@ const DictionarySettingsTab: React.FC<Props> = ({
     const handleBuildAnkiCache = useCallback(async () => {
         try {
             setBuildingAnkiCache(true);
-            const result = await buildAnkiCache();
+            const result = await dictionaryProvider.buildAnkiCache(activeProfile, settings);
             if (result && typeof result.msg === 'string' && result.msg.length > 0) {
                 setBuildAnkiCacheResult({
                     command,
@@ -246,7 +210,7 @@ const DictionarySettingsTab: React.FC<Props> = ({
         } finally {
             setBuildingAnkiCache(false);
         }
-    }, [buildAnkiCache]);
+    }, [dictionaryProvider, settings, activeProfile]);
 
     return (
         <Stack spacing={1}>

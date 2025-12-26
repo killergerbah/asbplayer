@@ -1,5 +1,5 @@
 import Grid from '@mui/material/Grid';
-import { DictionaryBuildAnkiCacheState, HttpPostMessage, PopupToExtensionCommand } from '@project/common';
+import { HttpPostMessage, PopupToExtensionCommand } from '@project/common';
 import { AsbplayerSettings, Profile, chromeCommandBindsToKeyBinds } from '@project/common/settings';
 import SettingsForm from '@project/common/components/SettingsForm';
 import PanelIcon from '@project/common/components/PanelIcon';
@@ -21,8 +21,10 @@ import { settingsPageConfigs } from '@/services/pages';
 import Stack from '@mui/material/Stack';
 import TutorialIcon from '@project/common/components/TutorialIcon';
 import Paper from '@mui/material/Paper';
+import { DictionaryProvider } from '@project/common/dictionary-db';
 
 interface Props {
+    dictionaryProvider: DictionaryProvider;
     settings: AsbplayerSettings;
     commands: any;
     onSettingsChanged: (settings: Partial<AsbplayerSettings>) => void;
@@ -35,7 +37,6 @@ interface Props {
     onNewProfile: (name: string) => void;
     onRemoveProfile: (name: string) => void;
     onSetActiveProfile: (name: string | undefined) => void;
-    buildAnkiCache: () => Promise<DictionaryBuildAnkiCacheState>;
 }
 
 class ExtensionFetcher implements Fetcher {
@@ -54,6 +55,7 @@ class ExtensionFetcher implements Fetcher {
 }
 
 const Popup = ({
+    dictionaryProvider,
     settings,
     commands,
     onOpenApp,
@@ -61,7 +63,6 @@ const Popup = ({
     onSettingsChanged,
     onOpenExtensionShortcuts,
     onOpenUserGuide,
-    buildAnkiCache,
     ...profilesContext
 }: Props) => {
     const { t } = useTranslation();
@@ -119,7 +120,9 @@ const Popup = ({
                         forceVerticalTabs={false}
                         anki={anki}
                         chromeKeyBinds={chromeCommandBindsToKeyBinds(commands)}
+                        dictionaryProvider={dictionaryProvider}
                         settings={settings}
+                        activeProfile={profilesContext.activeProfile}
                         pageConfigs={settingsPageConfigs}
                         localFontsAvailable={localFontsAvailable}
                         localFontsPermission={localFontsPermission}
@@ -128,7 +131,6 @@ const Popup = ({
                         onSettingsChanged={onSettingsChanged}
                         onOpenChromeExtensionShortcuts={onOpenExtensionShortcuts}
                         onUnlockLocalFonts={handleUnlockLocalFonts}
-                        buildAnkiCache={buildAnkiCache}
                     />
                 </Grid>
                 <Grid item>

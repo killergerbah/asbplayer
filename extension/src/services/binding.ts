@@ -77,6 +77,8 @@ import KeyBindings from './key-bindings';
 import { shouldShowUpdateAlert } from './update-alert';
 import { bufferToBase64 } from '@project/common/base64';
 import { pgsParserWorkerFactory } from './pgs-parser-worker-factory';
+import { DictionaryProvider } from '@project/common/dictionary-db/dictionary-provider';
+import { ExtensionDictionaryStorage } from './extension-dictionary-storage';
 
 let netflix = false;
 document.addEventListener('asbplayer-netflix-enabled', (e) => {
@@ -140,6 +142,7 @@ export default class Binding {
     readonly mobileVideoOverlayController: MobileVideoOverlayController;
     readonly mobileGestureController: MobileGestureController;
     readonly keyBindings: KeyBindings;
+    readonly dictionary: DictionaryProvider;
     readonly settings: SettingsProvider;
     private readonly _audioRecorder = new AudioRecorder();
     readonly bulkExportController: BulkExportController;
@@ -183,8 +186,9 @@ export default class Binding {
     constructor(video: HTMLMediaElement, hasPageScript: boolean, frameId?: string) {
         this.video = video;
         this.hasPageScript = hasPageScript;
+        this.dictionary = new DictionaryProvider(new ExtensionDictionaryStorage());
         this.settings = new SettingsProvider(new ExtensionSettingsStorage());
-        this.subtitleController = new SubtitleController(video, this.settings);
+        this.subtitleController = new SubtitleController(video, this.dictionary, this.settings);
         this.videoDataSyncController = new VideoDataSyncController(this, this.settings);
         this.controlsController = new ControlsController(video);
         this.dragController = new DragController(video);
@@ -714,11 +718,11 @@ export default class Binding {
                         switch (cardMessage.command) {
                             case 'card-updated':
                                 locKey = 'info.updatedCard';
-                                this.subtitleController.subtitleColoring.ankiCardWasUpdated();
+                                this.subtitleController.subtitleColoring.ankiCardWasModified();
                                 break;
                             case 'card-exported':
                                 locKey = 'info.exportedCard';
-                                this.subtitleController.subtitleColoring.ankiCardWasUpdated();
+                                this.subtitleController.subtitleColoring.ankiCardWasModified();
                                 break;
                             case 'card-saved':
                                 locKey = 'info.copiedSubtitle2';
@@ -740,6 +744,10 @@ export default class Binding {
                             dialogRequestedTimestamp: this.video.currentTime * 1000,
                         };
                         this.mobileVideoOverlayController.updateModel();
+                        break;
+                    case 'card-updated-dialog':
+                    case 'card-exported-dialog':
+                        this.subtitleController.subtitleColoring.ankiCardWasModified();
                         break;
                     case 'notify-error':
                         const notifyErrorMessage = request.message as NotifyErrorMessage;

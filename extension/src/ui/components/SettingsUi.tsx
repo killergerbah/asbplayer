@@ -9,7 +9,7 @@ import { StyledEngineProvider } from '@mui/material/styles';
 const inTutorial = new URLSearchParams(window.location.search).get('tutorial') === 'true';
 
 const SettingsUi = () => {
-    const { settings, onSettingsChanged, profileContext, buildAnkiCache } = useSettings();
+    const { dictionaryProvider, settings, onSettingsChanged, profileContext } = useSettings();
     const theme = useMemo(() => settings && createTheme(settings.themeType), [settings]);
 
     if (!settings || !theme) {
@@ -21,10 +21,10 @@ const SettingsUi = () => {
             <ThemeProvider theme={theme}>
                 <CssBaseline />
                 <SettingsPage
+                    dictionaryProvider={dictionaryProvider}
                     settings={settings}
                     onSettingsChanged={onSettingsChanged}
                     inTutorial={inTutorial}
-                    buildAnkiCache={buildAnkiCache}
                     {...profileContext}
                 />
             </ThemeProvider>

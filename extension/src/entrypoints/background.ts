@@ -44,6 +44,8 @@ import ToggleSidePanelHandler from '@/handlers/video/toggle-side-panel-handler';
 import CopySubtitleHandler from '@/handlers/asbplayerv2/copy-subtitle-handler';
 import { RequestingActiveTabPermissionHandler } from '@/handlers/video/requesting-active-tab-permission';
 import { CardPublisher } from '@/services/card-publisher';
+import CardUpdatedDialogHandler from '@/handlers/asbplayerv2/card-updated-dialog-handler';
+import CardExportedDialogHandler from '@/handlers/asbplayerv2/card-exported-dialog-handler';
 import AckMessageHandler from '@/handlers/video/ack-message-handler';
 import PublishCardHandler from '@/handlers/asbplayerv2/publish-card-handler';
 import BulkExportCancellationHandler from '@/handlers/asbplayerv2/bulk-export-cancellation-handler';
@@ -153,6 +155,8 @@ export default defineBackground(() => {
         new DeleteCopyHistoryHandler(settings),
         new ClearCopyHistoryHandler(settings),
         new PublishCardHandler(cardPublisher),
+        new CardUpdatedDialogHandler(),
+        new CardExportedDialogHandler(),
         new BulkExportCancellationHandler(cardPublisher),
         new BulkExportStartedHandler(cardPublisher),
         new AckMessageHandler(tabRegistry),

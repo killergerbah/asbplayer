@@ -14,6 +14,7 @@ import {
     DictionaryDeleteRecordLocalBulkMessage,
     DictionaryDeleteProfileMessage,
 } from '@project/common';
+import { i18nInit } from '@project/extension/src/services/i18n';
 
 export default class DictionaryHandler {
     private readonly dictionaryDB: DictionaryDB;
@@ -71,31 +72,38 @@ export default class DictionaryHandler {
                     (command as DictionaryDBCommand<Message>).useOriginTab && typeof sender.tab?.id === 'number'
                         ? sender.tab.id
                         : undefined;
-                this.dictionaryDB
-                    .buildAnkiCache(message.profile, message.settings, async (state: DictionaryBuildAnkiCacheState) => {
-                        const message: ExtensionToAsbPlayerCommand<DictionaryBuildAnkiCacheState> = {
-                            sender: 'asbplayer-extension-to-player',
-                            message: state,
-                        };
+                i18nInit(message.settings.language).then((t) =>
+                    this.dictionaryDB
+                        .buildAnkiCache(
+                            message.profile,
+                            message.settings,
+                            async (state: DictionaryBuildAnkiCacheState) => {
+                                const message: ExtensionToAsbPlayerCommand<DictionaryBuildAnkiCacheState> = {
+                                    sender: 'asbplayer-extension-to-player',
+                                    message: state,
+                                };
 
-                        try {
-                            await browser.runtime.sendMessage(message); // Post updates throughout extension
-                        } catch {
-                            // No one is currently listening
-                        }
+                                try {
+                                    await browser.runtime.sendMessage(message); // Post updates throughout extension
+                                } catch {
+                                    // No one is currently listening
+                                }
 
-                        if (typeof originTabId !== 'number') return; // Only used when triggered from the App with extension installed
-                        try {
-                            await browser.tabs.sendMessage(originTabId, message);
-                        } catch (e) {
-                            console.error(
-                                'Failed to send build Anki cache status update to origin tab, stopping updates to tab',
-                                e
-                            );
-                            originTabId = undefined;
-                        }
-                    })
-                    .then((result) => sendResponse(result));
+                                if (typeof originTabId !== 'number') return; // Only used when triggered from the App with extension installed
+                                try {
+                                    await browser.tabs.sendMessage(originTabId, message);
+                                } catch (e) {
+                                    console.error(
+                                        'Failed to send build Anki cache status update to origin tab, stopping updates to tab',
+                                        e
+                                    );
+                                    originTabId = undefined;
+                                }
+                            },
+                            { t }
+                        )
+                        .then((result) => sendResponse(result))
+                );
                 return true;
             }
         }

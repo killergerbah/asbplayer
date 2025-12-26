@@ -21,10 +21,7 @@ import {
     CardTextFieldValues,
     ImageErrorCode,
     RequestSubtitlesResponse,
-    DictionaryBuildAnkiCacheState,
     ExtensionToVideoCommand,
-    CardUpdatedDialogMessage,
-    CardExportedDialogMessage,
 } from '@project/common';
 import { createTheme } from '@project/common/theme';
 import { AsbplayerSettings, Profile, SettingsProvider } from '@project/common/settings';
@@ -70,6 +67,7 @@ import CssBaseline from '@mui/material/CssBaseline';
 import { StyledEngineProvider } from '@mui/material/styles';
 import { useServiceWorker } from '../hooks/use-service-worker';
 import NeedRefreshDialog from './NeedRefreshDialog';
+import { DictionaryProvider } from '../../dictionary-db';
 
 const latestExtensionVersion = '1.12.0';
 const extensionUrl =
@@ -217,6 +215,7 @@ interface Props {
     origin: string;
     logoUrl: string;
     settingsProvider: SettingsProvider;
+    dictionaryProvider: DictionaryProvider;
     settings: AsbplayerSettings;
     globalState?: GlobalState;
     extension: ChromeExtension;
@@ -228,12 +227,12 @@ interface Props {
     onRemoveProfile: (name: string) => void;
     onSetActiveProfile: (name: string | undefined) => void;
     onGlobalStateChanged: (globalState: Partial<GlobalState>) => void;
-    buildAnkiCache: () => Promise<DictionaryBuildAnkiCacheState>;
 }
 
 function App({
     origin,
     logoUrl,
+    dictionaryProvider,
     settingsProvider,
     settings,
     globalState,
@@ -241,7 +240,6 @@ function App({
     fetcher,
     onSettingsChanged,
     onGlobalStateChanged,
-    buildAnkiCache,
     ...profilesContext
 }: Props) {
     const { t } = useTranslation();
@@ -434,19 +432,7 @@ function App({
                     onSettingsChanged({ lastSelectedAnkiExportMode: params.mode });
                 }
 
-                if (params.mode === 'updateLast') {
-                    const cardUpdatedCommand: ExtensionToVideoCommand<CardUpdatedDialogMessage> = {
-                        sender: 'asbplayer-extension-to-video',
-                        message: { command: 'card-updated-dialog' },
-                    };
-                    window.postMessage(cardUpdatedCommand);
-                } else if (params.mode === 'default') {
-                    const cardExportedCommand: ExtensionToVideoCommand<CardExportedDialogMessage> = {
-                        sender: 'asbplayer-extension-to-video',
-                        message: { command: 'card-exported-dialog' },
-                    };
-                    window.postMessage(cardExportedCommand);
-                }
+                dictionaryProvider.ankiCardWasModified();
             } catch (e) {
                 handleError(e);
             } finally {
@@ -454,7 +440,15 @@ function App({
                 setDisableKeyEvents(false);
             }
         },
-        [anki, miningContext, settings.lastSelectedAnkiExportMode, onSettingsChanged, handleError, t]
+        [
+            anki,
+            miningContext,
+            settings.lastSelectedAnkiExportMode,
+            onSettingsChanged,
+            handleError,
+            t,
+            dictionaryProvider,
+        ]
     );
 
     // Avoid unnecessary re-renders by having handleCopy operate on a ref to settings
@@ -1366,9 +1360,10 @@ function App({
                                 open={settingsDialogOpen}
                                 onSettingsChanged={onSettingsChanged}
                                 onClose={handleCloseSettings}
+                                dictionaryProvider={dictionaryProvider}
                                 settings={settings}
+                                activeProfile={profilesContext.activeProfile}
                                 scrollToId={settingsDialogScrollToId}
-                                buildAnkiCache={buildAnkiCache}
                                 {...profilesContext}
                             />
                             <NeedRefreshDialog
@@ -1423,6 +1418,7 @@ function App({
                                     subtitleReader={subtitleReader}
                                     subtitles={subtitles}
                                     settings={settings}
+                                    dictionaryProvider={dictionaryProvider}
                                     settingsProvider={settingsProvider}
                                     playbackPreferences={playbackPreferences}
                                     onCopy={handleCopy}

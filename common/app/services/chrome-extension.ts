@@ -35,6 +35,9 @@ import {
     DictionarySaveRecordLocalBulkMessage,
     DictionaryDeleteRecordLocalBulkMessage,
     DictionaryBuildAnkiCacheState,
+    DictionaryDeleteProfileMessage,
+    CardUpdatedDialogMessage,
+    CardExportedDialogMessage,
 } from '@project/common';
 import {
     DictionaryLocalTokenInput,
@@ -334,6 +337,30 @@ export default class ChromeExtension {
         window.postMessage(command);
     }
 
+    cardUpdatedDialog(tabId: number, src: string) {
+        const command: AsbPlayerToVideoCommandV2<CardUpdatedDialogMessage> = {
+            sender: 'asbplayerv2',
+            tabId,
+            src,
+            message: {
+                command: 'card-updated-dialog',
+            },
+        };
+        window.postMessage(command);
+    }
+
+    cardExportedDialog(tabId: number, src: string) {
+        const command: AsbPlayerToVideoCommandV2<CardExportedDialogMessage> = {
+            sender: 'asbplayerv2',
+            tabId,
+            src,
+            message: {
+                command: 'card-exported-dialog',
+            },
+        };
+        window.postMessage(command);
+    }
+
     requestSubtitles(tabId: number, src: string) {
         const messageId = uuidv4();
         const command: AsbPlayerToVideoCommandV2<RequestSubtitlesFromAppMessage> = {
@@ -595,6 +622,20 @@ export default class ChromeExtension {
                 command: 'dictionary-delete-record-local-bulk',
                 profile,
                 tokens,
+                messageId,
+            },
+        };
+        window.postMessage(command);
+        return await this._createResponsePromise(messageId);
+    }
+
+    async dictionaryDeleteProfile(profile: string): Promise<[number, number, number]> {
+        const messageId = uuidv4();
+        const command: AsbPlayerCommand<DictionaryDeleteProfileMessage> = {
+            sender: 'asbplayerv2',
+            message: {
+                command: 'dictionary-delete-profile',
+                profile,
                 messageId,
             },
         };

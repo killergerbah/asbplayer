@@ -494,6 +494,13 @@
         "dictionaryTokenStatus2": "Learning",
         "dictionaryTokenStatus1": "Unknown",
         "dictionaryTokenStatus0": "Uncollected",
+        "dictionaryBuildAnkiTracks": "Anki track(s): {{tracks}}",
+        "dictionaryBuildModifiedCards": "{{numCards}} modified card(s)",
+        "dictionaryBuildSuspendedCards": "{{numCards}} suspended status change(s)",
+        "dictionaryBuildOrphanedCards": "{{numCards}} deleted card(s) from orphaned track(s): {{tracks}}",
+        "dictionaryBuildInProgress": "Build already in progress (expires at {{time}})",
+        "dictionaryBuildAnkiError": "Error getting permission from Anki",
+        "dictionaryBuildYomitanError": "Error connecting to Yomitan for track {{trackNumber}} (disable this track to ignore)",
         "ui": "UI",
         "webSocketInterface": "WebSocket interface",
         "yomitanHelperText": "Instructions to setup Yomitan API are <0>here<0>."

@@ -10,8 +10,6 @@ import {
     HttpPostMessage,
     IndexedSubtitleModel,
     RichSubtitleModel,
-    ExtensionToAsbPlayerCommand,
-    DictionaryBuildAnkiCacheState,
 } from '@project/common';
 import {
     SettingsProvider,
@@ -32,6 +30,7 @@ import {
     OffsetAnchor,
 } from '../services/element-overlay';
 import { v4 as uuidv4 } from 'uuid';
+import { DictionaryProvider } from '@project/common/dictionary-db';
 
 const BOUNDING_BOX_PADDING = 25;
 
@@ -69,6 +68,7 @@ class VideoFetcher implements Fetcher {
 
 export default class SubtitleController {
     private readonly video: HTMLMediaElement;
+    private readonly dictionary: DictionaryProvider;
     private readonly settings: SettingsProvider;
 
     private showingSubtitles?: IndexedSubtitleModel[];
@@ -107,10 +107,10 @@ export default class SubtitleController {
     onSlice?: (subtitle: SubtitleSlice<IndexedSubtitleModel>) => void;
     onOffsetChange?: () => void;
     onMouseOver?: (event: MouseEvent) => void;
-    tokensUpdatedListener?: (message: ExtensionToAsbPlayerCommand<DictionaryBuildAnkiCacheState>) => void;
 
-    constructor(video: HTMLMediaElement, settings: SettingsProvider) {
+    constructor(video: HTMLMediaElement, dictionary: DictionaryProvider, settings: SettingsProvider) {
         this.video = video;
+        this.dictionary = dictionary;
         this.settings = settings;
         this._preCacheDom = false;
         this.showingSubtitles = [];
@@ -136,6 +136,7 @@ export default class SubtitleController {
         this.topSubtitlesElementOverlay = topSubtitlesElementOverlay;
         this.notificationElementOverlay = notificationElementOverlay;
         this.subtitleColoring = new SubtitleColoring(
+            this.dictionary,
             this.settings,
             { showingCheckRadiusMs: 150 },
             (updatedSubtitles) => this._subtitleColorsUpdated(updatedSubtitles),
@@ -360,14 +361,6 @@ export default class SubtitleController {
     bind() {
         this.subtitleColoring.bind();
 
-        const tokensUpdatedListener = (data: ExtensionToAsbPlayerCommand<DictionaryBuildAnkiCacheState>) => {
-            if (data.sender !== 'asbplayer-extension-to-player') return;
-            if (data.message.command !== 'dictionary-build-anki-cache-state') return;
-            this.subtitleColoring.tokensWereModified(data.message.modifiedTokens);
-        };
-        browser.runtime.onMessage.addListener(tokensUpdatedListener);
-        this.tokensUpdatedListener = tokensUpdatedListener;
-
         this.subtitlesInterval = setInterval(() => {
             if (this.lastLoadedMessageTimestamp > 0 && Date.now() - this.lastLoadedMessageTimestamp < 1000) {
                 return;
@@ -541,10 +534,6 @@ export default class SubtitleController {
 
     unbind() {
         this.subtitleColoring.unbind();
-        if (this.tokensUpdatedListener) {
-            browser.runtime.onMessage.removeListener(this.tokensUpdatedListener);
-            this.tokensUpdatedListener = undefined;
-        }
 
         if (this.subtitlesInterval) {
             clearInterval(this.subtitlesInterval);

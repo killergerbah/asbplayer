@@ -51,8 +51,10 @@ import BulkExportModal from '@project/common/app/components/BulkExportModal';
 import { IndexedDBCopyHistoryRepository } from '@project/common/copy-history';
 import { mp3WorkerFactory } from '../../services/mp3-worker-factory';
 import { pgsParserWorkerFactory } from '../../services/pgs-parser-worker-factory';
+import { DictionaryProvider } from '@project/common/dictionary-db';
 
 interface Props {
+    dictionaryProvider: DictionaryProvider;
     settingsProvider: SettingsProvider;
     settings: AsbplayerSettings;
     extension: ChromeExtension;
@@ -65,7 +67,7 @@ const sameVideoTab = (a: VideoTabModel, b: VideoTabModel) => {
 const emptyArray: VideoTabModel[] = [];
 const miningContext = new MiningContext();
 
-export default function SidePanel({ settingsProvider, settings, extension }: Props) {
+export default function SidePanel({ dictionaryProvider, settingsProvider, settings, extension }: Props) {
     const { t } = useTranslation();
     const playbackPreferences = useMemo(() => new PlaybackPreferences(settings, extension), [settings, extension]);
     const subtitleReader = useMemo(
@@ -565,6 +567,7 @@ export default function SidePanel({ settingsProvider, settings, extension }: Pro
                                 showCopyButton={true}
                                 forceCompressedMode={true}
                                 subtitleReader={subtitleReader}
+                                dictionaryProvider={dictionaryProvider}
                                 settingsProvider={settingsProvider}
                                 settings={settings}
                                 playbackPreferences={playbackPreferences}

@@ -4,7 +4,7 @@ import { type CreateCSSProperties, makeStyles } from '@mui/styles';
 import { useTheme } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import { type Theme } from '@mui/material';
-import { CardModel, DictionaryBuildAnkiCacheState } from '@project/common';
+import { CardModel } from '@project/common';
 import { AsbplayerSettings, PageConfig, PageSettings } from '@project/common/settings';
 import { isNumeric } from '@project/common/util';
 import { isMobile } from 'react-device-detect';
@@ -21,6 +21,7 @@ import SubtitleAppearanceSettingsTab from './SubtitleAppearanceSettingsTab';
 import KeyboardShortcutsSettingsTab from './KeyboardShortcutsSettingsTab';
 import StreamingVideoSettingsTab from './StreamingVideoSettingsTab';
 import MiscSettingsTab from './MiscSettingsTab';
+import { DictionaryProvider } from '../dictionary-db';
 
 interface StylesProps {
     smallScreen: boolean;
@@ -171,7 +172,9 @@ interface Props {
     extensionSupportsPageSettings: boolean;
     insideApp?: boolean;
     appVersion?: string;
+    dictionaryProvider: DictionaryProvider;
     settings: AsbplayerSettings;
+    activeProfile?: string;
     pageConfigs?: PageConfigMap;
     scrollToId?: string;
     chromeKeyBinds: { [key: string]: string | undefined };
@@ -186,7 +189,6 @@ interface Props {
     onSettingsChanged: (settings: Partial<AsbplayerSettings>) => void;
     onOpenChromeExtensionShortcuts: () => void;
     onUnlockLocalFonts: () => void;
-    buildAnkiCache: () => Promise<DictionaryBuildAnkiCacheState>;
 }
 
 // Filter out keys that look like '0', '1', ... as those are invalid
@@ -194,7 +196,9 @@ const cssStyles = Object.keys(document.body.style).filter((s) => !isNumeric(s));
 
 export default function SettingsForm({
     anki,
+    dictionaryProvider,
     settings,
+    activeProfile,
     pageConfigs,
     extensionInstalled,
     extensionVersion,
@@ -222,7 +226,6 @@ export default function SettingsForm({
     onSettingsChanged,
     onOpenChromeExtensionShortcuts,
     onUnlockLocalFonts,
-    buildAnkiCache,
 }: Props) {
     const theme = useTheme();
     const smallScreen = useMediaQuery(theme.breakpoints.down(500)) && !forceVerticalTabs;
@@ -335,10 +338,11 @@ export default function SettingsForm({
             <TabPanel value={tabIndex} index={tabIndicesById['dictionary']} tabsOrientation={tabsOrientation}>
                 <DictionarySettingsTab
                     anki={anki}
+                    dictionaryProvider={dictionaryProvider}
                     settings={settings}
+                    activeProfile={activeProfile}
                     extensionInstalled={extensionInstalled}
                     onSettingChanged={handleSettingChanged}
-                    buildAnkiCache={buildAnkiCache}
                 />
             </TabPanel>
             <TabPanel value={tabIndex} index={tabIndicesById['subtitle-appearance']} tabsOrientation={tabsOrientation}>

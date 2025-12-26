@@ -1,4 +1,4 @@
-import { CardModel, DictionaryBuildAnkiCacheState, HttpFetcher } from '@project/common';
+import { CardModel, HttpFetcher } from '@project/common';
 import { useCallback, useMemo } from 'react';
 import { makeStyles } from '@mui/styles';
 import { useTranslation } from 'react-i18next';
@@ -18,6 +18,7 @@ import SettingsProfileSelectMenu from '@project/common/components/SettingsProfil
 import { AsbplayerSettings, Profile, testCard } from '@project/common/settings';
 import { useTheme, type Theme } from '@mui/material/styles';
 import { settingsPageConfigs } from '@/services/pages';
+import { DictionaryProvider } from '@project/common/dictionary-db';
 
 const useStyles = makeStyles<Theme>((theme) => ({
     root: {
@@ -35,6 +36,7 @@ const useStyles = makeStyles<Theme>((theme) => ({
 }));
 
 interface Props {
+    dictionaryProvider: DictionaryProvider;
     settings: AsbplayerSettings;
     onSettingsChanged: (settings: Partial<AsbplayerSettings>) => void;
     profiles: Profile[];
@@ -43,7 +45,6 @@ interface Props {
     onNewProfile: (name: string) => void;
     onRemoveProfile: (name: string) => void;
     onSetActiveProfile: (name: string | undefined) => void;
-    buildAnkiCache: () => Promise<DictionaryBuildAnkiCacheState>;
 }
 
 const extensionTestCard: () => Promise<CardModel> = () => {
@@ -53,7 +54,7 @@ const extensionTestCard: () => Promise<CardModel> = () => {
     });
 };
 
-const SettingsPage = ({ settings, inTutorial, onSettingsChanged, buildAnkiCache, ...profileContext }: Props) => {
+const SettingsPage = ({ dictionaryProvider, settings, inTutorial, onSettingsChanged, ...profileContext }: Props) => {
     const { t } = useTranslation();
     const theme = useTheme();
     const anki = useMemo(
@@ -115,7 +116,9 @@ const SettingsPage = ({ settings, inTutorial, onSettingsChanged, buildAnkiCache,
                         chromeKeyBinds={commands}
                         onOpenChromeExtensionShortcuts={handleOpenExtensionShortcuts}
                         onSettingsChanged={onSettingsChanged}
+                        dictionaryProvider={dictionaryProvider}
                         settings={settings}
+                        activeProfile={profileContext.activeProfile}
                         pageConfigs={settingsPageConfigs}
                         localFontsAvailable={localFontsAvailable}
                         localFontsPermission={localFontsPermission}
@@ -125,7 +128,6 @@ const SettingsPage = ({ settings, inTutorial, onSettingsChanged, buildAnkiCache,
                         scrollToId={section}
                         inTutorial={inTutorial}
                         testCard={extensionTestCard}
-                        buildAnkiCache={buildAnkiCache}
                     />
                 </DialogContent>
                 <Box style={{ marginBottom: theme.spacing(2) }} className={classes.profilesContainer}>

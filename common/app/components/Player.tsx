@@ -6,12 +6,8 @@ import {
     AudioTrackModel,
     AutoPauseContext,
     AutoPausePreference,
-    CardExportedDialogMessage,
     CardModel,
     CardTextFieldValues,
-    CardUpdatedDialogMessage,
-    DictionaryBuildAnkiCacheState,
-    ExtensionToAsbPlayerCommand,
     ExtensionToVideoCommand,
     PlayMode,
     PostMineAction,
@@ -21,6 +17,7 @@ import {
     VideoTabModel,
 } from '@project/common';
 import { AsbplayerSettings, SettingsProvider } from '@project/common/settings';
+import { DictionaryProvider } from '@project/common/dictionary-db';
 import { SubtitleCollection } from '@project/common/subtitle-collection';
 import { SubtitleColoring } from '@project/common/subtitle-coloring';
 import { SubtitleReader } from '@project/common/subtitle-reader';
@@ -98,6 +95,7 @@ interface PlayerProps {
     sources?: MediaSources;
     subtitles: DisplaySubtitleModel[];
     subtitleReader: SubtitleReader;
+    dictionaryProvider: DictionaryProvider;
     settingsProvider: SettingsProvider;
     settings: AsbplayerSettings;
     playbackPreferences: PlaybackPreferences;
@@ -140,6 +138,7 @@ const Player = React.memo(function Player({
     sources,
     subtitles,
     subtitleReader,
+    dictionaryProvider,
     settingsProvider,
     settings,
     playbackPreferences,
@@ -416,6 +415,7 @@ const Player = React.memo(function Player({
         }
 
         const subtitleColoring = new SubtitleColoring(
+            dictionaryProvider,
             settingsProvider,
             options,
             (updatedSubtitles) => {
@@ -435,22 +435,11 @@ const Player = React.memo(function Player({
         subtitleColoring.bind();
         setSubtitleCollection(subtitleColoring);
         subtitleCollectionRef.current = subtitleColoring;
-
-        const tokensUpdatedListener = (event: MessageEvent) => {
-            if (event.type !== 'message') return;
-            const data: ExtensionToAsbPlayerCommand<DictionaryBuildAnkiCacheState> = event.data;
-            if (data.sender !== 'asbplayer-extension-to-player') return;
-            if (data.message.command !== 'dictionary-build-anki-cache-state') return;
-            subtitleColoring.tokensWereModified(data.message.modifiedTokens);
-        };
-        window.addEventListener('message', tokensUpdatedListener);
-
         return () => {
-            window.removeEventListener('message', tokensUpdatedListener);
             if (!(subtitleCollectionRef.current instanceof SubtitleColoring)) return;
             subtitleCollectionRef.current.unbind();
         };
-    }, [channel, settingsProvider, tab, onSubtitles]);
+    }, [channel, dictionaryProvider, settingsProvider, tab, onSubtitles]);
 
     useEffect(() => {
         if (!subtitleCollectionRef.current) return;
@@ -476,12 +465,13 @@ const Player = React.memo(function Player({
         });
     }, [channel, onSubtitles]);
 
-    // If the user is on the app's tab in the same window where the chrome side panel is now displaying
-    // the mining history, the subtitle side panel on the video will not receive the updated subtitles.
-    // Once the subtitle side panel is active, we only need to refresh the colors once to get anything missed.
     useEffect(() => {
         if (!tab) return; // Only matters for extension
-        const refreshColors = async () => {
+
+        // If the user is on the app's tab in the same window where the chrome side panel is now displaying
+        // the mining history, the subtitle side panel on the video will not receive the updated subtitles.
+        // Once the subtitle side panel is active, we only need to refresh the colors once to get anything missed.
+        (async () => {
             if (!subtitlesRef.current) return;
             const response = (await extension.requestSubtitles(tab.id, tab.src)) as
                 | RequestSubtitlesResponse
@@ -496,26 +486,20 @@ const Player = React.memo(function Player({
                 }
                 return allSubtitles;
             });
-        };
-        void refreshColors();
-    }, [extension, tab, onSubtitles]);
+        })();
 
-    useEffect(() => {
-        const windowListener = (event: MessageEvent) => {
-            if (event.type !== 'message') return;
-            const data: ExtensionToVideoCommand<CardUpdatedDialogMessage | CardExportedDialogMessage> = event.data;
-            if (data.sender !== 'asbplayer-extension-to-video') return;
-            if (data.message.command !== 'card-updated-dialog' && data.message.command !== 'card-exported-dialog') {
-                return;
-            }
-            if (!(subtitleCollectionRef.current instanceof SubtitleColoring)) return;
-            subtitleCollectionRef.current.ankiCardWasUpdated();
-        };
-        window.addEventListener('message', windowListener);
+        // Trigger immediate anki refresh if card was modified through the SidePanel
+        const removeCardUpdatedDialog = channel?.onCardUpdatedDialog(() =>
+            extension.cardUpdatedDialog(tab.id, tab.src)
+        );
+        const removeCardExportedDialog = channel?.onCardExportedDialog(() =>
+            extension.cardExportedDialog(tab.id, tab.src)
+        );
         return () => {
-            window.removeEventListener('message', windowListener);
+            if (removeCardUpdatedDialog) removeCardUpdatedDialog();
+            if (removeCardExportedDialog) removeCardExportedDialog();
         };
-    }, []);
+    }, [channel, extension, tab, onSubtitles]);
 
     useEffect(() => {
         setSubtitlesSentThroughChannel(false);

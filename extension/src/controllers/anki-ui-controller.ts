@@ -9,6 +9,8 @@ import {
     AnkiUiInitialState,
     AnkiUiResumeState,
     AnkiUiSavedState,
+    CardExportedDialogMessage,
+    CardUpdatedDialogMessage,
     CopyToClipboardMessage,
     EncodeMp3InServiceWorkerMessage,
     EncodeMp3Message,
@@ -277,6 +279,22 @@ export default class AnkiUiController {
                             };
                             browser.runtime.sendMessage(settingsUpdatedCommand);
                         });
+                        return;
+                    case 'card-updated-dialog':
+                        const cardUpdatedDialogCommand: VideoToExtensionCommand<CardUpdatedDialogMessage> = {
+                            sender: 'asbplayer-video',
+                            message: message as CardUpdatedDialogMessage,
+                            src: context.video.src,
+                        };
+                        browser.runtime.sendMessage(cardUpdatedDialogCommand);
+                        return;
+                    case 'card-exported-dialog':
+                        const cardExportedDialogCommand: VideoToExtensionCommand<CardExportedDialogMessage> = {
+                            sender: 'asbplayer-video',
+                            message: message as CardExportedDialogMessage,
+                            src: context.video.src,
+                        };
+                        browser.runtime.sendMessage(cardExportedDialogCommand);
                         return;
                 }
 
