@@ -5,16 +5,47 @@ import { AnkiSettings, AnkiSettingsFieldKey } from '@project/common/settings';
 import sanitize from 'sanitize-filename';
 import { extractText, fromBatches, sourceString } from '@project/common/util';
 
-const ankiQuerySpecialCharacters = ['"', '*', '_', '\\', ':'];
-const alphaNumericCharacters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-const unsafeURLChars = /[:\/\?#\[\]@!$&'()*+,;= "<>%{}|\\^`]/g;
-const replacement = '_';
-
 // No Anki memory impacts, increasing offers negligible speedup
 const ANKI_INFO_BATCH_SIZE = 10000;
 const ANKI_MOD_BATCH_SIZE = 100000;
 
-const randomString = () => {
+const ankiQuerySpecialCharacters = ['"', '*', '_', '\\', ':'];
+const ankiQueryDeckSpecialCharacters = ['"', '*', '_', '\\'];
+const alphaNumericCharacters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+const unsafeURLChars = /[:\/\?#\[\]@!$&'()*+,;= "<>%{}|\\^`]/g;
+const replacement = '_';
+
+export function escapeAnkiQuery(query: string) {
+    let escaped = '';
+
+    for (let i = 0; i < query.length; ++i) {
+        const char = query[i];
+        if (ankiQuerySpecialCharacters.includes(char)) {
+            escaped += `\\${char}`;
+        } else {
+            escaped += char;
+        }
+    }
+
+    return `${escaped}`;
+}
+
+export function escapeAnkiDeckQuery(query: string) {
+    let escaped = '';
+
+    for (let i = 0; i < query.length; ++i) {
+        const char = query[i];
+        if (ankiQueryDeckSpecialCharacters.includes(char)) {
+            escaped += `\\${char}`;
+        } else {
+            escaped += char;
+        }
+    }
+
+    return `${escaped}`;
+}
+
+function randomString() {
     let string = '';
 
     for (let i = 0; i < 8; ++i) {
@@ -22,7 +53,7 @@ const randomString = () => {
     }
 
     return string;
-};
+}
 
 // Makes a file name unique with reasonable probability by appending a string of random characters.
 // Leaves more room for the original file name than Anki's appended hash when `storeMediaFile`
@@ -238,39 +269,28 @@ export class Anki {
 
     async findCardsWithWord(word: string, fields: string[], ankiConnectUrl?: string): Promise<number[]> {
         if (!fields.length) return [];
-        return (
-            await this._executeAction(
-                'findCards',
-                { query: fields.map((field) => `"${field}:${this._escapeQuery(word)}"`).join(' OR ') },
-                ankiConnectUrl
-            )
-        ).result;
+        return this.findCards(
+            fields.map((field) => `"${field}:${escapeAnkiQuery(word)}"`).join(' OR '),
+            ankiConnectUrl
+        );
     }
 
     async findCardsContainingWord(word: string, fields: string[], ankiConnectUrl?: string): Promise<number[]> {
         if (!fields.length) return [];
-        return (
-            await this._executeAction(
-                'findCards',
-                { query: fields.map((field) => `"${field}:*${this._escapeQuery(word)}*"`).join(' OR ') },
-                ankiConnectUrl
-            )
-        ).result;
+        return this.findCards(
+            fields.map((field) => `"${field}:*${escapeAnkiQuery(word)}*"`).join(' OR '),
+            ankiConnectUrl
+        );
     }
 
     async findNotesWithWord(word: string, ankiConnectUrl?: string): Promise<number[]> {
-        const response = await this._executeAction(
-            'findNotes',
-            { query: `"${this.settingsProvider.wordField}:${this._escapeQuery(word)}"` },
-            ankiConnectUrl
-        );
-        return response.result;
+        return this.findNotes(`"${this.settingsProvider.wordField}:${escapeAnkiQuery(word)}"`, ankiConnectUrl);
     }
 
     async findNotesWithWordGui(word: string, ankiConnectUrl?: string): Promise<number[]> {
         const response = await this._executeAction(
             'guiBrowse',
-            { query: `"${this.settingsProvider.wordField}:${this._escapeQuery(word)}"` },
+            { query: `"${this.settingsProvider.wordField}:${escapeAnkiQuery(word)}"` },
             ankiConnectUrl
         );
         return response.result;
@@ -286,7 +306,7 @@ export class Anki {
         const response = await this._executeAction(
             'findCards',
             {
-                query: `(rated:${sinceDays} OR edited:${sinceDays}) (${fields.map((field) => `"${field}:_*"`).join(' OR ')})`,
+                query: `(rated:${sinceDays} OR edited:${sinceDays}) (${fields.map((field) => `"${escapeAnkiQuery(field)}:_*"`).join(' OR ')})`,
             },
             ankiConnectUrl
         );
@@ -369,21 +389,6 @@ export class Anki {
     async createModel(params: CreateModelParams, ankiConnectUrl?: string) {
         const response = await this._executeAction('createModel', params, ankiConnectUrl);
         return response.result;
-    }
-
-    private _escapeQuery(query: string) {
-        let escaped = '';
-
-        for (let i = 0; i < query.length; ++i) {
-            const char = query[i];
-            if (ankiQuerySpecialCharacters.includes(char)) {
-                escaped += `\\${char}`;
-            } else {
-                escaped += char;
-            }
-        }
-
-        return `${escaped}`;
     }
 
     async requestPermission(ankiConnectUrl?: string) {

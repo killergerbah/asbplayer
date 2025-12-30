@@ -203,7 +203,7 @@ export const defaultSettings: AsbplayerSettings = {
 };
 
 export const NUM_DICTIONARY_TRACKS = defaultSettings.dictionaryTracks.length;
-export const NUM_TOKEN_STYLINGS = defaultDictionaryTrackSettings.tokenStatusColors.length;
+export const NUM_TOKEN_STATUSES = defaultDictionaryTrackSettings.tokenStatusColors.length;
 
 export interface AnkiFieldUiModel {
     key: string;
@@ -528,7 +528,7 @@ export class SettingsProvider {
         if (settings.dictionaryTracks !== undefined) {
             const defaultTrack = defaultSettings.dictionaryTracks[0];
             for (const dt of settings.dictionaryTracks) {
-                while (dt.tokenStatusColors.length < NUM_TOKEN_STYLINGS) {
+                while (dt.tokenStatusColors.length < NUM_TOKEN_STATUSES) {
                     const currLength = dt.tokenStatusColors.length;
                     const color = defaultTrack.tokenStatusColors[currLength];
                     dt.tokenStatusColors.push(color);

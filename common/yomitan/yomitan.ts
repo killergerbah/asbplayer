@@ -1,7 +1,7 @@
 import { Fetcher, HttpFetcher } from '@project/common';
+import { DictionaryTrack } from '@project/common/settings';
 import { fromBatches, HAS_LETTER_REGEX, isKanaOnly } from '@project/common/util';
-import lt from 'semver/functions/lte';
-import { DictionaryTrack } from '../settings';
+import { coerce, lt } from 'semver';
 
 const YOMITAN_BATCH_SIZE = 100; // 1k can cause 1.5GB memory on Yomitan for subtitles, Anki cards may be larger too
 
@@ -144,8 +144,10 @@ export class Yomitan {
     }
 
     async version(yomitanUrl?: string) {
-        const version = (await this._executeAction('yomitanVersion', {}, yomitanUrl)).version;
-        if (version !== '0.0.0.0' && lt(version, '25.12.16.0')) {
+        const version: string = (await this._executeAction('yomitanVersion', {}, yomitanUrl)).version;
+        if (version === '0.0.0.0') return version;
+        const semver = coerce(version)?.version;
+        if (!semver || lt(semver, '25.12.16')) {
             throw new Error(`Minimum Yomitan version is 25.12.16.0, found ${version}`);
         }
         return version;

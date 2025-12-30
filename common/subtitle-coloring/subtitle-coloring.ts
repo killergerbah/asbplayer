@@ -1,9 +1,9 @@
-import { DictionaryBuildAnkiCacheState, Fetcher, RichSubtitleModel } from '@project/common';
+import { Fetcher, RichSubtitleModel } from '@project/common';
 import { Anki } from '@project/common/anki';
 import {
     areDictionaryTracksEqual,
     AsbplayerSettings,
-    dictionaryStatusEnabled,
+    dictionaryStatusCollectionEnabled,
     DictionaryTokenSource,
     DictionaryTrack,
     dictionaryTrackEnabled,
@@ -83,8 +83,9 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
 
     private readonly subtitleColorsUpdated: (updatedSubtitles: RichSubtitleModel[]) => void;
     private readonly getMediaTimeMs?: () => number;
-    private readonly buildAnkiCacheStateChangeCallback: (message: DictionaryBuildAnkiCacheState) => void;
-    private readonly ankiCardModifiedCallback: () => void;
+
+    private removeBuildAnkiCacheStateChangeCB?: () => void;
+    private removeAnkiCardModifiedCB?: () => void;
 
     constructor(
         dictionaryProvider: DictionaryProvider,
@@ -118,15 +119,6 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
         this.colorCacheBuildingCurrentIndexes = new Set();
         this.shouldCancelBuild = false;
         this.tokenRequestFailed = false;
-        this.buildAnkiCacheStateChangeCallback = (message) => {
-            this.tokensWereModified(message.modifiedTokens);
-            if (message.error) {
-                console.warn(`Dictionary Anki cache build error: ${message.msg}`);
-                this.ankiRecentlyModifiedCardIds.clear();
-                this.ankiRecentlyModifiedFirstCheck = false;
-            }
-        };
-        this.ankiCardModifiedCallback = () => this.ankiCardWasModified();
     }
 
     get subtitles() {
@@ -218,7 +210,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
 
         const allFieldsSet: Set<string> = new Set();
         for (const ts of this.trackStates) {
-            if (!dictionaryStatusEnabled(ts.dt)) continue;
+            if (!dictionaryStatusCollectionEnabled(ts.dt)) continue;
             for (const field of ts.dt.dictionaryAnkiWordFields.concat(ts.dt.dictionaryAnkiSentenceFields)) {
                 allFieldsSet.add(field);
             }
@@ -232,12 +224,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                 this.anki = new Anki(await this.settingsProvider.getAll(), this.fetcher);
                 const permission = (await this.anki.requestPermission()).permission;
                 if (permission !== 'granted') throw new Error(`permission ${permission}`);
-                const state = await this.dictionaryProvider.buildAnkiCache(
-                    profile,
-                    await this.settingsProvider.getAll(),
-                    options
-                ); // Keep cache updated without user action
-                if (state.error) throw new Error(state.msg);
+                await this.dictionaryProvider.buildAnkiCache(profile, await this.settingsProvider.getAll(), options); // Keep cache updated without user action
             } catch (e) {
                 console.warn('Anki permission request failed:', e);
                 this.anki = undefined;
@@ -259,12 +246,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                 this.ankiRecentlyModifiedFirstCheck = false;
                 return;
             }
-            const state = await this.dictionaryProvider.buildAnkiCache(
-                profile,
-                await this.settingsProvider.getAll(),
-                options
-            );
-            if (state.error) throw new Error(state.msg);
+            await this.dictionaryProvider.buildAnkiCache(profile, await this.settingsProvider.getAll(), options);
         } catch (e) {
             console.error(`Error checking Anki recently modified cards:`, e);
             this.anki = undefined;
@@ -274,8 +256,18 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
     }
 
     bind() {
-        this.dictionaryProvider.addBuildAnkiCacheStateChangeCallback(this.buildAnkiCacheStateChangeCallback);
-        this.dictionaryProvider.addAnkiCardModifiedCallback(this.ankiCardModifiedCallback);
+        if (this.removeBuildAnkiCacheStateChangeCB) this.removeBuildAnkiCacheStateChangeCB();
+        this.removeBuildAnkiCacheStateChangeCB = this.dictionaryProvider.onBuildAnkiCacheStateChange((state) => {
+            this.tokensWereModified(state.modifiedTokens);
+            if (state.error) {
+                console.warn(`Dictionary Anki cache build error: ${state.msg}`);
+                this.ankiRecentlyModifiedCardIds.clear();
+                this.ankiRecentlyModifiedFirstCheck = false;
+            }
+        });
+        if (this.removeAnkiCardModifiedCB) this.removeAnkiCardModifiedCB();
+        this.removeAnkiCardModifiedCB = this.dictionaryProvider.onAnkiCardModified(() => this.ankiCardWasModified());
+
         this.subtitlesInterval = setInterval(() => {
             if (!this._subtitles.length) return;
 
@@ -498,7 +490,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
             const ts = trackStates[track];
             if (!ts.yt) continue;
             const tokenizeBulkRes = await ts.yt.tokenizeBulk(texts);
-            if (!dictionaryStatusEnabled(ts.dt)) continue; // Still want to bulk tokenize if TokenReadingAnnotation.ALWAYS but no coloring
+            if (!dictionaryStatusCollectionEnabled(ts.dt)) continue; // Still want to bulk tokenize if TokenReadingAnnotation.ALWAYS but no coloring
             if (this.shouldCancelBuild) return;
 
             const shouldQueryExactForm =
@@ -597,6 +589,10 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                     .map((p) => p.text)
                     .join('')
                     .trim();
+                if (!HAS_LETTER_REGEX.test(trimmedToken)) {
+                    richText += this._applyTokenStyle(tokenParts, getFullyKnownTokenStatus(), ts.dt);
+                    continue;
+                }
 
                 const tokenToIndexes = this.tokenToIndexesCache.get(trimmedToken);
                 if (tokenToIndexes) tokenToIndexes.add(index);
@@ -607,12 +603,6 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                     const lemmaToIndexes = this.tokenToIndexesCache.get(lemma);
                     if (lemmaToIndexes) lemmaToIndexes.add(index);
                     else this.tokenToIndexesCache.set(lemma, new Set([index]));
-                }
-
-                if (!HAS_LETTER_REGEX.test(trimmedToken)) {
-                    const fullyKnownTokenStatus = getFullyKnownTokenStatus();
-                    richText += this._applyTokenStyle(tokenParts, fullyKnownTokenStatus, ts.dt);
-                    continue;
                 }
 
                 let tokenStatus: TokenStatus | null = null;
@@ -928,8 +918,14 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
 
     unbind() {
         this._resetCache();
-        this.dictionaryProvider.removeBuildAnkiCacheStateChangeCallback(this.buildAnkiCacheStateChangeCallback);
-        this.dictionaryProvider.removeAnkiCardModifiedCallback(this.ankiCardModifiedCallback);
+        if (this.removeBuildAnkiCacheStateChangeCB) {
+            this.removeBuildAnkiCacheStateChangeCB();
+            this.removeBuildAnkiCacheStateChangeCB = undefined;
+        }
+        if (this.removeAnkiCardModifiedCB) {
+            this.removeAnkiCardModifiedCB();
+            this.removeAnkiCardModifiedCB = undefined;
+        }
         if (this.subtitlesInterval) {
             clearInterval(this.subtitlesInterval);
             this.subtitlesInterval = undefined;

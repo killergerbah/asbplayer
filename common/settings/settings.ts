@@ -107,7 +107,7 @@ export function dictionaryTrackEnabled(dt: DictionaryTrack): boolean {
     return dt.dictionaryColorizeSubtitles || dt.dictionaryTokenReadingAnnotation !== TokenReadingAnnotation.NEVER;
 }
 
-export function dictionaryStatusEnabled(dt: DictionaryTrack): boolean {
+export function dictionaryStatusCollectionEnabled(dt: DictionaryTrack): boolean {
     return (
         dt.dictionaryColorizeSubtitles ||
         dt.dictionaryTokenReadingAnnotation === TokenReadingAnnotation.LEARNING_OR_BELOW ||
@@ -161,14 +161,18 @@ const dictionaryTrackComparators: {
     tokenStatusColors: (a, b) => arrayEquals(a, b),
 };
 
-function compareField<K extends keyof DictionaryTrack>(key: K, a: DictionaryTrack, b: DictionaryTrack): boolean {
+export function compareDTField<K extends keyof DictionaryTrack>(
+    key: K,
+    a: DictionaryTrack,
+    b: DictionaryTrack
+): boolean {
     return dictionaryTrackComparators[key](a[key], b[key]);
 }
 
 export function areDictionaryTracksEqual(dt1: DictionaryTrack, dt2: DictionaryTrack): boolean {
     if (dt1 === dt2) return true;
     for (const key in dictionaryTrackComparators) {
-        if (!compareField(key as keyof DictionaryTrack, dt1, dt2)) {
+        if (!compareDTField(key as keyof DictionaryTrack, dt1, dt2)) {
             return false;
         }
     }

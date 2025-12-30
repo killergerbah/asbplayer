@@ -1,15 +1,26 @@
 import React, { useCallback, useState, useEffect, useMemo, useRef } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
-import FormControl from '@mui/material/FormControl';
-import FormLabel from '@mui/material/FormLabel';
-import IconButton from '@mui/material/IconButton';
 import LabelWithHoverEffect from './LabelWithHoverEffect';
-import Radio from '@mui/material/Radio';
-import Checkbox from '@mui/material/Checkbox';
 import RefreshIcon from '@mui/icons-material/Refresh';
-import Stack from '@mui/material/Stack';
-import Button from '@mui/material/Button';
-import InputAdornment from '@mui/material/InputAdornment';
+import {
+    Autocomplete,
+    Button,
+    Checkbox,
+    FormControl,
+    FormLabel,
+    IconButton,
+    InputAdornment,
+    Link,
+    MenuItem,
+    ListItemIcon,
+    ListItemText,
+    Radio,
+    RadioGroup,
+    Stack,
+    Switch,
+    Typography,
+} from '@mui/material';
+import MuiAlert, { type AlertProps } from '@mui/material/Alert';
 import {
     AsbplayerSettings,
     TokenMatchStrategy,
@@ -17,22 +28,15 @@ import {
     TokenReadingAnnotation,
     TokenStyling,
     getFullyKnownTokenStatus,
-    NUM_TOKEN_STYLINGS,
+    NUM_DICTIONARY_TRACKS,
+    NUM_TOKEN_STATUSES,
+    compareDTField,
 } from '@project/common/settings';
-import Typography from '@mui/material/Typography';
-import Switch from '@mui/material/Switch';
-import RadioGroup from '@mui/material/RadioGroup';
-import Autocomplete from '@mui/material/Autocomplete';
-import ListItemIcon from '@mui/material/ListItemIcon';
-import ListItemText from '@mui/material/ListItemText';
 import { Anki } from '../anki';
 import { Yomitan } from '../yomitan/yomitan';
-import DictionaryTrackSelector from './DictionaryTrackSelector';
 import SwitchLabelWithHoverEffect from './SwitchLabelWithHoverEffect';
 import SettingsTextField from './SettingsTextField';
 import SettingsSection from './SettingsSection';
-import MuiAlert, { type AlertProps } from '@mui/material/Alert';
-import Link from '@mui/material/Link';
 import { DictionaryBuildAnkiCacheState } from '../src/message';
 import { DictionaryProvider } from '../dictionary-db';
 
@@ -75,33 +79,15 @@ const DictionarySettingsTab: React.FC<Props> = ({
     const [selectedDictionaryTrack, setSelectedDictionaryTrack] = useState<number>(0);
     const selectedDictionary = dictionaryTracks[selectedDictionaryTrack];
 
-    const isDirty = useCallback(
-        (key: keyof typeof selectedDictionary) => {
+    const getHelperTextForAnkiCacheSettingsDependencies = useCallback(
+        (fieldName: string, key: keyof typeof selectedDictionary, error?: string) => {
+            if (error) return error;
             const initialTrack = initialDictionaryTracksRef.current[selectedDictionaryTrack];
-            if (!initialTrack) return false;
-            const initialValue = initialTrack[key];
-            const currentValue = selectedDictionary[key];
-
-            if (Array.isArray(initialValue) && Array.isArray(currentValue)) {
-                if (initialValue.length !== currentValue.length) return true;
-                const sortedInitial = [...initialValue].sort();
-                const sortedCurrent = [...currentValue].sort();
-                for (let i = 0; i < sortedInitial.length; ++i) {
-                    if (sortedInitial[i] !== sortedCurrent[i]) return true;
-                }
-                return false;
-            }
-
-            return initialValue !== currentValue;
+            if (compareDTField(key, initialTrack, selectedDictionary)) return;
+            return t('settings.ankiCacheDependentSettingsHelperText', { field: fieldName });
         },
-        [selectedDictionary, selectedDictionaryTrack]
+        [selectedDictionary, selectedDictionaryTrack, t]
     );
-
-    const getHelperText = (fieldName: string, key: keyof typeof selectedDictionary, error?: string) => {
-        if (error) return error;
-        if (isDirty(key)) return t('settings.ankiCacheDependentSettingsHelperText', { field: fieldName });
-        return undefined;
-    };
 
     const [deckNames, setDeckNames] = useState<string[]>();
     const [allFieldNames, setAllFieldNames] = useState<string[]>();
@@ -182,27 +168,15 @@ const DictionarySettingsTab: React.FC<Props> = ({
         yomitanSectionRef.current?.scrollIntoView();
     };
 
-    useEffect(() => {
-        const callback = (message: DictionaryBuildAnkiCacheState) => setBuildAnkiCacheResult(message);
-        dictionaryProvider.addBuildAnkiCacheStateChangeCallback(callback);
-        return () => dictionaryProvider.removeBuildAnkiCacheStateChangeCallback(callback);
-    }, [dictionaryProvider]);
     const [buildingAnkiCache, setBuildingAnkiCache] = useState<boolean>(false);
     const [buildAnkiCacheResult, setBuildAnkiCacheResult] = useState<DictionaryBuildAnkiCacheState | undefined>(
         undefined
     );
+
     const handleBuildAnkiCache = useCallback(async () => {
         try {
             setBuildingAnkiCache(true);
-            const result = await dictionaryProvider.buildAnkiCache(activeProfile, settings);
-            if (result && typeof result.msg === 'string' && result.msg.length > 0) {
-                setBuildAnkiCacheResult({
-                    command,
-                    msg: result.msg,
-                    error: Boolean(result.error),
-                    modifiedTokens: result.modifiedTokens,
-                });
-            }
+            await dictionaryProvider.buildAnkiCache(activeProfile, settings);
         } catch (e) {
             console.error('Failed to send build Anki cache message', e);
             const message = e instanceof Error ? e.message : String(e);
@@ -212,14 +186,25 @@ const DictionarySettingsTab: React.FC<Props> = ({
         }
     }, [dictionaryProvider, settings, activeProfile]);
 
+    useEffect(() => {
+        const removeCB = dictionaryProvider.onBuildAnkiCacheStateChange((state) => {
+            if (state.msg.length) setBuildAnkiCacheResult(state);
+        });
+        return () => removeCB();
+    }, [dictionaryProvider]);
+
     return (
         <Stack spacing={1}>
-            <Alert severity="info">
-                <Trans
-                    i18nKey={`${t('settings.annotationHelperText')}${extensionInstalled ? '' : ` ${t('settings.annotationNoExtensionWarn')}`}`}
-                    components={[<Link key={0} onClick={handleYomitanHelperTextClicked} href="javascript:void(0)" />]}
-                />
-            </Alert>
+            {(dictionaryYomitanUrlError || !extensionInstalled) && (
+                <Alert severity="info">
+                    <Trans
+                        i18nKey={`${dictionaryYomitanUrlError ? t('settings.annotationHelperText') : ''}${!extensionInstalled ? ` ${t('settings.annotationNoExtensionWarn')}` : ''}`.trim()}
+                        components={[
+                            <Link key={0} onClick={handleYomitanHelperTextClicked} href="javascript:void(0)" />,
+                        ]}
+                    />
+                </Alert>
+            )}
             <div>
                 <Button
                     variant="contained"
@@ -242,7 +227,22 @@ const DictionarySettingsTab: React.FC<Props> = ({
                     </div>
                 )}
             </div>
-            <DictionaryTrackSelector track={selectedDictionaryTrack} onTrackSelected={setSelectedDictionaryTrack} />
+            <SettingsTextField
+                select
+                fullWidth
+                color="primary"
+                variant="outlined"
+                size="small"
+                label={t('settings.subtitleTrack')!}
+                value={selectedDictionaryTrack}
+                onChange={(e) => setSelectedDictionaryTrack(Number(e.target.value))}
+            >
+                {[...Array(NUM_DICTIONARY_TRACKS).keys()].map((i) => (
+                    <MenuItem key={i} value={i}>
+                        {t('settings.subtitleTrackChoice', { trackNumber: i + 1 })}
+                    </MenuItem>
+                ))}
+            </SettingsTextField>
             <SwitchLabelWithHoverEffect
                 control={
                     <Switch
@@ -608,17 +608,19 @@ const DictionarySettingsTab: React.FC<Props> = ({
                 </RadioGroup>
             </FormControl>
             <SettingsSection ref={yomitanSectionRef}>{t('settings.dictionaryYomitanSection')}</SettingsSection>
-            <Alert severity="info">
-                <Trans
-                    i18nKey={t('settings.yomitanHelperText')}
-                    components={[<Link key={0} target="_blank" href="https://github.com/yomidevs/yomitan-api" />]}
-                />
-            </Alert>
+            {dictionaryYomitanUrlError && (
+                <Alert severity="info">
+                    <Trans
+                        i18nKey={t('settings.yomitanHelperText')}
+                        components={[<Link key={0} target="_blank" href="https://github.com/yomidevs/yomitan-api" />]}
+                    />
+                </Alert>
+            )}
             <SettingsTextField
                 label={t('settings.dictionaryYomitanUrl')}
                 value={selectedDictionary.dictionaryYomitanUrl}
                 error={Boolean(dictionaryYomitanUrlError)}
-                helperText={getHelperText(
+                helperText={getHelperTextForAnkiCacheSettingsDependencies(
                     t('settings.dictionaryYomitanUrl'),
                     'dictionaryYomitanUrl',
                     dictionaryYomitanUrlError
@@ -648,7 +650,10 @@ const DictionarySettingsTab: React.FC<Props> = ({
                 type="number"
                 label={t('settings.dictionaryYomitanScanLength')}
                 value={selectedDictionary.dictionaryYomitanScanLength}
-                helperText={getHelperText(t('settings.dictionaryYomitanScanLength'), 'dictionaryYomitanScanLength')}
+                helperText={getHelperTextForAnkiCacheSettingsDependencies(
+                    t('settings.dictionaryYomitanScanLength'),
+                    'dictionaryYomitanScanLength'
+                )}
                 color="primary"
                 onChange={(e) => {
                     const newTracks = [...dictionaryTracks];
@@ -691,7 +696,11 @@ const DictionarySettingsTab: React.FC<Props> = ({
                         label={t('settings.dictionaryAnkiDecks')}
                         placeholder={t('settings.dictionaryAnkiSelectDecks')}
                         error={Boolean(ankiError)}
-                        helperText={getHelperText(t('settings.dictionaryAnkiDecks'), 'dictionaryAnkiDecks', ankiError)}
+                        helperText={getHelperTextForAnkiCacheSettingsDependencies(
+                            t('settings.dictionaryAnkiDecks'),
+                            'dictionaryAnkiDecks',
+                            ankiError
+                        )}
                         fullWidth
                     />
                 )}
@@ -724,7 +733,7 @@ const DictionarySettingsTab: React.FC<Props> = ({
                         label={t('settings.dictionaryAnkiWordFields')}
                         placeholder={t('settings.dictionaryAnkiSelectFields')}
                         error={Boolean(ankiError)}
-                        helperText={getHelperText(
+                        helperText={getHelperTextForAnkiCacheSettingsDependencies(
                             t('settings.dictionaryAnkiWordFields'),
                             'dictionaryAnkiWordFields',
                             ankiError
@@ -761,7 +770,7 @@ const DictionarySettingsTab: React.FC<Props> = ({
                         label={t('settings.dictionaryAnkiSentenceFields')}
                         placeholder={t('settings.dictionaryAnkiSelectFields')}
                         error={Boolean(ankiError)}
-                        helperText={getHelperText(
+                        helperText={getHelperTextForAnkiCacheSettingsDependencies(
                             t('settings.dictionaryAnkiSentenceFields'),
                             'dictionaryAnkiSentenceFields',
                             ankiError
@@ -774,7 +783,10 @@ const DictionarySettingsTab: React.FC<Props> = ({
                 type="number"
                 label={t('settings.dictionaryAnkiMatureCutoff')}
                 value={selectedDictionary.dictionaryAnkiMatureCutoff}
-                helperText={getHelperText(t('settings.dictionaryAnkiMatureCutoff'), 'dictionaryAnkiMatureCutoff')}
+                helperText={getHelperTextForAnkiCacheSettingsDependencies(
+                    t('settings.dictionaryAnkiMatureCutoff'),
+                    'dictionaryAnkiMatureCutoff'
+                )}
                 color="primary"
                 onChange={(e) => {
                     const newTracks = [...dictionaryTracks];
@@ -809,8 +821,8 @@ const DictionarySettingsTab: React.FC<Props> = ({
                         }
                         label={t('settings.dictionaryAnkiTreatSuspendedNormal')}
                     />
-                    {[...Array(NUM_TOKEN_STYLINGS).keys()].map((i) => {
-                        const tokenStatusIndex = NUM_TOKEN_STYLINGS - 1 - i;
+                    {[...Array(NUM_TOKEN_STATUSES).keys()].map((i) => {
+                        const tokenStatusIndex = NUM_TOKEN_STATUSES - 1 - i;
                         if (tokenStatusIndex === 0) return null;
                         return (
                             <LabelWithHoverEffect
@@ -970,8 +982,8 @@ const DictionarySettingsTab: React.FC<Props> = ({
                 label={t('settings.dictionaryColorizeFullyKnownTokens')}
                 labelPlacement="start"
             />
-            {[...Array(NUM_TOKEN_STYLINGS).keys()].map((i) => {
-                const tokenStatusIndex = NUM_TOKEN_STYLINGS - 1 - i;
+            {[...Array(NUM_TOKEN_STATUSES).keys()].map((i) => {
+                const tokenStatusIndex = NUM_TOKEN_STATUSES - 1 - i;
                 if (tokenStatusIndex === tokenStylingToHide) return null;
                 return (
                     <SettingsTextField

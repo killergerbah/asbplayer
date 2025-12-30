@@ -8,7 +8,6 @@ import {
     AutoPausePreference,
     CardModel,
     CardTextFieldValues,
-    ExtensionToVideoCommand,
     PlayMode,
     PostMineAction,
     PostMinePlayback,
@@ -488,7 +487,6 @@ const Player = React.memo(function Player({
             });
         })();
 
-        // Trigger immediate anki refresh if card was modified through the SidePanel
         const removeCardUpdatedDialog = channel?.onCardUpdatedDialog(() =>
             extension.cardUpdatedDialog(tab.id, tab.src)
         );

@@ -21,7 +21,6 @@ import {
     CardTextFieldValues,
     ImageErrorCode,
     RequestSubtitlesResponse,
-    ExtensionToVideoCommand,
 } from '@project/common';
 import { createTheme } from '@project/common/theme';
 import { AsbplayerSettings, Profile, SettingsProvider } from '@project/common/settings';

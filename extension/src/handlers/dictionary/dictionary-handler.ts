@@ -84,12 +84,12 @@ export default class DictionaryHandler {
                                 };
 
                                 try {
-                                    await browser.runtime.sendMessage(message); // Post updates throughout extension
+                                    await browser.runtime.sendMessage(message);
                                 } catch {
                                     // No one is currently listening
                                 }
 
-                                if (typeof originTabId !== 'number') return; // Only used when triggered from the App with extension installed
+                                if (typeof originTabId !== 'number') return;
                                 try {
                                     await browser.tabs.sendMessage(originTabId, message);
                                 } catch (e) {

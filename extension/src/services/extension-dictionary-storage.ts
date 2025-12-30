@@ -28,7 +28,7 @@ export class ExtensionDictionaryStorage implements DictionaryStorage {
         this.ankiCardModifiedCallbacks = [];
     }
 
-    async getBulk(profile: string | undefined, track: number, tokens: string[]) {
+    getBulk(profile: string | undefined, track: number, tokens: string[]) {
         const message: DictionaryDBCommand<DictionaryGetBulkMessage> = {
             sender: 'asbplayer-dictionary',
             message: {
@@ -42,7 +42,7 @@ export class ExtensionDictionaryStorage implements DictionaryStorage {
         return browser.runtime.sendMessage(message);
     }
 
-    async getByLemmaBulk(profile: string | undefined, track: number, lemmas: string[]) {
+    getByLemmaBulk(profile: string | undefined, track: number, lemmas: string[]) {
         const message: DictionaryDBCommand<DictionaryGetByLemmaBulkMessage> = {
             sender: 'asbplayer-dictionary',
             message: {
@@ -56,7 +56,7 @@ export class ExtensionDictionaryStorage implements DictionaryStorage {
         return browser.runtime.sendMessage(message);
     }
 
-    async saveRecordLocalBulk(profile: string | undefined, localTokenInputs: DictionaryLocalTokenInput[]) {
+    saveRecordLocalBulk(profile: string | undefined, localTokenInputs: DictionaryLocalTokenInput[]) {
         const message: DictionaryDBCommand<DictionarySaveRecordLocalBulkMessage> = {
             sender: 'asbplayer-dictionary',
             message: {
@@ -69,7 +69,7 @@ export class ExtensionDictionaryStorage implements DictionaryStorage {
         return browser.runtime.sendMessage(message);
     }
 
-    async deleteRecordLocalBulk(profile: string | undefined, tokens: string[]) {
+    deleteRecordLocalBulk(profile: string | undefined, tokens: string[]) {
         const message: DictionaryDBCommand<DictionaryDeleteRecordLocalBulkMessage> = {
             sender: 'asbplayer-dictionary',
             message: {
@@ -82,7 +82,7 @@ export class ExtensionDictionaryStorage implements DictionaryStorage {
         return browser.runtime.sendMessage(message);
     }
 
-    async deleteProfile(profile: string) {
+    deleteProfile(profile: string) {
         const message: DictionaryDBCommand<DictionaryDeleteProfileMessage> = {
             sender: 'asbplayer-dictionary',
             message: {
@@ -94,38 +94,13 @@ export class ExtensionDictionaryStorage implements DictionaryStorage {
         return browser.runtime.sendMessage(message);
     }
 
-    async buildAnkiCache(
-        profile: string | undefined,
-        settings: AsbplayerSettings,
-        options?: { useOriginTab?: boolean }
-    ): Promise<DictionaryBuildAnkiCacheState> {
+    buildAnkiCache(profile: string | undefined, settings: AsbplayerSettings, options?: { useOriginTab?: boolean }) {
         const message: DictionaryDBCommand<DictionaryBuildAnkiCacheMessage> = {
             sender: 'asbplayer-dictionary',
             useOriginTab: options?.useOriginTab,
             message: { command: 'dictionary-build-anki-cache', messageId: uuidv4(), profile, settings },
         };
         return browser.runtime.sendMessage(message);
-    }
-
-    addBuildAnkiCacheStateChangeCallback(callback: (message: DictionaryBuildAnkiCacheState) => void) {
-        this.buildAnkiCacheStateChangeCallbacks.push(callback);
-        if (!this.buildAnkiCacheStateChange) {
-            this.buildAnkiCacheStateChange = (message: ExtensionToAsbPlayerCommand<DictionaryBuildAnkiCacheState>) => {
-                if (message.sender !== 'asbplayer-extension-to-player') return;
-                if (message.message.command !== 'dictionary-build-anki-cache-state') return;
-                this.buildAnkiCacheStateChangeCallbacks.forEach((c) => c(message.message));
-            };
-            browser.runtime.onMessage.addListener(this.buildAnkiCacheStateChange);
-        }
-    }
-
-    removeBuildAnkiCacheStateChangeCallback(callback: (message: DictionaryBuildAnkiCacheState) => void) {
-        const idx = this.buildAnkiCacheStateChangeCallbacks.indexOf(callback);
-        if (idx !== -1) this.buildAnkiCacheStateChangeCallbacks.splice(idx, 1);
-        if (!this.buildAnkiCacheStateChangeCallbacks.length && this.buildAnkiCacheStateChange) {
-            browser.runtime.onMessage.removeListener(this.buildAnkiCacheStateChange);
-            this.buildAnkiCacheStateChange = undefined;
-        }
     }
 
     ankiCardWasModified() {
@@ -135,7 +110,7 @@ export class ExtensionDictionaryStorage implements DictionaryStorage {
         } as DictionaryDBCommand<CardUpdatedDialogMessage>);
     }
 
-    addAnkiCardModifiedCallback(callback: () => void) {
+    onAnkiCardModified(callback: () => void) {
         this.ankiCardModifiedCallbacks.push(callback);
         if (!this.ankiCardModified) {
             this.ankiCardModified = (
@@ -151,14 +126,40 @@ export class ExtensionDictionaryStorage implements DictionaryStorage {
             };
             browser.runtime.onMessage.addListener(this.ankiCardModified);
         }
+        return () => {
+            this._removeCallback(callback, this.ankiCardModifiedCallbacks);
+            if (!this.ankiCardModifiedCallbacks.length && this.ankiCardModified) {
+                browser.runtime.onMessage.removeListener(this.ankiCardModified);
+                this.ankiCardModified = undefined;
+            }
+        };
     }
 
-    removeAnkiCardModifiedCallback(callback: () => void) {
-        const idx = this.ankiCardModifiedCallbacks.indexOf(callback);
-        if (idx !== -1) this.ankiCardModifiedCallbacks.splice(idx, 1);
-        if (!this.ankiCardModifiedCallbacks.length && this.ankiCardModified) {
-            browser.runtime.onMessage.removeListener(this.ankiCardModified);
-            this.ankiCardModified = undefined;
+    onBuildAnkiCacheStateChange(callback: (message: DictionaryBuildAnkiCacheState) => void) {
+        this.buildAnkiCacheStateChangeCallbacks.push(callback);
+        if (!this.buildAnkiCacheStateChange) {
+            this.buildAnkiCacheStateChange = (message: ExtensionToAsbPlayerCommand<DictionaryBuildAnkiCacheState>) => {
+                if (message.sender !== 'asbplayer-extension-to-player') return;
+                if (message.message.command !== 'dictionary-build-anki-cache-state') return;
+                this.buildAnkiCacheStateChangeCallbacks.forEach((c) => c(message.message));
+            };
+            browser.runtime.onMessage.addListener(this.buildAnkiCacheStateChange);
+        }
+        return () => {
+            this._removeCallback(callback, this.buildAnkiCacheStateChangeCallbacks);
+            if (!this.buildAnkiCacheStateChangeCallbacks.length && this.buildAnkiCacheStateChange) {
+                browser.runtime.onMessage.removeListener(this.buildAnkiCacheStateChange);
+                this.buildAnkiCacheStateChange = undefined;
+            }
+        };
+    }
+
+    _removeCallback(callback: Function, callbacks: Function[]) {
+        for (let i = callbacks.length - 1; i >= 0; --i) {
+            if (callback === callbacks[i]) {
+                callbacks.splice(i, 1);
+                break;
+            }
         }
     }
 }

@@ -17,7 +17,7 @@ interface Props {
 const WebsiteApp = (props: Props) => {
     const extension = useChromeExtension({ component: 'application' });
     const dictionaryStorage = useMemo(() => {
-        if (extension.supportsAppIntegration) return new AppExtensionDictionaryStorage(extension);
+        if (extension.supportsDictionary) return new AppExtensionDictionaryStorage(extension);
         return new LocalDictionaryStorage();
     }, [extension]);
     const settingsStorage = useMemo(() => {

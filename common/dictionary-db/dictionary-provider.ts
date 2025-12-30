@@ -20,12 +20,11 @@ export interface DictionaryStorage {
         profile: string | undefined,
         settings: AsbplayerSettings,
         options?: { useOriginTab?: boolean }
-    ) => Promise<DictionaryBuildAnkiCacheState>;
-    addBuildAnkiCacheStateChangeCallback: (callback: (message: DictionaryBuildAnkiCacheState) => void) => void;
-    removeBuildAnkiCacheStateChangeCallback: (callback: (message: DictionaryBuildAnkiCacheState) => void) => void;
+    ) => Promise<void>;
     ankiCardWasModified: () => void;
-    addAnkiCardModifiedCallback: (callback: () => void) => void;
-    removeAnkiCardModifiedCallback: (callback: () => void) => void;
+    onAnkiCardModified: (callback: () => void) => () => void;
+    onBuildAnkiCacheStateChange: (callback: (message: DictionaryBuildAnkiCacheState) => void) => () => void;
+    _removeCallback(callback: Function, callbacks: Function[]): void;
 }
 
 export class DictionaryProvider {
@@ -35,51 +34,39 @@ export class DictionaryProvider {
         this._storage = storage;
     }
 
-    async deleteProfile(profile: string) {
-        return await this._storage.deleteProfile(profile);
+    getBulk(profile: string | undefined, track: number, tokens: string[]) {
+        return this._storage.getBulk(profile, track, tokens);
     }
 
-    async getBulk(profile: string | undefined, track: number, tokens: string[]) {
-        return await this._storage.getBulk(profile, track, tokens);
+    getByLemmaBulk(profile: string | undefined, track: number, lemmas: string[]) {
+        return this._storage.getByLemmaBulk(profile, track, lemmas);
     }
 
-    async getByLemmaBulk(profile: string | undefined, track: number, lemmas: string[]) {
-        return await this._storage.getByLemmaBulk(profile, track, lemmas);
+    saveRecordLocalBulk(profile: string | undefined, localTokenInputs: DictionaryLocalTokenInput[]) {
+        return this._storage.saveRecordLocalBulk(profile, localTokenInputs);
     }
 
-    async saveRecordLocalBulk(profile: string | undefined, localTokenInputs: DictionaryLocalTokenInput[]) {
-        return await this._storage.saveRecordLocalBulk(profile, localTokenInputs);
+    deleteRecordLocalBulk(profile: string | undefined, tokens: string[]) {
+        return this._storage.deleteRecordLocalBulk(profile, tokens);
     }
 
-    async deleteRecordLocalBulk(profile: string | undefined, tokens: string[]) {
-        return await this._storage.deleteRecordLocalBulk(profile, tokens);
+    deleteProfile(profile: string) {
+        return this._storage.deleteProfile(profile);
     }
 
-    async buildAnkiCache(
-        profile: string | undefined,
-        settings: AsbplayerSettings,
-        options?: { useOriginTab?: boolean }
-    ) {
+    buildAnkiCache(profile: string | undefined, settings: AsbplayerSettings, options?: { useOriginTab?: boolean }) {
         return this._storage.buildAnkiCache(profile, settings, options);
     }
 
-    addBuildAnkiCacheStateChangeCallback(callback: (message: DictionaryBuildAnkiCacheState) => void) {
-        this._storage.addBuildAnkiCacheStateChangeCallback(callback);
-    }
-
-    removeBuildAnkiCacheStateChangeCallback(callback: (message: DictionaryBuildAnkiCacheState) => void) {
-        this._storage.removeBuildAnkiCacheStateChangeCallback(callback);
-    }
-
     ankiCardWasModified() {
-        this._storage.ankiCardWasModified();
+        return this._storage.ankiCardWasModified();
     }
 
-    addAnkiCardModifiedCallback(callback: () => void) {
-        this._storage.addAnkiCardModifiedCallback(callback);
+    onAnkiCardModified(callback: () => void) {
+        return this._storage.onAnkiCardModified(callback);
     }
 
-    removeAnkiCardModifiedCallback(callback: () => void) {
-        this._storage.removeAnkiCardModifiedCallback(callback);
+    onBuildAnkiCacheStateChange(callback: (message: DictionaryBuildAnkiCacheState) => void) {
+        return this._storage.onBuildAnkiCacheStateChange(callback);
     }
 }
