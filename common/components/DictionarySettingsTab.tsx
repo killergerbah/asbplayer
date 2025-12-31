@@ -187,10 +187,9 @@ const DictionarySettingsTab: React.FC<Props> = ({
     }, [dictionaryProvider, settings, activeProfile]);
 
     useEffect(() => {
-        const removeCB = dictionaryProvider.onBuildAnkiCacheStateChange((state) => {
+        return dictionaryProvider.onBuildAnkiCacheStateChange((state) => {
             if (state.msg.length) setBuildAnkiCacheResult(state);
         });
-        return () => removeCB();
     }, [dictionaryProvider]);
 
     return (

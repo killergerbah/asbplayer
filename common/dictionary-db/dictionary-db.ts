@@ -7,7 +7,7 @@ import {
     DictionaryTrack,
     TokenStatus,
 } from '@project/common/settings';
-import { HAS_LETTER_REGEX, inBatches, mapAsync } from '@project/common/util';
+import { HAS_LETTER_REGEX, humanReadableTime, inBatches, mapAsync } from '@project/common/util';
 import { Yomitan } from '@project/common/yomitan/yomitan';
 import Dexie from 'dexie';
 import { v4 as uuidv4 } from 'uuid';
@@ -472,13 +472,13 @@ export class DictionaryDB {
             .toArray()
             .then((ankiCards) => {
                 if (!ankiCards.length) return new Map();
-                const noteIdRecordMap = new Map<number, DictionaryAnkiCardRecord[]>();
+                const cardRecordsByNoteId = new Map<number, DictionaryAnkiCardRecord[]>();
                 for (const ankiCard of ankiCards) {
-                    const val = noteIdRecordMap.get(ankiCard.noteId);
+                    const val = cardRecordsByNoteId.get(ankiCard.noteId);
                     if (val) val.push(ankiCard);
-                    else noteIdRecordMap.set(ankiCard.noteId, [ankiCard]);
+                    else cardRecordsByNoteId.set(ankiCard.noteId, [ankiCard]);
                 }
-                return noteIdRecordMap;
+                return cardRecordsByNoteId;
             });
     }
 
@@ -488,11 +488,15 @@ export class DictionaryDB {
     }
 
     /**
-     * There are four scenarios where tokens/cards need to be deleted:
+     * There are five scenarios where tokens/cards need to be deleted:
      * 1. The card was removed from Anki (handled by _syncTrackStatesWithAnki())
-     * 2. The card field was removed/renamed (handled by _syncTrackStatesWithAnki())
-     * 3. The card field value no longer produce the same tokens (handled by _saveTokensForDB())
-     * 4. Based on track settings such as no Anki fields (handled by tracksToClear)
+     * 2. The card deck was changed (handled by _syncTrackStatesWithAnki())
+     * 3. The card field was removed/renamed (handled by _syncTrackStatesWithAnki())
+     * 4. The card field value no longer produce the same tokens (handled by _saveTokensForDB())
+     * 5. Based on track settings such as no Anki fields (handled by tracksToClear)
+     * @param profile The profile name.
+     * @param orphanedTrackCardIds Map of track to array of orphaned card IDs.
+     * @param modifiedTokens Set to populate with modified tokens.
      */
     private async _deleteCardBulk(
         profile: string,
@@ -515,14 +519,15 @@ export class DictionaryDB {
                         .filter((r) => r.track === track && r.profile === profile)
                         .modify((record, ref) => {
                             const remainingCardIds = record.cardIds.filter((id) => !cardIdsSet.has(id));
-                            if (!remainingCardIds.length) {
-                                modifiedTokens.add(record.token);
-                                for (const lemma of record.lemmas) modifiedTokens.add(lemma);
-                                delete (ref as any).value;
-                            } else if (remainingCardIds.length !== record.cardIds.length) {
-                                modifiedTokens.add(record.token);
-                                for (const lemma of record.lemmas) modifiedTokens.add(lemma);
+                            if (remainingCardIds.length === record.cardIds.length) return;
+
+                            modifiedTokens.add(record.token);
+                            for (const lemma of record.lemmas) modifiedTokens.add(lemma);
+
+                            if (remainingCardIds.length) {
                                 record.cardIds = remainingCardIds;
+                            } else {
+                                delete (ref as any).value;
                             }
                         }),
                     this.db.ankiCards
@@ -588,8 +593,8 @@ export class DictionaryDB {
         });
     }
 
-    private async _buildIdHealthCheck(buildId: string, trackBuildIdsToClear: DictionaryMetaKey[]): Promise<void> {
-        for (const metaKey of trackBuildIdsToClear) {
+    private async _buildIdHealthCheck(buildId: string, activeTracks: DictionaryMetaKey[]): Promise<void> {
+        for (const metaKey of activeTracks) {
             if (await this._ensureBuildId(metaKey, buildId)) continue; // Handles deleteProfile() triggered during build as well
             throw new Error(`buildId was corrupted for track ${metaKey[1] + 1}`);
         }
@@ -628,7 +633,7 @@ export class DictionaryDB {
         const profile = this._getProfile(inputProfile);
         const buildId = uuidv4();
         const buildTs = Date.now();
-        const trackBuildIdsToClear: DictionaryMetaKey[] = [];
+        const activeTracks: DictionaryMetaKey[] = [];
         let clearBuildIds = true;
         try {
             const trackStates: TrackStatesForDB = new Map();
@@ -661,7 +666,7 @@ export class DictionaryDB {
                     statusUpdates({ command, msg, error, modifiedTokens: Array.from(modifiedTokens) });
                     return; // Since we set the buildId for all tracks regardless of enabled status, concurrent builds are prevented
                 }
-                trackBuildIdsToClear.push(key);
+                activeTracks.push(key);
 
                 if (!dictionaryStatusCollectionEnabled(dt)) continue; // Keep cache but don't update it TODO: Clear tracks that have been disabled for a while from db?
                 if (!dt.dictionaryAnkiWordFields.length && !dt.dictionaryAnkiSentenceFields.length) {
@@ -702,7 +707,7 @@ export class DictionaryDB {
                     0
                 );
                 await this.db.transaction('rw', this.db.tokens, this.db.ankiCards, this.db.meta, async () => {
-                    await this._buildIdHealthCheck(buildId, trackBuildIdsToClear);
+                    await this._buildIdHealthCheck(buildId, activeTracks);
                     await this._deleteCardBulk(profile, orphanedTrackCardIds, modifiedTokens);
                     await this._gatherModifiedTokens(profile, modifiedTokens);
                     if (settingsToUpdate.length) await this.db.meta.bulkUpdate(settingsToUpdate); // Set the new settings so we can resume the build if it fails midway
@@ -720,8 +725,6 @@ export class DictionaryDB {
             }
 
             const modifiedCards: CardsForDB = new Map();
-            const cardIdsToSuspend: number[] = [];
-            const cardIdsToUnsuspend: number[] = [];
             const orphanedTrackCardIds: Map<number, number[]> = new Map();
             let numUpdatedCards = 0;
             try {
@@ -729,8 +732,6 @@ export class DictionaryDB {
                     profile,
                     trackStates,
                     modifiedCards,
-                    cardIdsToSuspend,
-                    cardIdsToUnsuspend,
                     orphanedTrackCardIds,
                     anki
                 );
@@ -750,13 +751,11 @@ export class DictionaryDB {
                 buildId,
                 trackStates,
                 modifiedCards,
-                cardIdsToSuspend,
-                cardIdsToUnsuspend,
                 orphanedTrackCardIds,
                 tracksToClear,
                 numCardsFromOrphanedTracks,
                 modifiedTokens,
-                trackBuildIdsToClear,
+                activeTracks,
                 numUpdatedCards,
                 buildTs,
                 statusUpdates,
@@ -775,12 +774,12 @@ export class DictionaryDB {
             console.error(msg);
             statusUpdates({ command, msg, error, modifiedTokens: Array.from(modifiedTokens) });
         } finally {
-            if (clearBuildIds) await this._clearBuildIds(trackBuildIdsToClear, buildId); // Otherwise let _processTracks() clear the build IDs when it's done
+            if (clearBuildIds) await this._clearBuildIds(activeTracks, buildId); // Otherwise let _processTracks() clear the build IDs when it's done
         }
     }
 
-    private async _clearBuildIds(trackBuildIdsToClear: DictionaryMetaKey[], buildId: string): Promise<void> {
-        for (const key of trackBuildIdsToClear) {
+    private async _clearBuildIds(activeTracks: DictionaryMetaKey[], buildId: string): Promise<void> {
+        for (const key of activeTracks) {
             try {
                 await this._clearBuildId(key, buildId);
             } catch (e) {
@@ -789,12 +788,19 @@ export class DictionaryDB {
         }
     }
 
+    /**
+     * Determine which Anki cards have been modified since the last sync.
+     * @param profile The profile name.
+     * @param trackStates The track states.
+     * @param modifiedCards The map to populate with modified cards.
+     * @param orphanedTrackCardIds The map to populate with orphaned card IDs.
+     * @param anki The Anki instance.
+     * @returns The number of modified cards.
+     */
     private async _syncTrackStatesWithAnki(
         profile: string,
         trackStates: TrackStatesForDB,
         modifiedCards: CardsForDB,
-        cardIdsToSuspend: number[],
-        cardIdsToUnsuspend: number[],
         orphanedTrackCardIds: Map<number, number[]>,
         anki: Anki
     ): Promise<number> {
@@ -913,17 +919,6 @@ export class DictionaryDB {
                     });
                 }
             }
-
-            for (const existingAnkiCards of existingAnkiNoteIdMap.values()) {
-                for (const ankiCard of existingAnkiCards) {
-                    if (!modifiedCardIdsSet.has(ankiCard.cardId)) continue;
-                    if (suspendedCards.has(ankiCard.cardId)) {
-                        if (!ankiCard.suspended) cardIdsToSuspend.push(ankiCard.cardId);
-                    } else {
-                        if (ankiCard.suspended) cardIdsToUnsuspend.push(ankiCard.cardId);
-                    }
-                }
-            }
         }
 
         let numUpdatedCards = modifiedCardIdsSet.size;
@@ -1039,49 +1034,9 @@ export class DictionaryDB {
         return numRemaining;
     }
 
-    private async _updateSuspendedCards(
-        profile: string,
-        trackSuspensions: Map<number, { cardIdsToSuspend: number[]; cardIdsToUnsuspend: number[] }>,
-        modifiedTokens: Set<string>
-    ): Promise<number> {
-        const keysAndChanges: { key: DictionaryAnkiCardKey; changes: Partial<DictionaryAnkiCardRecord> }[] = [];
-        const allCardIdsSet = new Set<number>();
-        for (const [track, { cardIdsToSuspend, cardIdsToUnsuspend }] of trackSuspensions.entries()) {
-            for (const cardId of cardIdsToSuspend) {
-                keysAndChanges.push({ key: [cardId, track, profile], changes: { suspended: true } });
-                allCardIdsSet.add(cardId);
-            }
-            for (const cardId of cardIdsToUnsuspend) {
-                keysAndChanges.push({ key: [cardId, track, profile], changes: { suspended: false } });
-                allCardIdsSet.add(cardId);
-            }
-        }
-        if (!keysAndChanges.length) return 0;
-
-        return this.db
-            .transaction('rw', this.db.tokens, this.db.ankiCards, async () =>
-                Promise.all([
-                    this.db.tokens
-                        .where('cardIds')
-                        .anyOf(Array.from(allCardIdsSet))
-                        .distinct()
-                        .filter((r) => r.profile === profile)
-                        .toArray()
-                        .then((records) => {
-                            for (const record of records) {
-                                modifiedTokens.add(record.token);
-                                for (const lemma of record.lemmas) modifiedTokens.add(lemma);
-                            }
-                        }),
-                    this.db.ankiCards.bulkUpdate(keysAndChanges),
-                ])
-            )
-            .then((res) => res[1]);
-    }
-
     private async _updateBuildAnkiCacheProgress(
         buildId: string,
-        trackBuildIdsToClear: DictionaryMetaKey[],
+        activeTracks: DictionaryMetaKey[],
         progress: BuildAnkiCacheProgress,
         modifiedTokens: string[],
         statusUpdates: (state: DictionaryBuildAnkiCacheState) => void,
@@ -1090,10 +1045,10 @@ export class DictionaryDB {
         const rate = progress.current / (Date.now() - progress.startedAt);
         const eta = rate ? Math.ceil((progress.total - progress.current) / rate) : 0;
         await this.db.transaction('rw', this.db.meta, async () => {
-            await this._buildIdHealthCheck(buildId, trackBuildIdsToClear);
+            await this._buildIdHealthCheck(buildId, activeTracks);
             const lastBuildExpiresAt = Date.now() + Math.max(eta, BUILD_MIN_EXPIRATION_MS);
             const keysAndChanges: { key: DictionaryMetaKey; changes: { lastBuildExpiresAt: number } }[] = [];
-            for (const key of trackBuildIdsToClear) keysAndChanges.push({ key, changes: { lastBuildExpiresAt } });
+            for (const key of activeTracks) keysAndChanges.push({ key, changes: { lastBuildExpiresAt } });
             await this.db.meta.bulkUpdate(keysAndChanges);
         });
         const time = new Date(Date.now() + eta).toLocaleTimeString([], {
@@ -1101,17 +1056,12 @@ export class DictionaryDB {
             minute: '2-digit',
             second: '2-digit',
         });
-        let etaSeconds = Math.ceil(eta / 1000);
-        const etaHours = Math.floor(etaSeconds / 3600);
-        etaSeconds -= etaHours * 3600;
-        const etaMinutes = Math.floor(etaSeconds / 60);
-        etaSeconds -= etaMinutes * 60;
-        let etaStr = '';
-        if (etaHours) etaStr += `${etaHours}h`;
-        if (etaMinutes) etaStr += `${etaMinutes}m`;
-        etaStr += `${etaSeconds}s`;
-        const msg = `${progress.current.toLocaleString('en-US')} / ${t('settings.dictionaryBuildModifiedCards', { numCards: progress.total.toLocaleString('en-US') })} [ETA: ${time} (${etaStr})]`;
-        statusUpdates({ command, msg, error: false, modifiedTokens });
+        statusUpdates({
+            command,
+            msg: `${progress.current.toLocaleString('en-US')} / ${t('settings.dictionaryBuildModifiedCards', { numCards: progress.total.toLocaleString('en-US') })} [ETA: ${time} (${humanReadableTime(eta)})]`,
+            error: false,
+            modifiedTokens,
+        });
     }
 
     private async _processTracks(
@@ -1119,13 +1069,11 @@ export class DictionaryDB {
         buildId: string,
         trackStates: Map<number, TrackStateForDB>,
         modifiedCards: CardsForDB,
-        cardIdsToSuspend: number[],
-        cardIdsToUnsuspend: number[],
         orphanedTrackCardIds: Map<number, number[]>,
         tracksToClear: number[],
         numCardsFromOrphanedTracks: number,
         modifiedTokens: Set<string>,
-        trackBuildIdsToClear: DictionaryMetaKey[],
+        activeTracks: DictionaryMetaKey[],
         numUpdatedCards: number,
         buildTs: number,
         statusUpdates: (state: DictionaryBuildAnkiCacheState) => void,
@@ -1133,20 +1081,14 @@ export class DictionaryDB {
     ): Promise<void> {
         let msg = 'Unknown error during build';
         let error = true;
-        let numSuspendedModified = 0;
         const progress: BuildAnkiCacheProgress = {
             current: 0,
             total: modifiedCards.size,
             startedAt: Date.now(),
         };
         try {
-            const trackSuspensions = new Map<number, { cardIdsToSuspend: number[]; cardIdsToUnsuspend: number[] }>();
-            for (const t of trackStates.keys()) trackSuspensions.set(t, { cardIdsToSuspend, cardIdsToUnsuspend });
-
-            // Need to update these first in case the build fails after updating some cards and their modified time
             await this.db.transaction('rw', this.db.meta, this.db.tokens, this.db.ankiCards, async () => {
-                await this._buildIdHealthCheck(buildId, trackBuildIdsToClear);
-                numSuspendedModified = await this._updateSuspendedCards(profile, trackSuspensions, modifiedTokens);
+                await this._buildIdHealthCheck(buildId, activeTracks);
                 await this._deleteCardBulk(profile, orphanedTrackCardIds, modifiedTokens);
             });
 
@@ -1156,7 +1098,7 @@ export class DictionaryDB {
                 trackStates,
                 modifiedCards,
                 buildId,
-                trackBuildIdsToClear,
+                activeTracks,
                 progress,
                 statusUpdates,
                 t
@@ -1169,7 +1111,6 @@ export class DictionaryDB {
                     .join(', '),
             })}`;
             msg += ` | ${t('settings.dictionaryBuildModifiedCards', { numCards: numUpdatedCards.toLocaleString('en-US') })}`;
-            msg += ` | ${t('settings.dictionaryBuildSuspendedCards', { numCards: numSuspendedModified.toLocaleString('en-US') })}`;
             if (tracksToClear.length && numCardsFromOrphanedTracks) {
                 msg += ` | ${t('settings.dictionaryBuildOrphanedCards', { numCards: numCardsFromOrphanedTracks.toLocaleString('en-US'), tracks: tracksToClear.map((track) => `#${track + 1}`).join(', ') })}`;
             }
@@ -1179,8 +1120,8 @@ export class DictionaryDB {
             msg = `Error during build: ${e}`;
             console.error(msg);
         } finally {
-            await this._clearBuildIds(trackBuildIdsToClear, buildId);
-            if (modifiedTokens.size || numUpdatedCards || numSuspendedModified || numCardsFromOrphanedTracks || error) {
+            await this._clearBuildIds(activeTracks, buildId);
+            if (modifiedTokens.size || numUpdatedCards || numCardsFromOrphanedTracks || error) {
                 await this._gatherModifiedTokens(profile, modifiedTokens); // Delay publishing deleted modified tokens so tokens aren't flashed uncollected during build
                 statusUpdates({ command, msg, error, modifiedTokens: Array.from(modifiedTokens) });
             }
@@ -1192,7 +1133,7 @@ export class DictionaryDB {
         trackStates: Map<number, TrackStateForDB>,
         modifiedCards: CardsForDB,
         buildId: string,
-        trackBuildIdsToClear: DictionaryMetaKey[],
+        activeTracks: DictionaryMetaKey[],
         progress: BuildAnkiCacheProgress,
         statusUpdates: (state: DictionaryBuildAnkiCacheState) => void,
         t: TFunction<['translation', ...string[]], undefined>
@@ -1222,13 +1163,13 @@ export class DictionaryDB {
                     await ts.yomitan.tokenizeBulk(texts);
                 }
 
-                const trackTokensMap = new Map<
+                const partialTokenRecordsByTrack = new Map<
                     number,
                     Map<DictionaryTokenSource, Map<string, { lemmas: string[]; cardIds: Set<number> }>>
                 >();
                 const ankiFieldsMap = new Map<number, Map<DictionaryTokenSource, string[]>>();
                 for (const [track, ts] of trackStates.entries()) {
-                    trackTokensMap.set(
+                    partialTokenRecordsByTrack.set(
                         track,
                         new Map([
                             [DictionaryTokenSource.ANKI_WORD, new Map()],
@@ -1244,7 +1185,7 @@ export class DictionaryDB {
                     );
                 }
                 for (const [track, ts] of trackStates.entries()) {
-                    const sourceTokensMap = trackTokensMap.get(track)!;
+                    const sourceTokensMap = partialTokenRecordsByTrack.get(track)!;
                     const sourceAnkiFieldsMap = ankiFieldsMap.get(track)!;
                     for (const [cardId, card] of modifiedCardsBatch.entries()) {
                         if (!hasDeck(ts.dt, card.deckName)) continue;
@@ -1278,7 +1219,7 @@ export class DictionaryDB {
                 const records: DictionaryTokenRecord[] = [];
                 const ankiCards: DictionaryAnkiCardRecord[] = [];
                 for (const track of trackStates.keys()) {
-                    for (const [source, tokenCardsMap] of trackTokensMap.get(track)!.entries()) {
+                    for (const [source, tokenCardsMap] of partialTokenRecordsByTrack.get(track)!.entries()) {
                         const tokenRecordMap = await this._getFromSourceBulk(
                             profile,
                             track,
@@ -1310,7 +1251,7 @@ export class DictionaryDB {
                     }
                     for (const [cardId, updatedCard] of modifiedCardsBatch.entries()) {
                         const status = updatedCard.statuses.get(track);
-                        if (status === undefined) continue; // Card has no relevant fields for this track
+                        if (status === undefined) continue; // Card has no relevant deck/fields for this track
                         ankiCards.push({
                             profile,
                             track,
@@ -1325,14 +1266,14 @@ export class DictionaryDB {
 
                 const modifiedTokens: Set<string> = new Set();
                 await this.db.transaction('rw', this.db.meta, this.db.tokens, this.db.ankiCards, async () => {
-                    await this._buildIdHealthCheck(buildId, trackBuildIdsToClear);
+                    await this._buildIdHealthCheck(buildId, activeTracks);
                     await this._saveTokensForDB(
                         profile,
                         trackStates,
                         records,
                         ankiCards,
                         modifiedCardsBatch,
-                        trackTokensMap,
+                        partialTokenRecordsByTrack,
                         modifiedTokens
                     );
                     await this._gatherModifiedTokens(profile, modifiedTokens);
@@ -1341,7 +1282,7 @@ export class DictionaryDB {
                 progress.current += modifiedCardsBatch.size;
                 await this._updateBuildAnkiCacheProgress(
                     buildId,
-                    trackBuildIdsToClear,
+                    activeTracks,
                     progress,
                     Array.from(modifiedTokens),
                     statusUpdates,
@@ -1358,7 +1299,7 @@ export class DictionaryDB {
         records: DictionaryTokenRecord[],
         ankiCards: DictionaryAnkiCardRecord[],
         modifiedCardsBatch: CardsForDB,
-        trackTokensMap: Map<
+        partialTokenRecordsByTrack: Map<
             number,
             Map<DictionaryTokenSource, Map<string, { lemmas: string[]; cardIds: Set<number> }>>
         >,
@@ -1374,30 +1315,36 @@ export class DictionaryDB {
                 .where('cardIds')
                 .anyOf(Array.from(modifiedCardsBatch.keys()))
                 .distinct()
-                .filter((r) => r.profile === profile)
+                .filter(
+                    (r) =>
+                        (r.source === DictionaryTokenSource.ANKI_WORD ||
+                            r.source === DictionaryTokenSource.ANKI_SENTENCE) &&
+                        trackStates.has(r.track) &&
+                        r.profile === profile
+                )
                 .modify((record, ref) => {
-                    if (
-                        record.source !== DictionaryTokenSource.ANKI_WORD &&
-                        record.source !== DictionaryTokenSource.ANKI_SENTENCE
-                    ) {
-                        return;
-                    }
-                    if (!trackStates.has(record.track)) return;
-                    if (trackTokensMap.get(record.track)!.get(record.source)!.has(record.token)) return; // We want tokens that were not updated but refers to updated cards (e.g. field value changed, different tokens)
+                    // We want tokens that were not updated but refers to updated cards (e.g. field value changed, different tokens)
+                    if (partialTokenRecordsByTrack.get(record.track)!.get(record.source)!.has(record.token)) return;
                     const validCardIds = record.cardIds.filter((id) => !modifiedCardsBatch.has(id));
-                    if (!validCardIds.length) {
-                        modifiedTokens.add(record.token);
-                        for (const lemma of record.lemmas) modifiedTokens.add(lemma);
-                        delete (ref as any).value;
-                    } else if (validCardIds.length !== record.cardIds.length) {
-                        modifiedTokens.add(record.token);
-                        for (const lemma of record.lemmas) modifiedTokens.add(lemma);
+                    if (validCardIds.length === record.cardIds.length) return;
+
+                    modifiedTokens.add(record.token);
+                    for (const lemma of record.lemmas) modifiedTokens.add(lemma);
+                    if (validCardIds.length) {
                         record.cardIds = validCardIds;
+                    } else {
+                        delete (ref as any).value;
                     }
                 });
         });
     }
 
+    /**
+     * Updates modifiedTokens with all tokens and their lemmas that are related to the modified tokens.
+     * This ensures that statuses are properly recalculated for inflections when using getByLemma.
+     * @param profile The profile name.
+     * @param modifiedTokens The set of modified tokens to update.
+     */
     private async _gatherModifiedTokens(profile: string, modifiedTokens: Set<string>) {
         if (!modifiedTokens.size) return;
         return this.db.tokens

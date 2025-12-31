@@ -496,7 +496,6 @@
         "dictionaryTokenStatus0": "Uncollected",
         "dictionaryBuildAnkiTracks": "Anki track(s): {{tracks}}",
         "dictionaryBuildModifiedCards": "{{numCards}} modified card(s)",
-        "dictionaryBuildSuspendedCards": "{{numCards}} suspended status change(s)",
         "dictionaryBuildOrphanedCards": "{{numCards}} deleted card(s) from orphaned track(s): {{tracks}}",
         "dictionaryBuildInProgress": "Build already in progress (expires at {{time}})",
         "dictionaryBuildAnkiError": "Error getting permission from Anki",
