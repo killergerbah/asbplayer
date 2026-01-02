@@ -3,6 +3,7 @@ import {
     CardUpdatedDialogMessage,
     DictionaryBuildAnkiCacheMessage,
     DictionaryBuildAnkiCacheState,
+    DictionaryBuildAnkiCacheStateMessage,
     DictionaryDBCommand,
     DictionaryDeleteProfileMessage,
     DictionaryDeleteRecordLocalBulkMessage,
@@ -17,7 +18,9 @@ import { v4 as uuidv4 } from 'uuid';
 
 export class ExtensionDictionaryStorage implements DictionaryStorage {
     private buildAnkiCacheStateChangeCallbacks: ((message: DictionaryBuildAnkiCacheState) => void)[];
-    private buildAnkiCacheStateChange?: (message: ExtensionToAsbPlayerCommand<DictionaryBuildAnkiCacheState>) => void;
+    private buildAnkiCacheStateChange?: (
+        message: ExtensionToAsbPlayerCommand<DictionaryBuildAnkiCacheStateMessage>
+    ) => void;
     private ankiCardModifiedCallbacks: (() => void)[];
     private ankiCardModified?: (
         message: DictionaryDBCommand<CardUpdatedDialogMessage | CardExportedDialogMessage>
@@ -138,7 +141,9 @@ export class ExtensionDictionaryStorage implements DictionaryStorage {
     onBuildAnkiCacheStateChange(callback: (message: DictionaryBuildAnkiCacheState) => void) {
         this.buildAnkiCacheStateChangeCallbacks.push(callback);
         if (!this.buildAnkiCacheStateChange) {
-            this.buildAnkiCacheStateChange = (message: ExtensionToAsbPlayerCommand<DictionaryBuildAnkiCacheState>) => {
+            this.buildAnkiCacheStateChange = (
+                message: ExtensionToAsbPlayerCommand<DictionaryBuildAnkiCacheStateMessage>
+            ) => {
                 if (message.sender !== 'asbplayer-extension-to-player') return;
                 if (message.message.command !== 'dictionary-build-anki-cache-state') return;
                 this.buildAnkiCacheStateChangeCallbacks.forEach((c) => c(message.message));

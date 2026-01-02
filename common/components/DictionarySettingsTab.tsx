@@ -37,8 +37,109 @@ import { Yomitan } from '../yomitan/yomitan';
 import SwitchLabelWithHoverEffect from './SwitchLabelWithHoverEffect';
 import SettingsTextField from './SettingsTextField';
 import SettingsSection from './SettingsSection';
-import { DictionaryBuildAnkiCacheState } from '../src/message';
+import {
+    DictionaryBuildAnkiCacheProgress,
+    DictionaryBuildAnkiCacheState,
+    DictionaryBuildAnkiCacheStateError,
+    DictionaryBuildAnkiCacheStateErrorBuildExpirationData,
+    DictionaryBuildAnkiCacheStateErrorCode,
+    DictionaryBuildAnkiCacheStateErrorTrackNumberData,
+    DictionaryBuildAnkiCacheStateType,
+    DictionaryBuildAnkiCacheStats,
+} from '../src/message';
 import { DictionaryProvider } from '../dictionary-db';
+import { humanReadableTime } from '../util';
+
+const localizedDate = (timestamp: number) => {
+    return new Date(timestamp).toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+    });
+};
+
+const useBuildAnkiCacheState: () => {
+    severity: 'error' | 'info';
+    msg: string;
+    setBuildAnkiCacheState: (state: DictionaryBuildAnkiCacheState) => void;
+} = () => {
+    const { t } = useTranslation();
+    const [buildAnkiCacheState, setBuildAnkiCacheState] = useState<DictionaryBuildAnkiCacheState>();
+    let msg: string = '';
+
+    if (buildAnkiCacheState !== undefined) {
+        switch (buildAnkiCacheState.type) {
+            case DictionaryBuildAnkiCacheStateType.error:
+                const error = buildAnkiCacheState.body as DictionaryBuildAnkiCacheStateError;
+                switch (error.code) {
+                    case DictionaryBuildAnkiCacheStateErrorCode.concurrentBuild:
+                        msg = t('settings.dictionaryBuildInProgress', {
+                            time: localizedDate(
+                                (error.data as DictionaryBuildAnkiCacheStateErrorBuildExpirationData).expiration
+                            ),
+                        });
+                        break;
+                    case DictionaryBuildAnkiCacheStateErrorCode.noAnki:
+                        msg = t('settings.dictionaryBuildAnkiError');
+                        break;
+                    case DictionaryBuildAnkiCacheStateErrorCode.noYomitan:
+                        msg = t('settings.dictionaryBuildYomitanError', {
+                            trackNumber: (error.data as DictionaryBuildAnkiCacheStateErrorTrackNumberData).track + 1,
+                        });
+                        break;
+                    case DictionaryBuildAnkiCacheStateErrorCode.failedToSyncTrackStates:
+                    case DictionaryBuildAnkiCacheStateErrorCode.failedToBuild:
+                    default:
+                        msg = error.msg ? t('info.error', { message: error.msg }) : t('info.errorNoMessage');
+                        break;
+                }
+                break;
+            case DictionaryBuildAnkiCacheStateType.stats:
+                const stats = buildAnkiCacheState.body as DictionaryBuildAnkiCacheStats;
+                const parts: string[] = [];
+                if (stats.tracksToBuild !== undefined) {
+                    parts.push(
+                        t('settings.dictionaryBuildAnkiTracks', {
+                            tracks: stats.tracksToBuild.map((track) => `#${track + 1}`).join(', '),
+                        })
+                    );
+                }
+                if (stats.modifiedCards !== undefined) {
+                    parts.push(
+                        `${t('settings.dictionaryBuildModifiedCards', { numCards: stats.modifiedCards.toLocaleString('en-US') })}`
+                    );
+                }
+                if (stats.tracksToClear?.length && stats.orphanedCards !== undefined) {
+                    parts.push(
+                        t('settings.dictionaryBuildOrphanedCards', {
+                            numCards: stats.orphanedCards.toLocaleString('en-US'),
+                            tracks: stats.tracksToClear.map((track) => `#${track + 1}`).join(', '),
+                        })
+                    );
+                }
+                if (stats.buildTimestamp !== undefined) {
+                    const duration = Math.floor((Date.now() - stats.buildTimestamp) / 1000);
+                    if (duration > 0) {
+                        parts.push(`[${duration.toLocaleString('en-US')}s]`);
+                    }
+                }
+                msg = parts.join(' | ');
+                break;
+            case DictionaryBuildAnkiCacheStateType.progress:
+                const progress = buildAnkiCacheState.body as DictionaryBuildAnkiCacheProgress;
+                const rate = progress.current / (Date.now() - progress.buildTimestamp);
+                const eta = rate ? Math.ceil((progress.total - progress.current) / rate) : 0;
+                msg = `${progress.current.toLocaleString('en-US')} / ${t('settings.dictionaryBuildModifiedCards', { numCards: progress.total.toLocaleString('en-US') })} [ETA: ${localizedDate(Date.now() + eta)} (${humanReadableTime(eta)})]`;
+                break;
+        }
+    }
+
+    return {
+        severity: buildAnkiCacheState?.type === DictionaryBuildAnkiCacheStateType.error ? 'error' : 'info',
+        msg,
+        setBuildAnkiCacheState,
+    };
+};
 
 const Alert: React.FC<AlertProps> = ({ children, ...props }) => {
     return (
@@ -53,8 +154,6 @@ const Alert: React.FC<AlertProps> = ({ children, ...props }) => {
         </MuiAlert>
     );
 };
-
-const command = 'dictionary-build-anki-cache-state';
 
 interface Props {
     settings: AsbplayerSettings;
@@ -169,9 +268,7 @@ const DictionarySettingsTab: React.FC<Props> = ({
     };
 
     const [buildingAnkiCache, setBuildingAnkiCache] = useState<boolean>(false);
-    const [buildAnkiCacheResult, setBuildAnkiCacheResult] = useState<DictionaryBuildAnkiCacheState | undefined>(
-        undefined
-    );
+    const { severity: buildMessageSeverity, msg: buildMessage, setBuildAnkiCacheState } = useBuildAnkiCacheState();
 
     const handleBuildAnkiCache = useCallback(async () => {
         try {
@@ -179,18 +276,21 @@ const DictionarySettingsTab: React.FC<Props> = ({
             await dictionaryProvider.buildAnkiCache(activeProfile, settings);
         } catch (e) {
             console.error('Failed to send build Anki cache message', e);
-            const message = e instanceof Error ? e.message : String(e);
-            setBuildAnkiCacheResult({ command, msg: message, error: true, modifiedTokens: [] });
+            setBuildAnkiCacheState({
+                type: DictionaryBuildAnkiCacheStateType.error,
+                body: {
+                    code: DictionaryBuildAnkiCacheStateErrorCode.failedToBuild,
+                    msg: e instanceof Error ? e.message : String(e),
+                } as DictionaryBuildAnkiCacheStateError,
+            });
         } finally {
             setBuildingAnkiCache(false);
         }
-    }, [dictionaryProvider, settings, activeProfile]);
+    }, [dictionaryProvider, settings, activeProfile, setBuildAnkiCacheState]);
 
     useEffect(() => {
-        return dictionaryProvider.onBuildAnkiCacheStateChange((state) => {
-            if (state.msg.length) setBuildAnkiCacheResult(state);
-        });
-    }, [dictionaryProvider]);
+        return dictionaryProvider.onBuildAnkiCacheStateChange(setBuildAnkiCacheState);
+    }, [dictionaryProvider, setBuildAnkiCacheState]);
 
     return (
         <Stack spacing={1}>
@@ -218,11 +318,9 @@ const DictionarySettingsTab: React.FC<Props> = ({
                 <Typography variant="caption" color="textSecondary">
                     {t('settings.buildAnkiCacheHelperText')}
                 </Typography>
-                {buildAnkiCacheResult && (
+                {buildMessage && buildMessageSeverity && (
                     <div style={{ marginTop: 8 }}>
-                        <Alert severity={buildAnkiCacheResult.error ? 'error' : 'success'}>
-                            {buildAnkiCacheResult.msg}
-                        </Alert>
+                        <Alert severity={buildMessageSeverity}>{buildMessage}</Alert>
                     </div>
                 )}
             </div>

@@ -814,9 +814,62 @@ export interface DictionaryBuildAnkiCacheMessage extends MessageWithId {
     readonly settings: AsbplayerSettings;
 }
 
-export interface DictionaryBuildAnkiCacheState extends Message {
+export interface DictionaryBuildAnkiCacheStateBody {
+    modifiedTokens?: string[];
+}
+
+export interface DictionaryBuildAnkiCacheState {
+    body?: DictionaryBuildAnkiCacheStateBody;
+    type: DictionaryBuildAnkiCacheStateType;
+}
+
+export interface DictionaryBuildAnkiCacheStateMessage extends DictionaryBuildAnkiCacheState, Message {
     readonly command: 'dictionary-build-anki-cache-state';
-    msg: string;
-    error: boolean;
-    modifiedTokens: string[];
+}
+
+export enum DictionaryBuildAnkiCacheStateType {
+    unknown = 1,
+    error = 2,
+    stats = 3,
+    progress = 4,
+}
+
+export interface DictionaryBuildAnkiCacheStats extends DictionaryBuildAnkiCacheStateBody {
+    tracksToBuild?: number[];
+    tracksToClear?: number[];
+    orphanedCards?: number;
+    modifiedCards?: number;
+    buildTimestamp?: number;
+}
+
+export interface DictionaryBuildAnkiCacheProgress extends DictionaryBuildAnkiCacheStateBody {
+    current: number;
+    total: number;
+    buildTimestamp: number;
+}
+
+export enum DictionaryBuildAnkiCacheStateErrorCode {
+    concurrentBuild = 1,
+    noAnki = 2,
+    noYomitan = 3,
+    failedToSyncTrackStates = 4,
+    failedToBuild = 5,
+}
+
+export interface DictionaryBuildAnkiCacheStateErrorTrackNumberData {
+    track: number;
+}
+
+export interface DictionaryBuildAnkiCacheStateErrorBuildExpirationData {
+    expiration: number;
+}
+
+export type DictionaryBuildAnkiCacheStateErrorData =
+    | DictionaryBuildAnkiCacheStateErrorTrackNumberData
+    | DictionaryBuildAnkiCacheStateErrorBuildExpirationData;
+
+export interface DictionaryBuildAnkiCacheStateError extends DictionaryBuildAnkiCacheStateBody {
+    code: DictionaryBuildAnkiCacheStateErrorCode;
+    msg?: string;
+    data?: DictionaryBuildAnkiCacheStateErrorData;
 }

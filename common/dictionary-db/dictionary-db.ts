@@ -1,5 +1,12 @@
 import { Anki, escapeAnkiDeckQuery, escapeAnkiQuery, NoteInfo } from '@project/common/anki';
-import { DictionaryBuildAnkiCacheState } from '@project/common';
+import {
+    DictionaryBuildAnkiCacheState,
+    DictionaryBuildAnkiCacheStateError as DictionaryBuildAnkiCacheError,
+    DictionaryBuildAnkiCacheStateErrorCode,
+    DictionaryBuildAnkiCacheStateType,
+    DictionaryBuildAnkiCacheStats,
+    DictionaryBuildAnkiCacheProgress,
+} from '@project/common';
 import {
     AsbplayerSettings,
     dictionaryStatusCollectionEnabled,
@@ -7,11 +14,10 @@ import {
     DictionaryTrack,
     TokenStatus,
 } from '@project/common/settings';
-import { HAS_LETTER_REGEX, humanReadableTime, inBatches, mapAsync } from '@project/common/util';
+import { HAS_LETTER_REGEX, inBatches, mapAsync } from '@project/common/util';
 import { Yomitan } from '@project/common/yomitan/yomitan';
 import Dexie from 'dexie';
 import { v4 as uuidv4 } from 'uuid';
-import i18n, { TFunction } from 'i18next';
 
 const BUILD_MIN_EXPIRATION_MS = 5 * 60 * 1000; // 5 minutes
 
@@ -611,12 +617,8 @@ export class DictionaryDB {
     async buildAnkiCache(
         inputProfile: string | undefined,
         settings: AsbplayerSettings,
-        statusUpdates: (state: DictionaryBuildAnkiCacheState) => void,
-        options?: { t?: TFunction<['translation', ...string[]], undefined> }
+        statusUpdates: (state: DictionaryBuildAnkiCacheState) => void
     ): Promise<void> {
-        const t = options?.t ?? i18n.t;
-        let msg = 'Unknown error during build';
-        let error = true;
         const modifiedTokens = new Set<string>();
 
         const anki = new Anki(settings);
@@ -624,9 +626,15 @@ export class DictionaryDB {
             const permission = (await anki.requestPermission()).permission;
             if (permission !== 'granted') throw new Error(`permission ${permission}`);
         } catch (e) {
-            msg = `${t('settings.dictionaryBuildAnkiError')}`;
-            console.error(`${msg}: ${e}`);
-            statusUpdates({ command, msg, error, modifiedTokens: Array.from(modifiedTokens) });
+            console.error(e);
+            statusUpdates({
+                type: DictionaryBuildAnkiCacheStateType.error,
+                body: {
+                    code: DictionaryBuildAnkiCacheStateErrorCode.noAnki,
+                    msg: e instanceof Error ? e.message : String(e),
+                    modifiedTokens: Array.from(modifiedTokens),
+                } as DictionaryBuildAnkiCacheError,
+            });
             return;
         }
 
@@ -642,28 +650,25 @@ export class DictionaryDB {
             for (const [track, dt] of settings.dictionaryTracks.entries()) {
                 const key: DictionaryMetaKey = [profile, track];
                 let prevSettings: string | null = null;
-                const canBuild = await this.db.transaction('rw', this.db.meta, async () => {
+                const existingBuild = await this.db.transaction('rw', this.db.meta, async () => {
                     if (await this._ensureBuildId(key, buildId, { buildTs })) {
                         prevSettings = (await this.db.meta.get(key))!.settings;
-                        return true;
+                        return undefined;
                     }
-                    const expiration = await this.db.meta
-                        .where('[profile+track]')
-                        .equals(key)
-                        .first()
-                        .then((meta) =>
-                            new Date(meta!.lastBuildExpiresAt).toLocaleTimeString([], {
-                                hour: '2-digit',
-                                minute: '2-digit',
-                                second: '2-digit',
-                            })
-                        );
-                    msg = `${t('settings.dictionaryBuildInProgress', { time: expiration })}`;
-                    console.error(msg);
-                    return false;
+                    return await this.db.meta.where('[profile+track]').equals(key).first();
                 });
-                if (!canBuild) {
-                    statusUpdates({ command, msg, error, modifiedTokens: Array.from(modifiedTokens) });
+                if (existingBuild !== undefined) {
+                    console.warn(`Build already in progress - expires at ${existingBuild.lastBuildExpiresAt}}`);
+                    statusUpdates({
+                        type: DictionaryBuildAnkiCacheStateType.error,
+                        body: {
+                            code: DictionaryBuildAnkiCacheStateErrorCode.concurrentBuild,
+                            modifiedTokens: Array.from(modifiedTokens),
+                            data: {
+                                expiration: existingBuild.lastBuildExpiresAt,
+                            },
+                        } as DictionaryBuildAnkiCacheError,
+                    });
                     return; // Since we set the buildId for all tracks regardless of enabled status, concurrent builds are prevented
                 }
                 activeTracks.push(key);
@@ -677,9 +682,16 @@ export class DictionaryDB {
                 try {
                     await yomitan.version();
                 } catch (e) {
-                    msg = `${t('settings.dictionaryBuildYomitanError', { trackNumber: track + 1 })}`;
-                    console.error(`${msg}: ${e}`);
-                    statusUpdates({ command, msg, error, modifiedTokens: Array.from(modifiedTokens) });
+                    console.error(e);
+                    statusUpdates({
+                        type: DictionaryBuildAnkiCacheStateType.error,
+                        body: {
+                            code: DictionaryBuildAnkiCacheStateErrorCode.noYomitan,
+                            msg: e instanceof Error ? e.message : String(e),
+                            data: { track },
+                            modifiedTokens: Array.from(modifiedTokens),
+                        } as DictionaryBuildAnkiCacheError,
+                    });
                     return;
                 }
                 trackStates.set(track, { dt, yomitan });
@@ -713,14 +725,23 @@ export class DictionaryDB {
                     if (settingsToUpdate.length) await this.db.meta.bulkUpdate(settingsToUpdate); // Set the new settings so we can resume the build if it fails midway
                 });
                 if (!trackStates.size) {
-                    msg = `${t('settings.dictionaryBuildAnkiTracks', { tracks: 'null' })} | ${t('settings.dictionaryBuildOrphanedCards', { numCards: numCardsFromOrphanedTracks.toLocaleString('en-US'), tracks: tracksToClear.map((track) => `#${track + 1}`).join(', ') })}`;
-                    error = false;
-                    statusUpdates({ command, msg, error, modifiedTokens: Array.from(modifiedTokens) });
+                    statusUpdates({
+                        type: DictionaryBuildAnkiCacheStateType.stats,
+                        body: {
+                            tracksToClear,
+                            orphanedCards: numCardsFromOrphanedTracks,
+                            modifiedTokens: Array.from(modifiedTokens),
+                        } as DictionaryBuildAnkiCacheStats,
+                    });
                     return;
                 }
             } else if (!trackStates.size) {
-                msg = `${t('settings.dictionaryBuildAnkiTracks', { tracks: 'null' })}`;
-                statusUpdates({ command, msg, error, modifiedTokens: Array.from(modifiedTokens) });
+                statusUpdates({
+                    type: DictionaryBuildAnkiCacheStateType.stats,
+                    body: {
+                        modifiedTokens: Array.from(modifiedTokens),
+                    } as DictionaryBuildAnkiCacheStats,
+                });
                 return;
             }
 
@@ -739,9 +760,15 @@ export class DictionaryDB {
                     await this._buildAnkiCardStatuses(track, ts, modifiedCards, anki);
                 }
             } catch (e) {
-                msg = `Could not sync track states with Anki: ${e}`;
-                console.error(msg);
-                statusUpdates({ command, msg, error, modifiedTokens: Array.from(modifiedTokens) });
+                console.error(e);
+                statusUpdates({
+                    type: DictionaryBuildAnkiCacheStateType.error,
+                    body: {
+                        msg: e instanceof Error ? e.message : String(e),
+                        code: DictionaryBuildAnkiCacheStateErrorCode.failedToSyncTrackStates,
+                        modifiedTokens: Array.from(modifiedTokens),
+                    } as DictionaryBuildAnkiCacheError,
+                });
                 return;
             }
 
@@ -758,21 +785,27 @@ export class DictionaryDB {
                 activeTracks,
                 numUpdatedCards,
                 buildTs,
-                statusUpdates,
-                t
+                statusUpdates
             );
-            msg = `${t('settings.dictionaryBuildAnkiTracks', {
-                tracks: Array.from(trackStates.keys())
-                    .map((track) => `#${track + 1}`)
-                    .join(', '),
-            })} | ${t('settings.dictionaryBuildModifiedCards', { numCards: numUpdatedCards.toLocaleString('en-US') })}`;
-            error = false;
             clearBuildIds = false;
-            statusUpdates({ command, msg, error, modifiedTokens: [] }); // Delay publishing deleted modified tokens so tokens aren't flashed uncollected during build
+            statusUpdates({
+                type: DictionaryBuildAnkiCacheStateType.stats,
+                body: {
+                    tracksToBuild: Array.from(trackStates.keys()),
+                    modifiedCards: numUpdatedCards,
+                    modifiedTokens: [], // Delay publishing deleted modified tokens so tokens aren't flashed uncollected during build
+                } as DictionaryBuildAnkiCacheStats,
+            });
         } catch (e) {
-            msg = `Error during build: ${e}`;
-            console.error(msg);
-            statusUpdates({ command, msg, error, modifiedTokens: Array.from(modifiedTokens) });
+            console.error(e);
+            statusUpdates({
+                type: DictionaryBuildAnkiCacheStateType.error,
+                body: {
+                    msg: e instanceof Error ? e.message : String(e),
+                    code: DictionaryBuildAnkiCacheStateErrorCode.failedToBuild,
+                    modifiedTokens: Array.from(modifiedTokens),
+                } as DictionaryBuildAnkiCacheError,
+            });
         } finally {
             if (clearBuildIds) await this._clearBuildIds(activeTracks, buildId); // Otherwise let _processTracks() clear the build IDs when it's done
         }
@@ -1039,8 +1072,7 @@ export class DictionaryDB {
         activeTracks: DictionaryMetaKey[],
         progress: BuildAnkiCacheProgress,
         modifiedTokens: string[],
-        statusUpdates: (state: DictionaryBuildAnkiCacheState) => void,
-        t: TFunction<['translation', ...string[]], undefined>
+        statusUpdates: (state: DictionaryBuildAnkiCacheState) => void
     ): Promise<void> {
         const rate = progress.current / (Date.now() - progress.startedAt);
         const eta = rate ? Math.ceil((progress.total - progress.current) / rate) : 0;
@@ -1051,16 +1083,14 @@ export class DictionaryDB {
             for (const key of activeTracks) keysAndChanges.push({ key, changes: { lastBuildExpiresAt } });
             await this.db.meta.bulkUpdate(keysAndChanges);
         });
-        const time = new Date(Date.now() + eta).toLocaleTimeString([], {
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-        });
         statusUpdates({
-            command,
-            msg: `${progress.current.toLocaleString('en-US')} / ${t('settings.dictionaryBuildModifiedCards', { numCards: progress.total.toLocaleString('en-US') })} [ETA: ${time} (${humanReadableTime(eta)})]`,
-            error: false,
-            modifiedTokens,
+            type: DictionaryBuildAnkiCacheStateType.progress,
+            body: {
+                current: progress.current,
+                total: progress.total,
+                buildTimestamp: progress.startedAt,
+                modifiedTokens,
+            } as DictionaryBuildAnkiCacheProgress,
         });
     }
 
@@ -1076,11 +1106,9 @@ export class DictionaryDB {
         activeTracks: DictionaryMetaKey[],
         numUpdatedCards: number,
         buildTs: number,
-        statusUpdates: (state: DictionaryBuildAnkiCacheState) => void,
-        t: TFunction<['translation', ...string[]], undefined>
+        statusUpdates: (state: DictionaryBuildAnkiCacheState) => void
     ): Promise<void> {
-        let msg = 'Unknown error during build';
-        let error = true;
+        let error: any;
         const progress: BuildAnkiCacheProgress = {
             current: 0,
             total: modifiedCards.size,
@@ -1100,30 +1128,37 @@ export class DictionaryDB {
                 buildId,
                 activeTracks,
                 progress,
-                statusUpdates,
-                t
+                statusUpdates
             );
-
-            const duration = Math.ceil((Date.now() - buildTs) / 1000);
-            msg = `${t('settings.dictionaryBuildAnkiTracks', {
-                tracks: Array.from(trackStates.keys())
-                    .map((track) => `#${track + 1}`)
-                    .join(', '),
-            })}`;
-            msg += ` | ${t('settings.dictionaryBuildModifiedCards', { numCards: numUpdatedCards.toLocaleString('en-US') })}`;
-            if (tracksToClear.length && numCardsFromOrphanedTracks) {
-                msg += ` | ${t('settings.dictionaryBuildOrphanedCards', { numCards: numCardsFromOrphanedTracks.toLocaleString('en-US'), tracks: tracksToClear.map((track) => `#${track + 1}`).join(', ') })}`;
-            }
-            msg += ` [${duration.toLocaleString('en-US')}s]`;
-            error = false;
         } catch (e) {
-            msg = `Error during build: ${e}`;
-            console.error(msg);
+            error = e;
+            console.error(e);
         } finally {
             await this._clearBuildIds(activeTracks, buildId);
             if (modifiedTokens.size || numUpdatedCards || numCardsFromOrphanedTracks || error) {
                 await this._gatherModifiedTokens(profile, modifiedTokens); // Delay publishing deleted modified tokens so tokens aren't flashed uncollected during build
-                statusUpdates({ command, msg, error, modifiedTokens: Array.from(modifiedTokens) });
+                if (error) {
+                    statusUpdates({
+                        type: DictionaryBuildAnkiCacheStateType.error,
+                        body: {
+                            msg: error instanceof Error ? error.message : String(error),
+                            code: DictionaryBuildAnkiCacheStateErrorCode.failedToBuild,
+                            modifiedTokens: Array.from(modifiedTokens),
+                        } as DictionaryBuildAnkiCacheError,
+                    });
+                } else {
+                    statusUpdates({
+                        type: DictionaryBuildAnkiCacheStateType.stats,
+                        body: {
+                            tracksToBuild: Array.from(trackStates.keys()),
+                            modifiedCards: numUpdatedCards,
+                            orphanedCards: numCardsFromOrphanedTracks,
+                            tracksToClear: tracksToClear,
+                            buildTimestamp: buildTs,
+                            modifiedTokens: Array.from(modifiedTokens),
+                        } as DictionaryBuildAnkiCacheStats,
+                    });
+                }
             }
         }
     }
@@ -1135,8 +1170,7 @@ export class DictionaryDB {
         buildId: string,
         activeTracks: DictionaryMetaKey[],
         progress: BuildAnkiCacheProgress,
-        statusUpdates: (state: DictionaryBuildAnkiCacheState) => void,
-        t: TFunction<['translation', ...string[]], undefined>
+        statusUpdates: (state: DictionaryBuildAnkiCacheState) => void
     ): Promise<void> {
         if (!modifiedCards.size) return;
         const ankiTokenStatus = null; // Calculate when getting due to certain settings (e.g. dictionaryAnkiMatureCutoff dictionaryAnkiTreatSuspended)
@@ -1285,8 +1319,7 @@ export class DictionaryDB {
                     activeTracks,
                     progress,
                     Array.from(modifiedTokens),
-                    statusUpdates,
-                    t
+                    statusUpdates
                 );
             },
             { batchSize: 100 } // Batch for memory usage and yomitan cache size

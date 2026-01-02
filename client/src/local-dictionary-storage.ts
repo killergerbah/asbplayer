@@ -2,6 +2,7 @@ import {
     CardExportedDialogMessage,
     CardUpdatedDialogMessage,
     DictionaryBuildAnkiCacheState,
+    DictionaryBuildAnkiCacheStateMessage,
     DictionaryDBCommand,
     ExtensionToAsbPlayerCommand,
 } from '@project/common';
@@ -43,9 +44,9 @@ export class LocalDictionaryStorage implements DictionaryStorage {
 
     buildAnkiCache(profile: string | undefined, settings: AsbplayerSettings) {
         return this.dictionaryDB.buildAnkiCache(profile, settings, (state: DictionaryBuildAnkiCacheState) => {
-            const message: ExtensionToAsbPlayerCommand<DictionaryBuildAnkiCacheState> = {
+            const message: ExtensionToAsbPlayerCommand<DictionaryBuildAnkiCacheStateMessage> = {
                 sender: 'asbplayer-extension-to-player',
-                message: state,
+                message: { command: 'dictionary-build-anki-cache-state', ...state },
             };
             window.parent.postMessage(message);
         });
@@ -86,7 +87,7 @@ export class LocalDictionaryStorage implements DictionaryStorage {
         if (!this.buildAnkiCacheStateChange) {
             this.buildAnkiCacheStateChange = (event: MessageEvent) => {
                 if (event.type !== 'message') return;
-                const data: ExtensionToAsbPlayerCommand<DictionaryBuildAnkiCacheState> = event.data;
+                const data: ExtensionToAsbPlayerCommand<DictionaryBuildAnkiCacheStateMessage> = event.data;
                 if (data.sender !== 'asbplayer-extension-to-player') return;
                 if (data.message.command !== 'dictionary-build-anki-cache-state') return;
                 this.buildAnkiCacheStateChangeCallbacks.forEach((c) => c(data.message));

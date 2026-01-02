@@ -1,4 +1,9 @@
-import { Fetcher, RichSubtitleModel } from '@project/common';
+import {
+    DictionaryBuildAnkiCacheStateError,
+    DictionaryBuildAnkiCacheStateType,
+    Fetcher,
+    RichSubtitleModel,
+} from '@project/common';
 import { Anki } from '@project/common/anki';
 import {
     areDictionaryTracksEqual,
@@ -258,9 +263,10 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
     bind() {
         if (this.removeBuildAnkiCacheStateChangeCB) this.removeBuildAnkiCacheStateChangeCB();
         this.removeBuildAnkiCacheStateChangeCB = this.dictionaryProvider.onBuildAnkiCacheStateChange((state) => {
-            this.tokensWereModified(state.modifiedTokens);
-            if (state.error) {
-                console.warn(`Dictionary Anki cache build error: ${state.msg}`);
+            this.tokensWereModified(state.body?.modifiedTokens ?? []);
+            if (state.type === DictionaryBuildAnkiCacheStateType.error) {
+                const body = state.body as DictionaryBuildAnkiCacheStateError;
+                console.warn(`Dictionary Anki cache build error: ${body.msg}`);
                 this.ankiRecentlyModifiedCardIds.clear();
                 this.ankiRecentlyModifiedFirstCheck = false;
             }
