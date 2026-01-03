@@ -130,7 +130,6 @@ export default class Binding {
     private _seekDuration = 3;
     private _speedChangeStep = 0.1;
     private _pendingAutoRepeatTargetTimestamp = 0;
-    private _lastKnownTime = 0;
 
     private _resetPendingAutoRepeatTargetTimestamp() {
         this._pendingAutoRepeatTargetTimestamp = 0;
@@ -492,8 +491,6 @@ export default class Binding {
     }
 
     _notifyReady() {
-        this._lastKnownTime = this.video.currentTime;
-
         const command: VideoToExtensionCommand<ReadyFromVideoMessage> = {
             sender: 'asbplayer-video',
             message: {
@@ -549,14 +546,14 @@ export default class Binding {
         };
 
         this.seekedListener = (event) => {
-            const currentTime = this.video.currentTime;
-            this._lastKnownTime = currentTime;
+
+            this._resetPendingAutoRepeatTargetTimestamp();
 
             const currentTimeCommand: VideoToExtensionCommand<CurrentTimeFromVideoMessage> = {
                 sender: 'asbplayer-video',
                 message: {
                     command: 'currentTime',
-                    value: currentTime,
+                    value: this.video.currentTime,
                     echo: false,
                 },
                 src: this.video.src,
