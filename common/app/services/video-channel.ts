@@ -23,7 +23,7 @@ import {
     PlaybackRateToVideoMessage,
     PlayFromVideoMessage,
     PlayMode,
-    PlayModeMessage,
+    PlayModesMessage,
     PostMineAction,
     ReadyFromVideoMessage,
     ReadyStateFromVideoMessage,
@@ -63,13 +63,13 @@ export default class VideoChannel {
         id: string | undefined,
         mediaTimestamp: number | undefined
     ) => void)[];
-    private playModeCallbacks: ((mode: PlayMode) => void)[];
     private hideSubtitlePlayerToggleCallbacks: (() => void)[];
     private appBarToggleCallbacks: (() => void)[];
     private ankiDialogRequestCallbacks: (() => void)[];
     private toggleSubtitleTrackInListCallbacks: ((track: number) => void)[];
     private subtitlesUpdatedCallbacks: ((updatedSubtitles: RichSubtitleModel[]) => void)[];
     private loadFilesCallbacks: (() => void)[];
+    private playModesCallbacks: ((modes: Set<PlayMode>) => void)[];
 
     readyState: number;
     oncanplay: ((ev: Event) => void) | null = null;
@@ -96,13 +96,13 @@ export default class VideoChannel {
         this.playbackRateCallbacks = [];
         this.popOutToggleCallbacks = [];
         this.copyCallbacks = [];
-        this.playModeCallbacks = [];
         this.hideSubtitlePlayerToggleCallbacks = [];
         this.appBarToggleCallbacks = [];
         this.ankiDialogRequestCallbacks = [];
         this.toggleSubtitleTrackInListCallbacks = [];
         this.subtitlesUpdatedCallbacks = [];
         this.loadFilesCallbacks = [];
+        this.playModesCallbacks = [];
 
         const that = this;
 
@@ -201,12 +201,6 @@ export default class VideoChannel {
                         );
                     }
                     break;
-                case 'playMode':
-                    for (let callback of that.playModeCallbacks) {
-                        const playModeMessage = event.data as PlayModeMessage;
-                        callback(playModeMessage.playMode);
-                    }
-                    break;
                 case 'hideSubtitlePlayerToggle':
                     for (let callback of that.hideSubtitlePlayerToggleCallbacks) {
                         callback();
@@ -245,6 +239,13 @@ export default class VideoChannel {
                 case 'loadFiles':
                     for (const callback of that.loadFilesCallbacks) {
                         callback();
+                    }
+                    break;
+                case 'playModes':
+                    for (let callback of that.playModesCallbacks) {
+                        const playModesMessage = event.data as PlayModesMessage;
+                        const modes = new Set<PlayMode>(playModesMessage.playModes);
+                        callback(modes);
                     }
                     break;
                 default:
@@ -338,11 +339,6 @@ export default class VideoChannel {
         return () => this._remove(callback, this.copyCallbacks);
     }
 
-    onPlayMode(callback: (playMode: PlayMode) => void) {
-        this.playModeCallbacks.push(callback);
-        return () => this._remove(callback, this.playModeCallbacks);
-    }
-
     onHideSubtitlePlayerToggle(callback: () => void) {
         this.hideSubtitlePlayerToggleCallbacks.push(callback);
         return () => this._remove(callback, this.hideSubtitlePlayerToggleCallbacks);
@@ -371,6 +367,11 @@ export default class VideoChannel {
     onLoadFiles(callback: () => void) {
         this.loadFilesCallbacks.push(callback);
         return () => this._remove(callback, this.loadFilesCallbacks);
+    }
+
+    onPlayModes(callback: (modes: Set<PlayMode>) => void) {
+        this.playModesCallbacks.push(callback);
+        return () => this._remove(callback, this.playModesCallbacks);
     }
 
     ready(duration: number, videoFileName?: string) {
@@ -465,10 +466,10 @@ export default class VideoChannel {
         this.protocol.postMessage(message);
     }
 
-    playMode(playMode: PlayMode) {
-        const message: PlayModeMessage = {
-            command: 'playMode',
-            playMode: playMode,
+    playModes(playModes: Set<PlayMode>) {
+        const message: PlayModesMessage = {
+            command: 'playModes',
+            playModes: [...playModes],
         };
         this.protocol.postMessage(message);
     }
@@ -652,13 +653,13 @@ export default class VideoChannel {
         this.playbackRateCallbacks = [];
         this.popOutToggleCallbacks = [];
         this.copyCallbacks = [];
-        this.playModeCallbacks = [];
         this.hideSubtitlePlayerToggleCallbacks = [];
         this.appBarToggleCallbacks = [];
         this.ankiDialogRequestCallbacks = [];
         this.toggleSubtitleTrackInListCallbacks = [];
         this.subtitlesUpdatedCallbacks = [];
         this.loadFilesCallbacks = [];
+        this.playModesCallbacks = [];
     }
 
     _remove(callback: Function, callbacks: Function[]) {
