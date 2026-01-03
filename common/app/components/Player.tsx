@@ -180,6 +180,14 @@ const Player = React.memo(function Player({
     const [subtitlesSentThroughChannel, setSubtitlesSentThroughChannel] = useState<boolean>();
     const subtitlesRef = useRef<DisplaySubtitleModel[]>(undefined);
     subtitlesRef.current = subtitles;
+    const [subtitleCollection, setSubtitleCollection] = useState<
+        SubtitleColoring | SubtitleCollection<DisplaySubtitleModel>
+    >(SubtitleCollection.empty<DisplaySubtitleModel>());
+    const subtitleCollectionRef = useRef<SubtitleColoring | SubtitleCollection<DisplaySubtitleModel>>(
+        subtitleCollection
+    );
+    subtitleCollectionRef.current = subtitleCollection;
+
     const subtitleFiles = sources?.subtitleFiles;
     const flattenSubtitleFiles = sources?.flattenSubtitleFiles;
     const videoFile = sources?.videoFile;
@@ -449,14 +457,6 @@ const Player = React.memo(function Player({
 
         init().then(() => onLoaded(subtitleFiles ?? []));
     }, [subtitleReader, onLoaded, onError, subtitleFiles, flattenSubtitleFiles, onSubtitles]);
-
-    const [subtitleCollection, setSubtitleCollection] = useState<
-        SubtitleColoring | SubtitleCollection<DisplaySubtitleModel>
-    >(SubtitleCollection.empty<DisplaySubtitleModel>());
-    const subtitleCollectionRef = useRef<SubtitleColoring | SubtitleCollection<DisplaySubtitleModel>>(
-        subtitleCollection
-    );
-    subtitleCollectionRef.current = subtitleCollection;
 
     useEffect(() => {
         const options = { returnLastShown: true, returnNextToShow: true, showingCheckRadiusMs: 150 };
