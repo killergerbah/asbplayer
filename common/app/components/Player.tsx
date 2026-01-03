@@ -318,7 +318,16 @@ const Player = React.memo(function Player({
                 }
             }
         },
-        [playModes, clock, mediaAdapter, videoFileUrl, settings.autoPausePreference, seek, subtitleCollection, resetPendingAutoRepeatTargetTimestamp]
+        [
+            playModes,
+            clock,
+            mediaAdapter,
+            videoFileUrl,
+            settings.autoPausePreference,
+            seek,
+            subtitleCollection,
+            resetPendingAutoRepeatTargetTimestamp,
+        ]
     );
 
     const autoPauseContext = useMemo(() => {

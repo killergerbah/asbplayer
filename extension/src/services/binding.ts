@@ -546,7 +546,6 @@ export default class Binding {
         };
 
         this.seekedListener = (event) => {
-
             this._resetPendingAutoRepeatTargetTimestamp();
 
             const currentTimeCommand: VideoToExtensionCommand<CurrentTimeFromVideoMessage> = {
@@ -1339,7 +1338,6 @@ export default class Binding {
     }
 
     async play() {
-
         if (netflix) {
             await this._playNetflix();
             return;

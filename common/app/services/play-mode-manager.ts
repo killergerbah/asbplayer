@@ -77,7 +77,7 @@ export default class PlayModeManager {
             }
             this._modes.add(targetMode);
         }
-        
+
         if (hadFastForwardBefore && !this._modes.has(PlayMode.fastForward) && resolveConflicts) {
             resolveConflicts({ mode: PlayMode.fastForward, shouldResetPlaybackRate: true });
         }
