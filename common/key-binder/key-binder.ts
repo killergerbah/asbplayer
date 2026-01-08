@@ -1,6 +1,6 @@
 import { SubtitleModel } from '../src/model';
 import hotkeys from 'hotkeys-js';
-import { KeyBindSet } from '../settings/settings';
+import { KeyBindSet, TokenStatus } from '../settings/settings';
 
 export function adjacentSubtitle(forward: boolean, time: number, subtitles: SubtitleModel[]) {
     const now = time;
@@ -158,6 +158,11 @@ export interface KeyBinder {
     ): () => void;
     bindAdjustTopSubtitlePositionOffset(
         onAdjustTopSubtitlePositionOffset: (event: KeyboardEvent, increase: boolean) => void,
+        disabledGetter: () => boolean,
+        capture?: boolean
+    ): () => void;
+    bindMarkHoveredToken(
+        onMarkHoveredToken: (event: KeyboardEvent, tokenStatus: TokenStatus) => void,
         disabledGetter: () => boolean,
         capture?: boolean
     ): () => void;
@@ -939,6 +944,48 @@ export class DefaultKeyBinder implements KeyBinder {
         };
 
         return this._bind(shortcut, capture, handler);
+    }
+
+    bindMarkHoveredToken(
+        onMarkHoveredToken: (event: KeyboardEvent, tokenStatus: TokenStatus) => void,
+        disabledGetter: () => boolean,
+        capture = false
+    ) {
+        const shortcuts = [
+            this.keyBindSet.markHoveredToken0.keys,
+            this.keyBindSet.markHoveredToken1.keys,
+            this.keyBindSet.markHoveredToken2.keys,
+            this.keyBindSet.markHoveredToken3.keys,
+            this.keyBindSet.markHoveredToken4.keys,
+            this.keyBindSet.markHoveredToken5.keys,
+        ];
+
+        if (shortcuts.length === 0) {
+            return () => {};
+        }
+
+        const delegate = (event: KeyboardEvent, tokenStatus: TokenStatus) => {
+            if (disabledGetter()) {
+                return false;
+            }
+
+            onMarkHoveredToken(event, tokenStatus);
+            return true;
+        };
+        let unbindHandlers: (() => void)[] = [];
+
+        for (let i = 0; i < shortcuts.length; ++i) {
+            const handler = (event: KeyboardEvent) => delegate(event, i as TokenStatus);
+            const unbindHandler = shortcuts[i] ? this._bind(shortcuts[i], capture, handler) : () => {};
+            unbindHandlers.push(unbindHandler);
+        }
+
+        return () => {
+            for (let i = 0; i < shortcuts.length; ++i) {
+                const unbindHandler = unbindHandlers[i];
+                unbindHandler();
+            }
+        };
     }
 
     private _bind(shortcut: string, capture: boolean, handler: (event: KeyboardEvent) => boolean) {

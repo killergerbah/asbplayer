@@ -37,6 +37,7 @@ import { useAppBarHeight } from '../hooks/use-app-bar-height';
 import { createBlobUrl } from '../../blob-url';
 import { MiningContext } from '../services/mining-context';
 import { SeekTimestampCommand, WebSocketClient } from '../../web-socket-client';
+import { ensureStoragePersisted } from '../../util';
 
 const minVideoPlayerWidth = 300;
 
@@ -450,7 +451,6 @@ const Player = React.memo(function Player({
         subtitleCollectionRef.current.settingsUpdated(settings);
     }, [settings]);
 
-    // Immediate update of subtitle colors when changed (from extension)
     useEffect(() => {
         return channel?.onSubtitlesUpdated((updatedSubtitles) => {
             onSubtitles((prevSubtitles) => {
@@ -498,6 +498,45 @@ const Player = React.memo(function Player({
             if (removeCardExportedDialog) removeCardExportedDialog();
         };
     }, [channel, extension, tab, onSubtitles]);
+
+    const [hoveredElement, setHoveredElement] = useState<HTMLElement | null>(null);
+    const hoveredElementRef = useRef<HTMLElement | null>(hoveredElement);
+    hoveredElementRef.current = hoveredElement;
+
+    const handleMouseOver = useCallback((e: React.MouseEvent) => {
+        setHoveredElement(SubtitleColoring.handleMouseOver(e.nativeEvent as MouseEvent));
+    }, []);
+
+    const handleMouseOut = useCallback((e: React.MouseEvent) => {
+        if (SubtitleColoring.handleMouseOut(e.nativeEvent as MouseEvent, hoveredElementRef.current)) {
+            setHoveredElement(null);
+        }
+    }, []);
+
+    useEffect(() => {
+        return keyBinder.bindMarkHoveredToken(
+            (event, tokenStatus) => {
+                const res = SubtitleColoring.parseTokenFromElement(hoveredElementRef.current);
+                if (!res) return;
+                void ensureStoragePersisted();
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                if (subtitleCollectionRef.current instanceof SubtitleColoring) {
+                    void subtitleCollectionRef.current.saveTokenLocal(res.track, res.token, tokenStatus, []);
+                    return;
+                }
+                if (tab) void extension.saveTokenLocal(tab.id, tab.src, res.track, res.token, tokenStatus, []);
+            },
+            () => disableKeyEvents
+        );
+    }, [keyBinder, disableKeyEvents, tab, extension]);
+
+    useEffect(() => {
+        return channel?.onSaveTokenLocal((track, token, status, states) => {
+            if (!(subtitleCollectionRef.current instanceof SubtitleColoring)) return;
+            subtitleCollectionRef.current.saveTokenLocal(track, token, status, states);
+        });
+    }, [channel]);
 
     useEffect(() => {
         setSubtitlesSentThroughChannel(false);
@@ -1169,6 +1208,8 @@ const Player = React.memo(function Player({
                         disabledSubtitleTracks={disabledSubtitleTracks}
                         onSeek={handleSeekToTimestamp}
                         onCopy={handleCopyFromSubtitlePlayer}
+                        onMouseOver={handleMouseOver}
+                        onMouseOut={handleMouseOut}
                         onOffsetChange={handleOffsetChange}
                         onToggleSubtitleTrack={handleToggleSubtitleTrack}
                         onSubtitlesHighlighted={handleSubtitlesHighlighted}

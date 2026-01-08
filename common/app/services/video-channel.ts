@@ -31,13 +31,16 @@ import {
     SubtitleModel,
     SubtitleSettingsToVideoMessage,
     SubtitlesToVideoMessage,
-    SubtitlesUpdatedFromVideoMessage,
     TakeScreenshotToVideoPlayerMessage,
     ToggleSubtitleTrackInListFromVideoMessage,
+    SubtitlesUpdatedFromVideoMessage,
     SubtitlesUpdatedToVideoMessage,
+    SaveTokenLocalFromVideoMessage,
+    SaveTokenLocalToVideoMessage,
 } from '@project/common';
-import { AnkiSettings, MiscSettings, SubtitleSettings } from '@project/common/settings';
+import { AnkiSettings, MiscSettings, SubtitleSettings, TokenStatus } from '@project/common/settings';
 import { VideoProtocol } from './video-protocol';
+import { DictionaryTokenState } from '../../dictionary-db';
 
 export default class VideoChannel {
     private readonly protocol: VideoProtocol;
@@ -69,6 +72,12 @@ export default class VideoChannel {
     private ankiDialogRequestCallbacks: (() => void)[];
     private toggleSubtitleTrackInListCallbacks: ((track: number) => void)[];
     private subtitlesUpdatedCallbacks: ((updatedSubtitles: RichSubtitleModel[]) => void)[];
+    private saveTokenLocalCallbacks: ((
+        track: number,
+        token: string,
+        status: TokenStatus,
+        states: DictionaryTokenState[]
+    ) => void)[];
     private loadFilesCallbacks: (() => void)[];
     private cardUpdatedDialogCallbacks: (() => void)[];
     private cardExportedDialogCallbacks: (() => void)[];
@@ -104,6 +113,7 @@ export default class VideoChannel {
         this.ankiDialogRequestCallbacks = [];
         this.toggleSubtitleTrackInListCallbacks = [];
         this.subtitlesUpdatedCallbacks = [];
+        this.saveTokenLocalCallbacks = [];
         this.loadFilesCallbacks = [];
         this.cardUpdatedDialogCallbacks = [];
         this.cardExportedDialogCallbacks = [];
@@ -246,6 +256,13 @@ export default class VideoChannel {
                         callback(subtitlesUpdatedMessage.updatedSubtitles);
                     }
                     break;
+                case 'saveTokenLocal':
+                    const { track, token, status, states } = event.data as SaveTokenLocalFromVideoMessage;
+
+                    for (const callback of that.saveTokenLocalCallbacks) {
+                        callback(track, token, status, states);
+                    }
+                    break;
                 case 'loadFiles':
                     for (const callback of that.loadFilesCallbacks) {
                         callback();
@@ -382,6 +399,13 @@ export default class VideoChannel {
         return () => this._remove(callback, this.subtitlesUpdatedCallbacks);
     }
 
+    onSaveTokenLocal(
+        callback: (track: number, token: string, status: TokenStatus, states: DictionaryTokenState[]) => void
+    ) {
+        this.saveTokenLocalCallbacks.push(callback);
+        return () => this._remove(callback, this.saveTokenLocalCallbacks);
+    }
+
     onLoadFiles(callback: () => void) {
         this.loadFilesCallbacks.push(callback);
         return () => this._remove(callback, this.loadFilesCallbacks);
@@ -428,6 +452,15 @@ export default class VideoChannel {
             name: subtitleFileNames.length > 0 ? subtitleFileNames[0] : null,
             names: subtitleFileNames,
         } as SubtitlesToVideoMessage);
+    }
+
+    saveTokenLocal(token: string, status: TokenStatus, states: DictionaryTokenState[]) {
+        this.protocol.postMessage({
+            command: 'saveTokenLocal',
+            token,
+            status,
+            states,
+        } as SaveTokenLocalToVideoMessage);
     }
 
     subtitlesUpdated(subtitles: RichSubtitleModel[]) {

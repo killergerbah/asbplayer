@@ -20,7 +20,13 @@ import {
     TokenStatus,
     TokenStyling,
 } from '@project/common/settings';
-import { CardStatus, DictionaryProvider, LemmaResults, TokenResults } from '@project/common/dictionary-db';
+import {
+    CardStatus,
+    DictionaryProvider,
+    DictionaryTokenState,
+    LemmaResults,
+    TokenResults,
+} from '@project/common/dictionary-db';
 import { SubtitleCollection, SubtitleCollectionOptions } from '@project/common/subtitle-collection';
 import { arrayEquals, HAS_LETTER_REGEX, inBatches, ONLY_ASCII_LETTERS_REGEX } from '@project/common/util';
 import { TokenPart, Yomitan } from '@project/common/yomitan/yomitan';
@@ -60,6 +66,8 @@ function shouldUseAnyForm(s: TokenMatchStrategy): boolean {
 }
 
 export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
+    static readonly ASB_TOKEN_CLASS = 'asb-token';
+
     private _subtitles: RichSubtitleModel[];
     private readonly dictionaryProvider: DictionaryProvider;
     private readonly settingsProvider: SettingsProvider;
@@ -200,6 +208,23 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
 
     hoverOnly(track: number) {
         return this.trackStates[track]?.dt.dictionaryColorizeOnHoverOnly;
+    }
+
+    async saveTokenLocal(
+        track: number,
+        token: string,
+        status: TokenStatus,
+        states: DictionaryTokenState[]
+    ): Promise<void> {
+        if (this.profile === null) return;
+        const profile = this.profile;
+        const ts = this.trackStates[track];
+        if (!ts || !dictionaryTrackEnabled(ts.dt) || !ts.yt) return;
+
+        const lemmas = await ts.yt.lemmatize(token);
+        await this.dictionaryProvider.saveRecordLocalBulk(profile, [{ token, status, lemmas, states }]);
+        this.tokensForRefresh.add(token);
+        for (const lemma of lemmas) this.tokensForRefresh.add(lemma);
     }
 
     private _colorCacheValid(cachedRichText: string | undefined, index: number, indexesForRefresh: Set<number>) {
@@ -596,7 +621,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                     .join('')
                     .trim();
                 if (!HAS_LETTER_REGEX.test(trimmedToken)) {
-                    richText += this._applyTokenStyle(tokenParts, getFullyKnownTokenStatus(), ts.dt);
+                    richText += this._applyTokenStyle(tokenParts, getFullyKnownTokenStatus(), ts.dt, false);
                     continue;
                 }
 
@@ -634,7 +659,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                 }
                 if (this.shouldCancelBuild) return;
 
-                richText += this._applyTokenStyle(tokenParts, tokenStatus, ts.dt);
+                richText += this._applyTokenStyle(tokenParts, tokenStatus, ts.dt, true);
                 if (tokenStatus === null) textHasError = true;
             }
 
@@ -644,10 +669,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
             this.tokenRequestFailed = true;
             console.error(`Error colorizing subtitle text for Track${ts.track + 1}:`, error);
             this.erroredCache.add(index);
-            return text
-                .split('\n')
-                .map((line) => this._applyTokenStyle([{ text: line, reading: '' }], null, ts.dt))
-                .join('\n');
+            return this._applyTokenStyle([{ text, reading: '' }], null, ts.dt, false);
         }
     }
 
@@ -877,34 +899,42 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
         return TokenStatus.UNCOLLECTED;
     }
 
-    private _applyTokenStyle(tokenParts: TokenPart[], tokenStatus: TokenStatus | null, dt: DictionaryTrack): string {
-        const token = this._applyReadingAnnotation(tokenParts, tokenStatus, dt);
+    private _applyTokenStyle(
+        tokenParts: TokenPart[],
+        tokenStatus: TokenStatus | null,
+        dt: DictionaryTrack,
+        validToken: boolean
+    ): string {
+        const token = this._applyReadingAnnotation(tokenParts, tokenStatus, dt, validToken);
         if (tokenStatus === null) return `<span style="text-decoration: line-through red 3px;">${token}</span>`;
         if (!dt.dictionaryColorizeSubtitles) return token;
-        if (!dt.colorizeFullyKnownTokens && tokenStatus === getFullyKnownTokenStatus()) return token;
+
+        const s = validToken ? `<span class="${SubtitleColoring.ASB_TOKEN_CLASS}"` : '<span';
+        if (!dt.colorizeFullyKnownTokens && tokenStatus === getFullyKnownTokenStatus()) return `${s}>${token}</span>`;
         const c = dt.tokenStatusColors[tokenStatus];
         const t = dt.tokenStylingThickness;
         switch (dt.tokenStyling) {
             case TokenStyling.TEXT:
-                return `<span style="-webkit-text-fill-color: ${c};">${token}</span>`;
+                return `${s} style="-webkit-text-fill-color: ${c};">${token}</span>`;
             case TokenStyling.BACKGROUND:
-                return `<span style="background-color: ${c};">${token}</span>`;
+                return `${s} style="background-color: ${c};">${token}</span>`;
             case TokenStyling.UNDERLINE:
             case TokenStyling.OVERLINE:
-                return `<span style="text-decoration: ${dt.tokenStyling} ${c} ${t}px;">${token}</span>`;
+                return `${s} style="text-decoration: ${dt.tokenStyling} ${c} ${t}px;">${token}</span>`;
             case TokenStyling.OUTLINE:
-                return `<span style="-webkit-text-stroke: ${t}px ${c};">${token}</span>`;
+                return `${s} style="-webkit-text-stroke: ${t}px ${c};">${token}</span>`;
             default:
-                return `<span style="text-decoration: line-through red 3px double;">${token}</span>`;
+                return `${s} style="text-decoration: line-through red 3px double;">${token}</span>`;
         }
     }
 
     private _applyReadingAnnotation(
         tokenParts: TokenPart[],
         tokenStatus: TokenStatus | null,
-        dt: DictionaryTrack
+        dt: DictionaryTrack,
+        validToken: boolean
     ): string {
-        if (tokenParts.every((p) => !HAS_LETTER_REGEX.test(p.text) || ONLY_ASCII_LETTERS_REGEX.test(p.text))) {
+        if (!validToken || tokenParts.every((p) => ONLY_ASCII_LETTERS_REGEX.test(p.text))) {
             return tokenParts.map((p) => p.text).join(''); // Prevent 。 -> まる or english words from getting ruby
         }
         const ano = dt.dictionaryTokenReadingAnnotation;
@@ -936,5 +966,54 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
             clearInterval(this.subtitlesInterval);
             this.subtitlesInterval = undefined;
         }
+    }
+
+    static handleMouseOver(mouseEvent: MouseEvent): HTMLElement | null {
+        if (!(mouseEvent.target instanceof HTMLElement)) return null;
+        return mouseEvent.target;
+    }
+
+    static handleMouseOut(mouseEvent: MouseEvent, hoveredElement: HTMLElement | null): boolean {
+        if (!(mouseEvent.target instanceof HTMLElement)) return true;
+        return hoveredElement === mouseEvent.target;
+    }
+
+    static parseTokenFromElement(tokenEl: HTMLElement | null): { token: string; track: number } | null {
+        if (!tokenEl) return null;
+        if (tokenEl.tagName === 'RUBY') {
+            const rubyEl = tokenEl.parentElement;
+            if (!rubyEl?.classList.contains(this.ASB_TOKEN_CLASS)) return null;
+            tokenEl = rubyEl;
+        } else if (tokenEl.tagName === 'RT') {
+            const rtEl = tokenEl.parentElement?.parentElement;
+            if (!rtEl?.classList.contains(this.ASB_TOKEN_CLASS)) return null;
+            tokenEl = rtEl;
+        } else if (!tokenEl.classList.contains(this.ASB_TOKEN_CLASS)) return null;
+        const trackStr = tokenEl.closest('[data-track]')?.getAttribute('data-track');
+        if (!trackStr) return null;
+
+        let token = '';
+        for (const child of tokenEl.childNodes) token += this._extractTokenFromNode(child);
+        token = token.trim();
+        if (!token.length) return null;
+        return { token, track: parseInt(trackStr) };
+    }
+
+    static _extractTokenFromNode(node: Node): string {
+        if (node.nodeType === Node.TEXT_NODE) return node.textContent ?? '';
+        if (node.nodeType !== Node.ELEMENT_NODE) return '';
+
+        let token = '';
+        const el = node as HTMLElement;
+        if (el.tagName === 'RUBY') {
+            for (const child of el.childNodes) {
+                if (child.nodeType === Node.ELEMENT_NODE && (child as HTMLElement).tagName === 'RT') continue;
+                token += this._extractTokenFromNode(child);
+            }
+            return token;
+        }
+
+        for (const child of el.childNodes) token += this._extractTokenFromNode(child);
+        return token;
     }
 }

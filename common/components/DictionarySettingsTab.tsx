@@ -49,7 +49,7 @@ import {
     DictionaryBuildAnkiCacheStats,
 } from '../src/message';
 import { DictionaryProvider } from '../dictionary-db';
-import { humanReadableTime } from '../util';
+import { ensureStoragePersisted, humanReadableTime } from '../util';
 
 const localizedDate = (timestamp: number) => {
     return new Date(timestamp).toLocaleTimeString([], {
@@ -285,9 +285,11 @@ const DictionarySettingsTab: React.FC<Props> = ({
     }, [dictionaryProvider, profiles]);
 
     const handleImportDictionaryDB = useCallback(() => {
+        void ensureStoragePersisted();
         dictionaryDBFileInputRef.current?.click();
     }, []);
     const handleExportDictionaryDB = useCallback(() => {
+        void ensureStoragePersisted();
         dictionaryProvider.exportRecordLocalBulk();
     }, [dictionaryProvider]);
 
@@ -297,6 +299,7 @@ const DictionarySettingsTab: React.FC<Props> = ({
     const handleBuildAnkiCache = useCallback(async () => {
         try {
             setBuildingAnkiCache(true);
+            void ensureStoragePersisted();
             await dictionaryProvider.buildAnkiCache(activeProfile, settings);
         } catch (e) {
             console.error('Failed to send build Anki cache message', e);
@@ -348,6 +351,9 @@ const DictionarySettingsTab: React.FC<Props> = ({
                             {t('action.exportDictionaryLocalRecords')}
                         </Button>
                     </Stack>
+                    <Typography variant="caption" color="textSecondary">
+                        {t('settings.annotationLocalAnkiHelperText')}
+                    </Typography>
                 </div>
                 <div>
                     <Button

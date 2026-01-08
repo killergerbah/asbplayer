@@ -1,4 +1,4 @@
-import { AsbplayerSettings, KeyBindName } from '../settings';
+import { AsbplayerSettings, KeyBindName, TokenStatus } from '../settings';
 import { useTranslation } from 'react-i18next';
 import { isMacOs } from 'react-device-detect';
 import { makeStyles, useTheme } from '@mui/styles';
@@ -468,6 +468,30 @@ const KeyboardShortcutsSettingsTab: React.FC<Props> = ({
             },
             moveTopSubtitlesDown: {
                 label: t('binds.moveTopSubtitlesDown')!,
+                boundViaChrome: false,
+            },
+            markHoveredToken5: {
+                label: t('binds.markHoveredToken', { tokenStatus: t('settings.dictionaryTokenStatus5') })!,
+                boundViaChrome: false,
+            },
+            markHoveredToken4: {
+                label: t('binds.markHoveredToken', { tokenStatus: t('settings.dictionaryTokenStatus4') })!,
+                boundViaChrome: false,
+            },
+            markHoveredToken3: {
+                label: t('binds.markHoveredToken', { tokenStatus: t('settings.dictionaryTokenStatus3') })!,
+                boundViaChrome: false,
+            },
+            markHoveredToken2: {
+                label: t('binds.markHoveredToken', { tokenStatus: t('settings.dictionaryTokenStatus2') })!,
+                boundViaChrome: false,
+            },
+            markHoveredToken1: {
+                label: t('binds.markHoveredToken', { tokenStatus: t('settings.dictionaryTokenStatus1') })!,
+                boundViaChrome: false,
+            },
+            markHoveredToken0: {
+                label: t('binds.markHoveredToken', { tokenStatus: t('settings.dictionaryTokenStatus0') })!,
                 boundViaChrome: false,
             },
         }),

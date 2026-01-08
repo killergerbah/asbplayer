@@ -470,3 +470,10 @@ export async function filterAsync<T>(
     const results = await mapAsync(arr, cb, options);
     return arr.filter((_, index) => results[index]);
 }
+
+export async function ensureStoragePersisted(): Promise<void> {
+    if (!navigator.storage?.persist) return;
+    if (await navigator.storage.persisted()) return;
+    const persisted = await navigator.storage.persist();
+    if (!persisted) console.warn('Storage could not be persisted, data may be cleared by the browser');
+}

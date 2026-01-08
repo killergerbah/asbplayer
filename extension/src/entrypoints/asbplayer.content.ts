@@ -176,6 +176,10 @@ export default defineContentScript({
                             messageId: command.message.messageId,
                         });
                         break;
+                    case 'save-token-local':
+                        await browser.runtime.sendMessage(command);
+                        sendMessageToPlayer({ messageId: command.message.messageId });
+                        break;
                     case 'request-copy-history':
                         const requestCopyHistoryRequest = command.message as RequestCopyHistoryMessage;
                         sendMessageToPlayer({

@@ -147,7 +147,8 @@
         "moveBottomSubtitlesUp": "Move bottom subtitles up",
         "moveBottomSubtitlesDown": "Move bottom subtitles down",
         "moveTopSubtitlesUp": "Move top subtitles up",
-        "moveTopSubtitlesDown": "Move top subtitles down"
+        "moveTopSubtitlesDown": "Move top subtitles down",
+        "markHoveredToken": "Mark hovered word as {{tokenStatus}}"
     },
     "controls": {
         "autoPauseMode": "Auto-pause",
@@ -448,11 +449,11 @@
         "annotation": "Annotation",
         "annotationHelperText": "Annotation requires <0>Yomitan API</0> to function.",
         "annotationNoExtensionWarn": "Installing the asbplayer extension is recommended to prevent your browser from deleting manually stored words. Export your settings before installing the extension to preserve your data.",
+        "annotationLocalAnkiHelperText": "Word status is determined by your local collection then from Anki cards. Collect words locally through imports or by hovering over words and using the keyboard shortcuts.",
         "buildAnkiCache": "Re-Build Anki cache",
         "buildAnkiCacheHelperText": "The cache is automatically updated during playback when a track is enabled and Anki is connectable.",
         "ankiCacheDependentSettingsHelperText": "Changing \"{{field}}\" could invalidate the Anki cache, trigger a rebuild now or have it done automatically on your next playback when this track is enabled and Anki is connectable.",
-        "dictionary": "Dictionary",
-        "dictionaryColorizeSubtitles": "Colorize subtitles based on Anki card maturity",
+        "dictionaryColorizeSubtitles": "Colorize subtitles based on known words",
         "dictionaryColorizeOnHoverOnly": "On Hover Only",
         "dictionaryTokenMatchStrategy": "Word field search strategy",
         "dictionaryTokenMatchStrategyAnyFormCollected": "Any form collected",

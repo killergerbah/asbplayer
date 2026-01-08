@@ -40,15 +40,23 @@ import {
     DictionaryImportRecordLocalBulkMessage,
     CardUpdatedDialogMessage,
     CardExportedDialogMessage,
+    SaveTokenLocalFromAppMessage,
 } from '@project/common';
 import {
     DictionaryLocalTokenInput,
     DictionaryTokenKey,
     DictionaryTokenRecord,
+    DictionaryTokenState,
     LemmaResults,
     TokenResults,
 } from '@project/common/dictionary-db';
-import { AsbplayerSettings, PageSettings, Profile, SettingsFormPageConfig } from '@project/common/settings';
+import {
+    AsbplayerSettings,
+    PageSettings,
+    Profile,
+    SettingsFormPageConfig,
+    TokenStatus,
+} from '@project/common/settings';
 import { GlobalState } from '@project/common/global-state';
 import { v4 as uuidv4 } from 'uuid';
 import gte from 'semver/functions/gte';
@@ -372,6 +380,32 @@ export default class ChromeExtension {
             src,
             message: {
                 command: 'request-subtitles',
+                messageId,
+            },
+        };
+        window.postMessage(command);
+        return this._createResponsePromise(messageId);
+    }
+
+    saveTokenLocal(
+        tabId: number,
+        src: string,
+        track: number,
+        token: string,
+        status: TokenStatus,
+        states: DictionaryTokenState[]
+    ) {
+        const messageId = uuidv4();
+        const command: AsbPlayerToVideoCommandV2<SaveTokenLocalFromAppMessage> = {
+            sender: 'asbplayerv2',
+            tabId,
+            src,
+            message: {
+                command: 'save-token-local',
+                track,
+                token,
+                status,
+                states,
                 messageId,
             },
         };

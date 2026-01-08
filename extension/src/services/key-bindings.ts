@@ -8,6 +8,8 @@ import {
 import { KeyBindSet } from '@project/common/settings';
 import { DefaultKeyBinder } from '@project/common/key-binder';
 import Binding from './binding';
+import { SubtitleColoring } from '@project/common/subtitle-coloring';
+import { ensureStoragePersisted } from '@project/common/util';
 
 type Unbinder = (() => void) | false;
 
@@ -32,6 +34,7 @@ export default class KeyBindings {
     private _unbindToggleRepeat: Unbinder = false;
     private _unbindAdjustSubtitlePositionOffset: Unbinder = false;
     private _unbindAdjustTopSubtitlePositionOffset: Unbinder = false;
+    private _unbindMarkHoveredToken?: Unbinder = false;
 
     private _bound: boolean;
 
@@ -191,6 +194,19 @@ export default class KeyBindings {
                 event.preventDefault();
                 event.stopImmediatePropagation();
                 context.subtitleController.unblur(track);
+            },
+            () => context.subtitleController.subtitles.length === 0,
+            true
+        );
+
+        this._unbindMarkHoveredToken = this._keyBinder.bindMarkHoveredToken(
+            (event, tokenStatus) => {
+                const res = SubtitleColoring.parseTokenFromElement(context.hoveredElement);
+                if (!res) return;
+                void ensureStoragePersisted();
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                void context.subtitleController.subtitleColoring.saveTokenLocal(res.track, res.token, tokenStatus, []);
             },
             () => context.subtitleController.subtitles.length === 0,
             true
@@ -410,6 +426,11 @@ export default class KeyBindings {
         if (this._unbindAdjustTopSubtitlePositionOffset) {
             this._unbindAdjustTopSubtitlePositionOffset();
             this._unbindAdjustTopSubtitlePositionOffset = false;
+        }
+
+        if (this._unbindMarkHoveredToken) {
+            this._unbindMarkHoveredToken();
+            this._unbindMarkHoveredToken = false;
         }
 
         this._bound = false;

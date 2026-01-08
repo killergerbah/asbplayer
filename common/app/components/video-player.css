@@ -4,6 +4,23 @@
     top: 100% !important;
 }
 
+.asbplayer-subtitles {
+    margin: 0;
+    padding: 0;
+    display: table;
+    margin: auto;
+    white-space: pre-wrap !important;
+}
+
+.asbplayer-subtitles ruby {
+    ruby-position: over;
+}
+
+.asbplayer-subtitles rt {
+    font-size: 0.5em;
+    line-height: 1;
+}
+
 .asbplayer-subtitles-blurred {
     filter: blur(10px);
 }
@@ -16,26 +33,10 @@
     display: none;
 }
 
-.asbplayer-subtitle-hover-group:hover .asbplayer-subtitle-text {
+.asbplayer-subtitles:hover .asbplayer-subtitle-text {
     display: none;
 }
 
-.asbplayer-subtitle-hover-group:hover .asbplayer-subtitle-rich {
+.asbplayer-subtitles:hover .asbplayer-subtitle-rich {
     display: inline;
-}
-
-.subtitle-line {
-    margin: 0;
-    padding: 0;
-    display: table;
-    margin: auto;
-}
-
-.subtitle-line ruby {
-    ruby-position: over;
-}
-
-.subtitle-line rt {
-    font-size: 0.5em;
-    line-height: 1;
 }

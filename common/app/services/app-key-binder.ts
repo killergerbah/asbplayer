@@ -1,5 +1,6 @@
 import { CopySubtitleMessage, PostMineAction, SubtitleModel } from '@project/common';
 import { DefaultKeyBinder, KeyBinder } from '@project/common/key-binder';
+import { TokenStatus } from '@project/common/settings';
 import ChromeExtension, { ExtensionMessage } from './chrome-extension';
 
 export default class AppKeyBinder implements KeyBinder {
@@ -276,6 +277,14 @@ export default class AppKeyBinder implements KeyBinder {
         useCapture?: boolean | undefined
     ): () => void {
         return this.defaultKeyBinder.bindUnblurTrack(onUnblurTrack, disabledGetter, useCapture);
+    }
+
+    bindMarkHoveredToken(
+        onMarkHoveredToken: (event: KeyboardEvent, tokenStatus: TokenStatus) => void,
+        disabledGetter: () => boolean,
+        useCapture?: boolean | undefined
+    ): () => void {
+        return this.defaultKeyBinder.bindMarkHoveredToken(onMarkHoveredToken, disabledGetter, useCapture);
     }
 
     bindPlay(

@@ -5,6 +5,7 @@ import type {
     PageSettings,
     SettingsFormPageConfig,
     SubtitleSettings,
+    TokenStatus,
 } from '../settings/settings';
 import type { GlobalState } from '../global-state';
 import {
@@ -25,7 +26,7 @@ import {
     RichSubtitleModel,
 } from './model';
 import { AsbPlayerToVideoCommandV2 } from './command';
-import { DictionaryLocalTokenInput, DictionaryTokenRecord } from '../dictionary-db/dictionary-db';
+import { DictionaryLocalTokenInput, DictionaryTokenRecord, DictionaryTokenState } from '../dictionary-db/dictionary-db';
 
 export interface Message {
     readonly command: string;
@@ -882,4 +883,36 @@ export interface DictionaryBuildAnkiCacheStateError extends DictionaryBuildAnkiC
     code: DictionaryBuildAnkiCacheStateErrorCode;
     msg?: string;
     data?: DictionaryBuildAnkiCacheStateErrorData;
+}
+
+export interface SaveTokenLocalMessage extends Message {
+    readonly command: 'save-token-local';
+    readonly track: number;
+    readonly token: string;
+    readonly status: TokenStatus;
+    readonly states: DictionaryTokenState[];
+}
+
+export interface SaveTokenLocalFromAppMessage extends MessageWithId {
+    readonly command: 'save-token-local';
+    readonly track: number;
+    readonly token: string;
+    readonly status: TokenStatus;
+    readonly states: DictionaryTokenState[];
+}
+
+export interface SaveTokenLocalFromVideoMessage extends Message {
+    readonly command: 'saveTokenLocal';
+    readonly track: number;
+    readonly token: string;
+    readonly status: TokenStatus;
+    readonly states: DictionaryTokenState[];
+}
+
+export interface SaveTokenLocalToVideoMessage extends Message {
+    readonly command: 'saveTokenLocal';
+    readonly track: number;
+    readonly token: string;
+    readonly status: TokenStatus;
+    readonly states: DictionaryTokenState[];
 }
