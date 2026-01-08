@@ -3,6 +3,8 @@
         "cancel": "Abbrechen",
         "copy": "Kopieren",
         "delete": "Löschen",
+        "save": "Save",
+        "preview": "Preview",
         "downloadAudio": "Audio herunterladen",
         "downloadImage": "Bild herunterladen",
         "downloadSubtitlesAsSrt": "Untertitel als SRT herunterladen",
@@ -503,6 +505,9 @@
         "dictionaryBuildInProgress": "Build already in progress (expires at {{time}})",
         "dictionaryBuildAnkiError": "Error getting permission from Anki",
         "dictionaryBuildYomitanError": "Error connecting to Yomitan for track {{trackNumber}} (disable this track to ignore)",
+        "dictionaryImportClipboardTitle": "Import words from clipboard",
+        "dictionaryImportClipboardText": "Paste text or one word per line",
+        "dictionaryImportClipboardNoTokens": "No valid words found",
         "ui": "UI",
         "webSocketInterface": "WebSocket interface",
         "yomitanHelperText": "Instructions to setup Yomitan API are <0>here<0>."

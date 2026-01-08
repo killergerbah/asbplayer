@@ -50,6 +50,7 @@ import {
 } from '../src/message';
 import { DictionaryProvider } from '../dictionary-db';
 import { ensureStoragePersisted, humanReadableTime } from '../util';
+import DictionaryClipboardImport from './DictionaryClipboardImport';
 
 const localizedDate = (timestamp: number) => {
     return new Date(timestamp).toLocaleTimeString([], {
@@ -334,6 +335,12 @@ const DictionarySettingsTab: React.FC<Props> = ({
                 )}
                 <div>
                     <Stack direction="row" spacing={1} alignItems="center">
+                        <DictionaryClipboardImport
+                            dictionaryTracks={dictionaryTracks}
+                            selectedDictionaryTrack={selectedDictionaryTrack}
+                            dictionaryProvider={dictionaryProvider}
+                            activeProfile={activeProfile}
+                        />
                         <Button
                             variant="contained"
                             color="primary"
