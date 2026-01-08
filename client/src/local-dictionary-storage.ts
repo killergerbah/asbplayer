@@ -6,7 +6,12 @@ import {
     DictionaryDBCommand,
     ExtensionToAsbPlayerCommand,
 } from '@project/common';
-import { DictionaryDB, DictionaryLocalTokenInput, DictionaryStorage } from '@project/common/dictionary-db';
+import {
+    DictionaryDB,
+    DictionaryLocalTokenInput,
+    DictionaryStorage,
+    DictionaryTokenRecord,
+} from '@project/common/dictionary-db';
 import { AsbplayerSettings } from '@project/common/settings';
 
 export class LocalDictionaryStorage implements DictionaryStorage {
@@ -40,6 +45,14 @@ export class LocalDictionaryStorage implements DictionaryStorage {
 
     deleteProfile(profile: string) {
         return this.dictionaryDB.deleteProfile(profile);
+    }
+
+    exportRecordLocalBulk() {
+        return this.dictionaryDB.exportRecordLocalBulk();
+    }
+
+    importRecordLocalBulk(records: Partial<DictionaryTokenRecord>[], profiles: string[]) {
+        return this.dictionaryDB.importRecordLocalBulk(records, profiles);
     }
 
     buildAnkiCache(profile: string | undefined, settings: AsbplayerSettings) {

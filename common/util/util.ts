@@ -50,6 +50,11 @@ export function humanReadableTime(timestamp: number, nearestTenth = false, fully
     }
 }
 
+export function getCurrentTimeString(): string {
+    const now = new Date();
+    return `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}-${now.getHours()}-${now.getMinutes()}-${now.getSeconds()}`;
+}
+
 export function surroundingSubtitles(
     subtitles: SubtitleModel[],
     index: number,

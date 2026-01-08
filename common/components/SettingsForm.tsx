@@ -5,7 +5,7 @@ import { useTheme } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import { type Theme } from '@mui/material';
 import { CardModel } from '@project/common';
-import { AsbplayerSettings, PageConfig, PageSettings } from '@project/common/settings';
+import { AsbplayerSettings, PageConfig, PageSettings, Profile } from '@project/common/settings';
 import { isNumeric } from '@project/common/util';
 import { isMobile } from 'react-device-detect';
 import Tab from '@mui/material/Tab';
@@ -175,6 +175,7 @@ interface Props {
     appVersion?: string;
     dictionaryProvider: DictionaryProvider;
     settings: AsbplayerSettings;
+    profiles: Profile[];
     activeProfile?: string;
     pageConfigs?: PageConfigMap;
     scrollToId?: string;
@@ -199,6 +200,7 @@ export default function SettingsForm({
     anki,
     dictionaryProvider,
     settings,
+    profiles,
     activeProfile,
     pageConfigs,
     extensionInstalled,
@@ -358,6 +360,7 @@ export default function SettingsForm({
                     anki={anki}
                     dictionaryProvider={dictionaryProvider}
                     settings={settings}
+                    profiles={profiles}
                     activeProfile={activeProfile}
                     extensionInstalled={extensionInstalled}
                     onSettingChanged={handleSettingChanged}

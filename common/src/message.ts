@@ -25,7 +25,7 @@ import {
     RichSubtitleModel,
 } from './model';
 import { AsbPlayerToVideoCommandV2 } from './command';
-import { DictionaryLocalTokenInput } from '../dictionary-db/dictionary-db';
+import { DictionaryLocalTokenInput, DictionaryTokenRecord } from '../dictionary-db/dictionary-db';
 
 export interface Message {
     readonly command: string;
@@ -806,6 +806,16 @@ export interface DictionaryDeleteRecordLocalBulkMessage extends MessageWithId {
 export interface DictionaryDeleteProfileMessage extends MessageWithId {
     readonly command: 'dictionary-delete-profile';
     readonly profile: string;
+}
+
+export interface DictionaryExportRecordLocalBulkMessage extends MessageWithId {
+    readonly command: 'dictionary-export-record-local-bulk';
+}
+
+export interface DictionaryImportRecordLocalBulkMessage extends MessageWithId {
+    readonly command: 'dictionary-import-record-local-bulk';
+    readonly records: Partial<DictionaryTokenRecord>[];
+    readonly profiles: string[];
 }
 
 export interface DictionaryBuildAnkiCacheMessage extends MessageWithId {

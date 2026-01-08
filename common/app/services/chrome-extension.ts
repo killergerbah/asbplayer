@@ -36,12 +36,15 @@ import {
     DictionaryDeleteRecordLocalBulkMessage,
     DictionaryBuildAnkiCacheState,
     DictionaryDeleteProfileMessage,
+    DictionaryExportRecordLocalBulkMessage,
+    DictionaryImportRecordLocalBulkMessage,
     CardUpdatedDialogMessage,
     CardExportedDialogMessage,
 } from '@project/common';
 import {
     DictionaryLocalTokenInput,
     DictionaryTokenKey,
+    DictionaryTokenRecord,
     LemmaResults,
     TokenResults,
 } from '@project/common/dictionary-db';
@@ -599,7 +602,7 @@ export default class ChromeExtension {
     async dictionarySaveRecordLocalBulk(
         profile: string | undefined,
         localTokenInputs: DictionaryLocalTokenInput[]
-    ): Promise<DictionaryTokenKey[]> {
+    ): Promise<[DictionaryTokenKey[], number]> {
         const messageId = uuidv4();
         const command: AsbPlayerCommand<DictionarySaveRecordLocalBulkMessage> = {
             sender: 'asbplayerv2',
@@ -636,6 +639,37 @@ export default class ChromeExtension {
             message: {
                 command: 'dictionary-delete-profile',
                 profile,
+                messageId,
+            },
+        };
+        window.postMessage(command);
+        return await this._createResponsePromise(messageId);
+    }
+
+    async dictionaryExportRecordLocalBulk(): Promise<Partial<DictionaryTokenRecord>[]> {
+        const messageId = uuidv4();
+        const command: AsbPlayerCommand<DictionaryExportRecordLocalBulkMessage> = {
+            sender: 'asbplayerv2',
+            message: {
+                command: 'dictionary-export-record-local-bulk',
+                messageId,
+            },
+        };
+        window.postMessage(command);
+        return await this._createResponsePromise(messageId);
+    }
+
+    async dictionaryImportRecordLocalBulk(
+        records: Partial<DictionaryTokenRecord>[],
+        profiles: string[]
+    ): Promise<DictionaryTokenKey[]> {
+        const messageId = uuidv4();
+        const command: AsbPlayerCommand<DictionaryImportRecordLocalBulkMessage> = {
+            sender: 'asbplayerv2',
+            message: {
+                command: 'dictionary-import-record-local-bulk',
+                records,
+                profiles,
                 messageId,
             },
         };

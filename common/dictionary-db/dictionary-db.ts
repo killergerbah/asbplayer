@@ -12,6 +12,7 @@ import {
     dictionaryStatusCollectionEnabled,
     DictionaryTokenSource,
     DictionaryTrack,
+    getFullyKnownTokenStatus,
     TokenStatus,
 } from '@project/common/settings';
 import { HAS_LETTER_REGEX, inBatches, mapAsync } from '@project/common/util';
@@ -60,7 +61,7 @@ interface DictionaryMetaRecord {
 }
 
 export type DictionaryTokenKey = [string, DictionaryTokenSource, number, string];
-interface DictionaryTokenRecord {
+export interface DictionaryTokenRecord {
     profile: string;
     track: number;
     source: DictionaryTokenSource;
@@ -376,8 +377,8 @@ export class DictionaryDB {
     async saveRecordLocalBulk(
         inputProfile: string | undefined,
         localTokenInputs: DictionaryLocalTokenInput[]
-    ): Promise<DictionaryTokenKey[]> {
-        if (!localTokenInputs.length) return [];
+    ): Promise<[DictionaryTokenKey[], number]> {
+        if (!localTokenInputs.length) return [[], 0];
         const profile = this._getProfile(inputProfile);
         return this.db.transaction('rw', this.db.tokens, async () => {
             const tokenRecordMap = await this._getFromSourceBulk(
@@ -387,26 +388,39 @@ export class DictionaryDB {
                 localTokenInputs.map((l) => l.token)
             );
 
-            const records: DictionaryTokenRecord[] = [];
+            const recordsToAdd: DictionaryTokenRecord[] = [];
+            const tokensToDelete: string[] = [];
             for (const localTokenInput of localTokenInputs) {
-                if (!localTokenInput.token.length || !HAS_LETTER_REGEX.test(localTokenInput.token)) {
-                    throw new Error(`Cannot save local token with invalid token: "${localTokenInput.token}"`);
+                if (!HAS_LETTER_REGEX.test(localTokenInput.token)) {
+                    console.error(`Cannot save local token with invalid token: "${localTokenInput.token}"`);
+                    return [[], 0];
                 }
-                const existingRecords = tokenRecordMap.get(localTokenInput.token) || [];
-                for (const existingRecord of existingRecords) {
+                const existingRecord = tokenRecordMap.get(localTokenInput.token);
+                if (existingRecord) {
+                    for (const existingLemma of existingRecord.lemmas) {
+                        if (!localTokenInput.lemmas.includes(existingLemma)) localTokenInput.lemmas.push(existingLemma);
+                    }
                     for (const existingState of existingRecord.states) {
                         if (!localTokenInput.states.includes(existingState)) localTokenInput.states.push(existingState);
                     }
                 }
+                localTokenInput.lemmas = localTokenInput.lemmas.filter((lemma) => HAS_LETTER_REGEX.test(lemma));
                 if (!localTokenInput.lemmas.length) {
-                    throw new Error(`Cannot save local token with no lemmas: "${localTokenInput.token}"`);
+                    console.error(`Cannot save local token with no lemmas: "${localTokenInput.token}"`);
+                    return [[], 0];
                 }
                 if (localTokenInput.status === TokenStatus.UNCOLLECTED && !localTokenInput.states.length) {
-                    throw new Error(
-                        `Cannot save local token with uncollected status and no states: "${localTokenInput.token}"`
-                    );
+                    if (existingRecord) {
+                        tokensToDelete.push(localTokenInput.token);
+                        continue;
+                    } else {
+                        console.error(
+                            `Cannot save local token with uncollected status and no states: "${localTokenInput.token}"`
+                        );
+                        return [[], 0];
+                    }
                 }
-                records.push({
+                recordsToAdd.push({
                     profile,
                     track: LOCAL_TOKEN_TRACK,
                     source: DictionaryTokenSource.LOCAL,
@@ -417,7 +431,10 @@ export class DictionaryDB {
                     cardIds: [],
                 });
             }
-            return this._saveRecordBulk(records);
+            return Promise.all([
+                this._saveRecordBulk(recordsToAdd),
+                this.deleteRecordLocalBulk(inputProfile, tokensToDelete),
+            ]);
         });
     }
 
@@ -428,6 +445,89 @@ export class DictionaryDB {
             .where('[token+source+track+profile]')
             .anyOf(tokens.map((token) => [token, DictionaryTokenSource.LOCAL, LOCAL_TOKEN_TRACK, profile]))
             .delete();
+    }
+
+    /**
+     * The only export we need is local tokens, Anki can be rebuilt as needed.
+     * Since our needs are simple, we can avoid using the dexie-export-import package.
+     */
+    async exportRecordLocalBulk(): Promise<Partial<DictionaryTokenRecord>[]> {
+        return this.db.tokens
+            .filter((record) => record.source === DictionaryTokenSource.LOCAL)
+            .toArray()
+            .then((records) =>
+                records.map((r) => ({
+                    profile: r.profile,
+                    token: r.token,
+                    status: r.status,
+                    lemmas: r.lemmas.length ? r.lemmas : undefined,
+                    states: r.states.length ? r.states : undefined,
+                }))
+            );
+    }
+
+    async importRecordLocalBulk(
+        items: Partial<DictionaryTokenRecord>[],
+        profiles: string[]
+    ): Promise<DictionaryTokenKey[]> {
+        const defaultProfile = this._getProfile(undefined);
+        if (!profiles.includes(defaultProfile)) profiles.unshift(defaultProfile);
+        const fullyKnownStatus = getFullyKnownTokenStatus();
+
+        return this.db.transaction('rw', this.db.tokens, async () => {
+            const existingProfileTokens = new Map<string, Map<string, DictionaryLocalTokenInput>>();
+            await this.db.tokens
+                .filter((record) => record.source === DictionaryTokenSource.LOCAL)
+                .each((record) => {
+                    let existingTokens = existingProfileTokens.get(record.profile);
+                    if (!existingTokens) {
+                        existingTokens = new Map();
+                        existingProfileTokens.set(record.profile, existingTokens);
+                    }
+                    existingTokens.set(record.token, {
+                        token: record.token,
+                        status: record.status!,
+                        lemmas: record.lemmas,
+                        states: record.states,
+                    });
+                });
+
+            const records: DictionaryTokenRecord[] = [];
+            for (const item of items) {
+                if (!item.token || !HAS_LETTER_REGEX.test(item.token)) continue;
+                if (!item.profile || !profiles.includes(item.profile)) continue;
+                if (!item.lemmas) item.lemmas = [];
+                if (!item.states) item.states = [];
+                const existingToken = existingProfileTokens.get(item.profile)?.get(item.token);
+                if (existingToken) {
+                    item.status = Math.max(item.status ?? TokenStatus.UNCOLLECTED, existingToken.status); // Keep the highest for imports
+                    for (const existingLemma of existingToken.lemmas) {
+                        if (!item.lemmas.includes(existingLemma)) item.lemmas.push(existingLemma);
+                    }
+                    if (existingToken.states.length) item.states = existingToken.states; // Treat the existing states as authoritative if any is present
+                }
+                item.lemmas = item.lemmas.filter((lemma) => HAS_LETTER_REGEX.test(lemma));
+                if (!item.lemmas.length) continue; // Cannot import tokens with no lemmas, require a different method where a tokenizer is available
+                let status = item.status;
+                if (item.status == null || item.status < TokenStatus.UNKNOWN) {
+                    if (!item.states.length) continue; // Status cannot be uncollected unless there is a state
+                    if (status == null) status = TokenStatus.UNCOLLECTED;
+                } else if (item.status > fullyKnownStatus) {
+                    status = fullyKnownStatus;
+                }
+                records.push({
+                    profile: item.profile,
+                    track: LOCAL_TOKEN_TRACK,
+                    source: DictionaryTokenSource.LOCAL,
+                    token: item.token,
+                    status: status!,
+                    lemmas: item.lemmas,
+                    states: item.states,
+                    cardIds: [],
+                });
+            }
+            return this._saveRecordBulk(records);
+        });
     }
 
     async deleteProfile(profile: string): Promise<[number, number, number]> {
@@ -445,7 +545,7 @@ export class DictionaryDB {
         track: number,
         source: DictionaryTokenSource,
         tokens: string[]
-    ): Promise<Map<string, DictionaryTokenRecord[]>> {
+    ): Promise<Map<string, DictionaryTokenRecord>> {
         if (!tokens.length) return new Map();
         return this.db.tokens
             .where('[token+source+track+profile]')
@@ -453,12 +553,8 @@ export class DictionaryDB {
             .toArray()
             .then((records) => {
                 if (!records.length) return new Map();
-                const tokenRecordMap = new Map<string, DictionaryTokenRecord[]>();
-                for (const record of records) {
-                    const val = tokenRecordMap.get(record.token);
-                    if (val) val.push(record);
-                    else tokenRecordMap.set(record.token, [record]);
-                }
+                const tokenRecordMap = new Map<string, DictionaryTokenRecord>();
+                for (const record of records) tokenRecordMap.set(record.token, record);
                 return tokenRecordMap;
             });
     }
@@ -1261,9 +1357,9 @@ export class DictionaryDB {
                             Array.from(tokenCardsMap.keys())
                         );
                         for (const [token, val] of tokenCardsMap.entries()) {
-                            const existingRecords = tokenRecordMap.get(token) || []; // Merge with existing records
+                            const existingRecord = tokenRecordMap.get(token); // Merge with existing record
                             const states: DictionaryTokenState[] = [];
-                            for (const existingRecord of existingRecords) {
+                            if (existingRecord) {
                                 for (const cardId of existingRecord.cardIds) {
                                     if (!modifiedCardsBatch.has(cardId)) val.cardIds.add(cardId); // If card was updated, it may no longer apply to this token. Should already be in cardIds if it's still valid.
                                 }

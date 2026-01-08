@@ -6,6 +6,8 @@ import type {
     DictionaryGetBulkMessage,
     DictionaryGetByLemmaBulkMessage,
     DictionarySaveRecordLocalBulkMessage,
+    DictionaryExportRecordLocalBulkMessage,
+    DictionaryImportRecordLocalBulkMessage,
     GetGlobalStateMessage,
     GetSettingsMessage,
     RemoveProfileMessage,
@@ -139,6 +141,22 @@ export default defineContentScript({
                         await dictionaryStorage.deleteProfile(profile);
                         sendMessageToPlayer({
                             messageId: command.message.messageId,
+                        });
+                        break;
+                    }
+                    case 'dictionary-export-record-local-bulk': {
+                        const message = command.message as DictionaryExportRecordLocalBulkMessage;
+                        sendMessageToPlayer({
+                            response: await dictionaryStorage.exportRecordLocalBulk(),
+                            messageId: message.messageId,
+                        });
+                        break;
+                    }
+                    case 'dictionary-import-record-local-bulk': {
+                        const message = command.message as DictionaryImportRecordLocalBulkMessage;
+                        await dictionaryStorage.importRecordLocalBulk(message.records, message.profiles);
+                        sendMessageToPlayer({
+                            messageId: message.messageId,
                         });
                         break;
                     }

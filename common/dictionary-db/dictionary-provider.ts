@@ -1,11 +1,13 @@
 import {
     DictionaryLocalTokenInput,
     DictionaryTokenKey,
+    DictionaryTokenRecord,
     LemmaResults,
     TokenResults,
 } from '@project/common/dictionary-db';
 import { DictionaryBuildAnkiCacheState } from '@project/common';
 import { AsbplayerSettings } from '@project/common/settings';
+import { download, getCurrentTimeString } from '../util';
 
 export interface DictionaryStorage {
     getBulk: (profile: string | undefined, track: number, tokens: string[]) => Promise<TokenResults>;
@@ -13,9 +15,14 @@ export interface DictionaryStorage {
     saveRecordLocalBulk: (
         profile: string | undefined,
         localTokenInputs: DictionaryLocalTokenInput[]
-    ) => Promise<DictionaryTokenKey[]>;
+    ) => Promise<[DictionaryTokenKey[], number]>;
     deleteRecordLocalBulk: (profile: string | undefined, tokens: string[]) => Promise<number>;
     deleteProfile: (profile: string) => Promise<[number, number, number]>;
+    exportRecordLocalBulk: () => Promise<Partial<DictionaryTokenRecord>[]>;
+    importRecordLocalBulk: (
+        records: Partial<DictionaryTokenRecord>[],
+        profiles: string[]
+    ) => Promise<DictionaryTokenKey[]>;
     buildAnkiCache: (
         profile: string | undefined,
         settings: AsbplayerSettings,
@@ -52,6 +59,19 @@ export class DictionaryProvider {
 
     deleteProfile(profile: string) {
         return this._storage.deleteProfile(profile);
+    }
+
+    async exportRecordLocalBulk() {
+        download(
+            new Blob([JSON.stringify(await this._storage.exportRecordLocalBulk())], {
+                type: 'application/json',
+            }),
+            `asbplayer-local-words-${getCurrentTimeString()}.json`
+        );
+    }
+
+    importRecordLocalBulk(records: Partial<DictionaryTokenRecord>[], profiles: string[]) {
+        return this._storage.importRecordLocalBulk(records, profiles);
     }
 
     buildAnkiCache(profile: string | undefined, settings: AsbplayerSettings, options?: { useOriginTab?: boolean }) {
