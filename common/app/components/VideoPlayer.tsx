@@ -26,7 +26,6 @@ import {
     PauseOnHoverMode,
     allTextSubtitleSettings,
     DictionaryTrack,
-    dictionaryTrackHoverOnly,
 } from '@project/common/settings';
 import {
     arrayEquals,
@@ -180,7 +179,7 @@ const showingSubtitleHtml = (
 `;
     }
     const allSubtitleClasses = subtitleClasses ? `${subtitleClasses} subtitle-line` : 'subtitle-line';
-    if (subtitle.richText && dictionaryTrackHoverOnly(dictionaryTracks?.[subtitle.track])) {
+    if (subtitle.richText && dictionaryTracks[subtitle.track].dictionaryColorizeOnHoverOnly) {
         const richLines = subtitle.richText.split('\n');
         const linesHtml = subtitle.text
             .split('\n')
@@ -621,6 +620,7 @@ export default function VideoPlayer({
                 domCacheRef.current?.delete(String(updatedSubtitle.index));
             }
             setSubtitles((prevSubtitles) => {
+                if (!prevSubtitles.length) return prevSubtitles;
                 const allSubtitles = prevSubtitles.slice();
                 for (const s of updatedSubtitles) {
                     allSubtitles[s.index] = { ...allSubtitles[s.index], richText: s.richText };

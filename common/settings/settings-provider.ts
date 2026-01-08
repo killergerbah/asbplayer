@@ -43,7 +43,8 @@ const defaultDictionaryTrackSettings: DictionaryTrack = {
     dictionaryTokenMatchStrategyPriority: TokenMatchStrategyPriority.EXACT,
     dictionaryYomitanUrl: 'http://127.0.0.1:19633',
     dictionaryYomitanScanLength: 16,
-    dictionaryTokenReadingAnnotation: TokenReadingAnnotation.UNKNOWN_OR_BELOW,
+    dictionaryTokenReadingAnnotation: TokenReadingAnnotation.NEVER,
+    dictionaryAnkiDecks: [],
     dictionaryAnkiWordFields: [],
     dictionaryAnkiSentenceFields: [],
     dictionaryAnkiSentenceTokenMatchStrategy: TokenMatchStrategy.EXACT_FORM_COLLECTED,
@@ -202,7 +203,7 @@ export const defaultSettings: AsbplayerSettings = {
 };
 
 export const NUM_DICTIONARY_TRACKS = defaultSettings.dictionaryTracks.length;
-export const NUM_TOKEN_STYLINGS = defaultDictionaryTrackSettings.tokenStatusColors.length;
+export const NUM_TOKEN_STATUSES = defaultDictionaryTrackSettings.tokenStatusColors.length;
 
 export interface AnkiFieldUiModel {
     key: string;
@@ -472,7 +473,7 @@ const complexValuedKeys = Object.fromEntries(
 );
 
 export class SettingsProvider {
-    private _storage;
+    private _storage: SettingsStorage;
     private _complexValues: { [key: string]: any } = {};
 
     constructor(storage: SettingsStorage) {
@@ -527,7 +528,7 @@ export class SettingsProvider {
         if (settings.dictionaryTracks !== undefined) {
             const defaultTrack = defaultSettings.dictionaryTracks[0];
             for (const dt of settings.dictionaryTracks) {
-                while (dt.tokenStatusColors.length < NUM_TOKEN_STYLINGS) {
+                while (dt.tokenStatusColors.length < NUM_TOKEN_STATUSES) {
                     const currLength = dt.tokenStatusColors.length;
                     const color = defaultTrack.tokenStatusColors[currLength];
                     dt.tokenStatusColors.push(color);
