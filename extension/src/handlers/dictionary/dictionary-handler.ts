@@ -4,7 +4,6 @@ import {
     DictionaryBuildAnkiCacheState,
     DictionaryBuildAnkiCacheStateMessage,
     DictionaryDBCommand,
-    DictionaryImportRecordLocalBulkMessage,
     ExtensionToAsbPlayerCommand,
     Message,
 } from '@project/common';
@@ -51,7 +50,7 @@ export default class DictionaryHandler {
             case 'dictionary-save-record-local-bulk': {
                 const message = command.message as DictionarySaveRecordLocalBulkMessage;
                 this.dictionaryDB
-                    .saveRecordLocalBulk(message.profile, message.localTokenInputs, message.applyStates)
+                    .saveRecordLocalBulk(message.profile, message.localTokenInputs)
                     .then((result) => sendResponse(result));
                 return true;
             }
@@ -65,17 +64,6 @@ export default class DictionaryHandler {
             case 'dictionary-delete-profile': {
                 const message = command.message as DictionaryDeleteProfileMessage;
                 this.dictionaryDB.deleteProfile(message.profile).then((result) => sendResponse(result));
-                return true;
-            }
-            case 'dictionary-export-record-local-bulk': {
-                this.dictionaryDB.exportRecordLocalBulk().then((result) => sendResponse(result));
-                return true;
-            }
-            case 'dictionary-import-record-local-bulk': {
-                const message = command.message as DictionaryImportRecordLocalBulkMessage;
-                this.dictionaryDB
-                    .importRecordLocalBulk(message.records, message.profiles)
-                    .then((result) => sendResponse(result));
                 return true;
             }
             case 'dictionary-build-anki-cache': {

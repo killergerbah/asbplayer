@@ -26,8 +26,6 @@ import {
     PauseOnHoverMode,
     allTextSubtitleSettings,
     DictionaryTrack,
-    TokenState,
-    ApplyStrategy,
 } from '@project/common/settings';
 import {
     arrayEquals,
@@ -35,10 +33,8 @@ import {
     mockSurroundingSubtitles,
     seekWithNudge,
     surroundingSubtitlesAroundInterval,
-    ensureStoragePersisted,
 } from '@project/common/util';
 import { SubtitleCollection } from '@project/common/subtitle-collection';
-import { HoveredToken } from '@project/common/subtitle-coloring';
 import Clock from '../services/clock';
 import Controls, { Point } from './Controls';
 import PlayerChannel from '../services/player-channel';
@@ -48,7 +44,7 @@ import Alert from './Alert';
 import { useSubtitleDomCache } from '../hooks/use-subtitle-dom-cache';
 import { useAppKeyBinder } from '../hooks/use-app-key-binder';
 import { Direction, useSwipe } from '../hooks/use-swipe';
-import './subtitles.css';
+import './video-player.css';
 import i18n from 'i18next';
 import { useTranslation } from 'react-i18next';
 import { adjacentSubtitle } from '../../key-binder';
@@ -182,35 +178,42 @@ const showingSubtitleHtml = (
 </div>
 `;
     }
-    const allSubtitleClasses = subtitleClasses ? `${subtitleClasses} asbplayer-subtitles` : 'asbplayer-subtitles';
+    const allSubtitleClasses = subtitleClasses ? `${subtitleClasses} subtitle-line` : 'subtitle-line';
     if (subtitle.richText && dictionaryTracks[subtitle.track].dictionaryColorizeOnHoverOnly) {
-        return `<span class="${allSubtitleClasses}" style="${subtitleStyles}" data-track="${subtitle.track}"><span class="asbplayer-subtitle-text">${subtitle.text}</span><span class="asbplayer-subtitle-rich">${subtitle.richText}</span></span>`;
+        const richLines = subtitle.richText.split('\n');
+        const linesHtml = subtitle.text
+            .split('\n')
+            .map(
+                (t, i) =>
+                    `<p class="${allSubtitleClasses}" style="${subtitleStyles}"><span class="asbplayer-subtitle-text">${t}</span><span class="asbplayer-subtitle-rich">${richLines[i]}</span></p>`
+            )
+            .join('');
+        return `<span class="asbplayer-subtitle-hover-group">${linesHtml}</span>`;
     }
-    return `<span class="${allSubtitleClasses}" style="${subtitleStyles}" data-track="${subtitle.track}">${subtitle.richText ?? subtitle.text}</span>`;
+    return (subtitle.richText?.split('\n') ?? subtitle.text.split('\n'))
+        .map((line) => `<p class="${allSubtitleClasses}" style="${subtitleStyles}">${line}</p>`)
+        .join('');
 };
 
 interface CachedShowingSubtitleProps {
-    subtitle: RichSubtitleModel;
+    index: number;
     domCache: OffscreenDomCache;
-    renderHtml: (subtitle: RichSubtitleModel) => string;
+    renderHtml: () => string;
     className?: string;
     onMouseOver: React.MouseEventHandler<HTMLDivElement>;
-    onMouseOut: React.MouseEventHandler<HTMLDivElement>;
 }
 
 const CachedShowingSubtitle = React.memo(function CachedShowingSubtitle({
-    subtitle,
+    index,
     domCache,
     renderHtml,
     className,
     onMouseOver,
-    onMouseOut,
 }: CachedShowingSubtitleProps) {
     return (
         <div
             className={className ? className : ''}
             onMouseOver={onMouseOver}
-            onMouseOut={onMouseOut}
             ref={(ref) => {
                 if (!ref) {
                     return;
@@ -220,7 +223,7 @@ const CachedShowingSubtitle = React.memo(function CachedShowingSubtitle({
                     domCache.return(ref.lastChild! as HTMLElement);
                 }
 
-                ref.appendChild(domCache.get(String(subtitle.index), () => renderHtml(subtitle)));
+                ref.appendChild(domCache.get(String(index), renderHtml));
             }}
         />
     );
@@ -619,33 +622,11 @@ export default function VideoPlayer({
             for (const updatedSubtitle of updatedSubtitles) {
                 domCacheRef.current?.delete(String(updatedSubtitle.index));
             }
-
-            const updatedByIndex = new Map(updatedSubtitles.map((s) => [s.index, s] as const));
-            if (showSubtitlesRef.current.some((s) => updatedByIndex.has(s.index))) {
-                setShowSubtitles((prevShowSubtitles) =>
-                    prevShowSubtitles.map((showSubtitle) => {
-                        const updatedShowSubtitle = updatedByIndex.get(showSubtitle.index);
-                        if (!updatedShowSubtitle) return showSubtitle;
-                        return {
-                            ...showSubtitle,
-                            text: updatedShowSubtitle.text,
-                            richText: updatedShowSubtitle.richText,
-                            tokenization: updatedShowSubtitle.tokenization,
-                        };
-                    })
-                );
-            }
-
             setSubtitles((prevSubtitles) => {
                 if (!prevSubtitles.length) return prevSubtitles;
                 const allSubtitles = prevSubtitles.slice();
                 for (const s of updatedSubtitles) {
-                    allSubtitles[s.index] = {
-                        ...allSubtitles[s.index],
-                        text: s.text,
-                        richText: s.richText,
-                        tokenization: s.tokenization,
-                    };
+                    allSubtitles[s.index] = { ...allSubtitles[s.index], richText: s.richText };
                 }
                 return allSubtitles;
             });
@@ -1609,51 +1590,12 @@ export default function VideoPlayer({
 
     const isPausedDueToHoverRef = useRef<boolean>(undefined);
 
-    const hoveredToken = useMemo(() => new HoveredToken(), []);
-
-    const handleSubtitleMouseOver = useCallback(
-        (e: React.MouseEvent) => {
-            if (miscSettings.pauseOnHoverMode !== PauseOnHoverMode.disabled && videoRef.current?.paused === false) {
-                playerChannel.pause();
-                isPausedDueToHoverRef.current = true;
-            }
-            hoveredToken.handleMouseOver(e.nativeEvent);
-        },
-        [hoveredToken, miscSettings.pauseOnHoverMode, playerChannel]
-    );
-
-    const handleSubtitleMouseOut = useCallback(
-        (e: React.MouseEvent) => hoveredToken.handleMouseOut(e.nativeEvent),
-        [hoveredToken]
-    );
-
-    useEffect(() => {
-        return keyBinder.bindMarkHoveredToken(
-            (event, tokenStatus) => {
-                const res = hoveredToken.parse();
-                if (!res) return;
-                void ensureStoragePersisted();
-                event.preventDefault();
-                event.stopImmediatePropagation();
-                playerChannel.saveTokenLocal(res.track, res.token, tokenStatus, [], ApplyStrategy.ADD);
-            },
-            () => false
-        );
-    }, [hoveredToken, keyBinder, playerChannel]);
-
-    useEffect(() => {
-        return keyBinder.bindToggleHoveredTokenIgnored(
-            (event) => {
-                const res = hoveredToken.parse();
-                if (!res) return;
-                void ensureStoragePersisted();
-                event.preventDefault();
-                event.stopImmediatePropagation();
-                playerChannel.saveTokenLocal(res.track, res.token, null, [TokenState.IGNORED], ApplyStrategy.TOGGLE);
-            },
-            () => false
-        );
-    }, [hoveredToken, keyBinder, playerChannel]);
+    const handleSubtitleMouseOver = useCallback(() => {
+        if (miscSettings.pauseOnHoverMode !== PauseOnHoverMode.disabled && videoRef.current?.paused === false) {
+            playerChannel.pause();
+            isPausedDueToHoverRef.current = true;
+        }
+    }, [miscSettings.pauseOnHoverMode, playerChannel]);
 
     const inBetweenMobileOverlayAndBottomSubtitles = (e: React.MouseEvent<HTMLVideoElement>) => {
         if (!mobileOverlayRef.current || !bottomSubtitleContainerRef.current || !videoRef.current) {
@@ -1703,14 +1645,13 @@ export default function VideoPlayer({
         parent.document.body.clientWidth === document.body.clientWidth;
 
     const subtitleAlignmentForTrack = (track: number) => subtitleAlignments[track] ?? subtitleAlignments[0];
-    const elementForSubtitle = (subtitle: RichSubtitleModel) => (
+    const elementForSubtitle = (subtitle: RichSubtitleModel, index: number) => (
         <CachedShowingSubtitle
-            key={subtitle.index}
-            subtitle={subtitle}
+            key={index}
+            index={subtitle.index}
             domCache={domCacheRef.current ?? getSubtitleDomCache()}
-            renderHtml={getSubtitleHtml}
+            renderHtml={() => getSubtitleHtml(subtitle)}
             onMouseOver={handleSubtitleMouseOver}
-            onMouseOut={handleSubtitleMouseOut}
         />
     );
 
@@ -1749,13 +1690,7 @@ export default function VideoPlayer({
     }
 
     return (
-        <div
-            ref={containerRef}
-            onMouseMove={handleMouseMove}
-            onMouseLeave={handleMouseLeave}
-            className={`${classes.root} asbplayer-token-container`}
-            tabIndex={-1}
-        >
+        <div ref={containerRef} onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave} className={classes.root}>
             <Alert
                 open={alertOpen}
                 disableAutoHide={alertDisableAutoHide}

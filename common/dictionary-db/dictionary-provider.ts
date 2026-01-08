@@ -1,36 +1,21 @@
 import {
     DictionaryLocalTokenInput,
-    DictionaryTokenRecord,
-    DictionaryExportRecordLocalResult,
-    DictionaryImportRecordLocalResult,
+    DictionaryTokenKey,
     LemmaResults,
-    DictionarySaveRecordLocalResult,
     TokenResults,
-    DictionaryDeleteRecordLocalResult,
-    DictionaryDeleteProfileResult,
 } from '@project/common/dictionary-db';
 import { DictionaryBuildAnkiCacheState } from '@project/common';
-import { ApplyStrategy, AsbplayerSettings } from '@project/common/settings';
-import { download, getCurrentTimeString } from '../util';
+import { AsbplayerSettings } from '@project/common/settings';
 
 export interface DictionaryStorage {
     getBulk: (profile: string | undefined, track: number, tokens: string[]) => Promise<TokenResults>;
     getByLemmaBulk: (profile: string | undefined, track: number, lemmas: string[]) => Promise<LemmaResults>;
     saveRecordLocalBulk: (
         profile: string | undefined,
-        localTokenInputs: DictionaryLocalTokenInput[],
-        applyStates: ApplyStrategy
-    ) => Promise<DictionarySaveRecordLocalResult>;
-    deleteRecordLocalBulk: (
-        profile: string | undefined,
-        tokens: string[]
-    ) => Promise<DictionaryDeleteRecordLocalResult>;
-    deleteProfile: (profile: string) => Promise<DictionaryDeleteProfileResult>;
-    exportRecordLocalBulk: () => Promise<DictionaryExportRecordLocalResult>;
-    importRecordLocalBulk: (
-        records: Partial<DictionaryTokenRecord>[],
-        profiles: string[]
-    ) => Promise<DictionaryImportRecordLocalResult>;
+        localTokenInputs: DictionaryLocalTokenInput[]
+    ) => Promise<DictionaryTokenKey[]>;
+    deleteRecordLocalBulk: (profile: string | undefined, tokens: string[]) => Promise<number>;
+    deleteProfile: (profile: string) => Promise<[number, number, number]>;
     buildAnkiCache: (
         profile: string | undefined,
         settings: AsbplayerSettings,
@@ -57,12 +42,8 @@ export class DictionaryProvider {
         return this._storage.getByLemmaBulk(profile, track, lemmas);
     }
 
-    saveRecordLocalBulk(
-        profile: string | undefined,
-        localTokenInputs: DictionaryLocalTokenInput[],
-        applyStates: ApplyStrategy
-    ) {
-        return this._storage.saveRecordLocalBulk(profile, localTokenInputs, applyStates);
+    saveRecordLocalBulk(profile: string | undefined, localTokenInputs: DictionaryLocalTokenInput[]) {
+        return this._storage.saveRecordLocalBulk(profile, localTokenInputs);
     }
 
     deleteRecordLocalBulk(profile: string | undefined, tokens: string[]) {
@@ -71,19 +52,6 @@ export class DictionaryProvider {
 
     deleteProfile(profile: string) {
         return this._storage.deleteProfile(profile);
-    }
-
-    async exportRecordLocalBulk() {
-        download(
-            new Blob([JSON.stringify((await this._storage.exportRecordLocalBulk()).exportedRecords)], {
-                type: 'application/json',
-            }),
-            `asbplayer-local-words-${getCurrentTimeString()}.json`
-        );
-    }
-
-    importRecordLocalBulk(records: Partial<DictionaryTokenRecord>[], profiles: string[]) {
-        return this._storage.importRecordLocalBulk(records, profiles);
     }
 
     buildAnkiCache(profile: string | undefined, settings: AsbplayerSettings, options?: { useOriginTab?: boolean }) {

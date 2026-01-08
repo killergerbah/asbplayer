@@ -1,6 +1,6 @@
 import { ChromeExtension } from '@project/common/app';
-import { DictionaryLocalTokenInput, DictionaryStorage, DictionaryTokenRecord } from '@project/common/dictionary-db';
-import { ApplyStrategy, AsbplayerSettings } from '@project/common/settings';
+import { DictionaryLocalTokenInput, DictionaryStorage } from '@project/common/dictionary-db';
+import { AsbplayerSettings } from '@project/common/settings';
 import {
     CardExportedDialogMessage,
     CardUpdatedDialogMessage,
@@ -31,12 +31,8 @@ export class AppExtensionDictionaryStorage implements DictionaryStorage {
         return this._extension.dictionaryGetByLemmaBulk(profile, track, lemmas);
     }
 
-    saveRecordLocalBulk(
-        profile: string | undefined,
-        localTokenInputs: DictionaryLocalTokenInput[],
-        applyStates: ApplyStrategy
-    ) {
-        return this._extension.dictionarySaveRecordLocalBulk(profile, localTokenInputs, applyStates);
+    saveRecordLocalBulk(profile: string | undefined, localTokenInputs: DictionaryLocalTokenInput[]) {
+        return this._extension.dictionarySaveRecordLocalBulk(profile, localTokenInputs);
     }
 
     deleteRecordLocalBulk(profile: string | undefined, tokens: string[]) {
@@ -45,14 +41,6 @@ export class AppExtensionDictionaryStorage implements DictionaryStorage {
 
     deleteProfile(profile: string) {
         return this._extension.dictionaryDeleteProfile(profile);
-    }
-
-    exportRecordLocalBulk() {
-        return this._extension.dictionaryExportRecordLocalBulk();
-    }
-
-    importRecordLocalBulk(records: Partial<DictionaryTokenRecord>[], profiles: string[]) {
-        return this._extension.dictionaryImportRecordLocalBulk(records, profiles);
     }
 
     buildAnkiCache(profile: string | undefined, settings: AsbplayerSettings) {

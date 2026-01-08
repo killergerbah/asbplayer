@@ -14,7 +14,6 @@ import {
     TokenStyling,
     DictionaryTrack,
     TokenReadingAnnotation,
-    TokenFrequencyAnnotation,
 } from '.';
 import { AutoPausePreference, PostMineAction, PostMinePlayback, SubtitleHtml } from '..';
 
@@ -40,24 +39,21 @@ const defaultSubtitleTextSettings = {
 const defaultDictionaryTrackSettings: DictionaryTrack = {
     dictionaryColorizeSubtitles: false,
     dictionaryColorizeOnHoverOnly: false,
-    dictionaryHighlightOnHover: true,
     dictionaryTokenMatchStrategy: TokenMatchStrategy.ANY_FORM_COLLECTED,
     dictionaryTokenMatchStrategyPriority: TokenMatchStrategyPriority.EXACT,
     dictionaryYomitanUrl: 'http://127.0.0.1:19633',
     dictionaryYomitanScanLength: 16,
     dictionaryTokenReadingAnnotation: TokenReadingAnnotation.NEVER,
-    dictionaryDisplayIgnoredTokenReadings: false,
-    dictionaryTokenFrequencyAnnotation: TokenFrequencyAnnotation.NEVER,
     dictionaryAnkiDecks: [],
     dictionaryAnkiWordFields: [],
     dictionaryAnkiSentenceFields: [],
     dictionaryAnkiSentenceTokenMatchStrategy: TokenMatchStrategy.EXACT_FORM_COLLECTED,
     dictionaryAnkiMatureCutoff: 21,
     dictionaryAnkiTreatSuspended: 'NORMAL',
-    dictionaryTokenStyling: TokenStyling.UNDERLINE,
-    dictionaryTokenStylingThickness: 3,
-    dictionaryColorizeFullyKnownTokens: false,
-    dictionaryTokenStatusColors: ['#FF0000', '#FFA500', '#FFFF00', '#00FF00', '#0000FF', '#FFFFFF'],
+    tokenStyling: TokenStyling.UNDERLINE,
+    tokenStylingThickness: 3,
+    colorizeFullyKnownTokens: false,
+    tokenStatusColors: ['#FF0000', '#FFA500', '#FFFF00', '#00FF00', '#0000FF', '#FFFFFF'],
 };
 
 export const defaultSettings: AsbplayerSettings = {
@@ -143,13 +139,6 @@ export const defaultSettings: AsbplayerSettings = {
         moveBottomSubtitlesDown: { keys: '' },
         moveTopSubtitlesUp: { keys: '' },
         moveTopSubtitlesDown: { keys: '' },
-        markHoveredToken5: { keys: 'Q+5' },
-        markHoveredToken4: { keys: 'Q+4' },
-        markHoveredToken3: { keys: 'Q+3' },
-        markHoveredToken2: { keys: 'Q+2' },
-        markHoveredToken1: { keys: 'Q+1' },
-        markHoveredToken0: { keys: 'Q+0' },
-        toggleHoveredTokenIgnored: { keys: 'Q+I' },
     },
     recordWithAudioPlayback: true,
     preferMp3: true,
@@ -205,7 +194,6 @@ export const defaultSettings: AsbplayerSettings = {
         hboMax: {},
         stremio: {},
         cijapanese: {},
-        iwanttfc: {},
     },
     webSocketClientEnabled: false,
     webSocketServerUrl: 'ws://127.0.0.1:8766/ws',
@@ -215,7 +203,7 @@ export const defaultSettings: AsbplayerSettings = {
 };
 
 export const NUM_DICTIONARY_TRACKS = defaultSettings.dictionaryTracks.length;
-export const NUM_TOKEN_STATUSES = defaultDictionaryTrackSettings.dictionaryTokenStatusColors.length;
+export const NUM_TOKEN_STATUSES = defaultDictionaryTrackSettings.tokenStatusColors.length;
 
 export interface AnkiFieldUiModel {
     key: string;
@@ -540,10 +528,10 @@ export class SettingsProvider {
         if (settings.dictionaryTracks !== undefined) {
             const defaultTrack = defaultSettings.dictionaryTracks[0];
             for (const dt of settings.dictionaryTracks) {
-                while (dt.dictionaryTokenStatusColors.length < NUM_TOKEN_STATUSES) {
-                    const currLength = dt.dictionaryTokenStatusColors.length;
-                    const color = defaultTrack.dictionaryTokenStatusColors[currLength];
-                    dt.dictionaryTokenStatusColors.push(color);
+                while (dt.tokenStatusColors.length < NUM_TOKEN_STATUSES) {
+                    const currLength = dt.tokenStatusColors.length;
+                    const color = defaultTrack.tokenStatusColors[currLength];
+                    dt.tokenStatusColors.push(color);
                 }
             }
             while (settings.dictionaryTracks.length < NUM_DICTIONARY_TRACKS) {

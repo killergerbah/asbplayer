@@ -6,8 +6,6 @@ import type {
     DictionaryGetBulkMessage,
     DictionaryGetByLemmaBulkMessage,
     DictionarySaveRecordLocalBulkMessage,
-    DictionaryExportRecordLocalBulkMessage,
-    DictionaryImportRecordLocalBulkMessage,
     GetGlobalStateMessage,
     GetSettingsMessage,
     RemoveProfileMessage,
@@ -121,54 +119,33 @@ export default defineContentScript({
                         break;
                     }
                     case 'dictionary-save-record-local-bulk': {
-                        const { profile, localTokenInputs, applyStates } =
-                            command.message as DictionarySaveRecordLocalBulkMessage;
+                        const { profile, localTokenInputs } = command.message as DictionarySaveRecordLocalBulkMessage;
+                        await dictionaryStorage.saveRecordLocalBulk(profile, localTokenInputs);
                         sendMessageToPlayer({
-                            response: await dictionaryStorage.saveRecordLocalBulk(
-                                profile,
-                                localTokenInputs,
-                                applyStates
-                            ),
                             messageId: command.message.messageId,
                         });
                         break;
                     }
                     case 'dictionary-delete-record-local-bulk': {
                         const { profile, tokens } = command.message as DictionaryDeleteRecordLocalBulkMessage;
+                        await dictionaryStorage.deleteRecordLocalBulk(profile, tokens);
                         sendMessageToPlayer({
-                            response: await dictionaryStorage.deleteRecordLocalBulk(profile, tokens),
                             messageId: command.message.messageId,
                         });
                         break;
                     }
                     case 'dictionary-delete-profile': {
                         const { profile } = command.message as DictionaryDeleteProfileMessage;
+                        await dictionaryStorage.deleteProfile(profile);
                         sendMessageToPlayer({
-                            response: await dictionaryStorage.deleteProfile(profile),
                             messageId: command.message.messageId,
-                        });
-                        break;
-                    }
-                    case 'dictionary-export-record-local-bulk': {
-                        const message = command.message as DictionaryExportRecordLocalBulkMessage;
-                        sendMessageToPlayer({
-                            response: await dictionaryStorage.exportRecordLocalBulk(),
-                            messageId: message.messageId,
-                        });
-                        break;
-                    }
-                    case 'dictionary-import-record-local-bulk': {
-                        const message = command.message as DictionaryImportRecordLocalBulkMessage;
-                        sendMessageToPlayer({
-                            response: await dictionaryStorage.importRecordLocalBulk(message.records, message.profiles),
-                            messageId: message.messageId,
                         });
                         break;
                     }
                     case 'dictionary-build-anki-cache': {
                         const { profile, settings } = command.message as DictionaryBuildAnkiCacheMessage;
+                        await dictionaryStorage.buildAnkiCache(profile, settings, { useOriginTab: true }); // App with extension doesn't have full extension context
                         sendMessageToPlayer({
-                            response: await dictionaryStorage.buildAnkiCache(profile, settings, { useOriginTab: true }), // App with extension doesn't have full extension context
                             messageId: command.message.messageId,
                         });
                         break;
@@ -180,10 +157,6 @@ export default defineContentScript({
                                 | undefined,
                             messageId: command.message.messageId,
                         });
-                        break;
-                    case 'save-token-local':
-                        await browser.runtime.sendMessage(command);
-                        sendMessageToPlayer({ messageId: command.message.messageId });
                         break;
                     case 'request-copy-history':
                         const requestCopyHistoryRequest = command.message as RequestCopyHistoryMessage;

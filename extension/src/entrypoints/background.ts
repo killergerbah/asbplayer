@@ -69,7 +69,6 @@ import PageConfigHandler from '@/handlers/asbplayerv2/page-config-handler';
 import EncodeMp3Handler from '@/handlers/video/encode-mp3-handler';
 import { DictionaryDB } from '@project/common/dictionary-db/dictionary-db';
 import DictionaryHandler from '@/handlers/dictionary/dictionary-handler';
-import SaveTokenLocalHandler from '@/handlers/asbplayerv2/save-token-local-handler';
 
 export default defineBackground(() => {
     if (!isFirefoxBuild) {
@@ -83,35 +82,30 @@ export default defineBackground(() => {
     };
 
     const installListener = async (details: Browser.runtime.InstalledDetails) => {
-        if (details.reason === browser.runtime.OnInstalledReason.UPDATE) {
-            primeLocalization(await settings.getSingle('language'));
+        if (details.reason !== browser.runtime.OnInstalledReason.INSTALL) {
             return;
         }
 
-        if (details.reason === browser.runtime.OnInstalledReason.INSTALL) {
-            // Remove subtag e.g. "en-US" is converted to "en"
-            const defaultUiLanguage = browser.i18n.getUILanguage().split('-')[0];
-            const supportedLanguages = await fetchSupportedLanguages();
+        const defaultUiLanguage = browser.i18n.getUILanguage();
+        const supportedLanguages = await fetchSupportedLanguages();
 
-            if (supportedLanguages.includes(defaultUiLanguage)) {
-                await settings.set({ language: defaultUiLanguage });
-            }
-
-            await primeLocalization(await settings.getSingle('language'));
-
-            if (isMobile) {
-                // Set reasonable defaults for mobile
-                await settings.set({
-                    streamingTakeScreenshot: false, // Kiwi Browser does not support captureVisibleTab
-                    subtitleSize: 18,
-                    subtitlePositionOffset: 25,
-                    topSubtitlePositionOffset: 25,
-                    subtitlesWidth: 100,
-                });
-            }
-
-            browser.tabs.create({ url: browser.runtime.getURL('/ftue-ui.html'), active: true });
+        if (supportedLanguages.includes(defaultUiLanguage)) {
+            await settings.set({ language: defaultUiLanguage });
+            primeLocalization(defaultUiLanguage);
         }
+
+        if (isMobile) {
+            // Set reasonable defaults for mobile
+            await settings.set({
+                streamingTakeScreenshot: false, // Kiwi Browser does not support captureVisibleTab
+                subtitleSize: 18,
+                subtitlePositionOffset: 25,
+                topSubtitlePositionOffset: 25,
+                subtitlesWidth: 100,
+            });
+        }
+
+        browser.tabs.create({ url: browser.runtime.getURL('/ftue-ui.html'), active: true });
     };
 
     const updateListener = async (details: Browser.runtime.InstalledDetails) => {
@@ -156,7 +150,6 @@ export default defineBackground(() => {
         new LoadSubtitlesHandler(tabRegistry),
         new RequestSubtitlesHandler(),
         new RequestCurrentSubtitleHandler(),
-        new SaveTokenLocalHandler(),
         new RequestCopyHistoryHandler(),
         new SaveCopyHistoryHandler(settings),
         new DeleteCopyHistoryHandler(settings),

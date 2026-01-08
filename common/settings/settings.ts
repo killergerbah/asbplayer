@@ -89,22 +89,11 @@ export enum TokenStatus {
     LEARNING = 2,
     GRADUATED = 3,
     YOUNG = 4,
-    MATURE = 5, // If ever adding more statuses, they should go last and getFullyKnownTokenStatus should be updated
+    MATURE = 5, // If ever adding more statuses, they should go after MATURE and getFullyKnownTokenStatus should be updated
 }
 
 export function getFullyKnownTokenStatus(): TokenStatus {
     return TokenStatus.MATURE; // If future statuses are optional, this logic may need to change
-}
-
-export enum TokenState {
-    IGNORED = 0, // If ever adding more states, they should go last (if adding colors for states, use a separate array from dictionaryTokenStatusColors indexed by TokenState)
-}
-
-export enum ApplyStrategy {
-    ADD = 'ADD',
-    REMOVE = 'REMOVE',
-    REPLACE = 'REPLACE',
-    TOGGLE = 'TOGGLE',
 }
 
 export enum TokenReadingAnnotation {
@@ -114,51 +103,36 @@ export enum TokenReadingAnnotation {
     NEVER = 'NEVER',
 }
 
-export enum TokenFrequencyAnnotation {
-    ALWAYS = 'ALWAYS',
-    UNCOLLECTED_ONLY = 'UNCOLLECTED_ONLY',
-    NEVER = 'NEVER',
-}
-
 export function dictionaryTrackEnabled(dt: DictionaryTrack): boolean {
-    return (
-        dt.dictionaryColorizeSubtitles ||
-        dt.dictionaryTokenReadingAnnotation !== TokenReadingAnnotation.NEVER ||
-        dt.dictionaryDisplayIgnoredTokenReadings ||
-        dt.dictionaryTokenFrequencyAnnotation !== TokenFrequencyAnnotation.NEVER
-    );
+    return dt.dictionaryColorizeSubtitles || dt.dictionaryTokenReadingAnnotation !== TokenReadingAnnotation.NEVER;
 }
 
 export function dictionaryStatusCollectionEnabled(dt: DictionaryTrack): boolean {
     return (
         dt.dictionaryColorizeSubtitles ||
         dt.dictionaryTokenReadingAnnotation === TokenReadingAnnotation.LEARNING_OR_BELOW ||
-        dt.dictionaryTokenReadingAnnotation === TokenReadingAnnotation.UNKNOWN_OR_BELOW ||
-        dt.dictionaryTokenFrequencyAnnotation === TokenFrequencyAnnotation.UNCOLLECTED_ONLY
+        dt.dictionaryTokenReadingAnnotation === TokenReadingAnnotation.UNKNOWN_OR_BELOW
     );
 }
 
 export interface DictionaryTrack {
     readonly dictionaryColorizeSubtitles: boolean;
-    readonly dictionaryColorizeOnHoverOnly: boolean; // Currently applies to both colorization and reading annotations, named in case we want to separate later
-    readonly dictionaryHighlightOnHover: boolean;
+    readonly dictionaryColorizeOnHoverOnly: boolean;
     readonly dictionaryTokenMatchStrategy: TokenMatchStrategy;
     readonly dictionaryTokenMatchStrategyPriority: TokenMatchStrategyPriority;
     readonly dictionaryYomitanUrl: string;
     readonly dictionaryYomitanScanLength: number;
     readonly dictionaryTokenReadingAnnotation: TokenReadingAnnotation;
-    readonly dictionaryDisplayIgnoredTokenReadings: boolean;
-    readonly dictionaryTokenFrequencyAnnotation: TokenFrequencyAnnotation;
     readonly dictionaryAnkiDecks: string[];
     readonly dictionaryAnkiWordFields: string[];
     readonly dictionaryAnkiSentenceFields: string[];
     readonly dictionaryAnkiSentenceTokenMatchStrategy: TokenMatchStrategy;
     readonly dictionaryAnkiMatureCutoff: number;
     readonly dictionaryAnkiTreatSuspended: TokenStatus | 'NORMAL';
-    readonly dictionaryTokenStyling: TokenStyling;
-    readonly dictionaryTokenStylingThickness: number;
-    readonly dictionaryColorizeFullyKnownTokens: boolean;
-    readonly dictionaryTokenStatusColors: string[]; // Indexed by TokenStatus (if adding colors for states, use a separate array indexed by TokenState)
+    readonly tokenStyling: TokenStyling;
+    readonly tokenStylingThickness: number;
+    readonly colorizeFullyKnownTokens: boolean;
+    readonly tokenStatusColors: string[]; // Indexed by TokenStatus
 }
 
 export interface DictionarySettings {
@@ -170,24 +144,21 @@ const dictionaryTrackComparators: {
 } = {
     dictionaryColorizeSubtitles: (a, b) => a === b,
     dictionaryColorizeOnHoverOnly: (a, b) => a === b,
-    dictionaryHighlightOnHover: (a, b) => a === b,
     dictionaryTokenMatchStrategy: (a, b) => a === b,
     dictionaryTokenMatchStrategyPriority: (a, b) => a === b,
     dictionaryYomitanUrl: (a, b) => a === b,
     dictionaryYomitanScanLength: (a, b) => a === b,
     dictionaryTokenReadingAnnotation: (a, b) => a === b,
-    dictionaryDisplayIgnoredTokenReadings: (a, b) => a === b,
-    dictionaryTokenFrequencyAnnotation: (a, b) => a === b,
     dictionaryAnkiDecks: (a, b) => arrayEquals(a, b),
     dictionaryAnkiWordFields: (a, b) => arrayEquals(a, b),
     dictionaryAnkiSentenceFields: (a, b) => arrayEquals(a, b),
     dictionaryAnkiSentenceTokenMatchStrategy: (a, b) => a === b,
     dictionaryAnkiMatureCutoff: (a, b) => a === b,
     dictionaryAnkiTreatSuspended: (a, b) => a === b,
-    dictionaryTokenStyling: (a, b) => a === b,
-    dictionaryTokenStylingThickness: (a, b) => a === b,
-    dictionaryColorizeFullyKnownTokens: (a, b) => a === b,
-    dictionaryTokenStatusColors: (a, b) => arrayEquals(a, b),
+    tokenStyling: (a, b) => a === b,
+    tokenStylingThickness: (a, b) => a === b,
+    colorizeFullyKnownTokens: (a, b) => a === b,
+    tokenStatusColors: (a, b) => arrayEquals(a, b),
 };
 
 export function compareDTField<K extends keyof DictionaryTrack>(
@@ -419,13 +390,6 @@ export interface KeyBindSet {
     readonly moveBottomSubtitlesDown: KeyBind;
     readonly moveTopSubtitlesUp: KeyBind;
     readonly moveTopSubtitlesDown: KeyBind;
-    readonly markHoveredToken5: KeyBind;
-    readonly markHoveredToken4: KeyBind;
-    readonly markHoveredToken3: KeyBind;
-    readonly markHoveredToken2: KeyBind;
-    readonly markHoveredToken1: KeyBind;
-    readonly markHoveredToken0: KeyBind;
-    readonly toggleHoveredTokenIgnored: KeyBind;
 
     // Bound from Chrome if extension is installed
     readonly copySubtitle: KeyBind;
@@ -496,7 +460,6 @@ export interface PageSettings {
     hboMax: Page;
     stremio: Page;
     cijapanese: Page;
-    iwanttfc: Page;
 }
 
 export interface StreamingVideoSettings {

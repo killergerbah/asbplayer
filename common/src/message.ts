@@ -1,13 +1,10 @@
 import type {
     AnkiSettings,
-    ApplyStrategy,
     AsbplayerSettings,
     MiscSettings,
     PageSettings,
     SettingsFormPageConfig,
     SubtitleSettings,
-    TokenState,
-    TokenStatus,
 } from '../settings/settings';
 import type { GlobalState } from '../global-state';
 import {
@@ -28,7 +25,7 @@ import {
     RichSubtitleModel,
 } from './model';
 import { AsbPlayerToVideoCommandV2 } from './command';
-import { DictionaryLocalTokenInput, DictionaryTokenRecord } from '../dictionary-db/dictionary-db';
+import { DictionaryLocalTokenInput } from '../dictionary-db/dictionary-db';
 
 export interface Message {
     readonly command: string;
@@ -798,7 +795,6 @@ export interface DictionarySaveRecordLocalBulkMessage extends MessageWithId {
     readonly command: 'dictionary-save-record-local-bulk';
     readonly profile: string | undefined;
     readonly localTokenInputs: DictionaryLocalTokenInput[];
-    readonly applyStates: ApplyStrategy;
 }
 
 export interface DictionaryDeleteRecordLocalBulkMessage extends MessageWithId {
@@ -810,16 +806,6 @@ export interface DictionaryDeleteRecordLocalBulkMessage extends MessageWithId {
 export interface DictionaryDeleteProfileMessage extends MessageWithId {
     readonly command: 'dictionary-delete-profile';
     readonly profile: string;
-}
-
-export interface DictionaryExportRecordLocalBulkMessage extends MessageWithId {
-    readonly command: 'dictionary-export-record-local-bulk';
-}
-
-export interface DictionaryImportRecordLocalBulkMessage extends MessageWithId {
-    readonly command: 'dictionary-import-record-local-bulk';
-    readonly records: Partial<DictionaryTokenRecord>[];
-    readonly profiles: string[];
 }
 
 export interface DictionaryBuildAnkiCacheMessage extends MessageWithId {
@@ -886,40 +872,4 @@ export interface DictionaryBuildAnkiCacheStateError extends DictionaryBuildAnkiC
     code: DictionaryBuildAnkiCacheStateErrorCode;
     msg?: string;
     data?: DictionaryBuildAnkiCacheStateErrorData;
-}
-
-export interface SaveTokenLocalMessage extends Message {
-    readonly command: 'save-token-local';
-    readonly track: number;
-    readonly token: string;
-    readonly status: TokenStatus | null;
-    readonly states: TokenState[];
-    readonly applyStates: ApplyStrategy;
-}
-
-export interface SaveTokenLocalFromAppMessage extends MessageWithId {
-    readonly command: 'save-token-local';
-    readonly track: number;
-    readonly token: string;
-    readonly status: TokenStatus | null;
-    readonly states: TokenState[];
-    readonly applyStates: ApplyStrategy;
-}
-
-export interface SaveTokenLocalFromVideoMessage extends Message {
-    readonly command: 'saveTokenLocal';
-    readonly track: number;
-    readonly token: string;
-    readonly status: TokenStatus | null;
-    readonly states: TokenState[];
-    readonly applyStates: ApplyStrategy;
-}
-
-export interface SaveTokenLocalToVideoMessage extends Message {
-    readonly command: 'saveTokenLocal';
-    readonly track: number;
-    readonly token: string;
-    readonly status: TokenStatus | null;
-    readonly states: TokenState[];
-    readonly applyStates: ApplyStrategy;
 }

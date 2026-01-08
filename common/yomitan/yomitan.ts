@@ -1,7 +1,7 @@
 import { Fetcher, HttpFetcher } from '@project/common';
 import { DictionaryTrack } from '@project/common/settings';
-import { AsyncSemaphore, fromBatches, HAS_LETTER_REGEX, isKanaOnly } from '@project/common/util';
-import { coerce, lt, gte } from 'semver';
+import { fromBatches, HAS_LETTER_REGEX, isKanaOnly } from '@project/common/util';
+import { coerce, lt } from 'semver';
 
 const YOMITAN_BATCH_SIZE = 100; // 1k can cause 1.5GB memory on Yomitan for subtitles, Anki cards may be larger too
 
@@ -13,43 +13,19 @@ export interface TokenPart {
 export class Yomitan {
     private readonly dt: DictionaryTrack;
     private readonly fetcher: Fetcher;
-    private readonly asyncSemaphore: AsyncSemaphore;
     private readonly tokenizeCache: Map<string, TokenPart[][]>;
     private readonly lemmatizeCache: Map<string, string[]>;
-    private readonly frequencyCache: Map<string, number | null>;
-    private readonly tokensWereModified?: (token: string) => void;
-    private supportsTokenizeFrequency: boolean;
-    private lastCancelledAt: number;
 
-    constructor(
-        dictionaryTrack: DictionaryTrack,
-        fetcher = new HttpFetcher(),
-        tokensWereModified?: (token: string) => void
-    ) {
+    constructor(dictionaryTrack: DictionaryTrack, fetcher = new HttpFetcher()) {
         this.dt = dictionaryTrack;
         this.fetcher = fetcher;
-        this.asyncSemaphore = new AsyncSemaphore({ permits: 1 });
         this.tokenizeCache = new Map();
         this.lemmatizeCache = new Map();
-        this.frequencyCache = new Map();
-        this.tokensWereModified = tokensWereModified;
-        this.supportsTokenizeFrequency = false;
-        this.lastCancelledAt = 0;
-    }
-
-    getSupportsTokenizeFrequency(): boolean {
-        return this.supportsTokenizeFrequency;
     }
 
     resetCache() {
         this.tokenizeCache.clear();
         this.lemmatizeCache.clear();
-        this.frequencyCache.clear();
-        this.lastCancelledAt = Date.now();
-    }
-
-    async splitAndTokenizeBulk(text: string, yomitanUrl?: string): Promise<TokenPart[][]> {
-        return this.tokenizeBulk(text.split(/(?:\p{STerm}|\r?\n)+/u), yomitanUrl);
     }
 
     async tokenize(text: string, yomitanUrl?: string): Promise<TokenPart[][]> {
@@ -64,14 +40,12 @@ export class Yomitan {
         for (const res of response) {
             for (const tokenParts of res.content) {
                 tokens.push(tokenParts);
-                const headwords = tokenParts[0]?.headwords;
-                if (headwords) {
+                if (tokenParts[0]?.headwords) {
                     const token = tokenParts
                         .map((p: any) => p.text)
                         .join('')
                         .trim();
-                    if (!this.lemmatizeCache.has(token)) this.extractLemmas(token, headwords);
-                    if (!this.frequencyCache.has(token)) this.extractFrequencyFromTokenize(token, headwords);
+                    if (!this.lemmatizeCache.has(token)) this.extractLemmas(token, tokenParts[0].headwords);
                 }
             }
         }
@@ -103,14 +77,12 @@ export class Yomitan {
                     const tokensForText: TokenPart[][] = [];
                     for (const tokenParts of res.content) {
                         tokensForText.push(tokenParts);
-                        const headwords = tokenParts[0]?.headwords;
-                        if (headwords) {
+                        if (tokenParts[0]?.headwords) {
                             const token = tokenParts
                                 .map((p: any) => p.text)
                                 .join('')
                                 .trim();
-                            if (!this.lemmatizeCache.has(token)) this.extractLemmas(token, headwords);
-                            if (!this.frequencyCache.has(token)) this.extractFrequencyFromTokenize(token, headwords);
+                            if (!this.lemmatizeCache.has(token)) this.extractLemmas(token, tokenParts[0].headwords);
                         }
                     }
                     this.tokenizeCache.set(tokensToFetch[res.index], tokensForText);
@@ -120,43 +92,6 @@ export class Yomitan {
             },
             { batchSize: YOMITAN_BATCH_SIZE }
         );
-    }
-
-    /**
-     * Extract the minimum frequency for a token in a rank-based frequency dictionary using Yomitan's tokenize API.
-     */
-    private extractFrequencyFromTokenize(
-        token: string,
-        tokenizeHeadwords: any[],
-        preferTermSource = true
-    ): number | undefined {
-        if (!this.supportsTokenizeFrequency) return;
-        let minFrequency: number | undefined;
-        for (const headwords of tokenizeHeadwords) {
-            for (const headword of headwords) {
-                for (const source of headword.sources) {
-                    if (source.originalText !== token) continue;
-                    if (!source.isPrimary) continue;
-                    if (source.matchType !== 'exact') continue;
-                    if (source.matchSource !== 'term' && preferTermSource) continue; // Frequency of this exact form, don't promote rare kanji
-                    if (!headword.frequencies) {
-                        this.supportsTokenizeFrequency = false;
-                        return;
-                    }
-                    for (const f of headword.frequencies) {
-                        if (!Number.isFinite(f.frequency) || f.frequency <= 0) continue;
-                        if (f.frequencyMode !== 'rank-based') continue;
-                        minFrequency = minFrequency === undefined ? f.frequency : Math.min(minFrequency, f.frequency);
-                    }
-                    break;
-                }
-            }
-        }
-        if (minFrequency === undefined && preferTermSource) {
-            return this.extractFrequencyFromTokenize(token, tokenizeHeadwords, false);
-        }
-        this.frequencyCache.set(token, minFrequency ?? null);
-        return minFrequency;
     }
 
     /**
@@ -208,82 +143,13 @@ export class Yomitan {
         );
     }
 
-    /**
-     * Get the minimum frequency for a token in a rank-based frequency dictionary using Yomitan's API.
-     * This function will return undefined immediately and asynchronously update the cache if tokensWereModified is provided and the token is not in the cache.
-     */
-    async frequency(token: string, yomitanUrl?: string): Promise<number | undefined> {
-        const minFrequency = this.frequencyCache.get(token);
-        if (minFrequency !== undefined) return minFrequency ?? undefined;
-        if (!HAS_LETTER_REGEX.test(token)) {
-            this.frequencyCache.set(token, null);
-            return;
-        }
-        if (this.tokensWereModified) {
-            void (async () => {
-                const now = Date.now();
-                const semaphoreId = await this.asyncSemaphore.acquire();
-                try {
-                    if (now <= this.lastCancelledAt) {
-                        this.tokensWereModified!(token); // May need to reprocess with the new Yomitan instance
-                        return;
-                    }
-                    if (this.frequencyCache.has(token)) return;
-                    const entries = (await this._executeAction('termEntries', { term: token }, yomitanUrl))
-                        .dictionaryEntries;
-                    this.extractFrequency(token, entries);
-                    this.tokensWereModified!(token);
-                } finally {
-                    this.asyncSemaphore.release(semaphoreId);
-                }
-            })();
-            return;
-        }
-        const entries = (await this._executeAction('termEntries', { term: token }, yomitanUrl)).dictionaryEntries;
-        return this.extractFrequency(token, entries);
-    }
-
-    /**
-     * Extract the minimum frequency for a token in a rank-based frequency dictionary using Yomitan's termEntries API.
-     */
-    private extractFrequency(token: string, entries: any[], preferTermSource = true): number | undefined {
-        let minFrequency: number | undefined;
-        for (const entry of entries) {
-            const matchingHeadwordIndices = new Set<number>();
-            for (const [i, headword] of entry.headwords.entries()) {
-                for (const source of headword.sources) {
-                    if (source.originalText !== token) continue;
-                    if (!source.isPrimary) continue;
-                    if (source.matchType !== 'exact') continue;
-                    if (source.matchSource !== 'term' && preferTermSource) continue; // Frequency of this exact form, don't promote rare kanji
-                    matchingHeadwordIndices.add(headword.headwordIndex ?? i); // requires this.supportsTokenizeFrequency otherwise array index is more accurate than headword.index
-                    break;
-                }
-            }
-            if (!matchingHeadwordIndices.size) continue;
-            for (const f of entry.frequencies) {
-                if (!matchingHeadwordIndices.has(f.headwordIndex)) continue;
-                if (!Number.isFinite(f.frequency) || f.frequency <= 0) continue;
-                if (f.frequencyMode !== 'rank-based' && this.supportsTokenizeFrequency) continue; // Exposed with this.supportsTokenizeFrequency
-                minFrequency = minFrequency === undefined ? f.frequency : Math.min(minFrequency, f.frequency);
-            }
-        }
-        if (minFrequency === undefined && preferTermSource) return this.extractFrequency(token, entries, false);
-        this.frequencyCache.set(token, minFrequency ?? null);
-        return minFrequency;
-    }
-
     async version(yomitanUrl?: string) {
         const version: string = (await this._executeAction('yomitanVersion', {}, yomitanUrl)).version;
-        if (version === '0.0.0.0') {
-            this.supportsTokenizeFrequency = true;
-            return version;
-        }
+        if (version === '0.0.0.0') return version;
         const semver = coerce(version)?.version;
         if (!semver || lt(semver, '25.12.16')) {
             throw new Error(`Minimum Yomitan version is 25.12.16.0, found ${version}`);
         }
-        if (gte(semver, '26.2.15')) this.supportsTokenizeFrequency = true; // TODO: Use actual version
         return version;
     }
 
