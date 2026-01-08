@@ -150,7 +150,8 @@
         "moveBottomSubtitlesDown": "下の字幕を下へ移動",
         "moveTopSubtitlesUp": "上の字幕を上へ移動",
         "moveTopSubtitlesDown": "上の字幕を下へ移動",
-        "markHoveredToken": "Mark hovered word as {{tokenStatus}}"
+        "markHoveredToken": "Mark hovered word as {{tokenStatus}}",
+        "toggleHoveredTokenIgnored": "Toggle hovered word as ignored"
     },
     "controls": {
         "autoPauseMode": "自動一時停止",
@@ -506,6 +507,7 @@
         "dictionaryBuildAnkiError": "Error getting permission from Anki",
         "dictionaryBuildYomitanError": "Error connecting to Yomitan for track {{trackNumber}} (disable this track to ignore)",
         "dictionaryImportClipboardTitle": "Import words from clipboard",
+        "dictionaryImportClipboardIgnored": "Mark words as ignored",
         "dictionaryImportClipboardText": "Paste text or one word per line",
         "dictionaryImportClipboardNoTokens": "No valid words found",
         "ui": "UI",

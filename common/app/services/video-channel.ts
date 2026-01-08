@@ -38,9 +38,15 @@ import {
     SaveTokenLocalFromVideoMessage,
     SaveTokenLocalToVideoMessage,
 } from '@project/common';
-import { AnkiSettings, MiscSettings, SubtitleSettings, TokenStatus } from '@project/common/settings';
+import {
+    AnkiSettings,
+    ApplyStrategy,
+    MiscSettings,
+    SubtitleSettings,
+    TokenState,
+    TokenStatus,
+} from '@project/common/settings';
 import { VideoProtocol } from './video-protocol';
-import { DictionaryTokenState } from '../../dictionary-db';
 
 export default class VideoChannel {
     private readonly protocol: VideoProtocol;
@@ -75,8 +81,9 @@ export default class VideoChannel {
     private saveTokenLocalCallbacks: ((
         track: number,
         token: string,
-        status: TokenStatus,
-        states: DictionaryTokenState[]
+        status: TokenStatus | null,
+        states: TokenState[],
+        applyStates: ApplyStrategy
     ) => void)[];
     private loadFilesCallbacks: (() => void)[];
     private cardUpdatedDialogCallbacks: (() => void)[];
@@ -257,10 +264,10 @@ export default class VideoChannel {
                     }
                     break;
                 case 'saveTokenLocal':
-                    const { track, token, status, states } = event.data as SaveTokenLocalFromVideoMessage;
+                    const { track, token, status, states, applyStates } = event.data as SaveTokenLocalFromVideoMessage;
 
                     for (const callback of that.saveTokenLocalCallbacks) {
-                        callback(track, token, status, states);
+                        callback(track, token, status, states, applyStates);
                     }
                     break;
                 case 'loadFiles':
@@ -400,7 +407,13 @@ export default class VideoChannel {
     }
 
     onSaveTokenLocal(
-        callback: (track: number, token: string, status: TokenStatus, states: DictionaryTokenState[]) => void
+        callback: (
+            track: number,
+            token: string,
+            status: TokenStatus | null,
+            states: TokenState[],
+            applyStates: ApplyStrategy
+        ) => void
     ) {
         this.saveTokenLocalCallbacks.push(callback);
         return () => this._remove(callback, this.saveTokenLocalCallbacks);
@@ -454,7 +467,7 @@ export default class VideoChannel {
         } as SubtitlesToVideoMessage);
     }
 
-    saveTokenLocal(token: string, status: TokenStatus, states: DictionaryTokenState[]) {
+    saveTokenLocal(token: string, status: TokenStatus, states: TokenState[]) {
         this.protocol.postMessage({
             command: 'saveTokenLocal',
             token,

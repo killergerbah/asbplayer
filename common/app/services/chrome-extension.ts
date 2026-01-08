@@ -46,15 +46,16 @@ import {
     DictionaryLocalTokenInput,
     DictionaryTokenKey,
     DictionaryTokenRecord,
-    DictionaryTokenState,
     LemmaResults,
     TokenResults,
 } from '@project/common/dictionary-db';
 import {
+    ApplyStrategy,
     AsbplayerSettings,
     PageSettings,
     Profile,
     SettingsFormPageConfig,
+    TokenState,
     TokenStatus,
 } from '@project/common/settings';
 import { GlobalState } from '@project/common/global-state';
@@ -392,8 +393,9 @@ export default class ChromeExtension {
         src: string,
         track: number,
         token: string,
-        status: TokenStatus,
-        states: DictionaryTokenState[]
+        status: TokenStatus | null,
+        states: TokenState[],
+        applyStates: ApplyStrategy
     ) {
         const messageId = uuidv4();
         const command: AsbPlayerToVideoCommandV2<SaveTokenLocalFromAppMessage> = {
@@ -406,6 +408,7 @@ export default class ChromeExtension {
                 token,
                 status,
                 states,
+                applyStates,
                 messageId,
             },
         };
@@ -635,7 +638,8 @@ export default class ChromeExtension {
 
     async dictionarySaveRecordLocalBulk(
         profile: string | undefined,
-        localTokenInputs: DictionaryLocalTokenInput[]
+        localTokenInputs: DictionaryLocalTokenInput[],
+        applyStates: ApplyStrategy
     ): Promise<[DictionaryTokenKey[], number]> {
         const messageId = uuidv4();
         const command: AsbPlayerCommand<DictionarySaveRecordLocalBulkMessage> = {
@@ -644,6 +648,7 @@ export default class ChromeExtension {
                 command: 'dictionary-save-record-local-bulk',
                 profile,
                 localTokenInputs,
+                applyStates,
                 messageId,
             },
         };

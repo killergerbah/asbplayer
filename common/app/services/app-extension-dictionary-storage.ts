@@ -1,6 +1,6 @@
 import { ChromeExtension } from '@project/common/app';
 import { DictionaryLocalTokenInput, DictionaryStorage, DictionaryTokenRecord } from '@project/common/dictionary-db';
-import { AsbplayerSettings } from '@project/common/settings';
+import { ApplyStrategy, AsbplayerSettings } from '@project/common/settings';
 import {
     CardExportedDialogMessage,
     CardUpdatedDialogMessage,
@@ -31,8 +31,12 @@ export class AppExtensionDictionaryStorage implements DictionaryStorage {
         return this._extension.dictionaryGetByLemmaBulk(profile, track, lemmas);
     }
 
-    saveRecordLocalBulk(profile: string | undefined, localTokenInputs: DictionaryLocalTokenInput[]) {
-        return this._extension.dictionarySaveRecordLocalBulk(profile, localTokenInputs);
+    saveRecordLocalBulk(
+        profile: string | undefined,
+        localTokenInputs: DictionaryLocalTokenInput[],
+        applyStates: ApplyStrategy
+    ) {
+        return this._extension.dictionarySaveRecordLocalBulk(profile, localTokenInputs, applyStates);
     }
 
     deleteRecordLocalBulk(profile: string | undefined, tokens: string[]) {

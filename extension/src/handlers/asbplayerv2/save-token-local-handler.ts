@@ -17,11 +17,11 @@ export default class SaveTokenLocalHandler {
 
     handle(command: Command<Message>, sender: Browser.runtime.MessageSender, sendResponse: (response?: any) => void) {
         const { tabId, src } = command as AsbPlayerToVideoCommandV2<SaveTokenLocalMessage>;
-        const { track, token, status, states } = command.message as SaveTokenLocalMessage;
+        const { track, token, status, states, applyStates } = command.message as SaveTokenLocalMessage;
         const saveTokenLocalCommand: ExtensionToVideoCommand<SaveTokenLocalMessage> = {
             sender: 'asbplayer-extension-to-video',
             src,
-            message: { command: 'save-token-local', track, token, status, states },
+            message: { command: 'save-token-local', track, token, status, states, applyStates },
         };
         browser.tabs.sendMessage(tabId, saveTokenLocalCommand);
         return false;

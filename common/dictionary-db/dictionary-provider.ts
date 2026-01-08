@@ -6,7 +6,7 @@ import {
     TokenResults,
 } from '@project/common/dictionary-db';
 import { DictionaryBuildAnkiCacheState } from '@project/common';
-import { AsbplayerSettings } from '@project/common/settings';
+import { ApplyStrategy, AsbplayerSettings } from '@project/common/settings';
 import { download, getCurrentTimeString } from '../util';
 
 export interface DictionaryStorage {
@@ -14,7 +14,8 @@ export interface DictionaryStorage {
     getByLemmaBulk: (profile: string | undefined, track: number, lemmas: string[]) => Promise<LemmaResults>;
     saveRecordLocalBulk: (
         profile: string | undefined,
-        localTokenInputs: DictionaryLocalTokenInput[]
+        localTokenInputs: DictionaryLocalTokenInput[],
+        applyStates: ApplyStrategy
     ) => Promise<[DictionaryTokenKey[], number]>;
     deleteRecordLocalBulk: (profile: string | undefined, tokens: string[]) => Promise<number>;
     deleteProfile: (profile: string) => Promise<[number, number, number]>;
@@ -49,8 +50,12 @@ export class DictionaryProvider {
         return this._storage.getByLemmaBulk(profile, track, lemmas);
     }
 
-    saveRecordLocalBulk(profile: string | undefined, localTokenInputs: DictionaryLocalTokenInput[]) {
-        return this._storage.saveRecordLocalBulk(profile, localTokenInputs);
+    saveRecordLocalBulk(
+        profile: string | undefined,
+        localTokenInputs: DictionaryLocalTokenInput[],
+        applyStates: ApplyStrategy
+    ) {
+        return this._storage.saveRecordLocalBulk(profile, localTokenInputs, applyStates);
     }
 
     deleteRecordLocalBulk(profile: string | undefined, tokens: string[]) {

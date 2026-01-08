@@ -51,7 +51,7 @@ export default class DictionaryHandler {
             case 'dictionary-save-record-local-bulk': {
                 const message = command.message as DictionarySaveRecordLocalBulkMessage;
                 this.dictionaryDB
-                    .saveRecordLocalBulk(message.profile, message.localTokenInputs)
+                    .saveRecordLocalBulk(message.profile, message.localTokenInputs, message.applyStates)
                     .then((result) => sendResponse(result));
                 return true;
             }

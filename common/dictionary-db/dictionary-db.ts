@@ -8,11 +8,13 @@ import {
     DictionaryBuildAnkiCacheProgress,
 } from '@project/common';
 import {
+    ApplyStrategy,
     AsbplayerSettings,
     dictionaryStatusCollectionEnabled,
     DictionaryTokenSource,
     DictionaryTrack,
     getFullyKnownTokenStatus,
+    TokenState,
     TokenStatus,
 } from '@project/common/settings';
 import { HAS_LETTER_REGEX, inBatches, mapAsync } from '@project/common/util';
@@ -28,14 +30,6 @@ const BUILD_MIN_EXPIRATION_MS = 5 * 60 * 1000; // 5 minutes
  * then -1 would simply become the fallback and represent trackless tokens.
  */
 const LOCAL_TOKEN_TRACK = -1; // null cannot be used in Dexie indexes
-
-/**
- * Not currently used having states seems like it should exist
- */
-export enum DictionaryTokenState {
-    IGNORED = 0,
-    TRACKED = 1,
-}
 
 /**
  * If adding/removing fields here, add/remove the UI helperText in the settings tab
@@ -68,14 +62,14 @@ export interface DictionaryTokenRecord {
     token: string;
     status: TokenStatus | null;
     lemmas: string[];
-    states: DictionaryTokenState[];
+    states: TokenState[];
     cardIds: number[];
 }
 export interface DictionaryLocalTokenInput {
     token: string;
-    status: TokenStatus;
+    status: TokenStatus | null;
     lemmas: string[];
-    states: DictionaryTokenState[];
+    states: TokenState[];
 }
 
 type DictionaryAnkiCardKey = [number, number, string];
@@ -129,7 +123,7 @@ export interface CardStatus {
 }
 
 export interface TokenResults {
-    [token: string]: { source: DictionaryTokenSource; statuses: CardStatus[]; states: DictionaryTokenState[] };
+    [token: string]: { source: DictionaryTokenSource; statuses: CardStatus[]; states: TokenState[] };
 }
 
 export interface LemmaResults {
@@ -137,7 +131,7 @@ export interface LemmaResults {
         token: string;
         source: DictionaryTokenSource;
         statuses: CardStatus[];
-        states: DictionaryTokenState[];
+        states: TokenState[];
     }[];
 }
 
@@ -376,7 +370,8 @@ export class DictionaryDB {
 
     async saveRecordLocalBulk(
         inputProfile: string | undefined,
-        localTokenInputs: DictionaryLocalTokenInput[]
+        localTokenInputs: DictionaryLocalTokenInput[],
+        applyStates: ApplyStrategy
     ): Promise<[DictionaryTokenKey[], number]> {
         if (!localTokenInputs.length) return [[], 0];
         const profile = this._getProfile(inputProfile);
@@ -397,12 +392,40 @@ export class DictionaryDB {
                 }
                 const existingRecord = tokenRecordMap.get(localTokenInput.token);
                 if (existingRecord) {
+                    if (localTokenInput.status == null) localTokenInput.status = existingRecord.status;
                     for (const existingLemma of existingRecord.lemmas) {
                         if (!localTokenInput.lemmas.includes(existingLemma)) localTokenInput.lemmas.push(existingLemma);
                     }
-                    for (const existingState of existingRecord.states) {
-                        if (!localTokenInput.states.includes(existingState)) localTokenInput.states.push(existingState);
+                    switch (applyStates) {
+                        case ApplyStrategy.ADD:
+                            for (const state of existingRecord.states) {
+                                if (!localTokenInput.states.includes(state)) localTokenInput.states.push(state);
+                            }
+                            break;
+                        case ApplyStrategy.REMOVE:
+                            for (const state of existingRecord.states) {
+                                const idx = localTokenInput.states.indexOf(state);
+                                if (idx !== -1) localTokenInput.states.splice(idx, 1);
+                            }
+                            break;
+                        case ApplyStrategy.REPLACE:
+                            break;
+                        case ApplyStrategy.TOGGLE:
+                            for (const existingState of existingRecord.states) {
+                                const idx = localTokenInput.states.indexOf(existingState);
+                                if (idx !== -1) {
+                                    localTokenInput.states.splice(idx, 1);
+                                } else {
+                                    localTokenInput.states.push(existingState);
+                                }
+                            }
+                            break;
+                        default:
+                            console.error(`Unsupported applyStates value: "${applyStates}"`);
+                            return [[], 0];
                     }
+                } else if (localTokenInput.status == null) {
+                    localTokenInput.status = TokenStatus.UNCOLLECTED;
                 }
                 localTokenInput.lemmas = localTokenInput.lemmas.filter((lemma) => HAS_LETTER_REGEX.test(lemma));
                 if (!localTokenInput.lemmas.length) {
@@ -486,7 +509,7 @@ export class DictionaryDB {
                     }
                     existingTokens.set(record.token, {
                         token: record.token,
-                        status: record.status!,
+                        status: record.status,
                         lemmas: record.lemmas,
                         states: record.states,
                     });
@@ -500,7 +523,7 @@ export class DictionaryDB {
                 if (!item.states) item.states = [];
                 const existingToken = existingProfileTokens.get(item.profile)?.get(item.token);
                 if (existingToken) {
-                    item.status = Math.max(item.status ?? TokenStatus.UNCOLLECTED, existingToken.status); // Keep the highest for imports
+                    item.status = Math.max(item.status ?? TokenStatus.UNCOLLECTED, existingToken.status!); // Keep the highest for imports
                     for (const existingLemma of existingToken.lemmas) {
                         if (!item.lemmas.includes(existingLemma)) item.lemmas.push(existingLemma);
                     }
@@ -1358,7 +1381,7 @@ export class DictionaryDB {
                         );
                         for (const [token, val] of tokenCardsMap.entries()) {
                             const existingRecord = tokenRecordMap.get(token); // Merge with existing record
-                            const states: DictionaryTokenState[] = [];
+                            const states: TokenState[] = [];
                             if (existingRecord) {
                                 for (const cardId of existingRecord.cardIds) {
                                     if (!modifiedCardsBatch.has(cardId)) val.cardIds.add(cardId); // If card was updated, it may no longer apply to this token. Should already be in cardIds if it's still valid.

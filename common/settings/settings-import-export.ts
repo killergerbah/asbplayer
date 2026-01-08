@@ -349,6 +349,7 @@ const settingsSchema = {
                 markHoveredToken2: { $ref: '/KeyBind' },
                 markHoveredToken1: { $ref: '/KeyBind' },
                 markHoveredToken0: { $ref: '/KeyBind' },
+                toggleHoveredTokenIgnored: { $ref: '/KeyBind' },
             },
         },
         recordWithAudioPlayback: {

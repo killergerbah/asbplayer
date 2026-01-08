@@ -34,8 +34,14 @@ import {
     SaveTokenLocalFromVideoMessage,
     SaveTokenLocalToVideoMessage,
 } from '@project/common';
-import { AnkiSettings, MiscSettings, SubtitleSettings, TokenStatus } from '@project/common/settings';
-import { DictionaryTokenState } from '../../dictionary-db';
+import {
+    AnkiSettings,
+    ApplyStrategy,
+    MiscSettings,
+    SubtitleSettings,
+    TokenState,
+    TokenStatus,
+} from '@project/common/settings';
 
 export default class PlayerChannel {
     private channel?: BroadcastChannel;
@@ -50,8 +56,9 @@ export default class PlayerChannel {
     private saveTokenLocalCallbacks: ((
         track: number,
         token: string,
-        status: TokenStatus,
-        states: DictionaryTokenState[]
+        status: TokenStatus | null,
+        states: TokenState[],
+        applyStates: ApplyStrategy
     ) => void)[];
     private offsetCallbacks: ((offset: number) => void)[];
     private playbackRateCallbacks: ((playbackRate: number) => void)[];
@@ -154,10 +161,10 @@ export default class PlayerChannel {
                     }
                     break;
                 case 'saveTokenLocal':
-                    const { track, token, status, states } = event.data as SaveTokenLocalToVideoMessage;
+                    const { track, token, status, states, applyStates } = event.data as SaveTokenLocalToVideoMessage;
 
                     for (const callback of that.saveTokenLocalCallbacks) {
-                        callback(track, token, status, states);
+                        callback(track, token, status, states, applyStates);
                     }
                     break;
                 case 'offset':
@@ -295,7 +302,7 @@ export default class PlayerChannel {
     }
 
     onSaveTokenLocal(
-        callback: (track: number, token: string, status: TokenStatus, states: DictionaryTokenState[]) => void
+        callback: (track: number, token: string, status: TokenStatus | null, states: TokenState[]) => void
     ) {
         this.saveTokenLocalCallbacks.push(callback);
         return () => this._remove(callback, this.saveTokenLocalCallbacks);
@@ -413,13 +420,20 @@ export default class PlayerChannel {
         this.channel?.postMessage(message);
     }
 
-    saveTokenLocal(track: number, token: string, status: TokenStatus, states: DictionaryTokenState[]) {
+    saveTokenLocal(
+        track: number,
+        token: string,
+        status: TokenStatus | null,
+        states: TokenState[],
+        applyStates: ApplyStrategy
+    ) {
         const message: SaveTokenLocalFromVideoMessage = {
             command: 'saveTokenLocal',
             track,
             token,
             status,
             states,
+            applyStates,
         };
         this.channel?.postMessage(message);
     }

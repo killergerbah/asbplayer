@@ -15,7 +15,7 @@ import {
     ExtensionToAsbPlayerCommand,
 } from '@project/common';
 import { DictionaryLocalTokenInput, DictionaryStorage, DictionaryTokenRecord } from '@project/common/dictionary-db';
-import { AsbplayerSettings } from '@project/common/settings';
+import { ApplyStrategy, AsbplayerSettings } from '@project/common/settings';
 import { v4 as uuidv4 } from 'uuid';
 
 export class ExtensionDictionaryStorage implements DictionaryStorage {
@@ -61,13 +61,18 @@ export class ExtensionDictionaryStorage implements DictionaryStorage {
         return browser.runtime.sendMessage(message);
     }
 
-    saveRecordLocalBulk(profile: string | undefined, localTokenInputs: DictionaryLocalTokenInput[]) {
+    saveRecordLocalBulk(
+        profile: string | undefined,
+        localTokenInputs: DictionaryLocalTokenInput[],
+        applyStates: ApplyStrategy
+    ) {
         const message: DictionaryDBCommand<DictionarySaveRecordLocalBulkMessage> = {
             sender: 'asbplayer-dictionary',
             message: {
                 command: 'dictionary-save-record-local-bulk',
                 profile,
                 localTokenInputs,
+                applyStates,
                 messageId: uuidv4(),
             },
         };

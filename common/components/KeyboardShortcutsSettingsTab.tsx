@@ -494,6 +494,10 @@ const KeyboardShortcutsSettingsTab: React.FC<Props> = ({
                 label: t('binds.markHoveredToken', { tokenStatus: t('settings.dictionaryTokenStatus0') })!,
                 boundViaChrome: false,
             },
+            toggleHoveredTokenIgnored: {
+                label: t('binds.toggleHoveredTokenIgnored')!,
+                boundViaChrome: false,
+            },
         }),
         [
             t,

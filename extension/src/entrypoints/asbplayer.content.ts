@@ -121,8 +121,9 @@ export default defineContentScript({
                         break;
                     }
                     case 'dictionary-save-record-local-bulk': {
-                        const { profile, localTokenInputs } = command.message as DictionarySaveRecordLocalBulkMessage;
-                        await dictionaryStorage.saveRecordLocalBulk(profile, localTokenInputs);
+                        const { profile, localTokenInputs, applyStates } =
+                            command.message as DictionarySaveRecordLocalBulkMessage;
+                        await dictionaryStorage.saveRecordLocalBulk(profile, localTokenInputs, applyStates);
                         sendMessageToPlayer({
                             messageId: command.message.messageId,
                         });

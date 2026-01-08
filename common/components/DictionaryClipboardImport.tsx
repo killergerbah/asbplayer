@@ -13,6 +13,7 @@ import MenuItem from '@mui/material/MenuItem';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemText from '@mui/material/ListItemText';
+import Switch from '@mui/material/Switch';
 import MuiAlert from '@mui/material/Alert';
 import {
     DictionaryTrack,
@@ -20,10 +21,13 @@ import {
     getFullyKnownTokenStatus,
     NUM_TOKEN_STATUSES,
     NUM_DICTIONARY_TRACKS,
+    TokenState,
+    ApplyStrategy,
 } from '@project/common/settings';
 import { Yomitan } from '../yomitan/yomitan';
+import SwitchLabelWithHoverEffect from './SwitchLabelWithHoverEffect';
 import SettingsTextField from './SettingsTextField';
-import { DictionaryLocalTokenInput, DictionaryProvider } from '../dictionary-db';
+import { DictionaryLocalTokenInput, DictionaryProvider, DictionaryTokenKey } from '../dictionary-db';
 import { ensureStoragePersisted, HAS_LETTER_REGEX } from '../util';
 
 interface ImportClipboardToken {
@@ -48,6 +52,7 @@ const DictionaryClipboardImport: React.FC<Props> = ({
     const [importClipboardDialogOpen, setImportClipboardDialogOpen] = useState(false);
     const [importClipboardTrack, setImportClipboardTrack] = useState<number>(selectedDictionaryTrack);
     const [importClipboardStatus, setImportClipboardStatus] = useState<TokenStatus>(getFullyKnownTokenStatus());
+    const [importClipboardState, setImportClipboardState] = useState<TokenState | null>(null);
     const [importClipboardText, setImportClipboardText] = useState('');
     const [importClipboardPreview, setImportClipboardPreview] = useState<ImportClipboardToken[] | null>(null);
     const [importClipboardLoading, setImportClipboardLoading] = useState(false);
@@ -119,9 +124,9 @@ const DictionaryClipboardImport: React.FC<Props> = ({
                 token: entry.token,
                 status: importClipboardStatus,
                 lemmas: entry.lemmas,
-                states: [],
+                states: importClipboardState !== null ? [importClipboardState] : [],
             }));
-            await dictionaryProvider.saveRecordLocalBulk(activeProfile, inputs);
+            await dictionaryProvider.saveRecordLocalBulk(activeProfile, inputs, ApplyStrategy.ADD);
             setImportClipboardDialogOpen(false);
             setImportClipboardPreview(null);
             setImportClipboardText('');
@@ -131,7 +136,7 @@ const DictionaryClipboardImport: React.FC<Props> = ({
         } finally {
             setImportClipboardLoading(false);
         }
-    }, [dictionaryProvider, activeProfile, importClipboardPreview, importClipboardStatus]);
+    }, [dictionaryProvider, activeProfile, importClipboardPreview, importClipboardStatus, importClipboardState]);
 
     return (
         <>
@@ -176,6 +181,18 @@ const DictionaryClipboardImport: React.FC<Props> = ({
                                 );
                             })}
                         </SettingsTextField>
+                        <SwitchLabelWithHoverEffect
+                            control={
+                                <Switch
+                                    checked={importClipboardState === TokenState.IGNORED}
+                                    onChange={(e) =>
+                                        setImportClipboardState(e.target.checked ? TokenState.IGNORED : null)
+                                    }
+                                />
+                            }
+                            label={t('settings.dictionaryImportClipboardIgnored')}
+                            labelPlacement="start"
+                        />
                         <TextField
                             multiline
                             minRows={8}

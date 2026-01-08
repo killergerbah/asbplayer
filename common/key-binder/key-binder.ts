@@ -166,6 +166,11 @@ export interface KeyBinder {
         disabledGetter: () => boolean,
         capture?: boolean
     ): () => void;
+    bindToggleHoveredTokenIgnored(
+        onToggleHoveredTokenIgnored: (event: KeyboardEvent) => void,
+        disabledGetter: () => boolean,
+        capture?: boolean
+    ): () => void;
 }
 
 export class DefaultKeyBinder implements KeyBinder {
@@ -986,6 +991,28 @@ export class DefaultKeyBinder implements KeyBinder {
                 unbindHandler();
             }
         };
+    }
+
+    bindToggleHoveredTokenIgnored(
+        onToggleHoveredTokenIgnored: (event: KeyboardEvent) => void,
+        disabledGetter: () => boolean,
+        capture = false
+    ) {
+        const shortcut = this.keyBindSet.toggleHoveredTokenIgnored.keys;
+
+        if (!shortcut) {
+            return () => {};
+        }
+
+        const handler = (event: KeyboardEvent) => {
+            if (disabledGetter()) {
+                return false;
+            }
+
+            onToggleHoveredTokenIgnored(event);
+            return true;
+        };
+        return this._bind(shortcut, capture, handler);
     }
 
     private _bind(shortcut: string, capture: boolean, handler: (event: KeyboardEvent) => boolean) {

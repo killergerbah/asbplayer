@@ -117,6 +117,7 @@ it('validates exported settings', () => {
             markHoveredToken2: { keys: 'Q+2' },
             markHoveredToken1: { keys: 'Q+1' },
             markHoveredToken0: { keys: 'Q+0' },
+            toggleHoveredTokenIgnored: { keys: 'Q+I' },
         },
         recordWithAudioPlayback: true,
         preferMp3: true,

@@ -15,7 +15,7 @@ import {
     SubtitleModel,
     VideoTabModel,
 } from '@project/common';
-import { AsbplayerSettings, SettingsProvider } from '@project/common/settings';
+import { ApplyStrategy, AsbplayerSettings, SettingsProvider, TokenState } from '@project/common/settings';
 import { DictionaryProvider } from '@project/common/dictionary-db';
 import { SubtitleCollection } from '@project/common/subtitle-collection';
 import { SubtitleColoring } from '@project/common/subtitle-coloring';
@@ -521,20 +521,49 @@ const Player = React.memo(function Player({
                 void ensureStoragePersisted();
                 event.preventDefault();
                 event.stopImmediatePropagation();
+                const applyStates = ApplyStrategy.ADD;
                 if (subtitleCollectionRef.current instanceof SubtitleColoring) {
-                    void subtitleCollectionRef.current.saveTokenLocal(res.track, res.token, tokenStatus, []);
+                    void subtitleCollectionRef.current.saveTokenLocal(
+                        res.track,
+                        res.token,
+                        tokenStatus,
+                        [],
+                        applyStates
+                    );
                     return;
                 }
-                if (tab) void extension.saveTokenLocal(tab.id, tab.src, res.track, res.token, tokenStatus, []);
+                if (!tab) return;
+                void extension.saveTokenLocal(tab.id, tab.src, res.track, res.token, tokenStatus, [], applyStates);
             },
             () => disableKeyEvents
         );
     }, [keyBinder, disableKeyEvents, tab, extension]);
 
     useEffect(() => {
-        return channel?.onSaveTokenLocal((track, token, status, states) => {
+        return keyBinder.bindToggleHoveredTokenIgnored(
+            (event) => {
+                const res = SubtitleColoring.parseTokenFromElement(hoveredElementRef.current);
+                if (!res) return;
+                void ensureStoragePersisted();
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                const states = [TokenState.IGNORED];
+                const applyStates = ApplyStrategy.TOGGLE;
+                if (subtitleCollectionRef.current instanceof SubtitleColoring) {
+                    void subtitleCollectionRef.current.saveTokenLocal(res.track, res.token, null, states, applyStates);
+                    return;
+                }
+                if (!tab) return;
+                void extension.saveTokenLocal(tab.id, tab.src, res.track, res.token, null, states, applyStates);
+            },
+            () => disableKeyEvents
+        );
+    }, [keyBinder, disableKeyEvents, tab, extension]);
+
+    useEffect(() => {
+        return channel?.onSaveTokenLocal((track, token, status, states, applyStates) => {
             if (!(subtitleCollectionRef.current instanceof SubtitleColoring)) return;
-            subtitleCollectionRef.current.saveTokenLocal(track, token, status, states);
+            subtitleCollectionRef.current.saveTokenLocal(track, token, status, states, applyStates);
         });
     }, [channel]);
 

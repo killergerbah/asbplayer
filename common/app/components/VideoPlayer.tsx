@@ -26,6 +26,8 @@ import {
     PauseOnHoverMode,
     allTextSubtitleSettings,
     DictionaryTrack,
+    TokenState,
+    ApplyStrategy,
 } from '@project/common/settings';
 import {
     arrayEquals,
@@ -1566,7 +1568,21 @@ export default function VideoPlayer({
                 void ensureStoragePersisted();
                 event.preventDefault();
                 event.stopImmediatePropagation();
-                playerChannel.saveTokenLocal(res.track, res.token, tokenStatus, []);
+                playerChannel.saveTokenLocal(res.track, res.token, tokenStatus, [], ApplyStrategy.ADD);
+            },
+            () => false
+        );
+    }, [keyBinder, playerChannel]);
+
+    useEffect(() => {
+        return keyBinder.bindToggleHoveredTokenIgnored(
+            (event) => {
+                const res = SubtitleColoring.parseTokenFromElement(hoveredElementRef.current);
+                if (!res) return;
+                void ensureStoragePersisted();
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                playerChannel.saveTokenLocal(res.track, res.token, null, [TokenState.IGNORED], ApplyStrategy.TOGGLE);
             },
             () => false
         );

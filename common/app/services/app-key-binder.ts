@@ -287,6 +287,18 @@ export default class AppKeyBinder implements KeyBinder {
         return this.defaultKeyBinder.bindMarkHoveredToken(onMarkHoveredToken, disabledGetter, useCapture);
     }
 
+    bindToggleHoveredTokenIgnored(
+        onToggleHoveredTokenIgnored: (event: KeyboardEvent) => void,
+        disabledGetter: () => boolean,
+        useCapture?: boolean | undefined
+    ): () => void {
+        return this.defaultKeyBinder.bindToggleHoveredTokenIgnored(
+            onToggleHoveredTokenIgnored,
+            disabledGetter,
+            useCapture
+        );
+    }
+
     bindPlay(
         onPlay: (event: KeyboardEvent) => void,
         disabledGetter: () => boolean,

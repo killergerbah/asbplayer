@@ -5,7 +5,7 @@ import {
     ToggleSubtitlesMessage,
     VideoToExtensionCommand,
 } from '@project/common';
-import { KeyBindSet } from '@project/common/settings';
+import { ApplyStrategy, KeyBindSet, TokenState, TokenStatus } from '@project/common/settings';
 import { DefaultKeyBinder } from '@project/common/key-binder';
 import Binding from './binding';
 import { SubtitleColoring } from '@project/common/subtitle-coloring';
@@ -35,6 +35,7 @@ export default class KeyBindings {
     private _unbindAdjustSubtitlePositionOffset: Unbinder = false;
     private _unbindAdjustTopSubtitlePositionOffset: Unbinder = false;
     private _unbindMarkHoveredToken?: Unbinder = false;
+    private _unbindToggleHoveredTokenIgnored?: Unbinder = false;
 
     private _bound: boolean;
 
@@ -206,7 +207,32 @@ export default class KeyBindings {
                 void ensureStoragePersisted();
                 event.preventDefault();
                 event.stopImmediatePropagation();
-                void context.subtitleController.subtitleColoring.saveTokenLocal(res.track, res.token, tokenStatus, []);
+                void context.subtitleController.subtitleColoring.saveTokenLocal(
+                    res.track,
+                    res.token,
+                    tokenStatus,
+                    [],
+                    ApplyStrategy.ADD
+                );
+            },
+            () => context.subtitleController.subtitles.length === 0,
+            true
+        );
+
+        this._unbindToggleHoveredTokenIgnored = this._keyBinder.bindToggleHoveredTokenIgnored(
+            (event) => {
+                const res = SubtitleColoring.parseTokenFromElement(context.hoveredElement);
+                if (!res) return;
+                void ensureStoragePersisted();
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                void context.subtitleController.subtitleColoring.saveTokenLocal(
+                    res.track,
+                    res.token,
+                    null,
+                    [TokenState.IGNORED],
+                    ApplyStrategy.TOGGLE
+                );
             },
             () => context.subtitleController.subtitles.length === 0,
             true
@@ -431,6 +457,11 @@ export default class KeyBindings {
         if (this._unbindMarkHoveredToken) {
             this._unbindMarkHoveredToken();
             this._unbindMarkHoveredToken = false;
+        }
+
+        if (this._unbindToggleHoveredTokenIgnored) {
+            this._unbindToggleHoveredTokenIgnored();
+            this._unbindToggleHoveredTokenIgnored = false;
         }
 
         this._bound = false;

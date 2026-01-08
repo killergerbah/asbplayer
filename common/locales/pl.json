@@ -150,7 +150,8 @@
         "moveBottomSubtitlesDown": "Move bottom subtitles down",
         "moveTopSubtitlesUp": "Move top subtitles up",
         "moveTopSubtitlesDown": "Move top subtitles down",
-        "markHoveredToken": "Mark hovered word as {{tokenStatus}}"
+        "markHoveredToken": "Mark hovered word as {{tokenStatus}}",
+        "toggleHoveredTokenIgnored": "Toggle hovered word as ignored"
     },
     "controls": {
         "autoPauseMode": "Automatyczna pauza",
@@ -506,6 +507,7 @@
         "dictionaryBuildAnkiError": "Error getting permission from Anki",
         "dictionaryBuildYomitanError": "Error connecting to Yomitan for track {{trackNumber}} (disable this track to ignore)",
         "dictionaryImportClipboardTitle": "Import words from clipboard",
+        "dictionaryImportClipboardIgnored": "Mark words as ignored",
         "dictionaryImportClipboardText": "Paste text or one word per line",
         "dictionaryImportClipboardNoTokens": "No valid words found",
         "ui": "UI",

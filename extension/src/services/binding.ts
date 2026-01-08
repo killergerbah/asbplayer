@@ -761,8 +761,14 @@ export default class Binding {
                         this.subtitleController.subtitleColoring.ankiCardWasModified();
                         break;
                     case 'save-token-local':
-                        const { track, token, status, states } = request.message as SaveTokenLocalMessage;
-                        this.subtitleController.subtitleColoring.saveTokenLocal(track, token, status, states);
+                        const { track, token, status, states, applyStates } = request.message as SaveTokenLocalMessage;
+                        this.subtitleController.subtitleColoring.saveTokenLocal(
+                            track,
+                            token,
+                            status,
+                            states,
+                            applyStates
+                        );
                         break;
                     case 'notify-error':
                         const notifyErrorMessage = request.message as NotifyErrorMessage;

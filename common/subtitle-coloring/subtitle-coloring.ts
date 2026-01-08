@@ -6,6 +6,7 @@ import {
 } from '@project/common';
 import { Anki } from '@project/common/anki';
 import {
+    ApplyStrategy,
     areDictionaryTracksEqual,
     AsbplayerSettings,
     dictionaryStatusCollectionEnabled,
@@ -17,16 +18,11 @@ import {
     TokenMatchStrategy,
     TokenMatchStrategyPriority,
     TokenReadingAnnotation,
+    TokenState,
     TokenStatus,
     TokenStyling,
 } from '@project/common/settings';
-import {
-    CardStatus,
-    DictionaryProvider,
-    DictionaryTokenState,
-    LemmaResults,
-    TokenResults,
-} from '@project/common/dictionary-db';
+import { CardStatus, DictionaryProvider, LemmaResults, TokenResults } from '@project/common/dictionary-db';
 import { SubtitleCollection, SubtitleCollectionOptions } from '@project/common/subtitle-collection';
 import { arrayEquals, HAS_LETTER_REGEX, inBatches, ONLY_ASCII_LETTERS_REGEX } from '@project/common/util';
 import { TokenPart, Yomitan } from '@project/common/yomitan/yomitan';
@@ -51,6 +47,7 @@ interface TrackState {
     collectedExactForm: Map<string, TokenStatusResult>;
     collectedLemmaForm: Map<string, TokenStatusResult>;
     collectedAnyForm: Map<string, TokenStatusResult[]>;
+    tokenStates: Map<string, TokenState[]>;
 }
 
 function shouldUseExactForm(s: TokenMatchStrategy): boolean {
@@ -213,8 +210,9 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
     async saveTokenLocal(
         track: number,
         token: string,
-        status: TokenStatus,
-        states: DictionaryTokenState[]
+        status: TokenStatus | null,
+        states: TokenState[],
+        applyStates: ApplyStrategy
     ): Promise<void> {
         if (this.profile === null) return;
         const profile = this.profile;
@@ -222,7 +220,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
         if (!ts || !dictionaryTrackEnabled(ts.dt) || !ts.yt) return;
 
         const lemmas = await ts.yt.lemmatize(token);
-        await this.dictionaryProvider.saveRecordLocalBulk(profile, [{ token, status, lemmas, states }]);
+        await this.dictionaryProvider.saveRecordLocalBulk(profile, [{ token, status, lemmas, states }], applyStates);
         this.tokensForRefresh.add(token);
         for (const lemma of lemmas) this.tokensForRefresh.add(lemma);
     }
@@ -391,6 +389,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                 collectedExactForm: new Map(),
                 collectedLemmaForm: new Map(),
                 collectedAnyForm: new Map(),
+                tokenStates: new Map(),
             }));
         }
         const trackStates = this.trackStates;
@@ -538,6 +537,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                 ts.collectedExactForm.delete(token);
                 ts.collectedLemmaForm.delete(token);
                 ts.collectedAnyForm.delete(token);
+                ts.tokenStates.delete(token);
             }
 
             const forExactFormQuery = new Set<string>();
@@ -575,20 +575,39 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
             ]);
             if (this.shouldCancelBuild) return;
 
-            for (const [token, tokenResult] of Object.entries(exactFormResultMap)) {
-                const status = this._getTokenStatus(tokenResult.statuses, ts);
-                ts.collectedExactForm.set(token, { status, source: tokenResult.source });
+            for (const [token, { states, statuses, source }] of Object.entries(exactFormResultMap)) {
+                const status = this._getTokenStatus(statuses, ts);
+                ts.collectedExactForm.set(token, { status, source });
+                if (states.length) ts.tokenStates.set(token, states);
             }
-            for (const [lemma, lemmaResult] of Object.entries(lemmaFormResultMap)) {
-                const status = this._getTokenStatus(lemmaResult.statuses, ts);
-                ts.collectedLemmaForm.set(lemma, { status, source: lemmaResult.source });
+            for (const [lemma, { states, statuses, source }] of Object.entries(lemmaFormResultMap)) {
+                const status = this._getTokenStatus(statuses, ts);
+                ts.collectedLemmaForm.set(lemma, { status, source });
+                if (!states.length) continue;
+                const tokenStates = ts.tokenStates.get(lemma);
+                if (tokenStates) {
+                    for (const state of states) {
+                        if (!tokenStates.includes(state)) tokenStates.push(state);
+                    }
+                } else {
+                    ts.tokenStates.set(lemma, states);
+                }
             }
             for (const [lemma, lemmaResults] of Object.entries(anyFormResultsMap)) {
-                for (const { statuses, source, token } of lemmaResults) {
+                for (const { states, statuses, source, token } of lemmaResults) {
                     const status = this._getTokenStatus(statuses, ts);
                     const lemmaCollected = ts.collectedAnyForm.get(lemma);
                     if (lemmaCollected) lemmaCollected.push({ status, source, token });
                     else ts.collectedAnyForm.set(lemma, [{ status, source, token }]);
+                    if (!states.length) continue;
+                    const tokenStates = ts.tokenStates.get(token);
+                    if (tokenStates) {
+                        for (const state of states) {
+                            if (!tokenStates.includes(state)) tokenStates.push(state);
+                        }
+                    } else {
+                        ts.tokenStates.set(token, states);
+                    }
                 }
             }
         }
@@ -620,6 +639,10 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                     .map((p) => p.text)
                     .join('')
                     .trim();
+                if ((ts.tokenStates.get(trimmedToken) ?? []).includes(TokenState.IGNORED)) {
+                    richText += this._applyTokenStyle(tokenParts, getFullyKnownTokenStatus(), ts.dt, true);
+                    continue;
+                }
                 if (!HAS_LETTER_REGEX.test(trimmedToken)) {
                     richText += this._applyTokenStyle(tokenParts, getFullyKnownTokenStatus(), ts.dt, false);
                     continue;
