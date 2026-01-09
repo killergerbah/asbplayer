@@ -32,6 +32,7 @@ import {
     NUM_TOKEN_STATUSES,
     compareDTField,
     Profile,
+    dictionaryStatusCollectionEnabled,
 } from '@project/common/settings';
 import { Anki } from '../anki';
 import { Yomitan } from '../yomitan/yomitan';
@@ -63,7 +64,7 @@ const localizedDate = (timestamp: number) => {
 const useBuildAnkiCacheState: () => {
     severity: 'error' | 'info';
     msg: string;
-    setBuildAnkiCacheState: (state: DictionaryBuildAnkiCacheState) => void;
+    setBuildAnkiCacheState: (state: DictionaryBuildAnkiCacheState | undefined) => void;
 } = () => {
     const { t } = useTranslation();
     const [buildAnkiCacheState, setBuildAnkiCacheState] = useState<DictionaryBuildAnkiCacheState>();
@@ -294,12 +295,17 @@ const DictionarySettingsTab: React.FC<Props> = ({
         dictionaryProvider.exportRecordLocalBulk();
     }, [dictionaryProvider]);
 
+    const buildAnkiCacheDisabled = dictionaryTracks.every((dt) => !dictionaryStatusCollectionEnabled(dt));
+    const ankiFieldsEnabled = dictionaryTracks.some(
+        (dt) => dt.dictionaryAnkiWordFields.length || dt.dictionaryAnkiSentenceFields.length
+    );
     const [buildingAnkiCache, setBuildingAnkiCache] = useState<boolean>(false);
     const { severity: buildMessageSeverity, msg: buildMessage, setBuildAnkiCacheState } = useBuildAnkiCacheState();
 
     const handleBuildAnkiCache = useCallback(async () => {
         try {
             setBuildingAnkiCache(true);
+            setBuildAnkiCacheState(undefined);
             void ensureStoragePersisted();
             await dictionaryProvider.buildAnkiCache(activeProfile, settings);
         } catch (e) {
@@ -369,12 +375,15 @@ const DictionarySettingsTab: React.FC<Props> = ({
                         style={{ width: '100%' }}
                         onClick={handleBuildAnkiCache}
                         loading={buildingAnkiCache}
+                        disabled={buildAnkiCacheDisabled}
                         startIcon={<RefreshIcon />}
                     >
                         {t('settings.buildAnkiCache')}
                     </Button>
                     <Typography variant="caption" color="textSecondary">
-                        {t('settings.buildAnkiCacheHelperText')}
+                        {ankiFieldsEnabled
+                            ? t('settings.buildAnkiCacheHelperText')
+                            : `${t('settings.buildAnkiCacheHelperText')} ${t('settings.buildAnkiCacheAnkiEnableHelperText')}`}
                     </Typography>
                     {buildMessage && buildMessageSeverity && (
                         <div style={{ marginTop: 8 }}>
@@ -829,6 +838,9 @@ const DictionarySettingsTab: React.FC<Props> = ({
                     }}
                 />
                 <SettingsSection>{t('settings.anki')}</SettingsSection>
+                {!ankiFieldsEnabled && (
+                    <Alert severity="info">{t('settings.buildAnkiCacheAnkiEnableHelperText')}</Alert>
+                )}
                 <Autocomplete
                     multiple
                     options={deckNames ?? []}

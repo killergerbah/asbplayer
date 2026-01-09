@@ -455,6 +455,7 @@
         "annotationLocalAnkiHelperText": "Word status is determined by your local collection then from Anki cards. Collect words locally through imports or by hovering over words and using the keyboard shortcuts.",
         "buildAnkiCache": "Re-Build Anki cache",
         "buildAnkiCacheHelperText": "The cache is automatically updated during playback when a track is enabled and Anki is connectable.",
+        "buildAnkiCacheAnkiEnableHelperText": "Configure word fields and/or sentence fields to use Anki for known words.",
         "ankiCacheDependentSettingsHelperText": "Changing \"{{field}}\" could invalidate the Anki cache, trigger a rebuild now or have it done automatically on your next playback when this track is enabled and Anki is connectable.",
         "dictionaryColorizeSubtitles": "Colorize subtitles based on known words",
         "dictionaryColorizeOnHoverOnly": "Only show annotations on hover",
