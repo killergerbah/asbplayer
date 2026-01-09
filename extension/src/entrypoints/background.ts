@@ -69,6 +69,7 @@ import PageConfigHandler from '@/handlers/asbplayerv2/page-config-handler';
 import EncodeMp3Handler from '@/handlers/video/encode-mp3-handler';
 import { DictionaryDB } from '@project/common/dictionary-db/dictionary-db';
 import DictionaryHandler from '@/handlers/dictionary/dictionary-handler';
+import SaveTokenLocalHandler from '@/handlers/asbplayerv2/save-token-local-handler';
 
 export default defineBackground(() => {
     if (!isFirefoxBuild) {
@@ -150,6 +151,7 @@ export default defineBackground(() => {
         new LoadSubtitlesHandler(tabRegistry),
         new RequestSubtitlesHandler(),
         new RequestCurrentSubtitleHandler(),
+        new SaveTokenLocalHandler(),
         new RequestCopyHistoryHandler(),
         new SaveCopyHistoryHandler(settings),
         new DeleteCopyHistoryHandler(settings),

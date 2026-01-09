@@ -116,6 +116,7 @@ export default function SettingsDialog({
                     onSettingsChanged={onSettingsChanged}
                     dictionaryProvider={dictionaryProvider}
                     settings={settings}
+                    profiles={profilesContext.profiles}
                     activeProfile={profilesContext.activeProfile}
                     scrollToId={scrollToId}
                     localFontsAvailable={localFontsAvailable}

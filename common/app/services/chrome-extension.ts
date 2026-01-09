@@ -36,16 +36,28 @@ import {
     DictionaryDeleteRecordLocalBulkMessage,
     DictionaryBuildAnkiCacheState,
     DictionaryDeleteProfileMessage,
+    DictionaryExportRecordLocalBulkMessage,
+    DictionaryImportRecordLocalBulkMessage,
     CardUpdatedDialogMessage,
     CardExportedDialogMessage,
+    SaveTokenLocalFromAppMessage,
 } from '@project/common';
 import {
     DictionaryLocalTokenInput,
     DictionaryTokenKey,
+    DictionaryTokenRecord,
     LemmaResults,
     TokenResults,
 } from '@project/common/dictionary-db';
-import { AsbplayerSettings, PageSettings, Profile, SettingsFormPageConfig } from '@project/common/settings';
+import {
+    ApplyStrategy,
+    AsbplayerSettings,
+    PageSettings,
+    Profile,
+    SettingsFormPageConfig,
+    TokenState,
+    TokenStatus,
+} from '@project/common/settings';
 import { GlobalState } from '@project/common/global-state';
 import { v4 as uuidv4 } from 'uuid';
 import gte from 'semver/functions/gte';
@@ -376,6 +388,34 @@ export default class ChromeExtension {
         return this._createResponsePromise(messageId);
     }
 
+    saveTokenLocal(
+        tabId: number,
+        src: string,
+        track: number,
+        token: string,
+        status: TokenStatus | null,
+        states: TokenState[],
+        applyStates: ApplyStrategy
+    ) {
+        const messageId = uuidv4();
+        const command: AsbPlayerToVideoCommandV2<SaveTokenLocalFromAppMessage> = {
+            sender: 'asbplayerv2',
+            tabId,
+            src,
+            message: {
+                command: 'save-token-local',
+                track,
+                token,
+                status,
+                states,
+                applyStates,
+                messageId,
+            },
+        };
+        window.postMessage(command);
+        return this._createResponsePromise(messageId);
+    }
+
     requestCopyHistory(count: number) {
         const messageId = uuidv4();
         const command: AsbPlayerCommand<RequestCopyHistoryMessage> = {
@@ -598,8 +638,9 @@ export default class ChromeExtension {
 
     async dictionarySaveRecordLocalBulk(
         profile: string | undefined,
-        localTokenInputs: DictionaryLocalTokenInput[]
-    ): Promise<DictionaryTokenKey[]> {
+        localTokenInputs: DictionaryLocalTokenInput[],
+        applyStates: ApplyStrategy
+    ): Promise<[DictionaryTokenKey[], number]> {
         const messageId = uuidv4();
         const command: AsbPlayerCommand<DictionarySaveRecordLocalBulkMessage> = {
             sender: 'asbplayerv2',
@@ -607,6 +648,7 @@ export default class ChromeExtension {
                 command: 'dictionary-save-record-local-bulk',
                 profile,
                 localTokenInputs,
+                applyStates,
                 messageId,
             },
         };
@@ -636,6 +678,37 @@ export default class ChromeExtension {
             message: {
                 command: 'dictionary-delete-profile',
                 profile,
+                messageId,
+            },
+        };
+        window.postMessage(command);
+        return await this._createResponsePromise(messageId);
+    }
+
+    async dictionaryExportRecordLocalBulk(): Promise<Partial<DictionaryTokenRecord>[]> {
+        const messageId = uuidv4();
+        const command: AsbPlayerCommand<DictionaryExportRecordLocalBulkMessage> = {
+            sender: 'asbplayerv2',
+            message: {
+                command: 'dictionary-export-record-local-bulk',
+                messageId,
+            },
+        };
+        window.postMessage(command);
+        return await this._createResponsePromise(messageId);
+    }
+
+    async dictionaryImportRecordLocalBulk(
+        records: Partial<DictionaryTokenRecord>[],
+        profiles: string[]
+    ): Promise<DictionaryTokenKey[]> {
+        const messageId = uuidv4();
+        const command: AsbPlayerCommand<DictionaryImportRecordLocalBulkMessage> = {
+            sender: 'asbplayerv2',
+            message: {
+                command: 'dictionary-import-record-local-bulk',
+                records,
+                profiles,
                 messageId,
             },
         };

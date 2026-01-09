@@ -89,11 +89,22 @@ export enum TokenStatus {
     LEARNING = 2,
     GRADUATED = 3,
     YOUNG = 4,
-    MATURE = 5, // If ever adding more statuses, they should go after MATURE and getFullyKnownTokenStatus should be updated
+    MATURE = 5, // If ever adding more statuses, they should go last and getFullyKnownTokenStatus should be updated
 }
 
 export function getFullyKnownTokenStatus(): TokenStatus {
     return TokenStatus.MATURE; // If future statuses are optional, this logic may need to change
+}
+
+export enum TokenState {
+    IGNORED = 0, // If ever adding more states, they should go last (if adding colors for states, use a separate array from tokenStatusColors indexed by TokenState)
+}
+
+export enum ApplyStrategy {
+    ADD = 'ADD',
+    REMOVE = 'REMOVE',
+    REPLACE = 'REPLACE',
+    TOGGLE = 'TOGGLE',
 }
 
 export enum TokenReadingAnnotation {
@@ -132,7 +143,7 @@ export interface DictionaryTrack {
     readonly tokenStyling: TokenStyling;
     readonly tokenStylingThickness: number;
     readonly colorizeFullyKnownTokens: boolean;
-    readonly tokenStatusColors: string[]; // Indexed by TokenStatus
+    readonly tokenStatusColors: string[]; // Indexed by TokenStatus (if adding colors for states, use a separate array indexed by TokenState)
 }
 
 export interface DictionarySettings {
@@ -390,6 +401,13 @@ export interface KeyBindSet {
     readonly moveBottomSubtitlesDown: KeyBind;
     readonly moveTopSubtitlesUp: KeyBind;
     readonly moveTopSubtitlesDown: KeyBind;
+    readonly markHoveredToken5: KeyBind;
+    readonly markHoveredToken4: KeyBind;
+    readonly markHoveredToken3: KeyBind;
+    readonly markHoveredToken2: KeyBind;
+    readonly markHoveredToken1: KeyBind;
+    readonly markHoveredToken0: KeyBind;
+    readonly toggleHoveredTokenIgnored: KeyBind;
 
     // Bound from Chrome if extension is installed
     readonly copySubtitle: KeyBind;

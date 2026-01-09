@@ -1,7 +1,7 @@
 import { Validator } from 'jsonschema';
 import { AsbplayerSettings } from './settings';
 import { ensureConsistencyOnRead } from './settings-provider';
-import { download } from '../util';
+import { download, getCurrentTimeString } from '../util';
 
 const keyBindSchema = {
     id: '/KeyBind',
@@ -343,6 +343,13 @@ const settingsSchema = {
                 moveBottomSubtitlesDown: { $ref: '/KeyBind' },
                 moveTopSubtitlesUp: { $ref: '/KeyBind' },
                 moveTopSubtitlesDown: { $ref: '/KeyBind' },
+                markHoveredToken5: { $ref: '/KeyBind' },
+                markHoveredToken4: { $ref: '/KeyBind' },
+                markHoveredToken3: { $ref: '/KeyBind' },
+                markHoveredToken2: { $ref: '/KeyBind' },
+                markHoveredToken1: { $ref: '/KeyBind' },
+                markHoveredToken0: { $ref: '/KeyBind' },
+                toggleHoveredTokenIgnored: { $ref: '/KeyBind' },
             },
         },
         recordWithAudioPlayback: {
@@ -513,14 +520,9 @@ const withIgnoredKeysRemoved = (settings: any) => {
 };
 
 export const exportSettings = (settings: AsbplayerSettings) => {
-    const now = new Date();
-    const timeString = `${now.getFullYear()}-${
-        now.getMonth() + 1
-    }-${now.getDate()}-${now.getHours()}-${now.getMinutes()}-${now.getSeconds()}`;
-
     download(
-        new Blob([JSON.stringify(withIgnoredKeysRemoved(settings))], { type: 'appliction/json' }),
-        `asbplayer-settings-${timeString}.json`
+        new Blob([JSON.stringify(withIgnoredKeysRemoved(settings))], { type: 'application/json' }),
+        `asbplayer-settings-${getCurrentTimeString()}.json`
     );
 };
 
