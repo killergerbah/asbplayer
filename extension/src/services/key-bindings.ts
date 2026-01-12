@@ -5,10 +5,9 @@ import {
     ToggleSubtitlesMessage,
     VideoToExtensionCommand,
 } from '@project/common';
-import { ApplyStrategy, KeyBindSet, TokenState, TokenStatus } from '@project/common/settings';
+import { ApplyStrategy, KeyBindSet, TokenState } from '@project/common/settings';
 import { DefaultKeyBinder } from '@project/common/key-binder';
 import Binding from './binding';
-import { SubtitleColoring } from '@project/common/subtitle-coloring';
 import { ensureStoragePersisted } from '@project/common/util';
 
 type Unbinder = (() => void) | false;
@@ -202,7 +201,7 @@ export default class KeyBindings {
 
         this._unbindMarkHoveredToken = this._keyBinder.bindMarkHoveredToken(
             (event, tokenStatus) => {
-                const res = SubtitleColoring.parseTokenFromElement(context.hoveredElement);
+                const res = context.hoveredToken.parse();
                 if (!res) return;
                 void ensureStoragePersisted();
                 event.preventDefault();
@@ -221,7 +220,7 @@ export default class KeyBindings {
 
         this._unbindToggleHoveredTokenIgnored = this._keyBinder.bindToggleHoveredTokenIgnored(
             (event) => {
-                const res = SubtitleColoring.parseTokenFromElement(context.hoveredElement);
+                const res = context.hoveredToken.parse();
                 if (!res) return;
                 void ensureStoragePersisted();
                 event.preventDefault();

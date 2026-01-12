@@ -48,6 +48,10 @@
     display: inline;
 }
 
+.asb-token:hover {
+    background-color: rgb(0, 123, 255) !important;
+}
+
 .asbplayer-notification-container-bottom {
     position: absolute !important;
     left: 50%;

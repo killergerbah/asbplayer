@@ -34,6 +34,8 @@ const TOKEN_CACHE_BATCH_SIZE = 1; // Processing more than 1 at a time is slower
 const TOKEN_CACHE_ERROR_REFRESH_INTERVAL = 10000;
 const ANKI_RECENTLY_MODIFIED_INTERVAL = 10000;
 
+const ASB_TOKEN_CLASS = 'asb-token';
+
 interface TokenStatusResult {
     status: TokenStatus;
     source: DictionaryTokenSource;
@@ -63,8 +65,6 @@ function shouldUseAnyForm(s: TokenMatchStrategy): boolean {
 }
 
 export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
-    static readonly ASB_TOKEN_CLASS = 'asb-token';
-
     private _subtitles: RichSubtitleModel[];
     private readonly dictionaryProvider: DictionaryProvider;
     private readonly settingsProvider: SettingsProvider;
@@ -932,7 +932,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
         if (tokenStatus === null) return `<span style="text-decoration: line-through red 3px;">${token}</span>`;
         if (!dt.dictionaryColorizeSubtitles) return token;
 
-        const s = validToken ? `<span class="${SubtitleColoring.ASB_TOKEN_CLASS}"` : '<span';
+        const s = validToken ? `<span class="${ASB_TOKEN_CLASS}"` : '<span';
         if (!dt.colorizeFullyKnownTokens && tokenStatus === getFullyKnownTokenStatus()) return `${s}>${token}</span>`;
         const c = dt.tokenStatusColors[tokenStatus];
         const t = dt.tokenStylingThickness;
@@ -990,28 +990,35 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
             this.subtitlesInterval = undefined;
         }
     }
+}
 
-    static handleMouseOver(mouseEvent: MouseEvent): HTMLElement | null {
-        if (!(mouseEvent.target instanceof HTMLElement)) return null;
-        return mouseEvent.target;
+export class HoveredToken {
+    private _hoveredElement: HTMLElement | null;
+
+    constructor() {
+        this._hoveredElement = null;
     }
 
-    static handleMouseOut(mouseEvent: MouseEvent, hoveredElement: HTMLElement | null): boolean {
-        if (!(mouseEvent.target instanceof HTMLElement)) return true;
-        return hoveredElement === mouseEvent.target;
+    handleMouseOver(mouseEvent: MouseEvent): void {
+        if (!(mouseEvent.target instanceof HTMLElement)) return;
+        this._hoveredElement = mouseEvent.target;
     }
 
-    static parseTokenFromElement(tokenEl: HTMLElement | null): { token: string; track: number } | null {
-        if (!tokenEl) return null;
-        if (tokenEl.tagName === 'RUBY') {
-            const rubyEl = tokenEl.parentElement;
-            if (!rubyEl?.classList.contains(this.ASB_TOKEN_CLASS)) return null;
-            tokenEl = rubyEl;
-        } else if (tokenEl.tagName === 'RT') {
-            const rtEl = tokenEl.parentElement?.parentElement;
-            if (!rtEl?.classList.contains(this.ASB_TOKEN_CLASS)) return null;
-            tokenEl = rtEl;
-        } else if (!tokenEl.classList.contains(this.ASB_TOKEN_CLASS)) return null;
+    handleMouseOut(mouseEvent: MouseEvent): void {
+        if (!(mouseEvent.target instanceof HTMLElement) || this._hoveredElement === mouseEvent.target) {
+            this._hoveredElement = null;
+        }
+    }
+
+    parse(): { token: string; track: number } | null {
+        const tokenEl =
+            this._hoveredElement?.tagName === 'RUBY'
+                ? this._hoveredElement.parentElement
+                : this._hoveredElement?.tagName === 'RT'
+                  ? this._hoveredElement.parentElement?.parentElement
+                  : this._hoveredElement;
+        if (!tokenEl?.classList.contains(ASB_TOKEN_CLASS)) return null;
+
         const trackStr = tokenEl.closest('[data-track]')?.getAttribute('data-track');
         if (!trackStr) return null;
 
@@ -1022,7 +1029,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
         return { token, track: parseInt(trackStr) };
     }
 
-    static _extractTokenFromNode(node: Node): string {
+    private _extractTokenFromNode(node: Node): string {
         if (node.nodeType === Node.TEXT_NODE) return node.textContent ?? '';
         if (node.nodeType !== Node.ELEMENT_NODE) return '';
 

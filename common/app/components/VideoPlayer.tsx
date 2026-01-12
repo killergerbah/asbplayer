@@ -38,7 +38,7 @@ import {
     ensureStoragePersisted,
 } from '@project/common/util';
 import { SubtitleCollection } from '@project/common/subtitle-collection';
-import { SubtitleColoring } from '@project/common/subtitle-coloring';
+import { HoveredToken } from '@project/common/subtitle-coloring';
 import Clock from '../services/clock';
 import Controls, { Point } from './Controls';
 import PlayerChannel from '../services/player-channel';
@@ -1539,9 +1539,7 @@ export default function VideoPlayer({
 
     const isPausedDueToHoverRef = useRef<boolean>(undefined);
 
-    const [hoveredElement, setHoveredElement] = useState<HTMLElement | null>(null);
-    const hoveredElementRef = useRef<HTMLElement | null>(hoveredElement);
-    hoveredElementRef.current = hoveredElement;
+    const hoveredToken = useMemo(() => new HoveredToken(), []);
 
     const handleSubtitleMouseOver = useCallback(
         (e: React.MouseEvent) => {
@@ -1549,21 +1547,20 @@ export default function VideoPlayer({
                 playerChannel.pause();
                 isPausedDueToHoverRef.current = true;
             }
-            setHoveredElement(SubtitleColoring.handleMouseOver(e.nativeEvent as MouseEvent));
+            hoveredToken.handleMouseOver(e.nativeEvent);
         },
-        [miscSettings.pauseOnHoverMode, playerChannel]
+        [hoveredToken, miscSettings.pauseOnHoverMode, playerChannel]
     );
 
-    const handleSubtitleMouseOut = useCallback((e: React.MouseEvent) => {
-        if (SubtitleColoring.handleMouseOut(e.nativeEvent as MouseEvent, hoveredElementRef.current)) {
-            setHoveredElement(null);
-        }
-    }, []);
+    const handleSubtitleMouseOut = useCallback(
+        (e: React.MouseEvent) => hoveredToken.handleMouseOut(e.nativeEvent),
+        [hoveredToken]
+    );
 
     useEffect(() => {
         return keyBinder.bindMarkHoveredToken(
             (event, tokenStatus) => {
-                const res = SubtitleColoring.parseTokenFromElement(hoveredElementRef.current);
+                const res = hoveredToken.parse();
                 if (!res) return;
                 void ensureStoragePersisted();
                 event.preventDefault();
@@ -1572,12 +1569,12 @@ export default function VideoPlayer({
             },
             () => false
         );
-    }, [keyBinder, playerChannel]);
+    }, [hoveredToken, keyBinder, playerChannel]);
 
     useEffect(() => {
         return keyBinder.bindToggleHoveredTokenIgnored(
             (event) => {
-                const res = SubtitleColoring.parseTokenFromElement(hoveredElementRef.current);
+                const res = hoveredToken.parse();
                 if (!res) return;
                 void ensureStoragePersisted();
                 event.preventDefault();
@@ -1586,7 +1583,7 @@ export default function VideoPlayer({
             },
             () => false
         );
-    }, [keyBinder, playerChannel]);
+    }, [hoveredToken, keyBinder, playerChannel]);
 
     const inBetweenMobileOverlayAndBottomSubtitles = (e: React.MouseEvent<HTMLVideoElement>) => {
         if (!mobileOverlayRef.current || !bottomSubtitleContainerRef.current || !videoRef.current) {

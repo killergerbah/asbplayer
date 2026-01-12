@@ -18,7 +18,7 @@ import {
 import { ApplyStrategy, AsbplayerSettings, SettingsProvider, TokenState } from '@project/common/settings';
 import { DictionaryProvider } from '@project/common/dictionary-db';
 import { SubtitleCollection } from '@project/common/subtitle-collection';
-import { SubtitleColoring } from '@project/common/subtitle-coloring';
+import { HoveredToken, SubtitleColoring } from '@project/common/subtitle-coloring';
 import { SubtitleReader } from '@project/common/subtitle-reader';
 import { KeyBinder } from '@project/common/key-binder';
 import { timeDurationDisplay } from '../services/util';
@@ -499,24 +499,22 @@ const Player = React.memo(function Player({
         };
     }, [channel, extension, tab, onSubtitles]);
 
-    const [hoveredElement, setHoveredElement] = useState<HTMLElement | null>(null);
-    const hoveredElementRef = useRef<HTMLElement | null>(hoveredElement);
-    hoveredElementRef.current = hoveredElement;
+    const hoveredToken = useMemo(() => new HoveredToken(), []);
 
-    const handleMouseOver = useCallback((e: React.MouseEvent) => {
-        setHoveredElement(SubtitleColoring.handleMouseOver(e.nativeEvent as MouseEvent));
-    }, []);
+    const handleMouseOver = useCallback(
+        (e: React.MouseEvent) => hoveredToken.handleMouseOver(e.nativeEvent),
+        [hoveredToken]
+    );
 
-    const handleMouseOut = useCallback((e: React.MouseEvent) => {
-        if (SubtitleColoring.handleMouseOut(e.nativeEvent as MouseEvent, hoveredElementRef.current)) {
-            setHoveredElement(null);
-        }
-    }, []);
+    const handleMouseOut = useCallback(
+        (e: React.MouseEvent) => hoveredToken.handleMouseOut(e.nativeEvent),
+        [hoveredToken]
+    );
 
     useEffect(() => {
         return keyBinder.bindMarkHoveredToken(
             (event, tokenStatus) => {
-                const res = SubtitleColoring.parseTokenFromElement(hoveredElementRef.current);
+                const res = hoveredToken.parse();
                 if (!res) return;
                 void ensureStoragePersisted();
                 event.preventDefault();
@@ -537,12 +535,12 @@ const Player = React.memo(function Player({
             },
             () => disableKeyEvents
         );
-    }, [keyBinder, disableKeyEvents, tab, extension]);
+    }, [hoveredToken, keyBinder, disableKeyEvents, tab, extension]);
 
     useEffect(() => {
         return keyBinder.bindToggleHoveredTokenIgnored(
             (event) => {
-                const res = SubtitleColoring.parseTokenFromElement(hoveredElementRef.current);
+                const res = hoveredToken.parse();
                 if (!res) return;
                 void ensureStoragePersisted();
                 event.preventDefault();
@@ -558,7 +556,7 @@ const Player = React.memo(function Player({
             },
             () => disableKeyEvents
         );
-    }, [keyBinder, disableKeyEvents, tab, extension]);
+    }, [hoveredToken, keyBinder, disableKeyEvents, tab, extension]);
 
     useEffect(() => {
         return channel?.onSaveTokenLocal((track, token, status, states, applyStates) => {
