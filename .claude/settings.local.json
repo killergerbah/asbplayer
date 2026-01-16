@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs -I {} sh -c 'echo \"\"=== {} ===\"\" && head -50 {}')",
+      "Bash(npm run build:*)",
+      "Bash(npm run:*)",
+      "Bash(yarn workspace @project/extension run build:*)",
+      "Bash(corepack enable:*)",
+      "Bash(yarn install:*)",
+      "Bash(yarn workspace:*)",
+      "Bash(grep:*)",
+      "WebFetch(domain:floating-ui.com)"
+    ]
+  }
+}

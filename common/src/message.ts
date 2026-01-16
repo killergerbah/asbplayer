@@ -873,3 +873,58 @@ export interface DictionaryBuildAnkiCacheStateError extends DictionaryBuildAnkiC
     msg?: string;
     data?: DictionaryBuildAnkiCacheStateErrorData;
 }
+
+// LLM Translation Messages
+export interface LLMTranslateMessage extends MessageWithId {
+    readonly command: 'llm-translate';
+    readonly word: string;
+    readonly sentence: string;
+    readonly sourceLanguage?: string;
+    readonly targetLanguage?: string;
+}
+
+export interface LLMTranslateResponse {
+    readonly translation: string;
+    readonly error?: string;
+}
+
+// Saved Words Messages
+export interface SaveWordMessage extends MessageWithId {
+    readonly command: 'save-word';
+    readonly word: string;
+    readonly sentence: string;
+    readonly translation: string;
+    readonly videoTitle?: string;
+    readonly videoUrl?: string;
+}
+
+export interface SaveWordResponse {
+    readonly success: boolean;
+    readonly error?: string;
+}
+
+export interface GetSavedWordsCountMessage extends MessageWithId {
+    readonly command: 'get-saved-words-count';
+}
+
+export interface GetSavedWordsCountResponse {
+    readonly count: number;
+}
+
+export interface ExportSavedWordsMessage extends MessageWithId {
+    readonly command: 'export-saved-words';
+}
+
+export interface ExportSavedWordsResponse {
+    readonly csv: string;
+    readonly error?: string;
+}
+
+export interface ClearSavedWordsMessage extends MessageWithId {
+    readonly command: 'clear-saved-words';
+}
+
+export interface ClearSavedWordsResponse {
+    readonly success: boolean;
+    readonly error?: string;
+}

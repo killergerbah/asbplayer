@@ -63,6 +63,11 @@ const MiscSettingTab: React.FC<Props> = ({
         pauseOnHoverMode,
         webSocketClientEnabled,
         webSocketServerUrl,
+        llmEnabled,
+        llmApiKey,
+        llmApiEndpoint,
+        llmModel,
+        wordClickEnabled,
     } = settings;
     const validRegex = useMemo(() => regexIsValid(subtitleRegexFilter), [subtitleRegexFilter]);
     const [webSocketConnectionSucceeded, setWebSocketConnectionSucceeded] = useState<boolean>();
@@ -338,6 +343,52 @@ const MiscSettingTab: React.FC<Props> = ({
                         onChange={(event) => onSettingChanged('tabName', event.target.value)}
                     />
                 )}
+                <SettingsSection>Word Learning (LLM)</SettingsSection>
+                <SwitchLabelWithHoverEffect
+                    control={
+                        <Switch
+                            checked={wordClickEnabled}
+                            onChange={(event) => onSettingChanged('wordClickEnabled', event.target.checked)}
+                        />
+                    }
+                    label="Enable word click mode"
+                    labelPlacement="start"
+                />
+                <SwitchLabelWithHoverEffect
+                    control={
+                        <Switch
+                            checked={llmEnabled}
+                            onChange={(event) => onSettingChanged('llmEnabled', event.target.checked)}
+                        />
+                    }
+                    label="Enable LLM translations"
+                    labelPlacement="start"
+                />
+                <SettingsTextField
+                    label="LLM API Key"
+                    fullWidth
+                    type="password"
+                    value={llmApiKey}
+                    color="primary"
+                    disabled={!llmEnabled}
+                    onChange={(event) => onSettingChanged('llmApiKey', event.target.value)}
+                />
+                <SettingsTextField
+                    label="LLM API Endpoint"
+                    fullWidth
+                    value={llmApiEndpoint}
+                    color="primary"
+                    disabled={!llmEnabled}
+                    onChange={(event) => onSettingChanged('llmApiEndpoint', event.target.value)}
+                />
+                <SettingsTextField
+                    label="LLM Model"
+                    fullWidth
+                    value={llmModel}
+                    color="primary"
+                    disabled={!llmEnabled}
+                    onChange={(event) => onSettingChanged('llmModel', event.target.value)}
+                />
                 <SettingsSection>{t('settings.title')}</SettingsSection>
                 <Button variant="contained" color="primary" style={{ width: '100%' }} onClick={handleImportSettings}>
                     {t('action.importSettings')}

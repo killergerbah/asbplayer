@@ -405,6 +405,14 @@ export interface WebSocketClientSettings {
     readonly webSocketClientEnabled: boolean;
 }
 
+export interface LLMSettings {
+    readonly llmEnabled: boolean;
+    readonly llmApiKey: string;
+    readonly llmApiEndpoint: string;
+    readonly llmModel: string;
+    readonly wordClickEnabled: boolean;
+}
+
 export type ChromeBoundKeyBindName = 'copySubtitle' | 'ankiExport' | 'updateLastCard' | 'exportCard' | 'takeScreenshot';
 export type SubtitleAlignment = 'top' | 'bottom';
 export enum SubtitleListPreference {
@@ -490,7 +498,8 @@ export interface AsbplayerSettings
         SubtitleSettings,
         DictionarySettings,
         StreamingVideoSettings,
-        WebSocketClientSettings {
+        WebSocketClientSettings,
+        LLMSettings {
     readonly subtitlePreview: string;
 }
 

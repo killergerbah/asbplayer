@@ -11,6 +11,7 @@ import {
     IndexedSubtitleModel,
     RichSubtitleModel,
 } from '@project/common';
+import { tokenizeToHtml } from '../services/word-tokenizer';
 import {
     SettingsProvider,
     SubtitleAlignment,
@@ -98,6 +99,7 @@ export default class SubtitleController {
     autoCopyCurrentSubtitle: boolean;
     convertNetflixRuby: boolean;
     subtitleHtml: SubtitleHtml;
+    wordClickEnabled: boolean;
     refreshCurrentSubtitle: boolean;
     _preCacheDom;
 
@@ -131,6 +133,7 @@ export default class SubtitleController {
         this.convertNetflixRuby = false;
         this.subtitleHtml = SubtitleHtml.remove;
         this.refreshCurrentSubtitle = false;
+        this.wordClickEnabled = false;
         const { subtitlesElementOverlay, topSubtitlesElementOverlay, notificationElementOverlay } = this._overlays();
         this.bottomSubtitlesElementOverlay = subtitlesElementOverlay;
         this.topSubtitlesElementOverlay = topSubtitlesElementOverlay;
@@ -529,6 +532,13 @@ export default class SubtitleController {
         if (richText && this.subtitleColoring.hoverOnly(track!)) {
             return `<span data-track="${track!}" class="${this._subtitleClasses(track)}" style="${this._subtitleStyles(track)}"><span class="asbplayer-subtitle-text">${text}</span><span class="asbplayer-subtitle-rich">${richText}</span></span>`;
         }
+
+        // When word click is enabled and there's no rich text, tokenize the text for word-level interaction
+        if (this.wordClickEnabled && !richText) {
+            const tokenizedHtml = tokenizeToHtml(text, text);
+            return `<span data-track="${track ?? 0}" class="${this._subtitleClasses(track)}" style="${this._subtitleStyles(track)}">${tokenizedHtml}</span>`;
+        }
+
         return `<span data-track="${track ?? 0}" class="${this._subtitleClasses(track)}" style="${this._subtitleStyles(track)}">${richText ?? text}</span>`;
     }
 
