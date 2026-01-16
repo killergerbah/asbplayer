@@ -123,24 +123,28 @@ export default defineContentScript({
                     case 'dictionary-save-record-local-bulk': {
                         const { profile, localTokenInputs, applyStates } =
                             command.message as DictionarySaveRecordLocalBulkMessage;
-                        await dictionaryStorage.saveRecordLocalBulk(profile, localTokenInputs, applyStates);
                         sendMessageToPlayer({
+                            response: await dictionaryStorage.saveRecordLocalBulk(
+                                profile,
+                                localTokenInputs,
+                                applyStates
+                            ),
                             messageId: command.message.messageId,
                         });
                         break;
                     }
                     case 'dictionary-delete-record-local-bulk': {
                         const { profile, tokens } = command.message as DictionaryDeleteRecordLocalBulkMessage;
-                        await dictionaryStorage.deleteRecordLocalBulk(profile, tokens);
                         sendMessageToPlayer({
+                            response: await dictionaryStorage.deleteRecordLocalBulk(profile, tokens),
                             messageId: command.message.messageId,
                         });
                         break;
                     }
                     case 'dictionary-delete-profile': {
                         const { profile } = command.message as DictionaryDeleteProfileMessage;
-                        await dictionaryStorage.deleteProfile(profile);
                         sendMessageToPlayer({
+                            response: await dictionaryStorage.deleteProfile(profile),
                             messageId: command.message.messageId,
                         });
                         break;
@@ -155,16 +159,16 @@ export default defineContentScript({
                     }
                     case 'dictionary-import-record-local-bulk': {
                         const message = command.message as DictionaryImportRecordLocalBulkMessage;
-                        await dictionaryStorage.importRecordLocalBulk(message.records, message.profiles);
                         sendMessageToPlayer({
+                            response: await dictionaryStorage.importRecordLocalBulk(message.records, message.profiles),
                             messageId: message.messageId,
                         });
                         break;
                     }
                     case 'dictionary-build-anki-cache': {
                         const { profile, settings } = command.message as DictionaryBuildAnkiCacheMessage;
-                        await dictionaryStorage.buildAnkiCache(profile, settings, { useOriginTab: true }); // App with extension doesn't have full extension context
                         sendMessageToPlayer({
+                            response: await dictionaryStorage.buildAnkiCache(profile, settings, { useOriginTab: true }), // App with extension doesn't have full extension context
                             messageId: command.message.messageId,
                         });
                         break;

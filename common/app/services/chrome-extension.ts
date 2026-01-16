@@ -34,7 +34,6 @@ import {
     DictionaryGetByLemmaBulkMessage,
     DictionarySaveRecordLocalBulkMessage,
     DictionaryDeleteRecordLocalBulkMessage,
-    DictionaryBuildAnkiCacheState,
     DictionaryDeleteProfileMessage,
     DictionaryExportRecordLocalBulkMessage,
     DictionaryImportRecordLocalBulkMessage,
@@ -44,10 +43,14 @@ import {
 } from '@project/common';
 import {
     DictionaryLocalTokenInput,
-    DictionaryTokenKey,
     DictionaryTokenRecord,
+    DictionaryExportRecordLocalResult,
+    DictionaryImportRecordLocalResult,
     LemmaResults,
+    DictionarySaveRecordLocalResult,
     TokenResults,
+    DictionaryDeleteRecordLocalResult,
+    DictionaryDeleteProfileResult,
 } from '@project/common/dictionary-db';
 import {
     ApplyStrategy,
@@ -640,7 +643,7 @@ export default class ChromeExtension {
         profile: string | undefined,
         localTokenInputs: DictionaryLocalTokenInput[],
         applyStates: ApplyStrategy
-    ): Promise<[DictionaryTokenKey[], number]> {
+    ): Promise<DictionarySaveRecordLocalResult> {
         const messageId = uuidv4();
         const command: AsbPlayerCommand<DictionarySaveRecordLocalBulkMessage> = {
             sender: 'asbplayerv2',
@@ -656,7 +659,10 @@ export default class ChromeExtension {
         return await this._createResponsePromise(messageId);
     }
 
-    async dictionaryDeleteRecordLocalBulk(profile: string | undefined, tokens: string[]): Promise<number> {
+    async dictionaryDeleteRecordLocalBulk(
+        profile: string | undefined,
+        tokens: string[]
+    ): Promise<DictionaryDeleteRecordLocalResult> {
         const messageId = uuidv4();
         const command: AsbPlayerCommand<DictionaryDeleteRecordLocalBulkMessage> = {
             sender: 'asbplayerv2',
@@ -671,7 +677,7 @@ export default class ChromeExtension {
         return await this._createResponsePromise(messageId);
     }
 
-    async dictionaryDeleteProfile(profile: string): Promise<[number, number, number]> {
+    async dictionaryDeleteProfile(profile: string): Promise<DictionaryDeleteProfileResult> {
         const messageId = uuidv4();
         const command: AsbPlayerCommand<DictionaryDeleteProfileMessage> = {
             sender: 'asbplayerv2',
@@ -685,7 +691,7 @@ export default class ChromeExtension {
         return await this._createResponsePromise(messageId);
     }
 
-    async dictionaryExportRecordLocalBulk(): Promise<Partial<DictionaryTokenRecord>[]> {
+    async dictionaryExportRecordLocalBulk(): Promise<DictionaryExportRecordLocalResult> {
         const messageId = uuidv4();
         const command: AsbPlayerCommand<DictionaryExportRecordLocalBulkMessage> = {
             sender: 'asbplayerv2',
@@ -701,7 +707,7 @@ export default class ChromeExtension {
     async dictionaryImportRecordLocalBulk(
         records: Partial<DictionaryTokenRecord>[],
         profiles: string[]
-    ): Promise<DictionaryTokenKey[]> {
+    ): Promise<DictionaryImportRecordLocalResult> {
         const messageId = uuidv4();
         const command: AsbPlayerCommand<DictionaryImportRecordLocalBulkMessage> = {
             sender: 'asbplayerv2',

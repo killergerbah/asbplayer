@@ -40,7 +40,3 @@
 .asbplayer-subtitles:hover .asbplayer-subtitle-rich {
     display: inline;
 }
-
-.asb-token:hover {
-    background-color: rgb(0, 123, 255) !important;
-}

@@ -1,9 +1,13 @@
 import {
     DictionaryLocalTokenInput,
-    DictionaryTokenKey,
     DictionaryTokenRecord,
+    DictionaryExportRecordLocalResult,
+    DictionaryImportRecordLocalResult,
     LemmaResults,
+    DictionarySaveRecordLocalResult,
     TokenResults,
+    DictionaryDeleteRecordLocalResult,
+    DictionaryDeleteProfileResult,
 } from '@project/common/dictionary-db';
 import { DictionaryBuildAnkiCacheState } from '@project/common';
 import { ApplyStrategy, AsbplayerSettings } from '@project/common/settings';
@@ -16,14 +20,17 @@ export interface DictionaryStorage {
         profile: string | undefined,
         localTokenInputs: DictionaryLocalTokenInput[],
         applyStates: ApplyStrategy
-    ) => Promise<[DictionaryTokenKey[], number]>;
-    deleteRecordLocalBulk: (profile: string | undefined, tokens: string[]) => Promise<number>;
-    deleteProfile: (profile: string) => Promise<[number, number, number]>;
-    exportRecordLocalBulk: () => Promise<Partial<DictionaryTokenRecord>[]>;
+    ) => Promise<DictionarySaveRecordLocalResult>;
+    deleteRecordLocalBulk: (
+        profile: string | undefined,
+        tokens: string[]
+    ) => Promise<DictionaryDeleteRecordLocalResult>;
+    deleteProfile: (profile: string) => Promise<DictionaryDeleteProfileResult>;
+    exportRecordLocalBulk: () => Promise<DictionaryExportRecordLocalResult>;
     importRecordLocalBulk: (
         records: Partial<DictionaryTokenRecord>[],
         profiles: string[]
-    ) => Promise<DictionaryTokenKey[]>;
+    ) => Promise<DictionaryImportRecordLocalResult>;
     buildAnkiCache: (
         profile: string | undefined,
         settings: AsbplayerSettings,
@@ -68,7 +75,7 @@ export class DictionaryProvider {
 
     async exportRecordLocalBulk() {
         download(
-            new Blob([JSON.stringify(await this._storage.exportRecordLocalBulk())], {
+            new Blob([JSON.stringify((await this._storage.exportRecordLocalBulk()).exportedRecords)], {
                 type: 'application/json',
             }),
             `asbplayer-local-words-${getCurrentTimeString()}.json`
