@@ -354,6 +354,10 @@ export function isNumeric(str: string) {
     return !isNaN(Number(str));
 }
 
+export const HAS_LETTER_REGEX = /\p{L}/u;
+
+export const ONLY_ASCII_LETTERS_REGEX = /^[a-z]+$/i;
+
 const KANA_ONLY_REGEX =
     /^[\u3040-\u309F\u30A0-\u30FF\u31F0-\u31FF\uFF61-\uFF9F\u{1B000}-\u{1B0FF}\u{1B100}-\u{1B12F}\u{1B130}-\u{1B16F}\u{1AFF0}-\u{1AFFF}]+$/u;
 export function isKanaOnly(text: string) {
@@ -429,8 +433,9 @@ export async function inBatches<T>(
     cb: (batch: T[]) => Promise<void>,
     options = { batchSize: 5 }
 ): Promise<void> {
-    for (let i = 0; i < items.length; i += options.batchSize) {
-        await cb(items.slice(i, i + options.batchSize));
+    const batchSize = options.batchSize > 0 ? options.batchSize : 1;
+    for (let i = 0; i < items.length; i += batchSize) {
+        await cb(items.slice(i, i + batchSize));
     }
 }
 
@@ -439,15 +444,17 @@ export async function fromBatches<T, R>(
     cb: (batch: T[]) => Promise<R[]>,
     options = { batchSize: 5 }
 ): Promise<R[]> {
+    const batchSize = options.batchSize > 0 ? options.batchSize : 1;
     const results: R[] = [];
-    for (let i = 0; i < items.length; i += options.batchSize) {
-        results.push(...(await cb(items.slice(i, i + options.batchSize))));
+    for (let i = 0; i < items.length; i += batchSize) {
+        const res = await cb(items.slice(i, i + batchSize));
+        for (let j = 0; j < res.length; j++) results.push(res[j]);
     }
     return results;
 }
 
 export async function mapAsync<T, R>(arr: T[], cb: (e: T) => Promise<R>, options = { batchSize: 5 }): Promise<R[]> {
-    return fromBatches(arr, async (batch) => Promise.all(batch.map(cb)), options);
+    return fromBatches(arr, (batch) => Promise.all(batch.map(cb)), options);
 }
 
 export async function filterAsync<T>(

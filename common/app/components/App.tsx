@@ -23,7 +23,7 @@ import {
     RequestSubtitlesResponse,
 } from '@project/common';
 import { createTheme } from '@project/common/theme';
-import { AsbplayerSettings, Profile } from '@project/common/settings';
+import { AsbplayerSettings, Profile, SettingsProvider } from '@project/common/settings';
 import { humanReadableTime, download, extractText } from '@project/common/util';
 import { AudioClip, Mp3Encoder } from '@project/common/audio-clip';
 import { ExportParams } from '@project/common/anki';
@@ -66,6 +66,7 @@ import CssBaseline from '@mui/material/CssBaseline';
 import { StyledEngineProvider } from '@mui/material/styles';
 import { useServiceWorker } from '../hooks/use-service-worker';
 import NeedRefreshDialog from './NeedRefreshDialog';
+import { DictionaryProvider } from '../../dictionary-db';
 
 const latestExtensionVersion = '1.12.0';
 const extensionUrl =
@@ -212,6 +213,8 @@ function Content(props: ContentProps) {
 interface Props {
     origin: string;
     logoUrl: string;
+    settingsProvider: SettingsProvider;
+    dictionaryProvider: DictionaryProvider;
     settings: AsbplayerSettings;
     globalState?: GlobalState;
     extension: ChromeExtension;
@@ -228,6 +231,8 @@ interface Props {
 function App({
     origin,
     logoUrl,
+    dictionaryProvider,
+    settingsProvider,
     settings,
     globalState,
     extension,
@@ -425,6 +430,8 @@ function App({
                 if (settings.lastSelectedAnkiExportMode !== params.mode) {
                     onSettingsChanged({ lastSelectedAnkiExportMode: params.mode });
                 }
+
+                dictionaryProvider.ankiCardWasModified();
             } catch (e) {
                 handleError(e);
             } finally {
@@ -432,7 +439,15 @@ function App({
                 setDisableKeyEvents(false);
             }
         },
-        [anki, miningContext, settings.lastSelectedAnkiExportMode, onSettingsChanged, handleError, t]
+        [
+            anki,
+            miningContext,
+            settings.lastSelectedAnkiExportMode,
+            onSettingsChanged,
+            handleError,
+            t,
+            dictionaryProvider,
+        ]
     );
 
     // Avoid unnecessary re-renders by having handleCopy operate on a ref to settings
@@ -1342,7 +1357,9 @@ function App({
                                 open={settingsDialogOpen}
                                 onSettingsChanged={onSettingsChanged}
                                 onClose={handleCloseSettings}
+                                dictionaryProvider={dictionaryProvider}
                                 settings={settings}
+                                activeProfile={profilesContext.activeProfile}
                                 scrollToId={settingsDialogScrollToId}
                                 {...profilesContext}
                             />
@@ -1398,6 +1415,8 @@ function App({
                                     subtitleReader={subtitleReader}
                                     subtitles={subtitles}
                                     settings={settings}
+                                    dictionaryProvider={dictionaryProvider}
+                                    settingsProvider={settingsProvider}
                                     playbackPreferences={playbackPreferences}
                                     onCopy={handleCopy}
                                     onError={handleError}

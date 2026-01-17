@@ -25,6 +25,7 @@ import {
     RichSubtitleModel,
 } from './model';
 import { AsbPlayerToVideoCommandV2 } from './command';
+import { DictionaryLocalTokenInput } from '../dictionary-db/dictionary-db';
 
 export interface Message {
     readonly command: string;
@@ -203,12 +204,20 @@ export interface CardUpdatedMessage extends Message, CardModel {
     readonly cardName: string;
 }
 
+export interface CardUpdatedDialogMessage extends Message {
+    readonly command: 'card-updated-dialog';
+}
+
 export interface CardExportedMessage extends Message, CardModel {
     readonly command: 'card-exported';
     readonly cardName: string;
     readonly isBulkExport?: boolean;
     readonly skippedDuplicate?: boolean;
     readonly exportError?: string;
+}
+
+export interface CardExportedDialogMessage extends Message {
+    readonly command: 'card-exported-dialog';
 }
 
 export interface CardSavedMessage extends Message, CardModel {
@@ -771,4 +780,101 @@ export interface DeleteCopyHistoryMessage extends MessageWithId {
 
 export interface ClearCopyHistoryMessage extends MessageWithId {
     readonly command: 'clear-copy-history';
+}
+
+export interface DictionaryGetBulkMessage extends MessageWithId {
+    readonly command: 'dictionary-get-bulk';
+    readonly profile: string | undefined;
+    readonly track: number;
+    readonly tokens: string[];
+}
+
+export interface DictionaryGetByLemmaBulkMessage extends MessageWithId {
+    readonly command: 'dictionary-get-by-lemma-bulk';
+    readonly profile: string | undefined;
+    readonly track: number;
+    readonly lemmas: string[];
+}
+
+export interface DictionarySaveRecordLocalBulkMessage extends MessageWithId {
+    readonly command: 'dictionary-save-record-local-bulk';
+    readonly profile: string | undefined;
+    readonly localTokenInputs: DictionaryLocalTokenInput[];
+}
+
+export interface DictionaryDeleteRecordLocalBulkMessage extends MessageWithId {
+    readonly command: 'dictionary-delete-record-local-bulk';
+    readonly profile: string | undefined;
+    readonly tokens: string[];
+}
+
+export interface DictionaryDeleteProfileMessage extends MessageWithId {
+    readonly command: 'dictionary-delete-profile';
+    readonly profile: string;
+}
+
+export interface DictionaryBuildAnkiCacheMessage extends MessageWithId {
+    readonly command: 'dictionary-build-anki-cache';
+    readonly profile: string | undefined;
+    readonly settings: AsbplayerSettings;
+}
+
+export interface DictionaryBuildAnkiCacheStateBody {
+    modifiedTokens?: string[];
+}
+
+export interface DictionaryBuildAnkiCacheState {
+    body?: DictionaryBuildAnkiCacheStateBody;
+    type: DictionaryBuildAnkiCacheStateType;
+}
+
+export interface DictionaryBuildAnkiCacheStateMessage extends DictionaryBuildAnkiCacheState, Message {
+    readonly command: 'dictionary-build-anki-cache-state';
+}
+
+export enum DictionaryBuildAnkiCacheStateType {
+    unknown = 1,
+    error = 2,
+    stats = 3,
+    progress = 4,
+}
+
+export interface DictionaryBuildAnkiCacheStats extends DictionaryBuildAnkiCacheStateBody {
+    tracksToBuild?: number[];
+    tracksToClear?: number[];
+    orphanedCards?: number;
+    modifiedCards?: number;
+    buildTimestamp?: number;
+}
+
+export interface DictionaryBuildAnkiCacheProgress extends DictionaryBuildAnkiCacheStateBody {
+    current: number;
+    total: number;
+    buildTimestamp: number;
+}
+
+export enum DictionaryBuildAnkiCacheStateErrorCode {
+    concurrentBuild = 1,
+    noAnki = 2,
+    noYomitan = 3,
+    failedToSyncTrackStates = 4,
+    failedToBuild = 5,
+}
+
+export interface DictionaryBuildAnkiCacheStateErrorTrackNumberData {
+    track: number;
+}
+
+export interface DictionaryBuildAnkiCacheStateErrorBuildExpirationData {
+    expiration: number;
+}
+
+export type DictionaryBuildAnkiCacheStateErrorData =
+    | DictionaryBuildAnkiCacheStateErrorTrackNumberData
+    | DictionaryBuildAnkiCacheStateErrorBuildExpirationData;
+
+export interface DictionaryBuildAnkiCacheStateError extends DictionaryBuildAnkiCacheStateBody {
+    code: DictionaryBuildAnkiCacheStateErrorCode;
+    msg?: string;
+    data?: DictionaryBuildAnkiCacheStateErrorData;
 }

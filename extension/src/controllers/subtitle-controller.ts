@@ -30,6 +30,7 @@ import {
     OffsetAnchor,
 } from '../services/element-overlay';
 import { v4 as uuidv4 } from 'uuid';
+import { DictionaryProvider } from '@project/common/dictionary-db';
 
 const BOUNDING_BOX_PADDING = 25;
 
@@ -67,6 +68,7 @@ class VideoFetcher implements Fetcher {
 
 export default class SubtitleController {
     private readonly video: HTMLMediaElement;
+    private readonly dictionary: DictionaryProvider;
     private readonly settings: SettingsProvider;
 
     private showingSubtitles?: IndexedSubtitleModel[];
@@ -106,8 +108,9 @@ export default class SubtitleController {
     onOffsetChange?: () => void;
     onMouseOver?: (event: MouseEvent) => void;
 
-    constructor(video: HTMLMediaElement, settings: SettingsProvider) {
+    constructor(video: HTMLMediaElement, dictionary: DictionaryProvider, settings: SettingsProvider) {
         this.video = video;
+        this.dictionary = dictionary;
         this.settings = settings;
         this._preCacheDom = false;
         this.showingSubtitles = [];
@@ -133,7 +136,8 @@ export default class SubtitleController {
         this.topSubtitlesElementOverlay = topSubtitlesElementOverlay;
         this.notificationElementOverlay = notificationElementOverlay;
         this.subtitleColoring = new SubtitleColoring(
-            this.settings.getAll(),
+            this.dictionary,
+            this.settings,
             { showingCheckRadiusMs: 150 },
             (updatedSubtitles) => this._subtitleColorsUpdated(updatedSubtitles),
             () => this.video.currentTime * 1000,

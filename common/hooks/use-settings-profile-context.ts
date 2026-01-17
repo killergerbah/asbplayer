@@ -1,12 +1,14 @@
+import { DictionaryProvider } from '../dictionary-db';
 import { Profile, SettingsProvider } from '../settings';
 import { useEffect, useState, useCallback } from 'react';
 
 interface Params {
+    dictionaryProvider: DictionaryProvider;
     settingsProvider: SettingsProvider;
     onProfileChanged: () => void;
 }
 
-export const useSettingsProfileContext = ({ settingsProvider, onProfileChanged }: Params) => {
+export const useSettingsProfileContext = ({ dictionaryProvider, settingsProvider, onProfileChanged }: Params) => {
     const [profiles, setProfiles] = useState<Profile[]>([]);
     const [activeProfile, setActiveProfile] = useState<string>();
     const refreshProfileContext = useCallback(() => {
@@ -29,15 +31,16 @@ export const useSettingsProfileContext = ({ settingsProvider, onProfileChanged }
     );
     const onRemoveProfile = useCallback(
         async (name: string) => {
+            await dictionaryProvider.deleteProfile(name);
+
             if (name === activeProfile) {
                 await settingsProvider.setActiveProfile(undefined);
                 setActiveProfile(undefined);
                 onProfileChanged();
             }
-
             settingsProvider.removeProfile(name).then(() => settingsProvider.profiles().then(setProfiles));
         },
-        [settingsProvider, activeProfile, onProfileChanged]
+        [dictionaryProvider, settingsProvider, activeProfile, onProfileChanged]
     );
     const onSetActiveProfile = useCallback(
         (name: string | undefined) =>

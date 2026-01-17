@@ -1,11 +1,11 @@
-import i18n from 'i18next';
+import i18n, { TFunction } from 'i18next';
 import { fetchLocalization } from './localization-fetcher';
 
 let initializedPromise: Promise<void> | undefined;
 
 const langsInitialized: { [key: string]: string } = {};
 
-export const i18nInit = async (lang: string) => {
+export const i18nInit = async (lang: string): Promise<TFunction<['translation', ...string[]], undefined>> => {
     if (initializedPromise) {
         await initializedPromise;
         const notAddedYet = !(lang in langsInitialized);
@@ -23,7 +23,7 @@ export const i18nInit = async (lang: string) => {
             i18n.changeLanguage(actualLanguage);
         }
 
-        return;
+        return i18n.t;
     }
 
     initializedPromise = new Promise<void>(async (resolve, reject) => {
@@ -48,4 +48,5 @@ export const i18nInit = async (lang: string) => {
     });
 
     await initializedPromise;
+    return i18n.t;
 };
