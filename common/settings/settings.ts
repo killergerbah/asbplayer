@@ -409,6 +409,7 @@ export interface PageSettings {
     hboMax: Page;
     stremio: Page;
     cijapanese: Page;
+    iwanttfc: Page;
 }
 
 export interface StreamingVideoSettings {
