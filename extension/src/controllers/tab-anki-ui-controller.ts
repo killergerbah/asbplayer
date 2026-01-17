@@ -10,6 +10,8 @@ import {
     SettingsUpdatedMessage,
     AnkiUiBridgeExportedMessage,
     EncodeMp3InServiceWorkerMessage,
+    CardUpdatedDialogMessage,
+    CardExportedDialogMessage,
 } from '@project/common';
 import { AnkiSettings, SettingsProvider, ankiSettingsKeys } from '@project/common/settings';
 import { sourceString } from '@project/common/util';
@@ -178,6 +180,20 @@ export class TabAnkiUiController {
                             };
                             browser.runtime.sendMessage(settingsUpdatedCommand);
                         });
+                        return;
+                    case 'card-updated-dialog':
+                        const cardUpdatedDialogCommand: TabToExtensionCommand<CardUpdatedDialogMessage> = {
+                            sender: 'asbplayer-video-tab',
+                            message: message as CardUpdatedDialogMessage,
+                        };
+                        browser.runtime.sendMessage(cardUpdatedDialogCommand);
+                        return;
+                    case 'card-exported-dialog':
+                        const cardExportedDialogCommand: TabToExtensionCommand<CardExportedDialogMessage> = {
+                            sender: 'asbplayer-video-tab',
+                            message: message as CardExportedDialogMessage,
+                        };
+                        browser.runtime.sendMessage(cardExportedDialogCommand);
                         return;
                 }
             });

@@ -70,6 +70,8 @@ export default class VideoChannel {
     private toggleSubtitleTrackInListCallbacks: ((track: number) => void)[];
     private subtitlesUpdatedCallbacks: ((updatedSubtitles: RichSubtitleModel[]) => void)[];
     private loadFilesCallbacks: (() => void)[];
+    private cardUpdatedDialogCallbacks: (() => void)[];
+    private cardExportedDialogCallbacks: (() => void)[];
 
     readyState: number;
     oncanplay: ((ev: Event) => void) | null = null;
@@ -103,6 +105,8 @@ export default class VideoChannel {
         this.toggleSubtitleTrackInListCallbacks = [];
         this.subtitlesUpdatedCallbacks = [];
         this.loadFilesCallbacks = [];
+        this.cardUpdatedDialogCallbacks = [];
+        this.cardExportedDialogCallbacks = [];
 
         const that = this;
 
@@ -247,6 +251,16 @@ export default class VideoChannel {
                         callback();
                     }
                     break;
+                case 'card-updated-dialog':
+                    for (const callback of that.cardUpdatedDialogCallbacks) {
+                        callback();
+                    }
+                    break;
+                case 'card-exported-dialog':
+                    for (const callback of that.cardExportedDialogCallbacks) {
+                        callback();
+                    }
+                    break;
                 default:
                     console.error('Unrecognized event ' + event.data.command);
             }
@@ -371,6 +385,16 @@ export default class VideoChannel {
     onLoadFiles(callback: () => void) {
         this.loadFilesCallbacks.push(callback);
         return () => this._remove(callback, this.loadFilesCallbacks);
+    }
+
+    onCardUpdatedDialog(callback: () => void) {
+        this.cardUpdatedDialogCallbacks.push(callback);
+        return () => this._remove(callback, this.cardUpdatedDialogCallbacks);
+    }
+
+    onCardExportedDialog(callback: () => void) {
+        this.cardExportedDialogCallbacks.push(callback);
+        return () => this._remove(callback, this.cardExportedDialogCallbacks);
     }
 
     ready(duration: number, videoFileName?: string) {
@@ -659,6 +683,8 @@ export default class VideoChannel {
         this.toggleSubtitleTrackInListCallbacks = [];
         this.subtitlesUpdatedCallbacks = [];
         this.loadFilesCallbacks = [];
+        this.cardUpdatedDialogCallbacks = [];
+        this.cardExportedDialogCallbacks = [];
     }
 
     _remove(callback: Function, callbacks: Function[]) {

@@ -18,6 +18,7 @@ import SettingsProfileSelectMenu from '@project/common/components/SettingsProfil
 import { AsbplayerSettings, Profile, testCard } from '@project/common/settings';
 import { useTheme, type Theme } from '@mui/material/styles';
 import { settingsPageConfigs } from '@/services/pages';
+import { DictionaryProvider } from '@project/common/dictionary-db';
 
 const useStyles = makeStyles<Theme>((theme) => ({
     root: {
@@ -35,6 +36,7 @@ const useStyles = makeStyles<Theme>((theme) => ({
 }));
 
 interface Props {
+    dictionaryProvider: DictionaryProvider;
     settings: AsbplayerSettings;
     onSettingsChanged: (settings: Partial<AsbplayerSettings>) => void;
     profiles: Profile[];
@@ -52,7 +54,7 @@ const extensionTestCard: () => Promise<CardModel> = () => {
     });
 };
 
-const SettingsPage = ({ settings, inTutorial, onSettingsChanged, ...profileContext }: Props) => {
+const SettingsPage = ({ dictionaryProvider, settings, inTutorial, onSettingsChanged, ...profileContext }: Props) => {
     const { t } = useTranslation();
     const theme = useTheme();
     const anki = useMemo(
@@ -111,10 +113,13 @@ const SettingsPage = ({ settings, inTutorial, onSettingsChanged, ...profileConte
                         extensionSupportsPauseOnHover
                         extensionSupportsExportCardBind
                         extensionSupportsPageSettings
+                        extensionSupportsDictionary
                         chromeKeyBinds={commands}
                         onOpenChromeExtensionShortcuts={handleOpenExtensionShortcuts}
                         onSettingsChanged={onSettingsChanged}
+                        dictionaryProvider={dictionaryProvider}
                         settings={settings}
+                        activeProfile={profileContext.activeProfile}
                         pageConfigs={settingsPageConfigs}
                         localFontsAvailable={localFontsAvailable}
                         localFontsPermission={localFontsPermission}

@@ -51,6 +51,12 @@ const dictionaryTrackSchema = {
         dictionaryTokenReadingAnnotation: {
             type: 'string',
         },
+        dictionaryAnkiDecks: {
+            type: 'array',
+            items: {
+                type: 'string',
+            },
+        },
         dictionaryAnkiWordFields: {
             type: 'array',
             items: {

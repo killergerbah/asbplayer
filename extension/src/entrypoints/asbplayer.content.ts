@@ -1,5 +1,11 @@
 import type {
     AddProfileMessage,
+    DictionaryBuildAnkiCacheMessage,
+    DictionaryDeleteProfileMessage,
+    DictionaryDeleteRecordLocalBulkMessage,
+    DictionaryGetBulkMessage,
+    DictionaryGetByLemmaBulkMessage,
+    DictionarySaveRecordLocalBulkMessage,
     GetGlobalStateMessage,
     GetSettingsMessage,
     RemoveProfileMessage,
@@ -10,6 +16,7 @@ import type {
     SetGlobalStateMessage,
     SetSettingsMessage,
 } from '@project/common';
+import { ExtensionDictionaryStorage } from '@/services/extension-dictionary-storage';
 import { ExtensionSettingsStorage } from '@/services/extension-settings-storage';
 import { ExtensionGlobalStateProvider } from '@/services/extension-global-state-provider';
 import type { ContentScriptContext } from '#imports';
@@ -35,6 +42,7 @@ export default defineContentScript({
             });
         };
 
+        const dictionaryStorage = new ExtensionDictionaryStorage();
         const settingsStorage = new ExtensionSettingsStorage();
         const globalStateProvider = new ExtensionGlobalStateProvider();
 
@@ -94,6 +102,54 @@ export default defineContentScript({
                             messageId: command.message.messageId,
                         });
                         break;
+                    case 'dictionary-get-bulk': {
+                        const { profile, track, tokens } = command.message as DictionaryGetBulkMessage;
+                        sendMessageToPlayer({
+                            response: await dictionaryStorage.getBulk(profile, track, tokens),
+                            messageId: command.message.messageId,
+                        });
+                        break;
+                    }
+                    case 'dictionary-get-by-lemma-bulk': {
+                        const { profile, track, lemmas } = command.message as DictionaryGetByLemmaBulkMessage;
+                        sendMessageToPlayer({
+                            response: await dictionaryStorage.getByLemmaBulk(profile, track, lemmas),
+                            messageId: command.message.messageId,
+                        });
+                        break;
+                    }
+                    case 'dictionary-save-record-local-bulk': {
+                        const { profile, localTokenInputs } = command.message as DictionarySaveRecordLocalBulkMessage;
+                        await dictionaryStorage.saveRecordLocalBulk(profile, localTokenInputs);
+                        sendMessageToPlayer({
+                            messageId: command.message.messageId,
+                        });
+                        break;
+                    }
+                    case 'dictionary-delete-record-local-bulk': {
+                        const { profile, tokens } = command.message as DictionaryDeleteRecordLocalBulkMessage;
+                        await dictionaryStorage.deleteRecordLocalBulk(profile, tokens);
+                        sendMessageToPlayer({
+                            messageId: command.message.messageId,
+                        });
+                        break;
+                    }
+                    case 'dictionary-delete-profile': {
+                        const { profile } = command.message as DictionaryDeleteProfileMessage;
+                        await dictionaryStorage.deleteProfile(profile);
+                        sendMessageToPlayer({
+                            messageId: command.message.messageId,
+                        });
+                        break;
+                    }
+                    case 'dictionary-build-anki-cache': {
+                        const { profile, settings } = command.message as DictionaryBuildAnkiCacheMessage;
+                        await dictionaryStorage.buildAnkiCache(profile, settings, { useOriginTab: true }); // App with extension doesn't have full extension context
+                        sendMessageToPlayer({
+                            messageId: command.message.messageId,
+                        });
+                        break;
+                    }
                     case 'request-subtitles':
                         sendMessageToPlayer({
                             response: (await browser.runtime.sendMessage(command)) as
