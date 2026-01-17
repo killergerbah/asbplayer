@@ -250,6 +250,8 @@ export default class VideoChannel {
                         const playModesMessage = event.data as PlayModesMessage;
                         const modes = new Set<PlayMode>(playModesMessage.playModes);
                         callback(modes);
+                    }
+                    break;
                 case 'card-updated-dialog':
                     for (const callback of that.cardUpdatedDialogCallbacks) {
                         callback();
@@ -384,7 +386,8 @@ export default class VideoChannel {
     onPlayModes(callback: (modes: Set<PlayMode>) => void) {
         this.playModesCallbacks.push(callback);
         return () => this._remove(callback, this.playModesCallbacks);
-      
+    }
+
     onCardUpdatedDialog(callback: () => void) {
         this.cardUpdatedDialogCallbacks.push(callback);
         return () => this._remove(callback, this.cardUpdatedDialogCallbacks);
