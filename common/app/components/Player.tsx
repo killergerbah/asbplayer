@@ -715,7 +715,11 @@ const Player = React.memo(function Player({
                     clock.stop();
                 }
 
-                await seek(currentTime * 1000, clock, forwardToMedia);
+                // When forwardToMedia is false, the message came from the video element's seeked event,
+                // which is typically triggered by user actions (progress bar, keyboard shortcuts)
+                const isUserInitiated = !forwardToMedia;
+
+                await seek(currentTime * 1000, clock, forwardToMedia, isUserInitiated);
 
                 if (playing) {
                     clock.start();
@@ -812,8 +816,6 @@ const Player = React.memo(function Player({
             return;
         }
 
-        if (playModes.has(PlayMode.autoPause) || playModes.has(PlayMode.repeat)) return;
-
         if (!subtitles || subtitles.length === 0) {
             return;
         }
@@ -834,10 +836,13 @@ const Player = React.memo(function Player({
 
                 const playing = clock.running;
 
+                if (pendingAutoRepeatTargetTimestamp.current > 0) {
+                    return;
+                }
+
                 if (playing) {
                     clock.stop();
                 }
-
                 if (!seeking) {
                     seeking = true;
                     const t0 = Date.now();
@@ -845,7 +850,6 @@ const Player = React.memo(function Player({
                     expectedSeekTime = Date.now() - t0;
                     seeking = false;
                 }
-
                 if (playing) {
                     clock.start();
                 }
