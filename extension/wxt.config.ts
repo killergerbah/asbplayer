@@ -71,6 +71,7 @@ export default defineConfig({
                         'bandai-channel-page.js',
                         'amazon-prime-page.js',
                         'hulu-page.js',
+                        'iwanttfc-page.js',
                         'disney-plus-page.js',
                         'apps-disney-plus-page.js',
                         'viki-page.js',
