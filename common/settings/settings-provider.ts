@@ -201,6 +201,7 @@ export const defaultSettings: AsbplayerSettings = {
         hboMax: {},
         stremio: {},
         cijapanese: {},
+        iwanttfc: {},
     },
     webSocketClientEnabled: false,
     webSocketServerUrl: 'ws://127.0.0.1:8766/ws',
