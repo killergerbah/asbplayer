@@ -20,6 +20,7 @@ export interface ElementOverlayParams {
     contentPositionOffset?: number;
     contentWidthPercentage: number;
     onMouseOver: (event: MouseEvent) => void;
+    onMouseOut: (event: MouseEvent) => void;
 }
 
 export interface ElementOverlay {
@@ -54,6 +55,7 @@ export class CachingElementOverlay implements ElementOverlay {
     private fullscreenElementFullscreenPollingInterval?: NodeJS.Timeout;
     private fullscreenStylesInterval?: NodeJS.Timeout;
     private onMouseOver: (event: MouseEvent) => void;
+    private onMouseOut: (event: MouseEvent) => void;
 
     nonFullscreenContainerClassName: string;
     nonFullscreenContentClassName: string;
@@ -73,6 +75,7 @@ export class CachingElementOverlay implements ElementOverlay {
         contentPositionOffset,
         contentWidthPercentage,
         onMouseOver,
+        onMouseOut,
     }: ElementOverlayParams) {
         this.targetElement = targetElement;
         this.nonFullscreenContainerClassName = nonFullscreenContainerClassName;
@@ -83,6 +86,7 @@ export class CachingElementOverlay implements ElementOverlay {
         this.contentPositionOffset = contentPositionOffset ?? 75;
         this.contentWidthPercentage = contentWidthPercentage;
         this.onMouseOver = onMouseOver;
+        this.onMouseOut = onMouseOut;
     }
 
     *displayingElements() {
@@ -167,6 +171,7 @@ export class CachingElementOverlay implements ElementOverlay {
         const container = document.createElement('div');
         container.className = this.nonFullscreenContainerClassName;
         container.onmouseover = this.onMouseOver;
+        container.onmouseout = this.onMouseOut;
         this._applyContainerStyles(container);
         document.body.appendChild(container);
 
@@ -199,6 +204,7 @@ export class CachingElementOverlay implements ElementOverlay {
         const container = document.createElement('div');
         container.className = this.fullscreenContainerClassName;
         container.onmouseover = this.onMouseOver;
+        container.onmouseout = this.onMouseOut;
         this._applyContainerStyles(container);
         this._findFullscreenParentElement(container).appendChild(container);
         container.style.setProperty('display', 'none', 'important');

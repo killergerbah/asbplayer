@@ -50,6 +50,11 @@ export function humanReadableTime(timestamp: number, nearestTenth = false, fully
     }
 }
 
+export function getCurrentTimeString(): string {
+    const now = new Date();
+    return `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}-${now.getHours()}-${now.getMinutes()}-${now.getSeconds()}`;
+}
+
 export function surroundingSubtitles(
     subtitles: SubtitleModel[],
     index: number,
@@ -464,4 +469,11 @@ export async function filterAsync<T>(
 ): Promise<T[]> {
     const results = await mapAsync(arr, cb, options);
     return arr.filter((_, index) => results[index]);
+}
+
+export async function ensureStoragePersisted(): Promise<void> {
+    if (!navigator.storage?.persist) return;
+    if (await navigator.storage.persisted()) return;
+    const persisted = await navigator.storage.persist();
+    if (!persisted) console.warn('Storage could not be persisted, data may be cleared by the browser');
 }
