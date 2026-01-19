@@ -87,10 +87,13 @@ export class CachingElementOverlay implements ElementOverlay {
         this.contentWidthPercentage = contentWidthPercentage;
         this.onMouseOver = onMouseOver;
         this.onMouseOut = onMouseOut;
+<<<<<<< HEAD
 
         // Necessary for token highlighting on hover
         document.body.classList.add('asbplayer-token-container');
         document.body.tabIndex = -1;
+=======
+>>>>>>> 595feb5f (feat(dictionary): support local and ignored tokens (#853))
     }
 
     *displayingElements() {
