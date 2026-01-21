@@ -69,6 +69,7 @@ import NotificationController from '../controllers/notification-controller';
 import SubtitleController from '../controllers/subtitle-controller';
 import BulkExportController from '../controllers/bulk-export-controller';
 import VideoDataSyncController from '../controllers/video-data-sync-controller';
+import WordInteractionController from '../controllers/word-interaction-controller';
 import AudioRecorder, { TimedRecordingInProgressError } from './audio-recorder';
 import { isMobile } from '@project/common/device-detection/mobile';
 import { OffsetAnchor } from './element-overlay';
@@ -148,6 +149,7 @@ export default class Binding {
     readonly settings: SettingsProvider;
     private readonly _audioRecorder = new AudioRecorder();
     readonly bulkExportController: BulkExportController;
+    readonly wordInteractionController: WordInteractionController;
 
     private copyToClipboardOnMine: boolean;
     private takeScreenshot: boolean;
@@ -202,7 +204,11 @@ export default class Binding {
         this.subtitleController.onOffsetChange = () => this.mobileVideoOverlayController.updateModel();
         this.mobileGestureController = new MobileGestureController(this);
         this.bulkExportController = new BulkExportController(this);
-        this.hoveredToken = new HoveredToken();
+        this.wordInteractionController = new WordInteractionController(
+            video,
+            () => document.title,
+            () => window.location.href
+        );
         this.recordMedia = true;
         this.takeScreenshot = true;
         this.cleanScreenshot = true;
@@ -971,6 +977,10 @@ export default class Binding {
         this.subtitleController.surroundingSubtitlesTimeRadius = currentSettings.surroundingSubtitlesTimeRadius;
         this.subtitleController.autoCopyCurrentSubtitle = currentSettings.autoCopyCurrentSubtitle;
 
+        const wordClickEnabledChanged =
+            this.subtitleController.wordClickEnabled !== currentSettings.wordClickEnabled;
+        this.subtitleController.wordClickEnabled = currentSettings.wordClickEnabled;
+
         const convertNetflixRubyChanged =
             this.subtitleController.convertNetflixRuby !== currentSettings.convertNetflixRuby;
         this.subtitleController.convertNetflixRuby = currentSettings.convertNetflixRuby;
@@ -981,7 +991,7 @@ export default class Binding {
         this.subtitleController.subtitleColoring.settingsUpdated(currentSettings);
         this.subtitleController.setSubtitleSettings(currentSettings);
 
-        if (convertNetflixRubyChanged || subtitleHtmlChanged) {
+        if (convertNetflixRubyChanged || subtitleHtmlChanged || wordClickEnabledChanged) {
             this.subtitleController.cacheHtml();
         }
 
@@ -1003,6 +1013,12 @@ export default class Binding {
             this.dragController.bind(this);
         } else {
             this.dragController.unbind();
+        }
+
+        if (currentSettings.wordClickEnabled && currentSettings.llmEnabled) {
+            this.wordInteractionController.bind();
+        } else {
+            this.wordInteractionController.unbind();
         }
 
         if (currentSettings.streamingEnableOverlay) {
@@ -1071,6 +1087,7 @@ export default class Binding {
         this.mobileGestureController.unbind();
         this.notificationController.unbind();
         this.bulkExportController.unbind();
+        this.wordInteractionController.unbind();
         this.subscribed = false;
 
         const command: VideoToExtensionCommand<VideoDisappearedMessage> = {

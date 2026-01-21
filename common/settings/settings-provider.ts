@@ -208,6 +208,11 @@ export const defaultSettings: AsbplayerSettings = {
     pauseOnHoverMode: 0,
     lastSelectedAnkiExportMode: 'default',
     dictionaryTracks: [defaultDictionaryTrackSettings, defaultDictionaryTrackSettings, defaultDictionaryTrackSettings],
+    llmEnabled: false,
+    llmApiKey: '',
+    llmApiEndpoint: 'https://api.anthropic.com/v1/messages',
+    llmModel: 'claude-haiku-4-5',
+    wordClickEnabled: false,
 };
 
 export const NUM_DICTIONARY_TRACKS = defaultSettings.dictionaryTracks.length;

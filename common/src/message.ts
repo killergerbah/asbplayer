@@ -888,38 +888,57 @@ export interface DictionaryBuildAnkiCacheStateError extends DictionaryBuildAnkiC
     data?: DictionaryBuildAnkiCacheStateErrorData;
 }
 
-export interface SaveTokenLocalMessage extends Message {
-    readonly command: 'save-token-local';
-    readonly track: number;
-    readonly token: string;
-    readonly status: TokenStatus | null;
-    readonly states: TokenState[];
-    readonly applyStates: ApplyStrategy;
+// LLM Translation Messages
+export interface LLMTranslateMessage extends MessageWithId {
+    readonly command: 'llm-translate';
+    readonly word: string;
+    readonly sentence: string;
+    readonly sourceLanguage?: string;
+    readonly targetLanguage?: string;
 }
 
-export interface SaveTokenLocalFromAppMessage extends MessageWithId {
-    readonly command: 'save-token-local';
-    readonly track: number;
-    readonly token: string;
-    readonly status: TokenStatus | null;
-    readonly states: TokenState[];
-    readonly applyStates: ApplyStrategy;
+export interface LLMTranslateResponse {
+    readonly translation: string;
+    readonly error?: string;
 }
 
-export interface SaveTokenLocalFromVideoMessage extends Message {
-    readonly command: 'saveTokenLocal';
-    readonly track: number;
-    readonly token: string;
-    readonly status: TokenStatus | null;
-    readonly states: TokenState[];
-    readonly applyStates: ApplyStrategy;
+// Saved Words Messages
+export interface SaveWordMessage extends MessageWithId {
+    readonly command: 'save-word';
+    readonly word: string;
+    readonly sentence: string;
+    readonly translation: string;
+    readonly videoTitle?: string;
+    readonly videoUrl?: string;
 }
 
-export interface SaveTokenLocalToVideoMessage extends Message {
-    readonly command: 'saveTokenLocal';
-    readonly track: number;
-    readonly token: string;
-    readonly status: TokenStatus | null;
-    readonly states: TokenState[];
-    readonly applyStates: ApplyStrategy;
+export interface SaveWordResponse {
+    readonly success: boolean;
+    readonly error?: string;
+}
+
+export interface GetSavedWordsCountMessage extends MessageWithId {
+    readonly command: 'get-saved-words-count';
+}
+
+export interface GetSavedWordsCountResponse {
+    readonly count: number;
+}
+
+export interface ExportSavedWordsMessage extends MessageWithId {
+    readonly command: 'export-saved-words';
+}
+
+export interface ExportSavedWordsResponse {
+    readonly csv: string;
+    readonly error?: string;
+}
+
+export interface ClearSavedWordsMessage extends MessageWithId {
+    readonly command: 'clear-saved-words';
+}
+
+export interface ClearSavedWordsResponse {
+    readonly success: boolean;
+    readonly error?: string;
 }
