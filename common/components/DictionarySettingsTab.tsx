@@ -51,7 +51,7 @@ import {
 } from '../src/message';
 import { DictionaryProvider } from '../dictionary-db';
 import { ensureStoragePersisted, humanReadableTime } from '../util';
-import DictionaryClipboardImport from './DictionaryClipboardImport';
+import DictionaryImport from './DictionaryImport';
 
 const localizedDate = (timestamp: number) => {
     return new Date(timestamp).toLocaleTimeString([], {
@@ -163,6 +163,7 @@ interface Props {
     dictionaryProvider: DictionaryProvider;
     extensionInstalled: boolean;
     onSettingChanged: <K extends keyof AsbplayerSettings>(key: K, value: AsbplayerSettings[K]) => Promise<void>;
+    onViewKeyboardShortcuts: () => void;
     profiles: Profile[];
     activeProfile?: string;
     anki: Anki;
@@ -173,6 +174,7 @@ const DictionarySettingsTab: React.FC<Props> = ({
     settings,
     extensionInstalled,
     onSettingChanged,
+    onViewKeyboardShortcuts,
     profiles,
     activeProfile,
     anki,
@@ -269,30 +271,18 @@ const DictionarySettingsTab: React.FC<Props> = ({
 
     const yomitanSectionRef = useRef<HTMLSpanElement | null>(null);
     const handleYomitanHelperTextClicked = () => {
-        yomitanSectionRef.current?.scrollIntoView();
+        yomitanSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
 
-    const dictionaryDBFileInputRef = useRef<HTMLInputElement>(null);
-    const handleDictionaryDBFileInputChange = useCallback(async () => {
+    const [exportingDictionaryDB, setExportingDictionaryDB] = useState<boolean>();
+    const handleExportDictionaryDB = useCallback(async () => {
+        void ensureStoragePersisted();
         try {
-            const file = dictionaryDBFileInputRef.current?.files?.[0];
-            if (file === undefined) return;
-            await dictionaryProvider.importRecordLocalBulk(
-                JSON.parse(await file.text()),
-                profiles.map((p) => p.name)
-            );
-        } catch (e) {
-            console.error(e);
+            setExportingDictionaryDB(true);
+            await dictionaryProvider.exportRecordLocalBulk();
+        } finally {
+            setExportingDictionaryDB(false);
         }
-    }, [dictionaryProvider, profiles]);
-
-    const handleImportDictionaryDB = useCallback(() => {
-        void ensureStoragePersisted();
-        dictionaryDBFileInputRef.current?.click();
-    }, []);
-    const handleExportDictionaryDB = useCallback(() => {
-        void ensureStoragePersisted();
-        dictionaryProvider.exportRecordLocalBulk();
     }, [dictionaryProvider]);
 
     const buildAnkiCacheDisabled = dictionaryTracks.every((dt) => !dictionaryStatusCollectionEnabled(dt));
@@ -326,71 +316,33 @@ const DictionarySettingsTab: React.FC<Props> = ({
         return dictionaryProvider.onBuildAnkiCacheStateChange(setBuildAnkiCacheState);
     }, [dictionaryProvider, setBuildAnkiCacheState]);
 
+    const [dictionaryImportOpen, setDictionaryImportOpen] = useState<boolean>(false);
+    const ankiSectionRef = useRef<HTMLDivElement | null>(null);
+    const handleAnkiHelperTextClicked = () => ankiSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
+
     return (
         <>
+            <DictionaryImport
+                open={dictionaryImportOpen}
+                onClose={() => setDictionaryImportOpen(false)}
+                dictionaryTracks={dictionaryTracks}
+                selectedDictionaryTrack={selectedDictionaryTrack}
+                dictionaryProvider={dictionaryProvider}
+                activeProfile={activeProfile}
+                profiles={profiles}
+            />
             <Stack spacing={1}>
                 {(dictionaryYomitanUrlError || !extensionInstalled) && (
                     <Alert severity="info">
                         <Trans
                             i18nKey={`${dictionaryYomitanUrlError ? t('settings.annotationHelperText') : ''}${!extensionInstalled ? ` ${t('settings.annotationNoExtensionWarn')}` : ''}`.trim()}
                             components={[
-                                <Link key={0} onClick={handleYomitanHelperTextClicked} href="javascript:void(0)" />,
+                                <Link key={0} onClick={handleYomitanHelperTextClicked} sx={{ cursor: 'pointer' }} />,
                             ]}
                         />
                     </Alert>
                 )}
-                <div>
-                    <Stack direction="row" spacing={1} alignItems="center">
-                        <DictionaryClipboardImport
-                            dictionaryTracks={dictionaryTracks}
-                            selectedDictionaryTrack={selectedDictionaryTrack}
-                            dictionaryProvider={dictionaryProvider}
-                            activeProfile={activeProfile}
-                        />
-                        <Button
-                            variant="contained"
-                            color="primary"
-                            style={{ flex: 1 }}
-                            onClick={handleImportDictionaryDB}
-                        >
-                            {t('action.importDictionaryLocalRecords')}
-                        </Button>
-                        <Button
-                            variant="contained"
-                            color="primary"
-                            style={{ flex: 1 }}
-                            onClick={handleExportDictionaryDB}
-                        >
-                            {t('action.exportDictionaryLocalRecords')}
-                        </Button>
-                    </Stack>
-                    <Typography variant="caption" color="textSecondary">
-                        {t('settings.annotationLocalAnkiHelperText')}
-                    </Typography>
-                </div>
-                <div>
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        style={{ width: '100%' }}
-                        onClick={handleBuildAnkiCache}
-                        loading={buildingAnkiCache}
-                        disabled={buildAnkiCacheDisabled}
-                        startIcon={<RefreshIcon />}
-                    >
-                        {t('settings.buildAnkiCache')}
-                    </Button>
-                    <Typography variant="caption" color="textSecondary">
-                        {ankiFieldsEnabled
-                            ? t('settings.buildAnkiCacheHelperText')
-                            : `${t('settings.buildAnkiCacheHelperText')} ${t('settings.buildAnkiCacheAnkiEnableHelperText')}`}
-                    </Typography>
-                    {buildMessage && buildMessageSeverity && (
-                        <div style={{ marginTop: 8 }}>
-                            <Alert severity={buildMessageSeverity}>{buildMessage}</Alert>
-                        </div>
-                    )}
-                </div>
+                <SettingsSection>{t('settings.annotation')}</SettingsSection>
                 <SettingsTextField
                     select
                     fullWidth
@@ -775,6 +727,64 @@ const DictionarySettingsTab: React.FC<Props> = ({
                         />
                     </RadioGroup>
                 </FormControl>
+                <div>
+                    <SettingsSection>{t('settings.dictionaryLocalWordDatabase')}</SettingsSection>
+                    <Stack direction="row" spacing={1} alignItems="center">
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            style={{ flex: 1 }}
+                            onClick={() => setDictionaryImportOpen(true)}
+                        >
+                            {t('action.importDictionaryLocalRecords')}
+                        </Button>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            style={{ flex: 1 }}
+                            onClick={handleExportDictionaryDB}
+                            loading={exportingDictionaryDB}
+                        >
+                            {t('action.exportDictionaryLocalRecords')}
+                        </Button>
+                    </Stack>
+                    <Typography variant="caption" color="textSecondary">
+                        <Trans
+                            i18nKey={'settings.annotationLocalAnkiHelperText'}
+                            components={[<Link key={0} onClick={onViewKeyboardShortcuts} sx={{ cursor: 'pointer' }} />]}
+                        />
+                    </Typography>
+                </div>
+                <Stack spacing={1}>
+                    <SettingsSection>{t('settings.dictionaryAnkiWordDatabase')}</SettingsSection>
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        style={{ width: '100%' }}
+                        onClick={handleBuildAnkiCache}
+                        loading={buildingAnkiCache}
+                        disabled={buildAnkiCacheDisabled}
+                        startIcon={<RefreshIcon />}
+                    >
+                        {t('settings.buildAnkiCache')}
+                    </Button>
+                    <Typography variant="caption" color="textSecondary">
+                        {t('settings.buildAnkiCacheHelperText')}{' '}
+                        {!ankiFieldsEnabled && (
+                            <Trans
+                                i18nKey={'settings.buildAnkiCacheAnkiEnableHelperText'}
+                                components={[
+                                    <Link key={0} onClick={handleAnkiHelperTextClicked} sx={{ cursor: 'pointer' }} />,
+                                ]}
+                            />
+                        )}
+                    </Typography>
+                    {buildMessage && buildMessageSeverity && (
+                        <div style={{ marginTop: 8 }}>
+                            <Alert severity={buildMessageSeverity}>{buildMessage}</Alert>
+                        </div>
+                    )}
+                </Stack>
                 <SettingsSection ref={yomitanSectionRef}>{t('settings.dictionaryYomitanSection')}</SettingsSection>
                 {dictionaryYomitanUrlError && (
                     <Alert severity="info">
@@ -837,10 +847,7 @@ const DictionarySettingsTab: React.FC<Props> = ({
                         htmlInput: { min: 1, max: 128, step: 1 },
                     }}
                 />
-                <SettingsSection>{t('settings.anki')}</SettingsSection>
-                {!ankiFieldsEnabled && (
-                    <Alert severity="info">{t('settings.buildAnkiCacheAnkiEnableHelperText')}</Alert>
-                )}
+                <SettingsSection ref={ankiSectionRef}>{t('settings.anki')}</SettingsSection>
                 <Autocomplete
                     multiple
                     options={deckNames ?? []}
@@ -1182,13 +1189,6 @@ const DictionarySettingsTab: React.FC<Props> = ({
                     );
                 })}
             </Stack>
-            <input
-                ref={dictionaryDBFileInputRef}
-                onChange={handleDictionaryDBFileInputChange}
-                type="file"
-                accept=".json"
-                hidden
-            />
         </>
     );
 };

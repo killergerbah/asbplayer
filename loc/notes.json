@@ -269,7 +269,6 @@
         "settings.dictionaryTokenStatus2": "Color used to indicate that a word is \"learning.\"",
         "settings.dictionaryTokenStatus1": "Color used to indicate that a word is \"unknown.\"",
         "settings.dictionaryTokenStatus0": "Color used to indicate that a word is \"uncollected.\"",
-        "settings.dictionaryImportClipboardTitle": "Title for popup that allows user to import known words from clipboard.",
         "settings.dictionaryImportClipboardText": "Label for text area where user pastes known words to import from clipboard.",
         "settings.dictionaryImportClipboardNoTokens": "Helper text shown when no tokens are found in the clipboard import text area.",
         "settings.extensionOverriddenBind": "Text that is shown when a the keyboard shortcut is overridden by the extension. This situation is possible because the extension has its own keyboard shortcut settings which may override the website's keyboard shortcut settings.",

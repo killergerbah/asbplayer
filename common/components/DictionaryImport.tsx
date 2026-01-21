@@ -1,7 +1,5 @@
-import React, { useCallback, useState, useEffect } from 'react';
+import React, { useCallback, useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import IconButton from '@mui/material/IconButton';
-import ContentPasteIcon from '@mui/icons-material/ContentPaste';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
@@ -23,11 +21,12 @@ import {
     NUM_DICTIONARY_TRACKS,
     TokenState,
     ApplyStrategy,
+    Profile,
 } from '@project/common/settings';
 import { Yomitan } from '../yomitan/yomitan';
 import SwitchLabelWithHoverEffect from './SwitchLabelWithHoverEffect';
 import SettingsTextField from './SettingsTextField';
-import { DictionaryLocalTokenInput, DictionaryProvider, DictionaryTokenKey } from '../dictionary-db';
+import { DictionaryLocalTokenInput, DictionaryProvider, DictionaryTokenRecord } from '../dictionary-db';
 import { ensureStoragePersisted, HAS_LETTER_REGEX } from '../util';
 
 interface ImportClipboardToken {
@@ -36,25 +35,31 @@ interface ImportClipboardToken {
 }
 
 interface Props {
+    open: boolean;
     dictionaryTracks: DictionaryTrack[];
     selectedDictionaryTrack: number;
     dictionaryProvider: DictionaryProvider;
     activeProfile?: string;
+    profiles: Profile[];
+    onClose: () => void;
 }
 
-const DictionaryClipboardImport: React.FC<Props> = ({
+const DictionaryImport: React.FC<Props> = ({
+    open,
     dictionaryTracks,
     selectedDictionaryTrack,
     dictionaryProvider,
     activeProfile,
+    profiles,
+    onClose,
 }) => {
     const { t } = useTranslation();
-    const [importClipboardDialogOpen, setImportClipboardDialogOpen] = useState(false);
     const [importClipboardTrack, setImportClipboardTrack] = useState<number>(selectedDictionaryTrack);
     const [importClipboardStatus, setImportClipboardStatus] = useState<TokenStatus>(getFullyKnownTokenStatus());
     const [importClipboardState, setImportClipboardState] = useState<TokenState | null>(null);
     const [importClipboardText, setImportClipboardText] = useState('');
     const [importClipboardPreview, setImportClipboardPreview] = useState<ImportClipboardToken[] | null>(null);
+    const [importClipboardPreviewHasChanges, setImportClipboardPreviewHasChanges] = useState<boolean>();
     const [importClipboardLoading, setImportClipboardLoading] = useState(false);
     const [importClipboardError, setImportClipboardError] = useState<string>();
 
@@ -63,22 +68,24 @@ const DictionaryClipboardImport: React.FC<Props> = ({
         setImportClipboardError(undefined);
     }, [importClipboardTrack, importClipboardText]);
 
-    const handleOpenImportClipboardDialog = useCallback(() => {
+    useEffect(() => {
+        if (!open) {
+            return;
+        }
         void ensureStoragePersisted();
-        setImportClipboardDialogOpen(true);
         setImportClipboardText('');
         setImportClipboardPreview(null);
         setImportClipboardError(undefined);
-    }, []);
+    }, [open]);
 
     const handleCloseImportClipboardDialog = useCallback(() => {
         void ensureStoragePersisted();
-        setImportClipboardDialogOpen(false);
         setImportClipboardText('');
         setImportClipboardPreview(null);
         setImportClipboardError(undefined);
         setImportClipboardLoading(false);
-    }, []);
+        onClose();
+    }, [onClose]);
 
     const handlePreviewImportClipboard = useCallback(async () => {
         void ensureStoragePersisted();
@@ -106,6 +113,7 @@ const DictionaryClipboardImport: React.FC<Props> = ({
             }
             if (!entries.length) setImportClipboardError(t('settings.dictionaryImportClipboardNoTokens'));
             setImportClipboardPreview(entries);
+            setImportClipboardPreviewHasChanges(false);
         } catch (e) {
             const message = e instanceof Error ? e.message : String(e);
             setImportClipboardError(message);
@@ -127,7 +135,7 @@ const DictionaryClipboardImport: React.FC<Props> = ({
                 states: importClipboardState !== null ? [importClipboardState] : [],
             }));
             await dictionaryProvider.saveRecordLocalBulk(activeProfile, inputs, ApplyStrategy.ADD);
-            setImportClipboardDialogOpen(false);
+            onClose();
             setImportClipboardPreview(null);
             setImportClipboardText('');
             setImportClipboardError(undefined);
@@ -136,15 +144,77 @@ const DictionaryClipboardImport: React.FC<Props> = ({
         } finally {
             setImportClipboardLoading(false);
         }
-    }, [dictionaryProvider, activeProfile, importClipboardPreview, importClipboardStatus, importClipboardState]);
+    }, [
+        dictionaryProvider,
+        activeProfile,
+        importClipboardPreview,
+        importClipboardStatus,
+        importClipboardState,
+        onClose,
+    ]);
+
+    const dictionaryDBFileInputRef = useRef<HTMLInputElement>(null);
+    const tryImportFile = useCallback(
+        async (file: File) => {
+            let text: string;
+            try {
+                text = await file.text();
+            } catch (e) {
+                console.error(e);
+                return;
+            }
+
+            // Assume exported JSON file in DictionaryTokenRecord format first
+            let records: DictionaryTokenRecord[];
+
+            try {
+                records = JSON.parse(text);
+            } catch (e) {
+                // Was not JSON, assume arbitrary text
+                setImportClipboardText(text);
+                setImportClipboardPreviewHasChanges(true);
+                return;
+            }
+
+            try {
+                await dictionaryProvider.importRecordLocalBulk(
+                    records,
+                    profiles.map((p) => p.name)
+                );
+                onClose();
+            } catch (e) {
+                console.error(e);
+            }
+        },
+        [dictionaryProvider, profiles, onClose]
+    );
+    const handleDictionaryDBFileInputChange = useCallback(async () => {
+        const file = dictionaryDBFileInputRef.current?.files?.[0];
+        if (file === undefined) return;
+        try {
+            tryImportFile(file);
+        } catch (e) {
+            console.error(e);
+        } finally {
+            if (dictionaryDBFileInputRef.current) {
+                // Reset value to allow same file to be opened again
+                dictionaryDBFileInputRef.current.value = '';
+            }
+        }
+    }, [tryImportFile]);
+
+    const handleImportDictionaryDB = useCallback(() => {
+        void ensureStoragePersisted();
+        dictionaryDBFileInputRef.current?.click();
+    }, []);
+
+    const isPreviewRequiredBeforeImport =
+        importClipboardPreview === null || importClipboardPreview.length === 0 || importClipboardPreviewHasChanges;
 
     return (
         <>
-            <IconButton onClick={handleOpenImportClipboardDialog} size="small">
-                <ContentPasteIcon fontSize="small" />
-            </IconButton>
-            <Dialog open={importClipboardDialogOpen} onClose={handleCloseImportClipboardDialog} fullWidth maxWidth="sm">
-                <DialogTitle>{t('settings.dictionaryImportClipboardTitle')}</DialogTitle>
+            <Dialog open={open} onClose={handleCloseImportClipboardDialog} fullWidth maxWidth="sm">
+                <DialogTitle>{t('action.importDictionaryLocalRecords')}</DialogTitle>
                 <DialogContent>
                     <Stack spacing={2} mt={1}>
                         <SettingsTextField
@@ -153,7 +223,7 @@ const DictionaryClipboardImport: React.FC<Props> = ({
                             color="primary"
                             variant="outlined"
                             size="small"
-                            label={t('settings.title')}
+                            label={t('settings.subtitleTrack')}
                             value={importClipboardTrack}
                             onChange={(e) => setImportClipboardTrack(Number(e.target.value))}
                         >
@@ -169,6 +239,7 @@ const DictionaryClipboardImport: React.FC<Props> = ({
                             color="primary"
                             variant="outlined"
                             size="small"
+                            label={t('settings.dictionaryImportedMaturity')}
                             value={importClipboardStatus}
                             onChange={(e) => setImportClipboardStatus(Number(e.target.value) as TokenStatus)}
                         >
@@ -198,7 +269,10 @@ const DictionaryClipboardImport: React.FC<Props> = ({
                             minRows={8}
                             label={t('settings.dictionaryImportClipboardText')}
                             value={importClipboardText}
-                            onChange={(e) => setImportClipboardText(e.target.value)}
+                            onChange={(e) => {
+                                setImportClipboardText(e.target.value);
+                                setImportClipboardPreviewHasChanges(true);
+                            }}
                             fullWidth
                         />
                         {importClipboardError && <MuiAlert severity="error">{importClipboardError}</MuiAlert>}
@@ -215,24 +289,36 @@ const DictionaryClipboardImport: React.FC<Props> = ({
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleCloseImportClipboardDialog}>{t('action.cancel')}</Button>
-                    <Button
-                        onClick={handlePreviewImportClipboard}
-                        disabled={!importClipboardText.trim().length || importClipboardLoading}
-                    >
-                        {t('action.preview')}
-                    </Button>
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={handleSaveImportClipboard}
-                        disabled={!importClipboardPreview?.length || importClipboardLoading}
-                    >
-                        {t('action.save')}
-                    </Button>
+                    <Button onClick={handleImportDictionaryDB}>{t('action.importFile')}</Button>
+                    {isPreviewRequiredBeforeImport && (
+                        <Button
+                            onClick={handlePreviewImportClipboard}
+                            disabled={!importClipboardText.trim().length || importClipboardLoading}
+                        >
+                            {t('action.preview')}
+                        </Button>
+                    )}
+                    {!isPreviewRequiredBeforeImport && (
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={handleSaveImportClipboard}
+                            disabled={!importClipboardPreview?.length || importClipboardLoading}
+                        >
+                            {t('action.save')}
+                        </Button>
+                    )}
                 </DialogActions>
             </Dialog>
+            <input
+                ref={dictionaryDBFileInputRef}
+                onChange={handleDictionaryDBFileInputChange}
+                type="file"
+                accept=".json,.txt"
+                hidden
+            />
         </>
     );
 };
 
-export default DictionaryClipboardImport;
+export default DictionaryImport;
