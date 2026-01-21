@@ -155,6 +155,7 @@ export default defineBackground(() => {
         new LoadSubtitlesHandler(tabRegistry),
         new RequestSubtitlesHandler(),
         new RequestCurrentSubtitleHandler(),
+        new SaveTokenLocalHandler(),
         new RequestCopyHistoryHandler(),
         new SaveCopyHistoryHandler(settings),
         new DeleteCopyHistoryHandler(settings),

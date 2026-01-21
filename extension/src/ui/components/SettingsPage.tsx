@@ -119,6 +119,7 @@ const SettingsPage = ({ dictionaryProvider, settings, inTutorial, onSettingsChan
                         onSettingsChanged={onSettingsChanged}
                         dictionaryProvider={dictionaryProvider}
                         settings={settings}
+                        profiles={profileContext.profiles}
                         activeProfile={profileContext.activeProfile}
                         pageConfigs={settingsPageConfigs}
                         localFontsAvailable={localFontsAvailable}

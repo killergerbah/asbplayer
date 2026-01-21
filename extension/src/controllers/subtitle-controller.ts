@@ -109,6 +109,7 @@ export default class SubtitleController {
     onSlice?: (subtitle: SubtitleSlice<IndexedSubtitleModel>) => void;
     onOffsetChange?: () => void;
     onMouseOver?: (event: MouseEvent) => void;
+    onMouseOut?: (event: MouseEvent) => void;
 
     constructor(video: HTMLMediaElement, dictionary: DictionaryProvider, settings: SettingsProvider) {
         this.video = video;
@@ -295,6 +296,7 @@ export default class SubtitleController {
             offsetAnchor: OffsetAnchor.bottom,
             contentWidthPercentage: -1,
             onMouseOver: (event: MouseEvent) => this.onMouseOver?.(event),
+            onMouseOut: (event: MouseEvent) => this.onMouseOut?.(event),
         };
         const topSubtitleOverlayParams: ElementOverlayParams = {
             targetElement: this.video,
@@ -305,6 +307,7 @@ export default class SubtitleController {
             offsetAnchor: OffsetAnchor.top,
             contentWidthPercentage: -1,
             onMouseOver: (event: MouseEvent) => this.onMouseOver?.(event),
+            onMouseOut: (event: MouseEvent) => this.onMouseOut?.(event),
         };
         const notificationOverlayParams: ElementOverlayParams =
             this._getSubtitleTrackAlignment(0) === 'bottom'
@@ -317,6 +320,7 @@ export default class SubtitleController {
                       offsetAnchor: OffsetAnchor.top,
                       contentWidthPercentage: -1,
                       onMouseOver: (event: MouseEvent) => this.onMouseOver?.(event),
+                      onMouseOut: (event: MouseEvent) => this.onMouseOut?.(event),
                   }
                 : {
                       targetElement: this.video,
@@ -327,6 +331,7 @@ export default class SubtitleController {
                       offsetAnchor: OffsetAnchor.bottom,
                       contentWidthPercentage: -1,
                       onMouseOver: (event: MouseEvent) => this.onMouseOver?.(event),
+                      onMouseOut: (event: MouseEvent) => this.onMouseOut?.(event),
                   };
 
         return { subtitleOverlayParams, topSubtitleOverlayParams, notificationOverlayParams };
@@ -562,6 +567,7 @@ export default class SubtitleController {
         this.onSlice = undefined;
         this.onOffsetChange = undefined;
         this.onMouseOver = undefined;
+        this.onMouseOut = undefined;
     }
 
     refresh() {

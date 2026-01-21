@@ -63,6 +63,16 @@
             }
         },
         {
+            "key": "iwanttfc",
+            "host": "www\\.iwanttfc\\.com",
+            "pageScript": "iwanttfc-page.js",
+            "syncAllowedAtPath": "player",
+            "autoSync": {
+                "enabled": true,
+                "elementId": "video-player-container-main"
+            }
+        },
+        {
             "key": "disneyPlus",
             "host": "www\\.disneyplus\\..+",
             "pageScript": "disney-plus-page.js",

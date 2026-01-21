@@ -214,6 +214,7 @@ const Popup = ({
                         chromeKeyBinds={chromeCommandBindsToKeyBinds(commands)}
                         dictionaryProvider={dictionaryProvider}
                         settings={settings}
+                        profiles={profilesContext.profiles}
                         activeProfile={profilesContext.activeProfile}
                         pageConfigs={settingsPageConfigs}
                         localFontsAvailable={localFontsAvailable}

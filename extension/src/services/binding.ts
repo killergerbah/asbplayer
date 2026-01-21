@@ -48,6 +48,7 @@ import {
     VideoHeartbeatMessage,
     VideoToExtensionCommand,
     IndexedSubtitleModel,
+    SaveTokenLocalMessage,
 } from '@project/common';
 import { adjacentSubtitle } from '@project/common/key-binder';
 import {
@@ -80,6 +81,7 @@ import { bufferToBase64 } from '@project/common/base64';
 import { pgsParserWorkerFactory } from './pgs-parser-worker-factory';
 import { DictionaryProvider } from '@project/common/dictionary-db/dictionary-provider';
 import { ExtensionDictionaryStorage } from './extension-dictionary-storage';
+import { HoveredToken, SubtitleColoring } from '@project/common/subtitle-coloring';
 
 let netflix = false;
 document.addEventListener('asbplayer-netflix-enabled', (e) => {
@@ -162,6 +164,7 @@ export default class Binding {
     private fastForwardModePlaybackRate = 2.7;
     private imageDelay = 0;
     private pauseOnHoverMode: PauseOnHoverMode = PauseOnHoverMode.disabled;
+    hoveredToken: HoveredToken;
     recordMedia: boolean;
 
     private playListener?: EventListener;
@@ -558,7 +561,7 @@ export default class Binding {
         this.video.addEventListener('seeked', this.seekedListener);
         this.video.addEventListener('ratechange', this.playbackRateListener);
 
-        this.subtitleController.onMouseOver = () => {
+        this.subtitleController.onMouseOver = (mouseEvent: MouseEvent) => {
             if (this.pauseOnHoverMode !== PauseOnHoverMode.disabled && !this.video.paused) {
                 this.video.pause();
                 this.pausedDueToHover = true;
@@ -580,7 +583,9 @@ export default class Binding {
 
                 document.addEventListener('mousemove', this.mouseMoveListener);
             }
+            this.hoveredToken.handleMouseOver(mouseEvent);
         };
+        this.subtitleController.onMouseOut = (mouseEvent: MouseEvent) => this.hoveredToken.handleMouseOut(mouseEvent);
 
         if (this.hasPageScript) {
             this.videoChangeListener = () => {
@@ -755,6 +760,16 @@ export default class Binding {
                     case 'card-updated-dialog':
                     case 'card-exported-dialog':
                         this.subtitleController.subtitleColoring.ankiCardWasModified();
+                        break;
+                    case 'save-token-local':
+                        const { track, token, status, states, applyStates } = request.message as SaveTokenLocalMessage;
+                        this.subtitleController.subtitleColoring.saveTokenLocal(
+                            track,
+                            token,
+                            status,
+                            states,
+                            applyStates
+                        );
                         break;
                     case 'notify-error':
                         const notifyErrorMessage = request.message as NotifyErrorMessage;

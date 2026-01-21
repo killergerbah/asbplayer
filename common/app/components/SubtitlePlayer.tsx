@@ -225,6 +225,8 @@ interface SubtitleRowProps extends TableRowProps {
     subtitleRef: RefObject<HTMLTableRowElement | null>;
     onClickSubtitle: (index: number) => void;
     onCopySubtitle: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>, index: number) => void;
+    onMouseOver: (e: React.MouseEvent) => void;
+    onMouseOut: (e: React.MouseEvent) => void;
     subtitleHtml: SubtitleHtml;
 }
 
@@ -234,6 +236,8 @@ const SubtitleRow = React.memo(function SubtitleRow({
     subtitleRef,
     onClickSubtitle,
     onCopySubtitle,
+    onMouseOver,
+    onMouseOut,
     compressed,
     disabled,
     subtitle,
@@ -265,6 +269,9 @@ const SubtitleRow = React.memo(function SubtitleRow({
             ref={textRef}
             className={disabledClassName}
             dangerouslySetInnerHTML={{ __html: subtitle.richText ?? subtitle.text }}
+            data-track={subtitle.track}
+            onMouseOver={onMouseOver}
+            onMouseOut={onMouseOut}
         />
     );
 
@@ -353,6 +360,8 @@ interface SubtitlePlayerProps {
     onOffsetChange: (offset: number) => void;
     onToggleSubtitleTrack: (track: number) => void;
     onSubtitlesHighlighted: (subtitles: SubtitleModel[]) => void;
+    onMouseOver: (e: React.MouseEvent) => void;
+    onMouseOut: (e: React.MouseEvent) => void;
     onResizeStart?: () => void;
     onResizeEnd?: () => void;
     autoPauseContext: AutoPauseContext;
@@ -386,6 +395,8 @@ export default function SubtitlePlayer({
     onOffsetChange,
     onToggleSubtitleTrack,
     onSubtitlesHighlighted,
+    onMouseOver,
+    onMouseOut,
     onResizeStart,
     onResizeEnd,
     autoPauseContext,
@@ -1148,6 +1159,8 @@ export default function SubtitlePlayer({
                                     subtitleRef={subtitleRefs[index]}
                                     onClickSubtitle={handleClick}
                                     onCopySubtitle={handleCopy}
+                                    onMouseOver={onMouseOver}
+                                    onMouseOut={onMouseOut}
                                     subtitleHtml={settings.subtitleHtml}
                                 />
                             );
