@@ -162,6 +162,23 @@ Submit bugs or feature requests from the [issues page](https://github.com/killer
 
 If you've benefited from asbplayer, please consider supporting my work via [Github Sponsors](https://github.com/sponsors/killergerbah?frequency=one-time) or [Ko-fi](https://ko-fi.com/killergerbah).
 
+## Fork Setup
+
+This is a personal fork. The git remotes are configured as follows:
+
+| Remote | Repository | Purpose |
+|--------|------------|---------|
+| `origin` | TasseDeCafe/asbplayer | Push your changes |
+| `upstream` | killergerbah/asbplayer | Sync updates from the original project |
+
+To sync with the original project:
+
+```bash
+git fetch upstream
+git merge upstream/main
+git push origin
+```
+
 ## Notes for AMO source code reviewers
 
 ### Environment
