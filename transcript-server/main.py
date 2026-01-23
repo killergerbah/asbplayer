@@ -80,8 +80,17 @@ async def get_transcript(
             # Download audio using pytubefix
             try:
                 yt = YouTube(request.url)
-                # Get audio-only stream
-                audio_stream = yt.streams.filter(only_audio=True).order_by('abr').desc().first()
+
+                # Try to get m4a stream first (best compatibility with Whisper)
+                audio_stream = yt.streams.filter(only_audio=True, mime_type="audio/mp4").order_by('abr').desc().first()
+
+                # Fallback to webm if no m4a
+                if not audio_stream:
+                    audio_stream = yt.streams.filter(only_audio=True, mime_type="audio/webm").order_by('abr').desc().first()
+
+                # Last resort: any audio stream
+                if not audio_stream:
+                    audio_stream = yt.streams.filter(only_audio=True).order_by('abr').desc().first()
 
                 if not audio_stream:
                     raise HTTPException(
@@ -89,9 +98,19 @@ async def get_transcript(
                         detail="No audio stream found for this video"
                     )
 
-                # Download the audio
-                audio_path = audio_stream.download(output_path=tmpdir, filename="audio")
+                # Determine file extension from mime type
+                if "mp4" in audio_stream.mime_type:
+                    ext = "m4a"
+                elif "webm" in audio_stream.mime_type:
+                    ext = "webm"
+                else:
+                    ext = "mp4"  # Default
 
+                # Download the audio with proper extension
+                audio_path = audio_stream.download(output_path=tmpdir, filename=f"audio.{ext}")
+
+            except HTTPException:
+                raise
             except Exception as e:
                 raise HTTPException(
                     status_code=500,
