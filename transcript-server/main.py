@@ -5,6 +5,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import openai
 from pytubefix import YouTube
+from pydub import AudioSegment
+import static_ffmpeg
+
+# Download and add static ffmpeg to PATH (required by pydub)
+static_ffmpeg.add_paths()
 
 app = FastAPI(title="YouTube Transcript Server")
 
@@ -22,6 +27,11 @@ API_KEY = os.environ.get("TRANSCRIPT_API_KEY", "")
 
 # OpenAI API key for Whisper
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
+
+# Max file size for OpenAI Whisper API (25MB, use 24MB to be safe)
+MAX_CHUNK_SIZE_MB = 24
+# Chunk duration in milliseconds (20 minutes chunks to stay under size limit)
+CHUNK_DURATION_MS = 20 * 60 * 1000
 
 
 class TranscriptRequest(BaseModel):
@@ -42,21 +52,79 @@ def format_srt_time(seconds: float) -> str:
     return f"{hours:02d}:{minutes:02d}:{secs:02d},{millis:03d}"
 
 
+def segments_to_list(segments: list, time_offset: float = 0) -> list:
+    """Convert Whisper segments to a list of dicts with time offset applied"""
+    result = []
+    for segment in segments:
+        if hasattr(segment, 'start'):
+            result.append({
+                "start": segment.start + time_offset,
+                "end": segment.end + time_offset,
+                "text": segment.text.strip()
+            })
+        else:
+            result.append({
+                "start": segment["start"] + time_offset,
+                "end": segment["end"] + time_offset,
+                "text": segment["text"].strip()
+            })
+    return result
+
+
 def segments_to_srt(segments: list) -> str:
-    """Convert Whisper segments to SRT format"""
+    """Convert segments to SRT format"""
     srt_lines = []
     for i, segment in enumerate(segments, 1):
-        # Handle both dict and object access
-        if hasattr(segment, 'start'):
-            start = format_srt_time(segment.start)
-            end = format_srt_time(segment.end)
-            text = segment.text.strip()
-        else:
-            start = format_srt_time(segment["start"])
-            end = format_srt_time(segment["end"])
-            text = segment["text"].strip()
+        start = format_srt_time(segment["start"])
+        end = format_srt_time(segment["end"])
+        text = segment["text"]
         srt_lines.append(f"{i}\n{start} --> {end}\n{text}\n")
     return "\n".join(srt_lines)
+
+
+def split_audio(audio_path: str, tmpdir: str) -> list[tuple[str, float]]:
+    """Split audio file into chunks, returns list of (chunk_path, start_time_seconds)"""
+    audio = AudioSegment.from_file(audio_path)
+    duration_ms = len(audio)
+
+    # If audio is short enough, no need to split
+    if duration_ms <= CHUNK_DURATION_MS:
+        return [(audio_path, 0.0)]
+
+    chunks = []
+    start_ms = 0
+    chunk_num = 0
+
+    while start_ms < duration_ms:
+        end_ms = min(start_ms + CHUNK_DURATION_MS, duration_ms)
+        chunk = audio[start_ms:end_ms]
+
+        chunk_path = os.path.join(tmpdir, f"chunk_{chunk_num}.mp3")
+        chunk.export(chunk_path, format="mp3", bitrate="128k")
+
+        chunks.append((chunk_path, start_ms / 1000.0))  # Convert to seconds
+
+        start_ms = end_ms
+        chunk_num += 1
+
+    return chunks
+
+
+def transcribe_audio(client: openai.OpenAI, audio_path: str, language: str | None) -> list:
+    """Transcribe a single audio file and return segments"""
+    with open(audio_path, "rb") as audio_file:
+        transcription = client.audio.transcriptions.create(
+            model="whisper-1",
+            file=audio_file,
+            response_format="verbose_json",
+            language=language,
+        )
+
+    if hasattr(transcription, "segments") and transcription.segments:
+        return transcription.segments
+    else:
+        # Fallback if no segments
+        return [{"start": 0, "end": 10, "text": transcription.text}]
 
 
 @app.get("/health")
@@ -129,23 +197,19 @@ async def get_transcript(
                     detail="Audio file not found after download"
                 )
 
-            # Transcribe using OpenAI Whisper API
-            client = openai.OpenAI(api_key=OPENAI_API_KEY)
+            # Split audio into chunks if needed
+            chunks = split_audio(audio_path, tmpdir)
 
-            with open(audio_path, "rb") as audio_file:
-                transcription = client.audio.transcriptions.create(
-                    model="whisper-1",
-                    file=audio_file,
-                    response_format="verbose_json",
-                    language=request.language,
-                )
+            # Transcribe each chunk
+            client = openai.OpenAI(api_key=OPENAI_API_KEY)
+            all_segments = []
+
+            for chunk_path, time_offset in chunks:
+                segments = transcribe_audio(client, chunk_path, request.language)
+                all_segments.extend(segments_to_list(segments, time_offset))
 
             # Convert to SRT
-            if hasattr(transcription, "segments") and transcription.segments:
-                srt_content = segments_to_srt(transcription.segments)
-            else:
-                # Fallback if no segments (shouldn't happen with verbose_json)
-                srt_content = f"1\n00:00:00,000 --> 00:10:00,000\n{transcription.text}\n"
+            srt_content = segments_to_srt(all_segments)
 
             return TranscriptResponse(srt=srt_content)
 
@@ -154,6 +218,8 @@ async def get_transcript(
             status_code=500,
             detail=f"OpenAI API error: {str(e)}"
         )
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=500,
