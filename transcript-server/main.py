@@ -92,6 +92,7 @@ async def get_transcript(
                 "-o", audio_path,
                 "--no-playlist",  # Single video only
                 "--max-filesize", "100M",  # Limit file size
+                "--js-runtimes", "nodejs",  # Use Node.js for YouTube extraction
                 request.url,
             ]
 

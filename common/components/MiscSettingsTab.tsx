@@ -67,7 +67,8 @@ const MiscSettingTab: React.FC<Props> = ({
         llmApiEndpoint,
         llmModel,
         wordClickEnabled,
-        supadataApiKey,
+        transcriptServerUrl,
+        transcriptApiKey,
     } = settings;
     const validRegex = useMemo(() => regexIsValid(subtitleRegexFilter), [subtitleRegexFilter]);
     const [webSocketConnectionSucceeded, setWebSocketConnectionSucceeded] = useState<boolean>();
@@ -391,12 +392,19 @@ const MiscSettingTab: React.FC<Props> = ({
                 />
                 <SettingsSection>{t('settings.subtitleGeneration')}</SettingsSection>
                 <SettingsTextField
-                    label={t('settings.supadataApiKey')}
+                    label={t('settings.transcriptServerUrl')}
+                    fullWidth
+                    value={transcriptServerUrl}
+                    color="primary"
+                    onChange={(event) => onSettingChanged('transcriptServerUrl', event.target.value)}
+                />
+                <SettingsTextField
+                    label={t('settings.transcriptApiKey')}
                     fullWidth
                     type="password"
-                    value={supadataApiKey}
+                    value={transcriptApiKey}
                     color="primary"
-                    onChange={(event) => onSettingChanged('supadataApiKey', event.target.value)}
+                    onChange={(event) => onSettingChanged('transcriptApiKey', event.target.value)}
                 />
                 <SettingsSection>{t('settings.title')}</SettingsSection>
                 <Stack direction="row" spacing={1}>
