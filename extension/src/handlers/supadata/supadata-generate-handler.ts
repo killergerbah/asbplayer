@@ -1,5 +1,6 @@
 import type { Command, Message, SupadataGenerateMessage, SupadataGenerateResponse } from '@project/common';
 import { SettingsProvider } from '@project/common/settings';
+import { getCachedTranscript, cacheTranscript } from '@/services/transcript-cache';
 
 interface TranscriptRequest {
     url: string;
@@ -32,27 +33,55 @@ export default class SupadataGenerateHandler {
     ) {
         const message = command.message as SupadataGenerateMessage;
 
-        this._settings.get(['transcriptServerUrl', 'transcriptApiKey']).then(async (settings) => {
-            if (!settings.transcriptServerUrl) {
-                sendResponse({ error: 'Transcript server URL not configured' });
-                return;
-            }
-
-            try {
-                const subtitles = await this._generateSubtitles(
-                    message.videoUrl,
-                    settings.transcriptServerUrl,
-                    settings.transcriptApiKey
-                );
-                sendResponse({ subtitles });
-            } catch (error) {
-                sendResponse({
-                    error: error instanceof Error ? error.message : 'Unknown error',
-                });
-            }
-        });
+        this._handleRequest(message.videoUrl, sendResponse);
 
         return true;
+    }
+
+    private async _handleRequest(
+        videoUrl: string,
+        sendResponse: (r?: SupadataGenerateResponse) => void
+    ) {
+        // Check cache first
+        try {
+            const cached = await getCachedTranscript(videoUrl);
+            if (cached) {
+                sendResponse({ subtitles: cached });
+                return;
+            }
+        } catch (error) {
+            // Cache error is not fatal, continue to generate
+            console.error('Cache lookup failed:', error);
+        }
+
+        // Not in cache, generate from server
+        const settings = await this._settings.get(['transcriptServerUrl', 'transcriptApiKey']);
+
+        if (!settings.transcriptServerUrl) {
+            sendResponse({ error: 'Transcript server URL not configured' });
+            return;
+        }
+
+        try {
+            const subtitles = await this._generateSubtitles(
+                videoUrl,
+                settings.transcriptServerUrl,
+                settings.transcriptApiKey
+            );
+
+            // Cache the result
+            try {
+                await cacheTranscript(videoUrl, subtitles);
+            } catch (error) {
+                console.error('Failed to cache transcript:', error);
+            }
+
+            sendResponse({ subtitles });
+        } catch (error) {
+            sendResponse({
+                error: error instanceof Error ? error.message : 'Unknown error',
+            });
+        }
     }
 
     private async _generateSubtitles(videoUrl: string, serverUrl: string, apiKey: string): Promise<string> {

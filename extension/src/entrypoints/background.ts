@@ -76,6 +76,10 @@ import GetSavedWordsCountHandler from '@/handlers/saved-words/get-saved-words-co
 import ExportSavedWordsHandler from '@/handlers/saved-words/export-saved-words-handler';
 import ClearSavedWordsHandler from '@/handlers/saved-words/clear-saved-words-handler';
 import SupadataGenerateHandler from '@/handlers/supadata/supadata-generate-handler';
+import GetCachedTranscriptHandler from '@/handlers/video/get-cached-transcript-handler';
+import ExportTranscriptCacheHandler from '@/handlers/video/export-transcript-cache-handler';
+import ClearTranscriptCacheHandler from '@/handlers/video/clear-transcript-cache-handler';
+import GetTranscriptCacheCountHandler from '@/handlers/video/get-transcript-cache-count-handler';
 
 export default defineBackground(() => {
     if (!isFirefoxBuild) {
@@ -190,6 +194,10 @@ export default defineBackground(() => {
         new ExportSavedWordsHandler(),
         new ClearSavedWordsHandler(),
         new SupadataGenerateHandler(settings),
+        new GetCachedTranscriptHandler(),
+        new ExportTranscriptCacheHandler(),
+        new ClearTranscriptCacheHandler(),
+        new GetTranscriptCacheCountHandler(),
     ];
 
     browser.runtime.onMessage.addListener((request: Command<Message>, sender, sendResponse) => {

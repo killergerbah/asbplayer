@@ -953,3 +953,30 @@ export interface SupadataGenerateResponse {
     readonly subtitles?: string;
     readonly error?: string;
 }
+
+// Cached Transcript Messages
+export interface GetCachedTranscriptMessage extends MessageWithId {
+    readonly command: 'get-cached-transcript';
+    readonly videoUrl: string;
+}
+
+export interface GetCachedTranscriptResponse {
+    readonly subtitles?: string;
+}
+
+export interface ExportTranscriptCacheMessage extends MessageWithId {
+    readonly command: 'export-transcript-cache';
+}
+
+export interface ExportTranscriptCacheResponse {
+    readonly json: string;
+    readonly count: number;
+}
+
+export interface ClearTranscriptCacheMessage extends MessageWithId {
+    readonly command: 'clear-transcript-cache';
+}
+
+export interface ClearTranscriptCacheResponse {
+    readonly success: boolean;
+}

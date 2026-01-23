@@ -1,6 +1,8 @@
 import {
     ActiveProfileMessage,
     ConfirmedVideoDataSubtitleTrack,
+    GetCachedTranscriptMessage,
+    GetCachedTranscriptResponse,
     OpenAsbplayerSettingsMessage,
     SerializedSubtitleFile,
     SettingsUpdatedMessage,
@@ -189,15 +191,69 @@ export default class VideoDataSyncController {
         client.updateState(model);
     }
 
+    private async _getCachedTranscript(): Promise<string | undefined> {
+        if (!(await this._isYouTube())) {
+            return undefined;
+        }
+
+        try {
+            const videoUrl = window.location.href;
+            const messageId = `get-cached-${Date.now()}`;
+
+            const response = await new Promise<GetCachedTranscriptResponse>((resolve) => {
+                const command: VideoToExtensionCommand<GetCachedTranscriptMessage> = {
+                    sender: 'asbplayer-video-tab',
+                    message: {
+                        command: 'get-cached-transcript',
+                        messageId,
+                        videoUrl,
+                    },
+                    src: this._context.video.src,
+                };
+                browser.runtime.sendMessage(command, resolve);
+            });
+
+            return response.subtitles;
+        } catch (error) {
+            console.error('Failed to get cached transcript:', error);
+            return undefined;
+        }
+    }
+
     private async _buildModel(additionalFields: Partial<VideoDataUiModel>) {
-        const subtitleTrackChoices = this._syncedData?.subtitles ?? [];
-        const subs = this._matchLastSyncedWithAvailableTracks();
+        let subtitleTrackChoices = [...(this._syncedData?.subtitles ?? [])];
+        const isYouTube = await this._isYouTube();
+
+        // On YouTube, check for cached Whisper subtitles and add to track list
+        const cachedTranscript = await this._getCachedTranscript();
+        if (isYouTube && cachedTranscript) {
+            const cachedTrack: VideoDataSubtitleTrack = {
+                id: 'cached-whisper',
+                language: 'whisper',
+                url: 'cached',
+                label: 'Generated (Whisper)',
+                extension: 'srt',
+            };
+            // Add at the beginning so it appears first
+            subtitleTrackChoices = [cachedTrack, ...subtitleTrackChoices];
+        }
+
+        const subs = this._matchLastSyncedWithAvailableTracks(subtitleTrackChoices);
         const autoSelectedTracks: VideoDataSubtitleTrack[] = subs.autoSelectedTracks;
-        const autoSelectedTrackIds = this._isTutorial
-            ? // '1' is the ID of the non-empty track in the tutorial
-              // See asbplayer-tutorial-page.ts
-              ['1', '-', '-']
-            : autoSelectedTracks.map((subtitle) => subtitle.id || '-');
+
+        // If cached track exists, pre-select it
+        let autoSelectedTrackIds: string[];
+        if (this._isTutorial) {
+            // '1' is the ID of the non-empty track in the tutorial
+            // See asbplayer-tutorial-page.ts
+            autoSelectedTrackIds = ['1', '-', '-'];
+        } else if (cachedTranscript) {
+            // Pre-select the cached Whisper track
+            autoSelectedTrackIds = ['cached-whisper', '-', '-'];
+        } else {
+            autoSelectedTrackIds = autoSelectedTracks.map((subtitle) => subtitle.id || '-');
+        }
+
         const defaultCheckboxState = !this._isTutorial && subs.completeMatch;
         const themeType = await this._context.settings.getSingle('themeType');
         const profilesPromise = this._context.settings.profiles();
@@ -205,8 +261,9 @@ export default class VideoDataSyncController {
         const hasSeenFtue = (await globalStateProvider.get(['ftueHasSeenSubtitleTrackSelector']))
             .ftueHasSeenSubtitleTrackSelector;
         const hideRememberTrackPreferenceToggle = this._isTutorial || (await this._pageHidesTrackPrefToggle());
-        const isYouTube = await this._isYouTube();
-        const transcriptServerUrl = await this._context.settings.getSingle('transcriptServerUrl');
+        const transcriptServerUrl =
+            (await this._context.settings.getSingle('transcriptServerUrl')) ||
+            'https://asbplayer-production.up.railway.app';
         const supadataApiKeyConfigured = !!transcriptServerUrl;
         return this._syncedData
             ? {
@@ -250,8 +307,8 @@ export default class VideoDataSyncController {
               };
     }
 
-    private _matchLastSyncedWithAvailableTracks() {
-        const subtitleTrackChoices = this._syncedData?.subtitles ?? [];
+    private _matchLastSyncedWithAvailableTracks(subtitleTrackChoices?: VideoDataSubtitleTrack[]) {
+        const tracks_list = subtitleTrackChoices ?? this._syncedData?.subtitles ?? [];
         let tracks = {
             autoSelectedTracks: [this._emptySubtitle, this._emptySubtitle, this._emptySubtitle],
             completeMatch: false,
@@ -259,18 +316,18 @@ export default class VideoDataSyncController {
 
         const emptyChoice = this.lastLanguagesSynced.some((lang) => lang !== '-') === undefined;
 
-        if (!subtitleTrackChoices.length && emptyChoice) {
+        if (!tracks_list.length && emptyChoice) {
             tracks.completeMatch = true;
         } else {
             let matches: number = 0;
             for (let i = 0; i < this.lastLanguagesSynced.length; i++) {
                 const language = this.lastLanguagesSynced[i];
-                for (let j = 0; j < subtitleTrackChoices.length; j++) {
+                for (let j = 0; j < tracks_list.length; j++) {
                     if (language === '-') {
                         matches++;
                         break;
-                    } else if (language === subtitleTrackChoices[j].language) {
-                        tracks.autoSelectedTracks[i] = subtitleTrackChoices[j];
+                    } else if (language === tracks_list[j].language) {
+                        tracks.autoSelectedTracks[i] = tracks_list[j];
                         matches++;
                         break;
                     }
@@ -302,6 +359,25 @@ export default class VideoDataSyncController {
         if (this._syncedData?.subtitles !== undefined && (await this._canAutoSync())) {
             if (!this._autoSyncAttempted) {
                 this._autoSyncAttempted = true;
+
+                // On YouTube, check for cached Whisper subtitles first
+                const cachedTranscript = await this._getCachedTranscript();
+                if (cachedTranscript) {
+                    const cachedTrack: VideoDataSubtitleTrack = {
+                        id: 'cached-whisper',
+                        language: 'whisper',
+                        url: 'cached',
+                        label: 'Generated (Whisper)',
+                        extension: 'srt',
+                    };
+                    await this._syncData([cachedTrack, this._emptySubtitle, this._emptySubtitle]);
+
+                    if (!this._frame.hidden) {
+                        this._hideAndResume();
+                    }
+                    return;
+                }
+
                 const subs = this._matchLastSyncedWithAvailableTracks();
 
                 if (subs.completeMatch) {
@@ -580,6 +656,26 @@ export default class VideoDataSyncController {
             }
 
             url = lazilyFetchedUrl;
+        }
+
+        if (url === 'cached') {
+            // Load from cached Whisper transcript
+            const cachedSrt = await this._getCachedTranscript();
+            if (!cachedSrt) {
+                await this._reportError('Cached subtitles not found');
+                return undefined;
+            }
+
+            const encoder = new TextEncoder();
+            const srtBytes = encoder.encode(cachedSrt);
+            const base64 = bufferToBase64(srtBytes.buffer);
+
+            return [
+                {
+                    name: `${name}.${extension}`,
+                    base64,
+                },
+            ];
         }
 
         if (typeof url === 'string') {
