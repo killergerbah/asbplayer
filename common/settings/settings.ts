@@ -431,8 +431,9 @@ export interface LLMSettings {
     readonly wordClickEnabled: boolean;
 }
 
-export interface SupadataSettings {
-    readonly supadataApiKey: string;
+export interface TranscriptSettings {
+    readonly transcriptServerUrl: string;
+    readonly transcriptApiKey: string;
 }
 
 export type ChromeBoundKeyBindName = 'copySubtitle' | 'ankiExport' | 'updateLastCard' | 'exportCard' | 'takeScreenshot';
@@ -523,7 +524,7 @@ export interface AsbplayerSettings
         StreamingVideoSettings,
         WebSocketClientSettings,
         LLMSettings,
-        SupadataSettings {
+        TranscriptSettings {
     readonly subtitlePreview: string;
 }
 

@@ -206,8 +206,8 @@ export default class VideoDataSyncController {
             .ftueHasSeenSubtitleTrackSelector;
         const hideRememberTrackPreferenceToggle = this._isTutorial || (await this._pageHidesTrackPrefToggle());
         const isYouTube = await this._isYouTube();
-        const supadataApiKey = await this._context.settings.getSingle('supadataApiKey');
-        const supadataApiKeyConfigured = !!supadataApiKey;
+        const transcriptServerUrl = await this._context.settings.getSingle('transcriptServerUrl');
+        const supadataApiKeyConfigured = !!transcriptServerUrl;
         return this._syncedData
             ? {
                   isLoading: this._syncedData.subtitles === undefined,

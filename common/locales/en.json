@@ -516,8 +516,9 @@
         "ui": "UI",
         "webSocketInterface": "WebSocket interface",
         "yomitanHelperText": "Instructions to setup Yomitan API are <0>here<0>.",
-        "subtitleGeneration": "Subtitle Generation (Supadata)",
-        "supadataApiKey": "Supadata API Key"
+        "subtitleGeneration": "Subtitle Generation",
+        "transcriptServerUrl": "Transcript Server URL",
+        "transcriptApiKey": "Transcript Server API Key (optional)"
     },
     "subtitlePlayer": {
         "multiSubtitleSelectHelp": "Click, hold, and drag to mine multiple subtitles"
