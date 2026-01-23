@@ -1,6 +1,6 @@
 [build]
 builder = "railpack"
-buildCommand = "pip install -r requirements.txt && npm --version"
+buildCommand = "pip install -r requirements.txt"
 
 [deploy]
 startCommand = "uvicorn main:app --host 0.0.0.0 --port $PORT"
