@@ -69,11 +69,13 @@ import PageConfigHandler from '@/handlers/asbplayerv2/page-config-handler';
 import EncodeMp3Handler from '@/handlers/video/encode-mp3-handler';
 import { DictionaryDB } from '@project/common/dictionary-db/dictionary-db';
 import DictionaryHandler from '@/handlers/dictionary/dictionary-handler';
+import SaveTokenLocalHandler from '@/handlers/asbplayerv2/save-token-local-handler';
 import LLMTranslateHandler from '@/handlers/llm/llm-translate-handler';
 import SaveWordHandler from '@/handlers/saved-words/save-word-handler';
 import GetSavedWordsCountHandler from '@/handlers/saved-words/get-saved-words-count-handler';
 import ExportSavedWordsHandler from '@/handlers/saved-words/export-saved-words-handler';
 import ClearSavedWordsHandler from '@/handlers/saved-words/clear-saved-words-handler';
+import SupadataGenerateHandler from '@/handlers/supadata/supadata-generate-handler';
 
 export default defineBackground(() => {
     if (!isFirefoxBuild) {
@@ -187,6 +189,7 @@ export default defineBackground(() => {
         new GetSavedWordsCountHandler(),
         new ExportSavedWordsHandler(),
         new ClearSavedWordsHandler(),
+        new SupadataGenerateHandler(settings),
     ];
 
     browser.runtime.onMessage.addListener((request: Command<Message>, sender, sendResponse) => {

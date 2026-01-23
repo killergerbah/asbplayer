@@ -942,3 +942,14 @@ export interface ClearSavedWordsResponse {
     readonly success: boolean;
     readonly error?: string;
 }
+
+// Supadata Subtitle Generation Messages
+export interface SupadataGenerateMessage extends MessageWithId {
+    readonly command: 'supadata-generate';
+    readonly videoUrl: string;
+}
+
+export interface SupadataGenerateResponse {
+    readonly subtitles?: string;
+    readonly error?: string;
+}

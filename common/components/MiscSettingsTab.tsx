@@ -67,6 +67,7 @@ const MiscSettingTab: React.FC<Props> = ({
         llmApiEndpoint,
         llmModel,
         wordClickEnabled,
+        supadataApiKey,
     } = settings;
     const validRegex = useMemo(() => regexIsValid(subtitleRegexFilter), [subtitleRegexFilter]);
     const [webSocketConnectionSucceeded, setWebSocketConnectionSucceeded] = useState<boolean>();
@@ -387,6 +388,15 @@ const MiscSettingTab: React.FC<Props> = ({
                     color="primary"
                     disabled={!llmEnabled}
                     onChange={(event) => onSettingChanged('llmModel', event.target.value)}
+                />
+                <SettingsSection>{t('settings.subtitleGeneration')}</SettingsSection>
+                <SettingsTextField
+                    label={t('settings.supadataApiKey')}
+                    fullWidth
+                    type="password"
+                    value={supadataApiKey}
+                    color="primary"
+                    onChange={(event) => onSettingChanged('supadataApiKey', event.target.value)}
                 />
                 <SettingsSection>{t('settings.title')}</SettingsSection>
                 <Stack direction="row" spacing={1}>

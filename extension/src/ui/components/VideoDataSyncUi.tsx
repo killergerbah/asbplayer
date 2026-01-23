@@ -50,6 +50,9 @@ export default function VideoDataSyncUi({ bridge }: Props) {
     const [fileInputTrackNumber, setFileInputTrackNumber] = useState<number>();
     const [hasSeenFtue, setHasSeenFtue] = useState<boolean>();
     const [hideRememberTrackPreferenceToggle, setHideRememberTrackPreferenceToggle] = useState<boolean>();
+    const [isYouTube, setIsYouTube] = useState<boolean>(false);
+    const [supadataApiKeyConfigured, setSupadataApiKeyConfigured] = useState<boolean>(false);
+    const [isGeneratingSupadata, setIsGeneratingSupadata] = useState<boolean>(false);
 
     const theme = useMemo(() => createTheme((themeType || 'dark') as PaletteMode), [themeType]);
 
@@ -156,6 +159,18 @@ export default function VideoDataSyncUi({ bridge }: Props) {
             if (model.hideRememberTrackPreferenceToggle !== undefined) {
                 setHideRememberTrackPreferenceToggle(model.hideRememberTrackPreferenceToggle);
             }
+
+            if (model.isYouTube !== undefined) {
+                setIsYouTube(model.isYouTube);
+            }
+
+            if (model.supadataApiKeyConfigured !== undefined) {
+                setSupadataApiKeyConfigured(model.supadataApiKeyConfigured);
+            }
+
+            if (model.isGeneratingSupadata !== undefined) {
+                setIsGeneratingSupadata(model.isGeneratingSupadata);
+            }
         });
     }, [bridge, t]);
 
@@ -234,6 +249,10 @@ export default function VideoDataSyncUi({ bridge }: Props) {
         bridge.sendMessageFromServer({ command: 'dismissFtue' });
     }, [bridge]);
 
+    const handleGenerateSupadata = useCallback(() => {
+        bridge.sendMessageFromServer({ command: 'generateSupadata' });
+    }, [bridge]);
+
     return (
         <StyledEngineProvider injectFirst>
             <ThemeProvider theme={theme}>
@@ -253,12 +272,16 @@ export default function VideoDataSyncUi({ bridge }: Props) {
                     activeProfile={activeProfile}
                     hasSeenFtue={hasSeenFtue}
                     hideRememberTrackPreferenceToggle={hideRememberTrackPreferenceToggle}
+                    isYouTube={isYouTube}
+                    supadataApiKeyConfigured={supadataApiKeyConfigured}
+                    isGeneratingSupadata={isGeneratingSupadata}
                     onCancel={handleCancel}
                     onOpenFile={handleOpenFile}
                     onOpenSettings={handleOpenSettings}
                     onConfirm={handleConfirm}
                     onSetActiveProfile={handleSetActiveProfile}
                     onDismissFtue={handleDismissFtue}
+                    onGenerateSupadata={handleGenerateSupadata}
                 />
                 <input
                     ref={fileInputRef}

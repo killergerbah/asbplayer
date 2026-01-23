@@ -240,7 +240,9 @@
             "selectSubtitles": "Select Subtitles",
             "subtitleTrack": "Subtitle Track",
             "videoName": "Video Name",
-            "ftue": "Auto-detected subtitle tracks can be selected here. asbplayer does not know how to detect subtitles on every site. You can always load your own subtitle files."
+            "ftue": "Auto-detected subtitle tracks can be selected here. asbplayer does not know how to detect subtitles on every site. You can always load your own subtitle files.",
+            "generateSubtitles": "Generate Subtitles",
+            "generatingSubtitles": "Generating..."
         },
         "videoSelect": {
             "multipleVideoElements": "Multiple Video Elements Detected",
@@ -513,7 +515,9 @@
         "dictionaryImportClipboardNoTokens": "No valid words found",
         "ui": "UI",
         "webSocketInterface": "WebSocket interface",
-        "yomitanHelperText": "Instructions to setup Yomitan API are <0>here<0>."
+        "yomitanHelperText": "Instructions to setup Yomitan API are <0>here<0>.",
+        "subtitleGeneration": "Subtitle Generation (Supadata)",
+        "supadataApiKey": "Supadata API Key"
     },
     "subtitlePlayer": {
         "multiSubtitleSelectHelp": "Click, hold, and drag to mine multiple subtitles"
