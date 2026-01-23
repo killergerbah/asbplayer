@@ -9,7 +9,18 @@
       "Bash(yarn install:*)",
       "Bash(yarn workspace:*)",
       "Bash(grep:*)",
-      "WebFetch(domain:floating-ui.com)"
+      "WebFetch(domain:floating-ui.com)",
+      "WebFetch(domain:docs.supadata.ai)",
+      "Bash(wc:*)",
+      "Bash(node:*)",
+      "Bash(curl:*)",
+      "WebFetch(domain:github.com)",
+      "WebSearch",
+      "WebFetch(domain:podsqueeze.com)",
+      "WebFetch(domain:rapidapi.com)",
+      "WebFetch(domain:docs.gladia.io)",
+      "WebFetch(domain:www.youtube-transcript.io)",
+      "WebFetch(domain:railpack.com)"
     ]
   }
 }

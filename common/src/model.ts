@@ -209,6 +209,9 @@ export interface VideoDataUiModel {
     settings: VideoDataUiSettings;
     hasSeenFtue: boolean;
     hideRememberTrackPreferenceToggle: boolean;
+    isYouTube?: boolean;
+    supadataApiKeyConfigured?: boolean;
+    isGeneratingSupadata?: boolean;
 }
 
 export interface VideoTabModel {

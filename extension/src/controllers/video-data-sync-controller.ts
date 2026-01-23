@@ -4,6 +4,8 @@ import {
     OpenAsbplayerSettingsMessage,
     SerializedSubtitleFile,
     SettingsUpdatedMessage,
+    SupadataGenerateMessage,
+    SupadataGenerateResponse,
     VideoData,
     VideoDataSubtitleTrack,
     VideoDataUiBridgeConfirmMessage,
@@ -203,6 +205,9 @@ export default class VideoDataSyncController {
         const hasSeenFtue = (await globalStateProvider.get(['ftueHasSeenSubtitleTrackSelector']))
             .ftueHasSeenSubtitleTrackSelector;
         const hideRememberTrackPreferenceToggle = this._isTutorial || (await this._pageHidesTrackPrefToggle());
+        const isYouTube = await this._isYouTube();
+        const supadataApiKey = await this._context.settings.getSingle('supadataApiKey');
+        const supadataApiKeyConfigured = !!supadataApiKey;
         return this._syncedData
             ? {
                   isLoading: this._syncedData.subtitles === undefined,
@@ -219,6 +224,8 @@ export default class VideoDataSyncController {
                   },
                   hasSeenFtue,
                   hideRememberTrackPreferenceToggle,
+                  isYouTube,
+                  supadataApiKeyConfigured,
                   ...additionalFields,
               }
             : {
@@ -237,6 +244,8 @@ export default class VideoDataSyncController {
                   },
                   hasSeenFtue,
                   hideRememberTrackPreferenceToggle,
+                  isYouTube,
+                  supadataApiKeyConfigured,
                   ...additionalFields,
               };
     }
@@ -329,6 +338,11 @@ export default class VideoDataSyncController {
         return (await currentPageDelegate())?.config?.hideRememberTrackPreferenceToggle ?? false;
     }
 
+    private async _isYouTube(): Promise<boolean> {
+        const pageDelegate = await currentPageDelegate();
+        return pageDelegate?.config?.key === 'youtube';
+    }
+
     private async _client() {
         this._frame.language = await this._settings.getSingle('language');
         const isNewClient = await this._frame.bind();
@@ -364,6 +378,11 @@ export default class VideoDataSyncController {
 
                 if ('dismissFtue' === message.command) {
                     globalStateProvider.set({ ftueHasSeenSubtitleTrackSelector: true }).catch(console.error);
+                    return;
+                }
+
+                if ('generateSupadata' === message.command) {
+                    this._handleSupadataGeneration();
                     return;
                 }
 
@@ -632,5 +651,62 @@ export default class VideoDataSyncController {
             error,
             themeType: themeType,
         });
+    }
+
+    private async _handleSupadataGeneration() {
+        const client = this._frame.clientIfLoaded;
+        if (!client) {
+            return;
+        }
+
+        // Update UI to loading state
+        client.updateState({ isGeneratingSupadata: true, error: '' });
+
+        try {
+            const videoUrl = window.location.href;
+            const messageId = `supadata-${Date.now()}`;
+
+            const response = await new Promise<SupadataGenerateResponse>((resolve) => {
+                const command: VideoToExtensionCommand<SupadataGenerateMessage> = {
+                    sender: 'asbplayer-video-tab',
+                    message: {
+                        command: 'supadata-generate',
+                        messageId,
+                        videoUrl,
+                    },
+                    src: this._context.video.src,
+                };
+                browser.runtime.sendMessage(command, resolve);
+            });
+
+            if (response.error) {
+                await this._reportError(response.error);
+                client.updateState({ isGeneratingSupadata: false });
+                return;
+            }
+
+            if (response.subtitles) {
+                // Convert SRT content to base64 and sync
+                const encoder = new TextEncoder();
+                const srtBytes = encoder.encode(response.subtitles);
+                const base64 = bufferToBase64(srtBytes.buffer);
+
+                const videoName = this._syncedData?.basename || document.title;
+                const subtitleFiles: SerializedSubtitleFile[] = [
+                    {
+                        name: `${videoName} - Generated.srt`,
+                        base64,
+                    },
+                ];
+
+                await this._syncSubtitles(subtitleFiles, false);
+                client.updateState({ isGeneratingSupadata: false });
+                this._hideAndResume();
+            }
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            await this._reportError(errorMessage);
+            client.updateState({ isGeneratingSupadata: false });
+        }
     }
 }

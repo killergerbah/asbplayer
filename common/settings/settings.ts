@@ -431,6 +431,10 @@ export interface LLMSettings {
     readonly wordClickEnabled: boolean;
 }
 
+export interface SupadataSettings {
+    readonly supadataApiKey: string;
+}
+
 export type ChromeBoundKeyBindName = 'copySubtitle' | 'ankiExport' | 'updateLastCard' | 'exportCard' | 'takeScreenshot';
 export type SubtitleAlignment = 'top' | 'bottom';
 export enum SubtitleListPreference {
@@ -518,7 +522,8 @@ export interface AsbplayerSettings
         DictionarySettings,
         StreamingVideoSettings,
         WebSocketClientSettings,
-        LLMSettings {
+        LLMSettings,
+        SupadataSettings {
     readonly subtitlePreview: string;
 }
 

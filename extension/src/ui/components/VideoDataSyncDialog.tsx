@@ -68,12 +68,16 @@ interface Props {
     activeProfile?: string;
     hasSeenFtue?: boolean;
     hideRememberTrackPreferenceToggle?: boolean;
+    isYouTube?: boolean;
+    supadataApiKeyConfigured?: boolean;
+    isGeneratingSupadata?: boolean;
     onCancel: () => void;
     onOpenFile: (track?: number) => void;
     onOpenSettings: () => void;
     onConfirm: (track: ConfirmedVideoDataSubtitleTrack[], shouldRememberTrackChoices: boolean) => void;
     onSetActiveProfile: (profile: string | undefined) => void;
     onDismissFtue: () => void;
+    onGenerateSupadata?: () => void;
 }
 
 export default function VideoDataSyncDialog({
@@ -91,12 +95,16 @@ export default function VideoDataSyncDialog({
     activeProfile,
     hasSeenFtue,
     hideRememberTrackPreferenceToggle,
+    isYouTube,
+    supadataApiKeyConfigured,
+    isGeneratingSupadata,
     onCancel,
     onOpenFile,
     onOpenSettings,
     onConfirm,
     onSetActiveProfile,
     onDismissFtue,
+    onGenerateSupadata,
 }: Props) {
     const { t } = useTranslation();
     const [userSelectedSubtitleTrackIds, setUserSelectedSubtitleTrackIds] = useState(['-', '-', '-']);
@@ -329,6 +337,18 @@ export default function VideoDataSyncDialog({
                 <Button disabled={disabled} onClick={() => onOpenFile()}>
                     {t('action.openFiles')}
                 </Button>
+                {isYouTube && supadataApiKeyConfigured && onGenerateSupadata && (
+                    <Button disabled={disabled || isGeneratingSupadata} onClick={onGenerateSupadata}>
+                        {isGeneratingSupadata ? (
+                            <>
+                                <CircularProgress size={16} style={{ marginRight: 8 }} />
+                                {t('extension.videoDataSync.generatingSubtitles')}
+                            </>
+                        ) : (
+                            t('extension.videoDataSync.generateSubtitles')
+                        )}
+                    </Button>
+                )}
                 <Button action={okActionRef} disabled={!trimmedName || disabled} onClick={handleOkButtonClick}>
                     {t('action.ok')}
                 </Button>
