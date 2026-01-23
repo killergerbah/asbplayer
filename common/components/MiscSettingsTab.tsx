@@ -1,4 +1,5 @@
 import Button from '@mui/material/Button';
+import ButtonGroup from '@mui/material/ButtonGroup';
 import FormControl from '@mui/material/FormControl';
 import FormLabel from '@mui/material/FormLabel';
 import MenuItem from '@mui/material/MenuItem';
@@ -6,6 +7,7 @@ import Radio from '@mui/material/Radio';
 import RadioGroup from '@mui/material/RadioGroup';
 import Switch from '@mui/material/Switch';
 import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography';
 import SettingsTextField from './SettingsTextField';
 import SwitchLabelWithHoverEffect from './SwitchLabelWithHoverEffect';
 import LabelWithHoverEffect from './LabelWithHoverEffect';
@@ -17,6 +19,8 @@ import { WebSocketClient } from '../web-socket-client';
 import InputAdornment from '@mui/material/InputAdornment';
 import IconButton from '@mui/material/IconButton';
 import RefreshIcon from '@mui/icons-material/Refresh';
+import DownloadIcon from '@mui/icons-material/Download';
+import DeleteIcon from '@mui/icons-material/Delete';
 import SettingsSection from './SettingsSection';
 
 function regexIsValid(regex: string) {
@@ -123,6 +127,61 @@ const MiscSettingTab: React.FC<Props> = ({
     const handleExportSettings = useCallback(() => {
         exportSettings(settings);
     }, [settings]);
+
+    // Transcript cache management (extension only)
+    const [transcriptCacheCount, setTranscriptCacheCount] = useState<number>(0);
+
+    const refreshTranscriptCacheCount = useCallback(async () => {
+        if (insideApp) return;
+        try {
+            const response = await chrome.runtime.sendMessage({
+                sender: 'asbplayer-popup',
+                message: { command: 'get-transcript-cache-count', messageId: Date.now().toString() },
+            });
+            setTranscriptCacheCount(response?.count ?? 0);
+        } catch (e) {
+            console.error('Failed to get transcript cache count:', e);
+        }
+    }, [insideApp]);
+
+    useEffect(() => {
+        refreshTranscriptCacheCount();
+    }, [refreshTranscriptCacheCount]);
+
+    const handleExportTranscriptCache = useCallback(async () => {
+        try {
+            const response = await chrome.runtime.sendMessage({
+                sender: 'asbplayer-popup',
+                message: { command: 'export-transcript-cache', messageId: Date.now().toString() },
+            });
+            if (response?.json) {
+                const blob = new Blob([response.json], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `transcript-cache-backup-${new Date().toISOString().split('T')[0]}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+            }
+        } catch (e) {
+            console.error('Failed to export transcript cache:', e);
+        }
+    }, []);
+
+    const handleClearTranscriptCache = useCallback(async () => {
+        if (!window.confirm('Are you sure you want to clear all cached transcripts? This cannot be undone.')) {
+            return;
+        }
+        try {
+            await chrome.runtime.sendMessage({
+                sender: 'asbplayer-popup',
+                message: { command: 'clear-transcript-cache', messageId: Date.now().toString() },
+            });
+            setTranscriptCacheCount(0);
+        } catch (e) {
+            console.error('Failed to clear transcript cache:', e);
+        }
+    }, []);
 
     return (
         <>
@@ -406,6 +465,30 @@ const MiscSettingTab: React.FC<Props> = ({
                     color="primary"
                     onChange={(event) => onSettingChanged('transcriptApiKey', event.target.value)}
                 />
+                {!insideApp && (
+                    <Stack spacing={1}>
+                        <Typography variant="body2">
+                            Cached Transcripts: {transcriptCacheCount}
+                        </Typography>
+                        <ButtonGroup fullWidth size="small" variant="outlined">
+                            <Button
+                                startIcon={<DownloadIcon />}
+                                onClick={handleExportTranscriptCache}
+                                disabled={transcriptCacheCount === 0}
+                            >
+                                Export
+                            </Button>
+                            <Button
+                                startIcon={<DeleteIcon />}
+                                onClick={handleClearTranscriptCache}
+                                disabled={transcriptCacheCount === 0}
+                                color="error"
+                            >
+                                Clear
+                            </Button>
+                        </ButtonGroup>
+                    </Stack>
+                )}
                 <SettingsSection>{t('settings.title')}</SettingsSection>
                 <Stack direction="row" spacing={1}>
                     <Button variant="contained" color="primary" style={{ flex: 1 }} onClick={handleImportSettings}>
