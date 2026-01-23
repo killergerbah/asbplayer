@@ -46,9 +46,15 @@ def segments_to_srt(segments: list) -> str:
     """Convert Whisper segments to SRT format"""
     srt_lines = []
     for i, segment in enumerate(segments, 1):
-        start = format_srt_time(segment["start"])
-        end = format_srt_time(segment["end"])
-        text = segment["text"].strip()
+        # Handle both dict and object access
+        if hasattr(segment, 'start'):
+            start = format_srt_time(segment.start)
+            end = format_srt_time(segment.end)
+            text = segment.text.strip()
+        else:
+            start = format_srt_time(segment["start"])
+            end = format_srt_time(segment["end"])
+            text = segment["text"].strip()
         srt_lines.append(f"{i}\n{start} --> {end}\n{text}\n")
     return "\n".join(srt_lines)
 
