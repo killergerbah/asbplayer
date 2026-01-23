@@ -1,14 +1,10 @@
 import os
 import tempfile
-import subprocess
 from fastapi import FastAPI, HTTPException, Header
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import openai
-import static_ffmpeg
-
-# Download and add static ffmpeg to PATH
-static_ffmpeg.add_paths()
+from pytubefix import YouTube
 
 app = FastAPI(title="YouTube Transcript Server")
 
@@ -81,41 +77,26 @@ async def get_transcript(
     try:
         # Create temp directory for audio file
         with tempfile.TemporaryDirectory() as tmpdir:
-            audio_path = os.path.join(tmpdir, "audio.m4a")
+            # Download audio using pytubefix
+            try:
+                yt = YouTube(request.url)
+                # Get audio-only stream
+                audio_stream = yt.streams.filter(only_audio=True).order_by('abr').desc().first()
 
-            # Download audio using yt-dlp
-            cmd = [
-                "yt-dlp",
-                "-x",  # Extract audio
-                "--audio-format", "m4a",
-                "--audio-quality", "0",  # Best quality
-                "-o", audio_path,
-                "--no-playlist",  # Single video only
-                "--max-filesize", "100M",  # Limit file size
-                "--js-runtimes", "nodejs",  # Use Node.js for YouTube extraction
-                request.url,
-            ]
+                if not audio_stream:
+                    raise HTTPException(
+                        status_code=500,
+                        detail="No audio stream found for this video"
+                    )
 
-            result = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                timeout=120,  # 2 minute timeout for download
-            )
+                # Download the audio
+                audio_path = audio_stream.download(output_path=tmpdir, filename="audio")
 
-            if result.returncode != 0:
+            except Exception as e:
                 raise HTTPException(
                     status_code=500,
-                    detail=f"Failed to download audio: {result.stderr[:500]}"
+                    detail=f"Failed to download audio: {str(e)}"
                 )
-
-            # Check if file exists (yt-dlp might add extension)
-            if not os.path.exists(audio_path):
-                # Try with .m4a.m4a (yt-dlp sometimes doubles extension)
-                for f in os.listdir(tmpdir):
-                    if f.startswith("audio"):
-                        audio_path = os.path.join(tmpdir, f)
-                        break
 
             if not os.path.exists(audio_path):
                 raise HTTPException(
@@ -143,11 +124,6 @@ async def get_transcript(
 
             return TranscriptResponse(srt=srt_content)
 
-    except subprocess.TimeoutExpired:
-        raise HTTPException(
-            status_code=504,
-            detail="Download timed out. Video may be too long."
-        )
     except openai.APIError as e:
         raise HTTPException(
             status_code=500,
