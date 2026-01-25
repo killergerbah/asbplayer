@@ -171,10 +171,12 @@ const DictionaryImport: React.FC<Props> = ({
 
     const lemmatizeRecords = useCallback(
         async (records: DictionaryTokenRecord[]) => {
+            const dt = dictionaryTracks[importClipboardTrack];
+            const yomitan = new Yomitan(dt);
             for (const record of records) {
-                const dt = dictionaryTracks[record.track ?? importClipboardTrack];
-                const yomitan = new Yomitan(dt);
-                record.lemmas = await yomitan.lemmatize(record.token);
+                if (!record.lemmas?.length) {
+                    record.lemmas = await yomitan.lemmatize(record.token);
+                }
             }
             return records;
         },
