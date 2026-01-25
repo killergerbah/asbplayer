@@ -1,18 +1,6 @@
 {
     "common": {
-        "ftue.welcomeBody": "Check out the <0>readme</0> to see how to get started.",
-        "update.heading": "asbplayer just updated to version {{version}}.",
-        "update.body": "Check out the release notes <0>here</0>.",
-        "update.alert": "asbplayer updated to version {{version}}. Check out the <0>release notes</0>.",
-        "info.enabledRepeatPlayback": "Repeat playback: On",
-        "info.disabledRepeatPlayback": "Repeat playback: Off",
-        "info.connectionSucceeded": "Connection succeeded",
-        "info.connectionFailed": "Connection failed",
-        "info.error": "Error: {{message}}",
-        "info.errorNoMessage": "Error",
-        "info.toggleSubtitlesShortcut": "Press \"{{keys}}\" to toggle subtitle display",
-        "audioCaptureFailed.message": "DRM-protected audio cannot be captured on the Firefox version of asbplayer.",
-        "settings.customCssField": "CSS: {{styleKey}}"
+        "info.toggleSubtitlesShortcut": "Press \"{{keys}}\" to toggle subtitle display"
     },
     "extension": {},
     "external": {}
