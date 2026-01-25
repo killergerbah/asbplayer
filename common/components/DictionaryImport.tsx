@@ -6,7 +6,6 @@ import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
-import TextField from '@mui/material/TextField';
 import MenuItem from '@mui/material/MenuItem';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
@@ -18,7 +17,6 @@ import {
     TokenStatus,
     getFullyKnownTokenStatus,
     NUM_TOKEN_STATUSES,
-    NUM_DICTIONARY_TRACKS,
     TokenState,
     ApplyStrategy,
     Profile,
@@ -62,6 +60,7 @@ const DictionaryImport: React.FC<Props> = ({
     const [importClipboardPreviewHasChanges, setImportClipboardPreviewHasChanges] = useState<boolean>();
     const [importClipboardLoading, setImportClipboardLoading] = useState(false);
     const [importClipboardError, setImportClipboardError] = useState<string>();
+    const [importingFromFile, setImportingFromFile] = useState<boolean>();
 
     useEffect(() => {
         setImportClipboardPreview(null);
@@ -79,13 +78,16 @@ const DictionaryImport: React.FC<Props> = ({
     }, [open]);
 
     const handleCloseImportClipboardDialog = useCallback(() => {
+        if (importClipboardLoading || importingFromFile) {
+            return;
+        }
         void ensureStoragePersisted();
         setImportClipboardText('');
         setImportClipboardPreview(null);
         setImportClipboardError(undefined);
         setImportClipboardLoading(false);
         onClose();
-    }, [onClose]);
+    }, [onClose, importingFromFile, importClipboardLoading]);
 
     const handlePreviewImportClipboard = useCallback(async () => {
         void ensureStoragePersisted();
@@ -153,6 +155,18 @@ const DictionaryImport: React.FC<Props> = ({
         onClose,
     ]);
 
+    const lemmatizeRecords = useCallback(
+        async (records: DictionaryTokenRecord[]) => {
+            for (const record of records) {
+                const dt = dictionaryTracks[record.track ?? importClipboardTrack];
+                const yomitan = new Yomitan(dt);
+                record.lemmas = await yomitan.lemmatize(record.token);
+            }
+            return records;
+        },
+        [dictionaryTracks, importClipboardTrack]
+    );
+
     const dictionaryDBFileInputRef = useRef<HTMLInputElement>(null);
     const tryImportFile = useCallback(
         async (file: File) => {
@@ -177,16 +191,19 @@ const DictionaryImport: React.FC<Props> = ({
             }
 
             try {
+                setImportingFromFile(true);
                 await dictionaryProvider.importRecordLocalBulk(
-                    records,
+                    await lemmatizeRecords(records),
                     profiles.map((p) => p.name)
                 );
                 onClose();
             } catch (e) {
                 console.error(e);
+            } finally {
+                setImportingFromFile(false);
             }
         },
-        [dictionaryProvider, profiles, onClose]
+        [dictionaryProvider, profiles, lemmatizeRecords, onClose]
     );
     const handleDictionaryDBFileInputChange = useCallback(async () => {
         const file = dictionaryDBFileInputRef.current?.files?.[0];
@@ -216,80 +233,72 @@ const DictionaryImport: React.FC<Props> = ({
             <Dialog open={open} onClose={handleCloseImportClipboardDialog} fullWidth maxWidth="sm">
                 <DialogTitle>{t('action.importDictionaryLocalRecords')}</DialogTitle>
                 <DialogContent>
-                    <Stack spacing={2} mt={1}>
-                        <SettingsTextField
-                            select
-                            fullWidth
-                            color="primary"
-                            variant="outlined"
-                            size="small"
-                            label={t('settings.subtitleTrack')}
-                            value={importClipboardTrack}
-                            onChange={(e) => setImportClipboardTrack(Number(e.target.value))}
-                        >
-                            {[...Array(NUM_DICTIONARY_TRACKS).keys()].map((i) => (
-                                <MenuItem key={i} value={i}>
-                                    {t('settings.subtitleTrackChoice', { trackNumber: i + 1 })}
-                                </MenuItem>
+                    <SettingsTextField
+                        multiline
+                        rows={8}
+                        label={t('settings.dictionaryImportClipboardText')}
+                        value={importClipboardText}
+                        onChange={(e) => {
+                            setImportClipboardText(e.target.value);
+                            setImportClipboardPreviewHasChanges(true);
+                        }}
+                        fullWidth
+                    />
+                    {importClipboardError && <MuiAlert severity="error">{importClipboardError}</MuiAlert>}
+                    {(importClipboardPreview?.length || undefined) && (
+                        <List dense sx={{ overflowY: 'scroll' }}>
+                            {importClipboardPreview!.map((entry) => (
+                                <ListItem key={entry.token} disableGutters>
+                                    <ListItemText primary={entry.token} secondary={entry.lemmas.join(' · ')} />
+                                </ListItem>
                             ))}
-                        </SettingsTextField>
-                        <SettingsTextField
-                            select
-                            fullWidth
-                            color="primary"
-                            variant="outlined"
-                            size="small"
-                            label={t('settings.dictionaryImportedMaturity')}
-                            value={importClipboardStatus}
-                            onChange={(e) => setImportClipboardStatus(Number(e.target.value) as TokenStatus)}
-                        >
-                            {[...Array(NUM_TOKEN_STATUSES).keys()].map((i) => {
-                                const tokenStatusIndex = NUM_TOKEN_STATUSES - 1 - i;
-                                return (
-                                    <MenuItem key={tokenStatusIndex} value={tokenStatusIndex}>
-                                        {t(`settings.dictionaryTokenStatus${tokenStatusIndex}`)}
-                                    </MenuItem>
-                                );
-                            })}
-                        </SettingsTextField>
-                        <SwitchLabelWithHoverEffect
-                            control={
-                                <Switch
-                                    checked={importClipboardState === TokenState.IGNORED}
-                                    onChange={(e) =>
-                                        setImportClipboardState(e.target.checked ? TokenState.IGNORED : null)
-                                    }
-                                />
-                            }
-                            label={t('settings.dictionaryImportClipboardIgnored')}
-                            labelPlacement="start"
-                        />
-                        <TextField
-                            multiline
-                            minRows={8}
-                            label={t('settings.dictionaryImportClipboardText')}
-                            value={importClipboardText}
-                            onChange={(e) => {
-                                setImportClipboardText(e.target.value);
-                                setImportClipboardPreviewHasChanges(true);
-                            }}
-                            fullWidth
-                        />
-                        {importClipboardError && <MuiAlert severity="error">{importClipboardError}</MuiAlert>}
-                        {(importClipboardPreview?.length || undefined) && (
-                            <List dense>
-                                {importClipboardPreview!.map((entry) => (
-                                    <ListItem key={entry.token} disableGutters>
-                                        <ListItemText primary={entry.token} secondary={entry.lemmas.join(' · ')} />
-                                    </ListItem>
-                                ))}
-                            </List>
-                        )}
-                    </Stack>
+                        </List>
+                    )}
                 </DialogContent>
+                {!isPreviewRequiredBeforeImport && (
+                    <DialogContent sx={{ flexShrink: 0 }}>
+                        <Stack spacing={1}>
+                            <SwitchLabelWithHoverEffect
+                                control={
+                                    <Switch
+                                        checked={importClipboardState === TokenState.IGNORED}
+                                        onChange={(e) =>
+                                            setImportClipboardState(e.target.checked ? TokenState.IGNORED : null)
+                                        }
+                                    />
+                                }
+                                label={t('settings.dictionaryImportClipboardIgnored')}
+                                labelPlacement="start"
+                            />
+                            <SettingsTextField
+                                select
+                                fullWidth
+                                color="primary"
+                                variant="outlined"
+                                size="small"
+                                label={t('settings.dictionaryImportedMaturity')}
+                                value={importClipboardStatus}
+                                onChange={(e) => setImportClipboardStatus(Number(e.target.value) as TokenStatus)}
+                            >
+                                {[...Array(NUM_TOKEN_STATUSES).keys()].map((i) => {
+                                    const tokenStatusIndex = NUM_TOKEN_STATUSES - 1 - i;
+                                    return (
+                                        <MenuItem key={tokenStatusIndex} value={tokenStatusIndex}>
+                                            {t(`settings.dictionaryTokenStatus${tokenStatusIndex}`)}
+                                        </MenuItem>
+                                    );
+                                })}
+                            </SettingsTextField>
+                        </Stack>
+                    </DialogContent>
+                )}
                 <DialogActions>
-                    <Button onClick={handleCloseImportClipboardDialog}>{t('action.cancel')}</Button>
-                    <Button onClick={handleImportDictionaryDB}>{t('action.importFile')}</Button>
+                    <Button disabled={importingFromFile} onClick={handleCloseImportClipboardDialog}>
+                        {t('action.cancel')}
+                    </Button>
+                    <Button loading={importingFromFile} onClick={handleImportDictionaryDB}>
+                        {t('action.importFile')}
+                    </Button>
                     {isPreviewRequiredBeforeImport && (
                         <Button
                             onClick={handlePreviewImportClipboard}
@@ -303,7 +312,7 @@ const DictionaryImport: React.FC<Props> = ({
                             variant="contained"
                             color="primary"
                             onClick={handleSaveImportClipboard}
-                            disabled={!importClipboardPreview?.length || importClipboardLoading}
+                            disabled={!importClipboardPreview?.length || importClipboardLoading || importingFromFile}
                         >
                             {t('action.save')}
                         </Button>
