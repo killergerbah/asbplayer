@@ -286,6 +286,7 @@ export default function SettingsForm({
     }, [tutorialStep, noteType]);
 
     const ankiPanelRef = useRef<HTMLDivElement>(null);
+    const keyboardShortcutsPanelRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         if (tutorialStep === TutorialStep.testCard) {
@@ -364,6 +365,13 @@ export default function SettingsForm({
                     activeProfile={activeProfile}
                     extensionInstalled={extensionInstalled}
                     onSettingChanged={handleSettingChanged}
+                    onViewKeyboardShortcuts={() => {
+                        setTabIndex(tabIndicesById['keyboard-shortcuts']);
+                        setTimeout(
+                            () => keyboardShortcutsPanelRef.current?.scrollBy({ top: 10000, behavior: 'smooth' }),
+                            0
+                        );
+                    }}
                 />
             </TabPanel>
             <TabPanel value={tabIndex} index={tabIndicesById['subtitle-appearance']} tabsOrientation={tabsOrientation}>
@@ -380,7 +388,12 @@ export default function SettingsForm({
                     onUnlockLocalFonts={onUnlockLocalFonts}
                 />
             </TabPanel>
-            <TabPanel value={tabIndex} index={tabIndicesById['keyboard-shortcuts']} tabsOrientation={tabsOrientation}>
+            <TabPanel
+                ref={keyboardShortcutsPanelRef}
+                value={tabIndex}
+                index={tabIndicesById['keyboard-shortcuts']}
+                tabsOrientation={tabsOrientation}
+            >
                 <KeyboardShortcutsSettingsTab
                     settings={settings}
                     onSettingChanged={handleSettingChanged}
