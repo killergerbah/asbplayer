@@ -165,7 +165,7 @@ export default class ChromeExtension {
     }
 
     get supportsDictionary() {
-        return this.installed && gte(this.version, '1.13.0'); // TODO: set correct version
+        return this.installed && gte(this.version, '1.14.0');
     }
 
     get supportsPageSettings() {
