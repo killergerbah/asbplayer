@@ -115,7 +115,11 @@ export enum TokenReadingAnnotation {
 }
 
 export function dictionaryTrackEnabled(dt: DictionaryTrack): boolean {
-    return dt.dictionaryColorizeSubtitles || dt.dictionaryTokenReadingAnnotation !== TokenReadingAnnotation.NEVER;
+    return (
+        dt.dictionaryColorizeSubtitles ||
+        dt.dictionaryTokenReadingAnnotation !== TokenReadingAnnotation.NEVER ||
+        dt.dictionaryDisplayIgnoredTokenReadings
+    );
 }
 
 export function dictionaryStatusCollectionEnabled(dt: DictionaryTrack): boolean {
@@ -134,6 +138,7 @@ export interface DictionaryTrack {
     readonly dictionaryYomitanUrl: string;
     readonly dictionaryYomitanScanLength: number;
     readonly dictionaryTokenReadingAnnotation: TokenReadingAnnotation;
+    readonly dictionaryDisplayIgnoredTokenReadings: boolean;
     readonly dictionaryAnkiDecks: string[];
     readonly dictionaryAnkiWordFields: string[];
     readonly dictionaryAnkiSentenceFields: string[];
@@ -160,6 +165,7 @@ const dictionaryTrackComparators: {
     dictionaryYomitanUrl: (a, b) => a === b,
     dictionaryYomitanScanLength: (a, b) => a === b,
     dictionaryTokenReadingAnnotation: (a, b) => a === b,
+    dictionaryDisplayIgnoredTokenReadings: (a, b) => a === b,
     dictionaryAnkiDecks: (a, b) => arrayEquals(a, b),
     dictionaryAnkiWordFields: (a, b) => arrayEquals(a, b),
     dictionaryAnkiSentenceFields: (a, b) => arrayEquals(a, b),
