@@ -244,6 +244,7 @@
         "settings.dictionaryTokenReadingAnnotationLearningOrBelow": "Only show reading annotations for subtitle words in learning status or below.",
         "settings.dictionaryTokenReadingAnnotationUnknownOrBelow": "Only show reading annotations for subtitle words in unknown status or below.",
         "settings.dictionaryTokenReadingAnnotationNever": "Never show reading annotations for subtitle words.",
+        "settings.dictionaryDisplayIgnoredTokenReadings": "Whether to display reading annotations for ignored words.",
         "settings.dictionaryAnkiDecks": "A list of Anki decks to use for dictionary features.",
         "settings.dictionaryAnkiSelectDecks": "Placeholder label for selecting Anki decks for dictionary features.",
         "settings.dictionaryAnkiWordFields": "A list of Anki card word fields to match subtitle words against for known status.",

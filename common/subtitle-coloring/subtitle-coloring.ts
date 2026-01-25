@@ -640,11 +640,17 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                     .join('')
                     .trim();
                 if ((ts.tokenStates.get(trimmedToken) ?? []).includes(TokenState.IGNORED)) {
-                    richText += this._applyTokenStyle(tokenParts, getFullyKnownTokenStatus(), ts.dt, true);
+                    richText += this._applyTokenStyle(tokenParts, getFullyKnownTokenStatus(), ts.dt, {
+                        validToken: true,
+                        ignoredToken: true,
+                    });
                     continue;
                 }
                 if (!HAS_LETTER_REGEX.test(trimmedToken)) {
-                    richText += this._applyTokenStyle(tokenParts, getFullyKnownTokenStatus(), ts.dt, false);
+                    richText += this._applyTokenStyle(tokenParts, getFullyKnownTokenStatus(), ts.dt, {
+                        validToken: false,
+                        ignoredToken: false,
+                    });
                     continue;
                 }
 
@@ -682,7 +688,10 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                 }
                 if (this.shouldCancelBuild) return;
 
-                richText += this._applyTokenStyle(tokenParts, tokenStatus, ts.dt, true);
+                richText += this._applyTokenStyle(tokenParts, tokenStatus, ts.dt, {
+                    validToken: true,
+                    ignoredToken: false,
+                });
                 if (tokenStatus === null) textHasError = true;
             }
 
@@ -692,7 +701,10 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
             this.tokenRequestFailed = true;
             console.error(`Error colorizing subtitle text for Track${ts.track + 1}:`, error);
             this.erroredCache.add(index);
-            return this._applyTokenStyle([{ text, reading: '' }], null, ts.dt, false);
+            return this._applyTokenStyle([{ text, reading: '' }], null, ts.dt, {
+                validToken: false,
+                ignoredToken: false,
+            });
         }
     }
 
@@ -926,13 +938,13 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
         tokenParts: TokenPart[],
         tokenStatus: TokenStatus | null,
         dt: DictionaryTrack,
-        validToken: boolean
+        options: { validToken: boolean; ignoredToken: boolean }
     ): string {
-        const token = this._applyReadingAnnotation(tokenParts, tokenStatus, dt, validToken);
+        const token = this._applyReadingAnnotation(tokenParts, tokenStatus, dt, options);
         if (tokenStatus === null) return `<span style="text-decoration: line-through red 3px;">${token}</span>`;
         if (!dt.dictionaryColorizeSubtitles) return token;
 
-        const s = validToken ? `<span class="${ASB_TOKEN_CLASS}"` : '<span';
+        const s = options.validToken ? `<span class="${ASB_TOKEN_CLASS}"` : '<span';
         if (!dt.colorizeFullyKnownTokens && tokenStatus === getFullyKnownTokenStatus()) return `${s}>${token}</span>`;
         const c = dt.tokenStatusColors[tokenStatus];
         const t = dt.tokenStylingThickness;
@@ -955,12 +967,16 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
         tokenParts: TokenPart[],
         tokenStatus: TokenStatus | null,
         dt: DictionaryTrack,
-        validToken: boolean
+        options: { validToken: boolean; ignoredToken: boolean }
     ): string {
-        if (!validToken || tokenParts.every((p) => ONLY_ASCII_LETTERS_REGEX.test(p.text))) {
+        if (!options.validToken || tokenParts.every((p) => ONLY_ASCII_LETTERS_REGEX.test(p.text))) {
             return tokenParts.map((p) => p.text).join(''); // Prevent 。 -> まる or english words from getting ruby
         }
-        const ano = dt.dictionaryTokenReadingAnnotation;
+        const ano = !options.ignoredToken
+            ? dt.dictionaryTokenReadingAnnotation
+            : dt.dictionaryDisplayIgnoredTokenReadings
+              ? TokenReadingAnnotation.ALWAYS
+              : TokenReadingAnnotation.NEVER;
         if (ano === TokenReadingAnnotation.NEVER) return tokenParts.map((p) => p.text).join('');
         if (tokenStatus !== null) {
             if (
