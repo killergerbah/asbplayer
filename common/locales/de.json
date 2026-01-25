@@ -480,6 +480,7 @@
         "dictionaryTokenReadingAnnotationLearningOrBelow": "Learning or below",
         "dictionaryTokenReadingAnnotationUnknownOrBelow": "Unknown or below",
         "dictionaryTokenReadingAnnotationNever": "Never",
+        "dictionaryDisplayIgnoredTokenReadings": "Display readings for ignored words",
         "dictionaryAnkiDecks": "Anki decks (optional)",
         "dictionaryAnkiSelectDecks": "Select Anki decks to search...",
         "dictionaryAnkiWordFields": "Anki word fields",

@@ -44,6 +44,7 @@ const defaultDictionaryTrackSettings: DictionaryTrack = {
     dictionaryYomitanUrl: 'http://127.0.0.1:19633',
     dictionaryYomitanScanLength: 16,
     dictionaryTokenReadingAnnotation: TokenReadingAnnotation.NEVER,
+    dictionaryDisplayIgnoredTokenReadings: false,
     dictionaryAnkiDecks: [],
     dictionaryAnkiWordFields: [],
     dictionaryAnkiSentenceFields: [],

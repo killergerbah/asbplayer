@@ -532,6 +532,23 @@ const DictionarySettingsTab: React.FC<Props> = ({
                 <SwitchLabelWithHoverEffect
                     control={
                         <Switch
+                            checked={selectedDictionary.dictionaryDisplayIgnoredTokenReadings}
+                            onChange={(e) => {
+                                const newTracks = [...dictionaryTracks];
+                                newTracks[selectedDictionaryTrack] = {
+                                    ...newTracks[selectedDictionaryTrack],
+                                    dictionaryDisplayIgnoredTokenReadings: e.target.checked,
+                                };
+                                onSettingChanged('dictionaryTracks', newTracks);
+                            }}
+                        />
+                    }
+                    label={t('settings.dictionaryDisplayIgnoredTokenReadings')}
+                    labelPlacement="start"
+                />
+                <SwitchLabelWithHoverEffect
+                    control={
+                        <Switch
                             checked={selectedDictionary.dictionaryColorizeOnHoverOnly}
                             onChange={(e) => {
                                 const newTracks = [...dictionaryTracks];
