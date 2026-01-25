@@ -20,7 +20,6 @@ import {
     TokenState,
     ApplyStrategy,
     Profile,
-    NUM_DICTIONARY_TRACKS,
 } from '@project/common/settings';
 import { Yomitan } from '../yomitan/yomitan';
 import SwitchLabelWithHoverEffect from './SwitchLabelWithHoverEffect';
@@ -113,7 +112,7 @@ const DictionaryImport: React.FC<Props> = ({
             const yomitan = new Yomitan(dt);
 
             const tokenSet = new Set<string>();
-            for (const tokenParts of await yomitan.tokenize(importClipboardText)) {
+            for (const tokenParts of await yomitan.splitAndTokenizeBulk(importClipboardText)) {
                 const token = tokenParts
                     .map((p) => p.text)
                     .join('')
@@ -170,15 +169,20 @@ const DictionaryImport: React.FC<Props> = ({
     ]);
 
     const lemmatizeRecords = useCallback(
-        async (records: DictionaryTokenRecord[]) => {
+        async (records: Partial<DictionaryTokenRecord>[]) => {
             const dt = dictionaryTracks[importClipboardTrack];
+            const lemmatizedRecords: Partial<DictionaryTokenRecord>[] = [];
             const yomitan = new Yomitan(dt);
             for (const record of records) {
+                if (!record.token) {
+                    continue;
+                }
                 if (!record.lemmas?.length) {
                     record.lemmas = await yomitan.lemmatize(record.token);
                 }
+                lemmatizedRecords.push(record);
             }
-            return records;
+            return lemmatizedRecords;
         },
         [dictionaryTracks, importClipboardTrack]
     );
