@@ -20,12 +20,14 @@ import {
     TokenState,
     ApplyStrategy,
     Profile,
+    NUM_DICTIONARY_TRACKS,
 } from '@project/common/settings';
 import { Yomitan } from '../yomitan/yomitan';
 import SwitchLabelWithHoverEffect from './SwitchLabelWithHoverEffect';
 import SettingsTextField from './SettingsTextField';
 import { DictionaryLocalTokenInput, DictionaryProvider, DictionaryTokenRecord } from '../dictionary-db';
 import { ensureStoragePersisted, HAS_LETTER_REGEX } from '../util';
+import Typography from '@mui/material/Typography';
 
 interface ImportClipboardToken {
     token: string;
@@ -61,6 +63,18 @@ const DictionaryImport: React.FC<Props> = ({
     const [importClipboardLoading, setImportClipboardLoading] = useState(false);
     const [importClipboardError, setImportClipboardError] = useState<string>();
     const [importingFromFile, setImportingFromFile] = useState<boolean>();
+    const [yomitanError, setYomitanError] = useState<string>('');
+
+    useEffect(() => {
+        if (!open) {
+            return;
+        }
+        const yomitan = new Yomitan(dictionaryTracks[importClipboardTrack]);
+        yomitan
+            .version()
+            .then(() => setYomitanError(''))
+            .catch((e) => setYomitanError(e instanceof Error ? e.message : String(e)));
+    }, [importClipboardTrack, dictionaryTracks, open]);
 
     useEffect(() => {
         setImportClipboardPreview(null);
@@ -175,6 +189,7 @@ const DictionaryImport: React.FC<Props> = ({
                 text = await file.text();
             } catch (e) {
                 console.error(e);
+                setImportClipboardError(e instanceof Error ? e.message : String(e));
                 return;
             }
 
@@ -199,6 +214,7 @@ const DictionaryImport: React.FC<Props> = ({
                 onClose();
             } catch (e) {
                 console.error(e);
+                setImportClipboardError(e instanceof Error ? e.message : String(e));
             } finally {
                 setImportingFromFile(false);
             }
@@ -233,27 +249,50 @@ const DictionaryImport: React.FC<Props> = ({
             <Dialog open={open} onClose={handleCloseImportClipboardDialog} fullWidth maxWidth="sm">
                 <DialogTitle>{t('action.importDictionaryLocalRecords')}</DialogTitle>
                 <DialogContent>
-                    <SettingsTextField
-                        multiline
-                        rows={8}
-                        label={t('settings.dictionaryImportClipboardText')}
-                        value={importClipboardText}
-                        onChange={(e) => {
-                            setImportClipboardText(e.target.value);
-                            setImportClipboardPreviewHasChanges(true);
-                        }}
-                        fullWidth
-                    />
-                    {importClipboardError && <MuiAlert severity="error">{importClipboardError}</MuiAlert>}
-                    {(importClipboardPreview?.length || undefined) && (
-                        <List dense sx={{ overflowY: 'scroll' }}>
-                            {importClipboardPreview!.map((entry) => (
-                                <ListItem key={entry.token} disableGutters>
-                                    <ListItemText primary={entry.token} secondary={entry.lemmas.join(' · ')} />
-                                </ListItem>
+                    <Stack spacing={1}>
+                        <SettingsTextField
+                            select
+                            fullWidth
+                            color="primary"
+                            variant="outlined"
+                            size="small"
+                            label={t('settings.dictionaryYomitanUrl')}
+                            value={importClipboardTrack}
+                            onChange={(e) => setImportClipboardTrack(Number(e.target.value))}
+                            error={Boolean(yomitanError)}
+                            helperText={yomitanError}
+                        >
+                            {dictionaryTracks.map((track, i) => (
+                                <MenuItem key={i} value={i} sx={{ justifyContent: 'space-between' }}>
+                                    <div>{track.dictionaryYomitanUrl}</div>
+                                    <Typography variant="caption">
+                                        {t('settings.subtitleTrackChoice', { trackNumber: i + 1 })}
+                                    </Typography>
+                                </MenuItem>
                             ))}
-                        </List>
-                    )}
+                        </SettingsTextField>
+                        <SettingsTextField
+                            multiline
+                            rows={8}
+                            label={t('settings.dictionaryImportClipboardText')}
+                            value={importClipboardText}
+                            onChange={(e) => {
+                                setImportClipboardText(e.target.value);
+                                setImportClipboardPreviewHasChanges(true);
+                            }}
+                            fullWidth
+                        />
+                        {importClipboardError && <MuiAlert severity="error">{importClipboardError}</MuiAlert>}
+                        {(importClipboardPreview?.length || undefined) && (
+                            <List dense sx={{ overflowY: 'scroll' }}>
+                                {importClipboardPreview!.map((entry) => (
+                                    <ListItem key={entry.token} disableGutters>
+                                        <ListItemText primary={entry.token} secondary={entry.lemmas.join(' · ')} />
+                                    </ListItem>
+                                ))}
+                            </List>
+                        )}
+                    </Stack>
                 </DialogContent>
                 {!isPreviewRequiredBeforeImport && (
                     <DialogContent sx={{ flexShrink: 0 }}>
