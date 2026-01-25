@@ -367,7 +367,10 @@ export default function SettingsForm({
                     onSettingChanged={handleSettingChanged}
                     onViewKeyboardShortcuts={() => {
                         setTabIndex(tabIndicesById['keyboard-shortcuts']);
-                        keyboardShortcutsPanelRef.current?.scrollBy(0, 10000);
+                        setTimeout(
+                            () => keyboardShortcutsPanelRef.current?.scrollBy({ top: 10000, behavior: 'smooth' }),
+                            0
+                        );
                     }}
                 />
             </TabPanel>
