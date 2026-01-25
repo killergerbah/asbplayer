@@ -28,6 +28,10 @@ export class Yomitan {
         this.lemmatizeCache.clear();
     }
 
+    async splitAndTokenizeBulk(text: string, yomitanUrl?: string): Promise<TokenPart[][]> {
+        return this.tokenizeBulk(text.split(/(?:\p{STerm}|\r?\n)+/u), yomitanUrl);
+    }
+
     async tokenize(text: string, yomitanUrl?: string): Promise<TokenPart[][]> {
         let tokens = this.tokenizeCache.get(text);
         if (tokens) return tokens;
