@@ -1679,7 +1679,13 @@ export default function VideoPlayer({
     }
 
     return (
-        <div ref={containerRef} onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave} className={classes.root}>
+        <div
+            ref={containerRef}
+            onMouseMove={handleMouseMove}
+            onMouseLeave={handleMouseLeave}
+            className={`${classes.root} asbplayer-token-container`}
+            tabIndex={-1}
+        >
             <Alert
                 open={alertOpen}
                 disableAutoHide={alertDisableAutoHide}
