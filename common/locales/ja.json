@@ -462,6 +462,7 @@
         "dictionaryAnkiWordDatabase": "Ankiの単語データベース",
         "dictionaryColorizeSubtitles": "単語の成熟度をもとに字幕を色づけます",
         "dictionaryColorizeOnHoverOnly": "マウスカーソルを字幕に重ねてときにのみアノテーションを表示",
+        "dictionaryHighlightOnHover": "Highlight words on hover",
         "dictionaryTokenMatchStrategy": "単語フィールド検索戦略",
         "dictionaryTokenMatchStrategyAnyFormCollected": "単語の全ての語形が対象",
         "dictionaryTokenMatchStrategyLemmaOrExactFormCollected": "見出し語か同じ語形が対象",

@@ -41,6 +41,10 @@
     display: inline;
 }
 
-.asbplayer-token-container:focus-within .asb-token:hover {
+.asbplayer-token-container:focus-within .asb-token-highlight:hover {
     background-color: rgb(0, 123, 255) !important;
+}
+
+.asbplayer-token-container:focus-within {
+    outline: none;
 }

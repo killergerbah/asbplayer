@@ -41,7 +41,7 @@ import { MineSubtitleParams } from '../hooks/use-app-web-socket-client';
 import { isMobile } from 'react-device-detect';
 import ChromeExtension, { ExtensionMessage } from '../services/chrome-extension';
 import { MineSubtitleCommand, WebSocketClient } from '../../web-socket-client';
-import './video-player.css'; // Necessary for SidePanel styling, App imports indirectly through VideoPlayer
+import './subtitles.css';
 
 let lastKnownWidth: number | undefined;
 export const minSubtitlePlayerWidth = 200;

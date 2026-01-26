@@ -158,6 +158,7 @@ it('validates exported settings', () => {
             {
                 dictionaryColorizeSubtitles: true,
                 dictionaryColorizeOnHoverOnly: true,
+                dictionaryHighlightOnHover: true,
                 dictionaryTokenMatchStrategy: TokenMatchStrategy.ANY_FORM_COLLECTED,
                 dictionaryTokenMatchStrategyPriority: TokenMatchStrategyPriority.EXACT,
                 dictionaryYomitanUrl: 'http://127.0.0.1:19633',
@@ -178,6 +179,7 @@ it('validates exported settings', () => {
             {
                 dictionaryColorizeSubtitles: false,
                 dictionaryColorizeOnHoverOnly: true,
+                dictionaryHighlightOnHover: false,
                 dictionaryTokenMatchStrategy: TokenMatchStrategy.LEMMA_OR_EXACT_FORM_COLLECTED,
                 dictionaryTokenMatchStrategyPriority: TokenMatchStrategyPriority.LEMMA,
                 dictionaryYomitanUrl: 'http://127.0.0.1:19634',
@@ -198,6 +200,7 @@ it('validates exported settings', () => {
             {
                 dictionaryColorizeSubtitles: false,
                 dictionaryColorizeOnHoverOnly: false,
+                dictionaryHighlightOnHover: true,
                 dictionaryTokenMatchStrategy: TokenMatchStrategy.LEMMA_FORM_COLLECTED,
                 dictionaryTokenMatchStrategyPriority: TokenMatchStrategyPriority.BEST_KNOWN,
                 dictionaryYomitanUrl: 'http://127.0.0.1:19635',

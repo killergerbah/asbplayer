@@ -35,6 +35,7 @@ const TOKEN_CACHE_ERROR_REFRESH_INTERVAL = 10000;
 const ANKI_RECENTLY_MODIFIED_INTERVAL = 10000;
 
 const ASB_TOKEN_CLASS = 'asb-token';
+const ASB_TOKEN_HIGHLIGHT_CLASS = 'asb-token-highlight';
 
 interface TokenStatusResult {
     status: TokenStatus;
@@ -944,7 +945,9 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
         if (tokenStatus === null) return `<span style="text-decoration: line-through red 3px;">${token}</span>`;
         if (!dt.dictionaryColorizeSubtitles) return token;
 
-        const s = options.validToken ? `<span class="${ASB_TOKEN_CLASS}"` : '<span';
+        const s = options.validToken
+            ? `<span class="${ASB_TOKEN_CLASS}${dt.dictionaryHighlightOnHover ? ` ${ASB_TOKEN_HIGHLIGHT_CLASS}` : ''}"`
+            : '<span';
         if (!dt.colorizeFullyKnownTokens && tokenStatus === getFullyKnownTokenStatus()) return `${s}>${token}</span>`;
         const c = dt.tokenStatusColors[tokenStatus];
         const t = dt.tokenStylingThickness;

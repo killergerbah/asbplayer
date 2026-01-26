@@ -133,6 +133,7 @@ export function dictionaryStatusCollectionEnabled(dt: DictionaryTrack): boolean 
 export interface DictionaryTrack {
     readonly dictionaryColorizeSubtitles: boolean;
     readonly dictionaryColorizeOnHoverOnly: boolean;
+    readonly dictionaryHighlightOnHover: boolean;
     readonly dictionaryTokenMatchStrategy: TokenMatchStrategy;
     readonly dictionaryTokenMatchStrategyPriority: TokenMatchStrategyPriority;
     readonly dictionaryYomitanUrl: string;
@@ -160,6 +161,7 @@ const dictionaryTrackComparators: {
 } = {
     dictionaryColorizeSubtitles: (a, b) => a === b,
     dictionaryColorizeOnHoverOnly: (a, b) => a === b,
+    dictionaryHighlightOnHover: (a, b) => a === b,
     dictionaryTokenMatchStrategy: (a, b) => a === b,
     dictionaryTokenMatchStrategyPriority: (a, b) => a === b,
     dictionaryYomitanUrl: (a, b) => a === b,

@@ -227,6 +227,7 @@
         "settings.dictionaryTrack": "Choice of subtitle track that dictionary features will be applied to.",
         "settings.dictionaryColorizeSubtitles": "Whether to colorize subtitle words based on known status.",
         "settings.dictionaryColorizeOnHoverOnly": "Whether to only colorize subtitle words when hovering over them with the mouse.",
+        "settings.dictionaryHighlightOnHover": "Whether to highlight subtitle words when hovering over them with the mouse.",
         "settings.dictionaryTokenMatchStrategy": "The strategy used to match subtitle words for known status.",
         "settings.dictionaryTokenMatchStrategyAnyFormCollected": "Match if any form of the word is collected.",
         "settings.dictionaryTokenMatchStrategyLemmaOrExactFormCollected": "Match if the lemma or exact form of the word is collected.",

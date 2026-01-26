@@ -462,6 +462,7 @@
         "dictionaryAnkiWordDatabase": "Anki word database",
         "dictionaryColorizeSubtitles": "Colorize subtitles based on known words",
         "dictionaryColorizeOnHoverOnly": "Only show annotations on hover",
+        "dictionaryHighlightOnHover": "Highlight words on hover",
         "dictionaryTokenMatchStrategy": "Word field search strategy",
         "dictionaryTokenMatchStrategyAnyFormCollected": "Any form collected",
         "dictionaryTokenMatchStrategyLemmaOrExactFormCollected": "Lemma or exact form collected",

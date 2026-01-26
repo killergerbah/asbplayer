@@ -563,6 +563,23 @@ const DictionarySettingsTab: React.FC<Props> = ({
                     label={t('settings.dictionaryColorizeOnHoverOnly')}
                     labelPlacement="start"
                 />
+                <SwitchLabelWithHoverEffect
+                    control={
+                        <Switch
+                            checked={selectedDictionary.dictionaryHighlightOnHover}
+                            onChange={(e) => {
+                                const newTracks = [...dictionaryTracks];
+                                newTracks[selectedDictionaryTrack] = {
+                                    ...newTracks[selectedDictionaryTrack],
+                                    dictionaryHighlightOnHover: e.target.checked,
+                                };
+                                onSettingChanged('dictionaryTracks', newTracks);
+                            }}
+                        />
+                    }
+                    label={t('settings.dictionaryHighlightOnHover')}
+                    labelPlacement="start"
+                />
                 <SettingsSection>{t('settings.coloringStrategy')}</SettingsSection>
                 <FormControl>
                     <FormLabel component="legend">{t('settings.dictionaryTokenMatchStrategy')}</FormLabel>

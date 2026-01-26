@@ -36,6 +36,9 @@ const dictionaryTrackSchema = {
         dictionaryColorizeOnHoverOnly: {
             type: 'boolean',
         },
+        dictionaryHighlightOnHover: {
+            type: 'boolean',
+        },
         dictionaryTokenMatchStrategy: {
             type: 'string',
         },

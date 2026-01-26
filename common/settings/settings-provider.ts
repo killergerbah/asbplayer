@@ -39,6 +39,7 @@ const defaultSubtitleTextSettings = {
 const defaultDictionaryTrackSettings: DictionaryTrack = {
     dictionaryColorizeSubtitles: false,
     dictionaryColorizeOnHoverOnly: false,
+    dictionaryHighlightOnHover: true,
     dictionaryTokenMatchStrategy: TokenMatchStrategy.ANY_FORM_COLLECTED,
     dictionaryTokenMatchStrategyPriority: TokenMatchStrategyPriority.EXACT,
     dictionaryYomitanUrl: 'http://127.0.0.1:19633',

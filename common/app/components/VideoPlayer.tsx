@@ -48,7 +48,7 @@ import Alert from './Alert';
 import { useSubtitleDomCache } from '../hooks/use-subtitle-dom-cache';
 import { useAppKeyBinder } from '../hooks/use-app-key-binder';
 import { Direction, useSwipe } from '../hooks/use-swipe';
-import './video-player.css';
+import './subtitles.css';
 import i18n from 'i18next';
 import { useTranslation } from 'react-i18next';
 import { adjacentSubtitle } from '../../key-binder';
