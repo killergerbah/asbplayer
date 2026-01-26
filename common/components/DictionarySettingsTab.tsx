@@ -205,13 +205,13 @@ const DictionarySettingsTab: React.FC<Props> = ({
         (s) => s === TokenMatchStrategy.ANY_FORM_COLLECTED || s === TokenMatchStrategy.LEMMA_OR_EXACT_FORM_COLLECTED
     );
     const selectedDictionaryShowThickness =
-        selectedDictionary.tokenStyling === TokenStyling.UNDERLINE ||
-        selectedDictionary.tokenStyling === TokenStyling.OVERLINE ||
-        selectedDictionary.tokenStyling === TokenStyling.OUTLINE;
+        selectedDictionary.dictionaryTokenStyling === TokenStyling.UNDERLINE ||
+        selectedDictionary.dictionaryTokenStyling === TokenStyling.OVERLINE ||
+        selectedDictionary.dictionaryTokenStyling === TokenStyling.OUTLINE;
     const tokenStylingToHide = useMemo(() => {
-        if (selectedDictionary.colorizeFullyKnownTokens) return;
+        if (selectedDictionary.dictionaryColorizeFullyKnownTokens) return;
         return getFullyKnownTokenStatus();
-    }, [selectedDictionary.colorizeFullyKnownTokens]);
+    }, [selectedDictionary.dictionaryColorizeFullyKnownTokens]);
 
     const [dictionaryYomitanUrlError, setDictionaryYomitanUrlError] = useState<string>();
     const dictionaryRequestYomitan = useCallback(async () => {
@@ -1084,12 +1084,12 @@ const DictionarySettingsTab: React.FC<Props> = ({
                         <LabelWithHoverEffect
                             control={
                                 <Radio
-                                    checked={selectedDictionary.tokenStyling === TokenStyling.TEXT}
+                                    checked={selectedDictionary.dictionaryTokenStyling === TokenStyling.TEXT}
                                     onChange={() => {
                                         const newTracks = [...dictionaryTracks];
                                         newTracks[selectedDictionaryTrack] = {
                                             ...newTracks[selectedDictionaryTrack],
-                                            tokenStyling: TokenStyling.TEXT,
+                                            dictionaryTokenStyling: TokenStyling.TEXT,
                                         };
                                         onSettingChanged('dictionaryTracks', newTracks);
                                     }}
@@ -1100,12 +1100,12 @@ const DictionarySettingsTab: React.FC<Props> = ({
                         <LabelWithHoverEffect
                             control={
                                 <Radio
-                                    checked={selectedDictionary.tokenStyling === TokenStyling.BACKGROUND}
+                                    checked={selectedDictionary.dictionaryTokenStyling === TokenStyling.BACKGROUND}
                                     onChange={() => {
                                         const newTracks = [...dictionaryTracks];
                                         newTracks[selectedDictionaryTrack] = {
                                             ...newTracks[selectedDictionaryTrack],
-                                            tokenStyling: TokenStyling.BACKGROUND,
+                                            dictionaryTokenStyling: TokenStyling.BACKGROUND,
                                         };
                                         onSettingChanged('dictionaryTracks', newTracks);
                                     }}
@@ -1116,12 +1116,12 @@ const DictionarySettingsTab: React.FC<Props> = ({
                         <LabelWithHoverEffect
                             control={
                                 <Radio
-                                    checked={selectedDictionary.tokenStyling === TokenStyling.UNDERLINE}
+                                    checked={selectedDictionary.dictionaryTokenStyling === TokenStyling.UNDERLINE}
                                     onChange={() => {
                                         const newTracks = [...dictionaryTracks];
                                         newTracks[selectedDictionaryTrack] = {
                                             ...newTracks[selectedDictionaryTrack],
-                                            tokenStyling: TokenStyling.UNDERLINE,
+                                            dictionaryTokenStyling: TokenStyling.UNDERLINE,
                                         };
                                         onSettingChanged('dictionaryTracks', newTracks);
                                     }}
@@ -1132,12 +1132,12 @@ const DictionarySettingsTab: React.FC<Props> = ({
                         <LabelWithHoverEffect
                             control={
                                 <Radio
-                                    checked={selectedDictionary.tokenStyling === TokenStyling.OVERLINE}
+                                    checked={selectedDictionary.dictionaryTokenStyling === TokenStyling.OVERLINE}
                                     onChange={() => {
                                         const newTracks = [...dictionaryTracks];
                                         newTracks[selectedDictionaryTrack] = {
                                             ...newTracks[selectedDictionaryTrack],
-                                            tokenStyling: TokenStyling.OVERLINE,
+                                            dictionaryTokenStyling: TokenStyling.OVERLINE,
                                         };
                                         onSettingChanged('dictionaryTracks', newTracks);
                                     }}
@@ -1148,12 +1148,12 @@ const DictionarySettingsTab: React.FC<Props> = ({
                         <LabelWithHoverEffect
                             control={
                                 <Radio
-                                    checked={selectedDictionary.tokenStyling === TokenStyling.OUTLINE}
+                                    checked={selectedDictionary.dictionaryTokenStyling === TokenStyling.OUTLINE}
                                     onChange={() => {
                                         const newTracks = [...dictionaryTracks];
                                         newTracks[selectedDictionaryTrack] = {
                                             ...newTracks[selectedDictionaryTrack],
-                                            tokenStyling: TokenStyling.OUTLINE,
+                                            dictionaryTokenStyling: TokenStyling.OUTLINE,
                                         };
                                         onSettingChanged('dictionaryTracks', newTracks);
                                     }}
@@ -1163,7 +1163,7 @@ const DictionarySettingsTab: React.FC<Props> = ({
                         />
                     </RadioGroup>
                 </FormControl>
-                {selectedDictionary.tokenStyling === TokenStyling.OUTLINE && (
+                {selectedDictionary.dictionaryTokenStyling === TokenStyling.OUTLINE && (
                     <Typography variant="caption" color="textSecondary">
                         {t('settings.dictionaryTokenStylingOutlineHelperText')}
                     </Typography>
@@ -1173,13 +1173,13 @@ const DictionarySettingsTab: React.FC<Props> = ({
                         type="number"
                         label={t('settings.dictionaryTokenStylingThickness')}
                         fullWidth
-                        value={selectedDictionary.tokenStylingThickness}
+                        value={selectedDictionary.dictionaryTokenStylingThickness}
                         color="primary"
                         onChange={(e) => {
                             const newTracks = [...dictionaryTracks];
                             newTracks[selectedDictionaryTrack] = {
                                 ...newTracks[selectedDictionaryTrack],
-                                tokenStylingThickness: Number(e.target.value),
+                                dictionaryTokenStylingThickness: Number(e.target.value),
                             };
                             onSettingChanged('dictionaryTracks', newTracks);
                         }}
@@ -1198,12 +1198,12 @@ const DictionarySettingsTab: React.FC<Props> = ({
                 <SwitchLabelWithHoverEffect
                     control={
                         <Switch
-                            checked={selectedDictionary.colorizeFullyKnownTokens}
+                            checked={selectedDictionary.dictionaryColorizeFullyKnownTokens}
                             onChange={(e) => {
                                 const newTracks = [...dictionaryTracks];
                                 newTracks[selectedDictionaryTrack] = {
                                     ...newTracks[selectedDictionaryTrack],
-                                    colorizeFullyKnownTokens: e.target.checked,
+                                    dictionaryColorizeFullyKnownTokens: e.target.checked,
                                 };
                                 onSettingChanged('dictionaryTracks', newTracks);
                             }}
@@ -1221,15 +1221,15 @@ const DictionarySettingsTab: React.FC<Props> = ({
                             type="color"
                             label={t(`settings.dictionaryTokenStatus${tokenStatusIndex}`)}
                             fullWidth
-                            value={selectedDictionary.tokenStatusColors[tokenStatusIndex]}
+                            value={selectedDictionary.dictionaryTokenStatusColors[tokenStatusIndex]}
                             color="primary"
                             onChange={(e) => {
-                                const newColors = [...selectedDictionary.tokenStatusColors];
+                                const newColors = [...selectedDictionary.dictionaryTokenStatusColors];
                                 newColors[tokenStatusIndex] = e.target.value;
                                 const newTracks = [...dictionaryTracks];
                                 newTracks[selectedDictionaryTrack] = {
                                     ...newTracks[selectedDictionaryTrack],
-                                    tokenStatusColors: newColors,
+                                    dictionaryTokenStatusColors: newColors,
                                 };
                                 onSettingChanged('dictionaryTracks', newTracks);
                             }}

@@ -52,10 +52,10 @@ const defaultDictionaryTrackSettings: DictionaryTrack = {
     dictionaryAnkiSentenceTokenMatchStrategy: TokenMatchStrategy.EXACT_FORM_COLLECTED,
     dictionaryAnkiMatureCutoff: 21,
     dictionaryAnkiTreatSuspended: 'NORMAL',
-    tokenStyling: TokenStyling.UNDERLINE,
-    tokenStylingThickness: 3,
-    colorizeFullyKnownTokens: false,
-    tokenStatusColors: ['#FF0000', '#FFA500', '#FFFF00', '#00FF00', '#0000FF', '#FFFFFF'],
+    dictionaryTokenStyling: TokenStyling.UNDERLINE,
+    dictionaryTokenStylingThickness: 3,
+    dictionaryColorizeFullyKnownTokens: false,
+    dictionaryTokenStatusColors: ['#FF0000', '#FFA500', '#FFFF00', '#00FF00', '#0000FF', '#FFFFFF'],
 };
 
 export const defaultSettings: AsbplayerSettings = {
@@ -213,7 +213,7 @@ export const defaultSettings: AsbplayerSettings = {
 };
 
 export const NUM_DICTIONARY_TRACKS = defaultSettings.dictionaryTracks.length;
-export const NUM_TOKEN_STATUSES = defaultDictionaryTrackSettings.tokenStatusColors.length;
+export const NUM_TOKEN_STATUSES = defaultDictionaryTrackSettings.dictionaryTokenStatusColors.length;
 
 export interface AnkiFieldUiModel {
     key: string;
@@ -538,10 +538,10 @@ export class SettingsProvider {
         if (settings.dictionaryTracks !== undefined) {
             const defaultTrack = defaultSettings.dictionaryTracks[0];
             for (const dt of settings.dictionaryTracks) {
-                while (dt.tokenStatusColors.length < NUM_TOKEN_STATUSES) {
-                    const currLength = dt.tokenStatusColors.length;
-                    const color = defaultTrack.tokenStatusColors[currLength];
-                    dt.tokenStatusColors.push(color);
+                while (dt.dictionaryTokenStatusColors.length < NUM_TOKEN_STATUSES) {
+                    const currLength = dt.dictionaryTokenStatusColors.length;
+                    const color = defaultTrack.dictionaryTokenStatusColors[currLength];
+                    dt.dictionaryTokenStatusColors.push(color);
                 }
             }
             while (settings.dictionaryTracks.length < NUM_DICTIONARY_TRACKS) {

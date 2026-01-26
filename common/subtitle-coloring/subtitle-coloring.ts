@@ -948,17 +948,18 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
         const s = options.validToken
             ? `<span class="${ASB_TOKEN_CLASS}${dt.dictionaryHighlightOnHover ? ` ${ASB_TOKEN_HIGHLIGHT_CLASS}` : ''}"`
             : '<span';
-        if (!dt.colorizeFullyKnownTokens && tokenStatus === getFullyKnownTokenStatus()) return `${s}>${token}</span>`;
-        const c = dt.tokenStatusColors[tokenStatus];
-        const t = dt.tokenStylingThickness;
-        switch (dt.tokenStyling) {
+        if (!dt.dictionaryColorizeFullyKnownTokens && tokenStatus === getFullyKnownTokenStatus())
+            return `${s}>${token}</span>`;
+        const c = dt.dictionaryTokenStatusColors[tokenStatus];
+        const t = dt.dictionaryTokenStylingThickness;
+        switch (dt.dictionaryTokenStyling) {
             case TokenStyling.TEXT:
                 return `${s} style="-webkit-text-fill-color: ${c};">${token}</span>`;
             case TokenStyling.BACKGROUND:
                 return `${s} style="background-color: ${c};">${token}</span>`;
             case TokenStyling.UNDERLINE:
             case TokenStyling.OVERLINE:
-                return `${s} style="text-decoration: ${dt.tokenStyling} ${c} ${t}px;">${token}</span>`;
+                return `${s} style="text-decoration: ${dt.dictionaryTokenStyling} ${c} ${t}px;">${token}</span>`;
             case TokenStyling.OUTLINE:
                 return `${s} style="-webkit-text-stroke: ${t}px ${c};">${token}</span>`;
             default:

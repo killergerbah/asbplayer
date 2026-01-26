@@ -97,7 +97,7 @@ export function getFullyKnownTokenStatus(): TokenStatus {
 }
 
 export enum TokenState {
-    IGNORED = 0, // If ever adding more states, they should go last (if adding colors for states, use a separate array from tokenStatusColors indexed by TokenState)
+    IGNORED = 0, // If ever adding more states, they should go last (if adding colors for states, use a separate array from dictionaryTokenStatusColors indexed by TokenState)
 }
 
 export enum ApplyStrategy {
@@ -132,7 +132,7 @@ export function dictionaryStatusCollectionEnabled(dt: DictionaryTrack): boolean 
 
 export interface DictionaryTrack {
     readonly dictionaryColorizeSubtitles: boolean;
-    readonly dictionaryColorizeOnHoverOnly: boolean;
+    readonly dictionaryColorizeOnHoverOnly: boolean; // Currently applies to both colorization and reading annotations, named in case we want to separate later
     readonly dictionaryHighlightOnHover: boolean;
     readonly dictionaryTokenMatchStrategy: TokenMatchStrategy;
     readonly dictionaryTokenMatchStrategyPriority: TokenMatchStrategyPriority;
@@ -146,10 +146,10 @@ export interface DictionaryTrack {
     readonly dictionaryAnkiSentenceTokenMatchStrategy: TokenMatchStrategy;
     readonly dictionaryAnkiMatureCutoff: number;
     readonly dictionaryAnkiTreatSuspended: TokenStatus | 'NORMAL';
-    readonly tokenStyling: TokenStyling;
-    readonly tokenStylingThickness: number;
-    readonly colorizeFullyKnownTokens: boolean;
-    readonly tokenStatusColors: string[]; // Indexed by TokenStatus (if adding colors for states, use a separate array indexed by TokenState)
+    readonly dictionaryTokenStyling: TokenStyling;
+    readonly dictionaryTokenStylingThickness: number;
+    readonly dictionaryColorizeFullyKnownTokens: boolean;
+    readonly dictionaryTokenStatusColors: string[]; // Indexed by TokenStatus (if adding colors for states, use a separate array indexed by TokenState)
 }
 
 export interface DictionarySettings {
@@ -174,10 +174,10 @@ const dictionaryTrackComparators: {
     dictionaryAnkiSentenceTokenMatchStrategy: (a, b) => a === b,
     dictionaryAnkiMatureCutoff: (a, b) => a === b,
     dictionaryAnkiTreatSuspended: (a, b) => a === b,
-    tokenStyling: (a, b) => a === b,
-    tokenStylingThickness: (a, b) => a === b,
-    colorizeFullyKnownTokens: (a, b) => a === b,
-    tokenStatusColors: (a, b) => arrayEquals(a, b),
+    dictionaryTokenStyling: (a, b) => a === b,
+    dictionaryTokenStylingThickness: (a, b) => a === b,
+    dictionaryColorizeFullyKnownTokens: (a, b) => a === b,
+    dictionaryTokenStatusColors: (a, b) => arrayEquals(a, b),
 };
 
 export function compareDTField<K extends keyof DictionaryTrack>(
