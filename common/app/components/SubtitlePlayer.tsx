@@ -41,6 +41,7 @@ import { MineSubtitleParams } from '../hooks/use-app-web-socket-client';
 import { isMobile } from 'react-device-detect';
 import ChromeExtension, { ExtensionMessage } from '../services/chrome-extension';
 import { MineSubtitleCommand, WebSocketClient } from '../../web-socket-client';
+import './subtitles.css';
 
 let lastKnownWidth: number | undefined;
 export const minSubtitlePlayerWidth = 200;
@@ -1172,7 +1173,13 @@ export default function SubtitlePlayer({
     }
 
     return (
-        <Paper square ref={containerRef} className={classes.container} style={{ width: resizable ? width : 'auto' }}>
+        <Paper
+            square
+            ref={containerRef}
+            className={`${classes.container} asbplayer-token-container`}
+            tabIndex={-1}
+            style={{ width: resizable ? width : 'auto' }}
+        >
             {subtitleTable}
             {resizable && (
                 <ResizeHandle

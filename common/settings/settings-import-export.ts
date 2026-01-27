@@ -36,6 +36,9 @@ const dictionaryTrackSchema = {
         dictionaryColorizeOnHoverOnly: {
             type: 'boolean',
         },
+        dictionaryHighlightOnHover: {
+            type: 'boolean',
+        },
         dictionaryTokenMatchStrategy: {
             type: 'string',
         },
@@ -81,16 +84,16 @@ const dictionaryTrackSchema = {
         dictionaryAnkiTreatSuspended: {
             type: ['string', 'number'],
         },
-        tokenStyling: {
+        dictionaryTokenStyling: {
             type: 'string',
         },
-        tokenStylingThickness: {
+        dictionaryTokenStylingThickness: {
             type: 'number',
         },
-        colorizeFullyKnownTokens: {
+        dictionaryColorizeFullyKnownTokens: {
             type: 'boolean',
         },
-        tokenStatusColors: {
+        dictionaryTokenStatusColors: {
             type: 'array',
             items: {
                 type: 'string',
