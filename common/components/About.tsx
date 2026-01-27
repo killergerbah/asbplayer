@@ -238,7 +238,7 @@ const About = ({ appVersion, extensionVersion }: Props) => {
                     MIT License
                     <br />
                     <br />
-                    Copyright (c) 2020-2025 asbplayer authors
+                    Copyright (c) 2020-2026 asbplayer authors
                     <br />
                     <br />
                     Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
