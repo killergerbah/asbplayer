@@ -20,6 +20,8 @@ import {
     AnkiDialogSettings,
     AnkiUiBridgeExportedMessage,
     AnkiDialogDismissedQuickSelectFtueMessage,
+    CardUpdatedDialogMessage,
+    CardExportedDialogMessage,
 } from '@project/common';
 import { createTheme } from '@project/common/theme';
 import type { Profile } from '@project/common/settings';
@@ -182,6 +184,12 @@ export default function AnkiUi({ bridge }: Props) {
                         cardExported: true,
                     };
                     bridge.sendMessageFromServer(message);
+                }
+
+                if (params.mode === 'updateLast') {
+                    bridge.sendMessageFromServer({ command: 'card-updated-dialog' } as CardUpdatedDialogMessage);
+                } else if (params.mode === 'default') {
+                    bridge.sendMessageFromServer({ command: 'card-exported-dialog' } as CardExportedDialogMessage);
                 }
             } catch (e) {
                 console.error(e);

@@ -1,5 +1,4 @@
 import Button from '@mui/material/Button';
-import Checkbox from '@mui/material/Checkbox';
 import FormControl from '@mui/material/FormControl';
 import FormLabel from '@mui/material/FormLabel';
 import MenuItem from '@mui/material/MenuItem';
@@ -339,12 +338,14 @@ const MiscSettingTab: React.FC<Props> = ({
                     />
                 )}
                 <SettingsSection>{t('settings.title')}</SettingsSection>
-                <Button variant="contained" color="primary" style={{ width: '100%' }} onClick={handleImportSettings}>
-                    {t('action.importSettings')}
-                </Button>
-                <Button variant="contained" color="primary" style={{ width: '100%' }} onClick={handleExportSettings}>
-                    {t('action.exportSettings')}
-                </Button>
+                <Stack direction="row" spacing={1}>
+                    <Button variant="contained" color="primary" style={{ flex: 1 }} onClick={handleImportSettings}>
+                        {t('action.importSettings')}
+                    </Button>
+                    <Button variant="contained" color="primary" style={{ flex: 1 }} onClick={handleExportSettings}>
+                        {t('action.exportSettings')}
+                    </Button>
+                </Stack>
             </Stack>
             <input
                 ref={settingsFileInputRef}

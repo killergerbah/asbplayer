@@ -3,8 +3,14 @@ import { AsbplayerSettings, SettingsProvider } from '@project/common/settings';
 import { ExtensionSettingsStorage } from '../../services/extension-settings-storage';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSettingsProfileContext } from '@project/common/hooks/use-settings-profile-context';
+import { DictionaryProvider } from '@project/common/dictionary-db';
+import { ExtensionDictionaryStorage } from '@/services/extension-dictionary-storage';
 
 export const useSettings = () => {
+    const dictionaryProvider = useMemo<DictionaryProvider>(
+        () => new DictionaryProvider(new ExtensionDictionaryStorage()),
+        []
+    );
     const settingsProvider = useMemo<SettingsProvider>(() => new SettingsProvider(new ExtensionSettingsStorage()), []);
     const [settings, setSettings] = useState<AsbplayerSettings>();
     const refreshSettings = useCallback(() => settingsProvider.getAll().then(setSettings), [settingsProvider]);
@@ -44,6 +50,11 @@ export const useSettings = () => {
         notifySettingsUpdated();
     }, [refreshSettings, notifySettingsUpdated]);
 
-    const profileContext = useSettingsProfileContext({ settingsProvider, onProfileChanged: handleProfileChanged });
-    return { settings, onSettingsChanged, profileContext };
+    const profileContext = useSettingsProfileContext({
+        dictionaryProvider,
+        settingsProvider,
+        onProfileChanged: handleProfileChanged,
+    });
+
+    return { dictionaryProvider, settings, onSettingsChanged, profileContext };
 };

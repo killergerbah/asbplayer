@@ -8,6 +8,7 @@
         "dev:firefox": "wxt -b firefox",
         "dev:firefox-android": "wxt -b firefox-android --mv2",
         "build": "wxt build",
+        "build:dev": "wxt build --mode development",
         "build:firefox": "wxt build -b firefox",
         "build:firefox-android": "wxt build -b firefox-android --mv2",
         "zip": "yarn check && wxt zip",

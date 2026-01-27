@@ -31,8 +31,17 @@ import {
     SubtitlesUpdatedFromVideoMessage,
     ToggleSubtitleTrackInListFromVideoMessage,
     SubtitlesUpdatedToVideoMessage,
+    SaveTokenLocalFromVideoMessage,
+    SaveTokenLocalToVideoMessage,
 } from '@project/common';
-import { AnkiSettings, MiscSettings, SubtitleSettings } from '@project/common/settings';
+import {
+    AnkiSettings,
+    ApplyStrategy,
+    MiscSettings,
+    SubtitleSettings,
+    TokenState,
+    TokenStatus,
+} from '@project/common/settings';
 
 export default class PlayerChannel {
     private channel?: BroadcastChannel;
@@ -44,6 +53,13 @@ export default class PlayerChannel {
     private closeCallbacks: (() => void)[];
     private subtitlesCallbacks: ((subtitles: SubtitleModel[], subtitleFileName: string) => void)[];
     private subtitlesUpdatedCallbacks: ((updatedSubtitles: RichSubtitleModel[]) => void)[];
+    private saveTokenLocalCallbacks: ((
+        track: number,
+        token: string,
+        status: TokenStatus | null,
+        states: TokenState[],
+        applyStates: ApplyStrategy
+    ) => void)[];
     private offsetCallbacks: ((offset: number) => void)[];
     private playbackRateCallbacks: ((playbackRate: number) => void)[];
     private playModeCallbacks: ((playMode: PlayMode) => void)[];
@@ -71,6 +87,7 @@ export default class PlayerChannel {
         this.readyCallbacks = [];
         this.subtitlesCallbacks = [];
         this.subtitlesUpdatedCallbacks = [];
+        this.saveTokenLocalCallbacks = [];
         this.offsetCallbacks = [];
         this.playbackRateCallbacks = [];
         this.playModeCallbacks = [];
@@ -141,6 +158,13 @@ export default class PlayerChannel {
 
                     for (let callback of that.subtitlesUpdatedCallbacks) {
                         callback(subtitlesUpdatedMessage.subtitles);
+                    }
+                    break;
+                case 'saveTokenLocal':
+                    const { track, token, status, states, applyStates } = event.data as SaveTokenLocalToVideoMessage;
+
+                    for (const callback of that.saveTokenLocalCallbacks) {
+                        callback(track, token, status, states, applyStates);
                     }
                     break;
                 case 'offset':
@@ -277,6 +301,13 @@ export default class PlayerChannel {
         return () => this._remove(callback, this.subtitlesUpdatedCallbacks);
     }
 
+    onSaveTokenLocal(
+        callback: (track: number, token: string, status: TokenStatus | null, states: TokenState[]) => void
+    ) {
+        this.saveTokenLocalCallbacks.push(callback);
+        return () => this._remove(callback, this.saveTokenLocalCallbacks);
+    }
+
     onOffset(callback: (offset: number) => void) {
         this.offsetCallbacks.push(callback);
         return () => this._remove(callback, this.offsetCallbacks);
@@ -386,6 +417,24 @@ export default class PlayerChannel {
 
     playbackRate(playbackRate: number, echo = true) {
         const message: PlaybackRateFromVideoMessage = { command: 'playbackRate', value: playbackRate, echo };
+        this.channel?.postMessage(message);
+    }
+
+    saveTokenLocal(
+        track: number,
+        token: string,
+        status: TokenStatus | null,
+        states: TokenState[],
+        applyStates: ApplyStrategy
+    ) {
+        const message: SaveTokenLocalFromVideoMessage = {
+            command: 'saveTokenLocal',
+            track,
+            token,
+            status,
+            states,
+            applyStates,
+        };
         this.channel?.postMessage(message);
     }
 

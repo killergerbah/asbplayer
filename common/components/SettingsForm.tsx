@@ -5,7 +5,7 @@ import { useTheme } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import { type Theme } from '@mui/material';
 import { CardModel } from '@project/common';
-import { AsbplayerSettings, PageConfig, PageSettings } from '@project/common/settings';
+import { AsbplayerSettings, PageConfig, PageSettings, Profile } from '@project/common/settings';
 import { isNumeric } from '@project/common/util';
 import { isMobile } from 'react-device-detect';
 import Tab from '@mui/material/Tab';
@@ -21,6 +21,7 @@ import SubtitleAppearanceSettingsTab from './SubtitleAppearanceSettingsTab';
 import KeyboardShortcutsSettingsTab from './KeyboardShortcutsSettingsTab';
 import StreamingVideoSettingsTab from './StreamingVideoSettingsTab';
 import MiscSettingsTab from './MiscSettingsTab';
+import { DictionaryProvider } from '../dictionary-db';
 
 interface StylesProps {
     smallScreen: boolean;
@@ -169,9 +170,13 @@ interface Props {
     extensionSupportsPauseOnHover: boolean;
     extensionSupportsExportCardBind: boolean;
     extensionSupportsPageSettings: boolean;
+    extensionSupportsDictionary: boolean;
     insideApp?: boolean;
     appVersion?: string;
+    dictionaryProvider: DictionaryProvider;
     settings: AsbplayerSettings;
+    profiles: Profile[];
+    activeProfile?: string;
     pageConfigs?: PageConfigMap;
     scrollToId?: string;
     chromeKeyBinds: { [key: string]: string | undefined };
@@ -193,7 +198,10 @@ const cssStyles = Object.keys(document.body.style).filter((s) => !isNumeric(s));
 
 export default function SettingsForm({
     anki,
+    dictionaryProvider,
     settings,
+    profiles,
+    activeProfile,
     pageConfigs,
     extensionInstalled,
     extensionVersion,
@@ -206,6 +214,7 @@ export default function SettingsForm({
     extensionSupportsPauseOnHover,
     extensionSupportsExportCardBind,
     extensionSupportsPageSettings,
+    extensionSupportsDictionary,
     insideApp,
     appVersion,
     scrollToId,
@@ -222,6 +231,7 @@ export default function SettingsForm({
     onOpenChromeExtensionShortcuts,
     onUnlockLocalFonts,
 }: Props) {
+    const supportsDictionary = !extensionInstalled || extensionSupportsDictionary;
     const theme = useTheme();
     const smallScreen = useMediaQuery(theme.breakpoints.down(500)) && !forceVerticalTabs;
     const classes = useStyles({ smallScreen, heightConstrained });
@@ -248,9 +258,12 @@ export default function SettingsForm({
         if (!extensionSupportsAppIntegration) {
             tabs.splice(tabs.indexOf('streaming-video'), 1);
         }
+        if (!supportsDictionary) {
+            tabs.splice(tabs.indexOf('dictionary'), 1);
+        }
 
         return Object.fromEntries(tabs.map((tab, i) => [tab, i]));
-    }, [extensionSupportsAppIntegration]);
+    }, [extensionSupportsAppIntegration, supportsDictionary]);
 
     useEffect(() => {
         if (!scrollToId) {
@@ -273,6 +286,7 @@ export default function SettingsForm({
     }, [tutorialStep, noteType]);
 
     const ankiPanelRef = useRef<HTMLDivElement>(null);
+    const keyboardShortcutsPanelRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         if (tutorialStep === TutorialStep.testCard) {
@@ -299,12 +313,24 @@ export default function SettingsForm({
                 <Tab tabIndex={1} label={t('settings.mining')} id="mining-settings" />
                 <Tab tabIndex={2} label={t('settings.subtitleAppearance')} id="subtitle-appearance" />
                 <Tab tabIndex={3} label={t('settings.keyboardShortcuts')} id="keyboard-shortcuts" />
-                <Tab tabIndex={4} label={t('settings.annotation')} id="dictionary" />
+                {supportsDictionary && <Tab tabIndex={4} label={t('settings.annotation')} id="dictionary" />}
                 {extensionSupportsAppIntegration && (
-                    <Tab tabIndex={5} label={t('settings.streamingVideo')} id="streaming-video" />
+                    <Tab
+                        tabIndex={4 + Number(supportsDictionary)}
+                        label={t('settings.streamingVideo')}
+                        id="streaming-video"
+                    />
                 )}
-                <Tab tabIndex={extensionSupportsAppIntegration ? 6 : 5} label={t('settings.misc')} id="misc-settings" />
-                <Tab tabIndex={extensionSupportsAppIntegration ? 7 : 6} label={t('about.title')} id="about" />
+                <Tab
+                    tabIndex={4 + Number(supportsDictionary) + Number(extensionSupportsAppIntegration)}
+                    label={t('settings.misc')}
+                    id="misc-settings"
+                />
+                <Tab
+                    tabIndex={5 + Number(supportsDictionary) + Number(extensionSupportsAppIntegration)}
+                    label={t('about.title')}
+                    id="about"
+                />
             </Tabs>
             <TabPanel
                 ref={ankiPanelRef}
@@ -331,7 +357,22 @@ export default function SettingsForm({
                 <MiningSettingsTab settings={settings} onSettingChanged={handleSettingChanged} />
             </TabPanel>
             <TabPanel value={tabIndex} index={tabIndicesById['dictionary']} tabsOrientation={tabsOrientation}>
-                <DictionarySettingsTab anki={anki} settings={settings} onSettingChanged={handleSettingChanged} />
+                <DictionarySettingsTab
+                    anki={anki}
+                    dictionaryProvider={dictionaryProvider}
+                    settings={settings}
+                    profiles={profiles}
+                    activeProfile={activeProfile}
+                    extensionInstalled={extensionInstalled}
+                    onSettingChanged={handleSettingChanged}
+                    onViewKeyboardShortcuts={() => {
+                        setTabIndex(tabIndicesById['keyboard-shortcuts']);
+                        setTimeout(
+                            () => keyboardShortcutsPanelRef.current?.scrollBy({ top: 10000, behavior: 'smooth' }),
+                            0
+                        );
+                    }}
+                />
             </TabPanel>
             <TabPanel value={tabIndex} index={tabIndicesById['subtitle-appearance']} tabsOrientation={tabsOrientation}>
                 <SubtitleAppearanceSettingsTab
@@ -347,7 +388,12 @@ export default function SettingsForm({
                     onUnlockLocalFonts={onUnlockLocalFonts}
                 />
             </TabPanel>
-            <TabPanel value={tabIndex} index={tabIndicesById['keyboard-shortcuts']} tabsOrientation={tabsOrientation}>
+            <TabPanel
+                ref={keyboardShortcutsPanelRef}
+                value={tabIndex}
+                index={tabIndicesById['keyboard-shortcuts']}
+                tabsOrientation={tabsOrientation}
+            >
                 <KeyboardShortcutsSettingsTab
                     settings={settings}
                     onSettingChanged={handleSettingChanged}

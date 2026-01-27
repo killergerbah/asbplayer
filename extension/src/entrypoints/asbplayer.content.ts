@@ -1,5 +1,13 @@
 import type {
     AddProfileMessage,
+    DictionaryBuildAnkiCacheMessage,
+    DictionaryDeleteProfileMessage,
+    DictionaryDeleteRecordLocalBulkMessage,
+    DictionaryGetBulkMessage,
+    DictionaryGetByLemmaBulkMessage,
+    DictionarySaveRecordLocalBulkMessage,
+    DictionaryExportRecordLocalBulkMessage,
+    DictionaryImportRecordLocalBulkMessage,
     GetGlobalStateMessage,
     GetSettingsMessage,
     RemoveProfileMessage,
@@ -10,6 +18,7 @@ import type {
     SetGlobalStateMessage,
     SetSettingsMessage,
 } from '@project/common';
+import { ExtensionDictionaryStorage } from '@/services/extension-dictionary-storage';
 import { ExtensionSettingsStorage } from '@/services/extension-settings-storage';
 import { ExtensionGlobalStateProvider } from '@/services/extension-global-state-provider';
 import type { ContentScriptContext } from '#imports';
@@ -35,6 +44,7 @@ export default defineContentScript({
             });
         };
 
+        const dictionaryStorage = new ExtensionDictionaryStorage();
         const settingsStorage = new ExtensionSettingsStorage();
         const globalStateProvider = new ExtensionGlobalStateProvider();
 
@@ -94,6 +104,75 @@ export default defineContentScript({
                             messageId: command.message.messageId,
                         });
                         break;
+                    case 'dictionary-get-bulk': {
+                        const { profile, track, tokens } = command.message as DictionaryGetBulkMessage;
+                        sendMessageToPlayer({
+                            response: await dictionaryStorage.getBulk(profile, track, tokens),
+                            messageId: command.message.messageId,
+                        });
+                        break;
+                    }
+                    case 'dictionary-get-by-lemma-bulk': {
+                        const { profile, track, lemmas } = command.message as DictionaryGetByLemmaBulkMessage;
+                        sendMessageToPlayer({
+                            response: await dictionaryStorage.getByLemmaBulk(profile, track, lemmas),
+                            messageId: command.message.messageId,
+                        });
+                        break;
+                    }
+                    case 'dictionary-save-record-local-bulk': {
+                        const { profile, localTokenInputs, applyStates } =
+                            command.message as DictionarySaveRecordLocalBulkMessage;
+                        sendMessageToPlayer({
+                            response: await dictionaryStorage.saveRecordLocalBulk(
+                                profile,
+                                localTokenInputs,
+                                applyStates
+                            ),
+                            messageId: command.message.messageId,
+                        });
+                        break;
+                    }
+                    case 'dictionary-delete-record-local-bulk': {
+                        const { profile, tokens } = command.message as DictionaryDeleteRecordLocalBulkMessage;
+                        sendMessageToPlayer({
+                            response: await dictionaryStorage.deleteRecordLocalBulk(profile, tokens),
+                            messageId: command.message.messageId,
+                        });
+                        break;
+                    }
+                    case 'dictionary-delete-profile': {
+                        const { profile } = command.message as DictionaryDeleteProfileMessage;
+                        sendMessageToPlayer({
+                            response: await dictionaryStorage.deleteProfile(profile),
+                            messageId: command.message.messageId,
+                        });
+                        break;
+                    }
+                    case 'dictionary-export-record-local-bulk': {
+                        const message = command.message as DictionaryExportRecordLocalBulkMessage;
+                        sendMessageToPlayer({
+                            response: await dictionaryStorage.exportRecordLocalBulk(),
+                            messageId: message.messageId,
+                        });
+                        break;
+                    }
+                    case 'dictionary-import-record-local-bulk': {
+                        const message = command.message as DictionaryImportRecordLocalBulkMessage;
+                        sendMessageToPlayer({
+                            response: await dictionaryStorage.importRecordLocalBulk(message.records, message.profiles),
+                            messageId: message.messageId,
+                        });
+                        break;
+                    }
+                    case 'dictionary-build-anki-cache': {
+                        const { profile, settings } = command.message as DictionaryBuildAnkiCacheMessage;
+                        sendMessageToPlayer({
+                            response: await dictionaryStorage.buildAnkiCache(profile, settings, { useOriginTab: true }), // App with extension doesn't have full extension context
+                            messageId: command.message.messageId,
+                        });
+                        break;
+                    }
                     case 'request-subtitles':
                         sendMessageToPlayer({
                             response: (await browser.runtime.sendMessage(command)) as
@@ -101,6 +180,10 @@ export default defineContentScript({
                                 | undefined,
                             messageId: command.message.messageId,
                         });
+                        break;
+                    case 'save-token-local':
+                        await browser.runtime.sendMessage(command);
+                        sendMessageToPlayer({ messageId: command.message.messageId });
                         break;
                     case 'request-copy-history':
                         const requestCopyHistoryRequest = command.message as RequestCopyHistoryMessage;

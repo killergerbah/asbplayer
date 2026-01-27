@@ -26,4 +26,5 @@ export const pageMetadata: { [K in keyof PageSettings]: PageMetadata } = {
     hboMax: { title: 'HBO Max', disableCspRuleId: 18 },
     stremio: { title: 'Stremio', disableCspRuleId: 19 },
     cijapanese: { title: 'Comprehensible Japanese', disableCspRuleId: 20 },
+    iwanttfc: { title: 'iWantTFC', disableCspRuleId: 21 },
 };
