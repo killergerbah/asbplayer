@@ -512,6 +512,8 @@ export default class SubtitleReader {
             this.xmlParser = new XMLParser({
                 ignoreAttributes: false,
                 trimValues: false,
+                parseTagValue: false,
+                parseAttributeValue: false,
             });
         }
 
