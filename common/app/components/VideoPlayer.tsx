@@ -249,7 +249,8 @@ const SubtitleContainer = React.forwardRef<HTMLDivElement, SubtitleContainerProp
     ref
 ) {
     const classes = useSubtitleContainerStyles();
-
+    const { subtitleAboveThumbnail } = subtitleSettings;
+    console.log(subtitleAboveThumbnail);
     return (
         <div
             ref={ref}
@@ -259,6 +260,7 @@ const SubtitleContainer = React.forwardRef<HTMLDivElement, SubtitleContainerProp
                     ? { bottom: subtitleSettings.subtitlePositionOffset + baseOffset }
                     : { top: subtitleSettings.topSubtitlePositionOffset + baseOffset }),
                 ...(subtitleSettings.subtitlesWidth === -1 ? {} : { width: `${subtitleSettings.subtitlesWidth}%` }),
+                zIndex: subtitleSettings.subtitleAboveThumbnail ? 12 : 0,
             }}
         >
             {children}

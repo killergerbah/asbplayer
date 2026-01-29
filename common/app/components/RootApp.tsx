@@ -41,6 +41,7 @@ const RootApp = ({
             setSettings((s) => ({ ...s!, ...settings }));
 
             await settingsProvider.set(settings);
+            console.log(settings);
         },
         [settingsProvider]
     );
