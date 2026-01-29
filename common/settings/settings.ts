@@ -349,6 +349,7 @@ const textSubtitleSettingsKeysObject: { [key in keyof TextSubtitleSettings]: boo
     subtitleCustomStyles: true,
     subtitleBlur: true,
     subtitleAlignment: true,
+    subtitleAboveThumbnail: true,
 };
 
 export const textSubtitleSettingsKeys: (keyof TextSubtitleSettings)[] = Object.keys(
@@ -374,6 +375,7 @@ const subtitleSettingsKeysObject: { [key in keyof SubtitleSettings]: boolean } =
     subtitleAlignment: true,
     subtitleTracksV2: true,
     subtitlesWidth: true,
+    subtitleAboveThumbnail: true,
 };
 
 export const subtitleSettingsKeys: (keyof SubtitleSettings)[] = Object.keys(
@@ -403,6 +405,7 @@ export interface TextSubtitleSettings {
     readonly subtitleCustomStyles: CustomStyle[];
     readonly subtitleBlur: boolean;
     readonly subtitleAlignment: SubtitleAlignment;
+    readonly subtitleAboveThumbnail: SubtitleAboveThumbnail;
 }
 
 export interface SubtitleSettings extends TextSubtitleSettings {
@@ -484,6 +487,8 @@ export enum SubtitleListPreference {
     noSubtitleList = 'noSubtitleList',
     app = 'app',
 }
+
+export type SubtitleAboveThumbnail = boolean;
 
 export interface PageConfig {
     hostRegex: string;
