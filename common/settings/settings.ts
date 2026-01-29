@@ -288,6 +288,7 @@ const ankiSettingsKeysObject: { [key in keyof AnkiSettings]: boolean } = {
 
 export const ankiSettingsKeys: (keyof AnkiSettings)[] = Object.keys(ankiSettingsKeysObject) as (keyof AnkiSettings)[];
 
+// create map where the keys are from interface and value is boolean
 const textSubtitleSettingsKeysObject: { [key in keyof TextSubtitleSettings]: boolean } = {
     subtitleColor: true,
     subtitleSize: true,
@@ -302,6 +303,7 @@ const textSubtitleSettingsKeysObject: { [key in keyof TextSubtitleSettings]: boo
     subtitleCustomStyles: true,
     subtitleBlur: true,
     subtitleAlignment: true,
+    subtitleAboveThumbnail: true
 };
 
 export const textSubtitleSettingsKeys: (keyof TextSubtitleSettings)[] = Object.keys(
@@ -327,6 +329,7 @@ const subtitleSettingsKeysObject: { [key in keyof SubtitleSettings]: boolean } =
     subtitleAlignment: true,
     subtitleTracksV2: true,
     subtitlesWidth: true,
+    subtitleAboveThumbnail: true,
 };
 
 export const subtitleSettingsKeys: (keyof SubtitleSettings)[] = Object.keys(
@@ -356,6 +359,8 @@ export interface TextSubtitleSettings {
     readonly subtitleCustomStyles: CustomStyle[];
     readonly subtitleBlur: boolean;
     readonly subtitleAlignment: SubtitleAlignment;
+    // need to add field here for 
+    readonly subtitleAboveThumbnail: boolean;
 }
 
 export interface SubtitleSettings extends TextSubtitleSettings {
