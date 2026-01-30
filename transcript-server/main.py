@@ -1,14 +1,15 @@
 import os
 import tempfile
+import glob
 from fastapi import FastAPI, HTTPException, Header
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import openai
-from pytubefix import YouTube
+import yt_dlp
 from pydub import AudioSegment
 import static_ffmpeg
 
-# Download and add static ffmpeg to PATH (required by pydub)
+# Download and add static ffmpeg to PATH (required by pydub and yt-dlp)
 static_ffmpeg.add_paths()
 
 app = FastAPI(title="YouTube Transcript Server")
@@ -151,38 +152,34 @@ async def get_transcript(
     try:
         # Create temp directory for audio file
         with tempfile.TemporaryDirectory() as tmpdir:
-            # Download audio using pytubefix
+            # Download audio using yt-dlp
             try:
-                yt = YouTube(request.url, 'WEB')
+                audio_path = os.path.join(tmpdir, "audio.m4a")
+                ydl_opts = {
+                    'format': 'bestaudio[ext=m4a]/bestaudio/best',
+                    'outtmpl': os.path.join(tmpdir, 'audio.%(ext)s'),
+                    'quiet': True,
+                    'no_warnings': True,
+                    'extract_flat': False,
+                }
 
-                # Try to get m4a stream first (best compatibility with Whisper)
-                audio_stream = yt.streams.filter(only_audio=True, mime_type="audio/mp4").order_by('abr').desc().first()
+                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                    ydl.download([request.url])
 
-                # Fallback to webm if no m4a
-                if not audio_stream:
-                    audio_stream = yt.streams.filter(only_audio=True, mime_type="audio/webm").order_by('abr').desc().first()
-
-                # Last resort: any audio stream
-                if not audio_stream:
-                    audio_stream = yt.streams.filter(only_audio=True).order_by('abr').desc().first()
-
-                if not audio_stream:
+                # Find the downloaded file (extension may vary)
+                downloaded_files = glob.glob(os.path.join(tmpdir, "audio.*"))
+                if not downloaded_files:
                     raise HTTPException(
                         status_code=500,
-                        detail="No audio stream found for this video"
+                        detail="No audio file found after download"
                     )
+                audio_path = downloaded_files[0]
 
-                # Determine file extension from mime type
-                if "mp4" in audio_stream.mime_type:
-                    ext = "m4a"
-                elif "webm" in audio_stream.mime_type:
-                    ext = "webm"
-                else:
-                    ext = "mp4"  # Default
-
-                # Download the audio with proper extension
-                audio_path = audio_stream.download(output_path=tmpdir, filename=f"audio.{ext}")
-
+            except yt_dlp.utils.DownloadError as e:
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Failed to download audio: {str(e)}"
+                )
             except HTTPException:
                 raise
             except Exception as e:
