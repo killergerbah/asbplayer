@@ -20,7 +20,8 @@
       "WebFetch(domain:rapidapi.com)",
       "WebFetch(domain:docs.gladia.io)",
       "WebFetch(domain:www.youtube-transcript.io)",
-      "WebFetch(domain:railpack.com)"
+      "WebFetch(domain:railpack.com)",
+      "WebFetch(domain:pytubefix.readthedocs.io)"
     ]
   }
 }

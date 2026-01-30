@@ -153,7 +153,7 @@ async def get_transcript(
         with tempfile.TemporaryDirectory() as tmpdir:
             # Download audio using pytubefix
             try:
-                yt = YouTube(request.url)
+                yt = YouTube(request.url, 'WEB')
 
                 # Try to get m4a stream first (best compatibility with Whisper)
                 audio_stream = yt.streams.filter(only_audio=True, mime_type="audio/mp4").order_by('abr').desc().first()
