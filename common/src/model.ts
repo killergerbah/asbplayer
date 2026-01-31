@@ -1,4 +1,4 @@
-import type { AnkiSettings } from '../settings/settings';
+import type { AnkiSettings, TokenState, TokenStatus } from '../settings/settings';
 
 type Profile = { name: string };
 
@@ -20,6 +20,23 @@ export interface SubtitleTextImage {
     readonly image: DimensionsModel;
 }
 
+export interface TokenReading {
+    pos: number[]; // Relative position inside parent token
+    reading: string;
+}
+
+export interface Token {
+    pos: number[]; // Relative position inside parent text
+    states?: TokenState[];
+    status?: TokenStatus;
+    readings?: TokenReading[];
+}
+
+export interface Tokenization {
+    readonly tokens?: Token[];
+    readonly error?: boolean;
+}
+
 export interface SubtitleModel {
     readonly text: string;
     readonly textImage?: SubtitleTextImage;
@@ -29,6 +46,7 @@ export interface SubtitleModel {
     readonly originalEnd: number;
     readonly track: number;
     readonly index?: number;
+    readonly tokenization?: Tokenization;
     readonly richText?: string;
 }
 
@@ -38,6 +56,10 @@ export interface IndexedSubtitleModel extends SubtitleModel {
 
 export interface RichSubtitleModel extends IndexedSubtitleModel {
     richText?: string;
+}
+
+export interface TokenizedSubtitleModel extends RichSubtitleModel {
+    tokenization?: Tokenization;
 }
 
 export interface CardTextFieldValues {

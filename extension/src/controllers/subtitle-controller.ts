@@ -12,6 +12,7 @@ import {
     RichSubtitleModel,
 } from '@project/common';
 import {
+    DictionaryTrack,
     SettingsProvider,
     SubtitleAlignment,
     SubtitleSettings,
@@ -19,7 +20,7 @@ import {
     allTextSubtitleSettings,
 } from '@project/common/settings';
 import { SubtitleSlice } from '@project/common/subtitle-collection';
-import { SubtitleColoring } from '@project/common/subtitle-coloring';
+import { renderRichTextOntoSubtitles, SubtitleColoring } from '@project/common/subtitle-coloring';
 import { arrayEquals, computeStyleString, surroundingSubtitles } from '@project/common/util';
 import i18n from 'i18next';
 import {
@@ -100,6 +101,7 @@ export default class SubtitleController {
     subtitleHtml: SubtitleHtml;
     refreshCurrentSubtitle: boolean;
     _preCacheDom;
+    dictionaryTrackSettings?: DictionaryTrack[];
 
     readonly autoPauseContext: AutoPauseContext = new AutoPauseContext();
 
@@ -335,6 +337,10 @@ export default class SubtitleController {
     }
 
     private _subtitleColorsUpdated(updatedSubtitles: RichSubtitleModel[]): void {
+        if (this.dictionaryTrackSettings) {
+            renderRichTextOntoSubtitles(updatedSubtitles, this.dictionaryTrackSettings);
+        }
+
         for (const updatedSubtitle of updatedSubtitles) {
             if (this._getSubtitleTrackAlignment(updatedSubtitle.track) === 'bottom') {
                 if (

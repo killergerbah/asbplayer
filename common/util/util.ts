@@ -477,3 +477,46 @@ export async function ensureStoragePersisted(): Promise<void> {
     const persisted = await navigator.storage.persist();
     if (!persisted) console.warn('Storage could not be persisted, data may be cleared by the browser');
 }
+
+type Block = {
+    pos: number[];
+};
+
+/**
+ * Iterates over a string in "blocks" where a "block" represents a collection of substrings of the passed-in string.
+ * @param str The string to iterate over.
+ * @param block Function respresenting the substrings to iterate over.
+ * @param callback Called when iterating over each block, and also gaps between blocks. When iterating over a gap,
+ * the optional block argument is undefined.
+ */
+export function iterateOverStringInBlocks<T, B extends Block>(
+    str: string,
+    block: (str: string, blockIndex: number) => B | undefined,
+    callback: (left: number, right: number, block?: B) => void
+) {
+    let left = 0;
+    let right = 0;
+    let currBlock = block(str, 0);
+
+    if (currBlock === undefined) {
+        callback(0, str.length);
+        return;
+    }
+
+    for (let blockIndex = 0; right < str.length; ) {
+        if (currBlock !== undefined && right === currBlock.pos[0]) {
+            if (right > left) {
+                callback(left, right);
+            }
+            callback(currBlock.pos[0], currBlock.pos[1], currBlock);
+            blockIndex++;
+            left = currBlock.pos[1];
+            currBlock = block(str, blockIndex);
+        }
+        right = currBlock?.pos?.[0] ?? str.length;
+    }
+
+    if (left < right) {
+        callback(left, right);
+    }
+}

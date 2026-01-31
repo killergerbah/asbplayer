@@ -18,7 +18,7 @@ import {
 import { ApplyStrategy, AsbplayerSettings, SettingsProvider, TokenState } from '@project/common/settings';
 import { DictionaryProvider } from '@project/common/dictionary-db';
 import { SubtitleCollection } from '@project/common/subtitle-collection';
-import { HoveredToken, SubtitleColoring } from '@project/common/subtitle-coloring';
+import { renderRichTextOntoSubtitles, HoveredToken, SubtitleColoring } from '@project/common/subtitle-coloring';
 import { SubtitleReader } from '@project/common/subtitle-reader';
 import { KeyBinder } from '@project/common/key-binder';
 import { timeDurationDisplay } from '../services/util';
@@ -304,6 +304,8 @@ const Player = React.memo(function Player({
                 displayTime: timeDurationDisplay(s.originalStart + offset, length),
                 track: s.track,
                 index: i,
+                richText: s.richText,
+                tokenization: s.tokenization,
             }));
 
             if (forwardToVideo) {
@@ -376,6 +378,7 @@ const Player = React.memo(function Player({
                         displayTime: timeDurationDisplay(s.start + offset, length),
                         track: s.track,
                         index: i,
+                        tokenization: s.tokenization,
                     }));
 
                     setSubtitlesSentThroughChannel(false);
@@ -419,12 +422,17 @@ const Player = React.memo(function Player({
             settingsProvider,
             options,
             (updatedSubtitles) => {
+                renderRichTextOntoSubtitles(updatedSubtitles, settings.dictionaryTracks);
                 channel?.subtitlesUpdated(updatedSubtitles);
                 onSubtitles((prevSubtitles) => {
                     if (!prevSubtitles?.length) return prevSubtitles;
                     const allSubtitles = prevSubtitles.slice();
                     for (const s of updatedSubtitles) {
-                        allSubtitles[s.index] = { ...allSubtitles[s.index], richText: s.richText };
+                        allSubtitles[s.index] = {
+                            ...allSubtitles[s.index],
+                            richText: s.richText,
+                            tokenization: s.tokenization,
+                        };
                     }
                     return allSubtitles;
                 });
@@ -439,7 +447,7 @@ const Player = React.memo(function Player({
             if (!(subtitleCollectionRef.current instanceof SubtitleColoring)) return;
             subtitleCollectionRef.current.unbind();
         };
-    }, [channel, dictionaryProvider, settingsProvider, tab, onSubtitles]);
+    }, [channel, dictionaryProvider, settingsProvider, settings.dictionaryTracks, tab, onSubtitles]);
 
     useEffect(() => {
         if (!subtitleCollectionRef.current) return;
@@ -457,7 +465,15 @@ const Player = React.memo(function Player({
                 if (!prevSubtitles?.length) return prevSubtitles;
                 const allSubtitles = prevSubtitles.slice();
                 for (const s of updatedSubtitles) {
-                    allSubtitles[s.index] = { ...allSubtitles[s.index], richText: s.richText };
+                    // FIXME: Primitive check to ensure we don't apply a color update from a completely different subtitle or subtitle file.
+                    // We should probably have a hash or ID associated with the subtitle file this color update is for.
+                    if (s.text === allSubtitles[s.index]?.text) {
+                        allSubtitles[s.index] = {
+                            ...allSubtitles[s.index],
+                            richText: s.richText,
+                            tokenization: s.tokenization,
+                        };
+                    }
                 }
                 return allSubtitles;
             });
@@ -481,7 +497,15 @@ const Player = React.memo(function Player({
                 if (!prevSubtitles?.length) return prevSubtitles;
                 const allSubtitles = prevSubtitles.slice();
                 for (const s of updatedSubtitles) {
-                    allSubtitles[s.index] = { ...allSubtitles[s.index], richText: s.richText };
+                    // FIXME: Primitive check to ensure we don't apply a color update from a completely different subtitle or subtitle file.
+                    // We should probably have a hash or ID associated with the subtitle file this color update is for.
+                    if (s.text === allSubtitles[s.index]?.text) {
+                        allSubtitles[s.index] = {
+                            ...allSubtitles[s.index],
+                            richText: s.richText,
+                            tokenization: s.tokenization,
+                        };
+                    }
                 }
                 return allSubtitles;
             });

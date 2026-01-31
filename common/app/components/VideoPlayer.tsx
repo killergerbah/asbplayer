@@ -620,7 +620,11 @@ export default function VideoPlayer({
                 if (!prevSubtitles.length) return prevSubtitles;
                 const allSubtitles = prevSubtitles.slice();
                 for (const s of updatedSubtitles) {
-                    allSubtitles[s.index] = { ...allSubtitles[s.index], richText: s.richText };
+                    allSubtitles[s.index] = {
+                        ...allSubtitles[s.index],
+                        richText: s.richText,
+                        tokenization: s.tokenization,
+                    };
                 }
                 return allSubtitles;
             });
