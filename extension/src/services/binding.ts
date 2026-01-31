@@ -970,6 +970,7 @@ export default class Binding {
         this.subtitleController.surroundingSubtitlesCountRadius = currentSettings.surroundingSubtitlesCountRadius;
         this.subtitleController.surroundingSubtitlesTimeRadius = currentSettings.surroundingSubtitlesTimeRadius;
         this.subtitleController.autoCopyCurrentSubtitle = currentSettings.autoCopyCurrentSubtitle;
+        this.subtitleController.dictionaryTrackSettings = currentSettings.dictionaryTracks;
 
         const convertNetflixRubyChanged =
             this.subtitleController.convertNetflixRuby !== currentSettings.convertNetflixRuby;
@@ -1435,6 +1436,18 @@ export default class Binding {
                 });
                 const offset = rememberSubtitleOffset ? lastSubtitleOffset : 0;
                 const subtitles = await reader.subtitles(files, flatten);
+
+                // Order is important: sync with tab first, then update our subtitle controller
+                // since the subtitle controller may send coloring messages as soon as it gets
+                // the new subtitles, and the tab needs to have the new subtitles loaded before
+                // receiving their colors.
+
+                // If target asbplayer is not specified, then sync with any already-synced asbplayer
+                // Otherwise, sync with the target asbplayer.
+
+                const withSyncedAsbplayerOnly = syncWithAsbplayerId === undefined;
+                syncWithAsbplayerTab(withSyncedAsbplayerOnly, syncWithAsbplayerId);
+
                 this._updateSubtitles(
                     subtitles.map((s, index) => ({
                         start: s.start + offset,
@@ -1445,13 +1458,10 @@ export default class Binding {
                         index,
                         originalStart: s.start,
                         originalEnd: s.end,
+                        tokenization: s.tokenization,
                     })),
                     flatten ? [files[0].name] : files.map((f) => f.name)
                 );
-                // If target asbplayer is not specified, then sync with any already-synced asbplayer
-                // Otherwise, sync with the target asbplayer
-                const withSyncedAsbplayerOnly = syncWithAsbplayerId === undefined;
-                syncWithAsbplayerTab(withSyncedAsbplayerOnly, syncWithAsbplayerId);
                 break;
             case SubtitleListPreference.app:
                 syncWithAsbplayerTab(false, undefined);
