@@ -381,6 +381,8 @@ const Player = React.memo(function Player({
                         tokenization: s.tokenization,
                     }));
 
+                    renderRichTextOntoSubtitles(subtitles);
+
                     setSubtitlesSentThroughChannel(false);
                     onSubtitles(subtitles);
                     setPlayMode((playMode) => (!subtitles || subtitles.length === 0 ? PlayMode.normal : playMode));
@@ -421,8 +423,8 @@ const Player = React.memo(function Player({
             dictionaryProvider,
             settingsProvider,
             options,
-            (updatedSubtitles) => {
-                renderRichTextOntoSubtitles(updatedSubtitles, settings.dictionaryTracks);
+            (updatedSubtitles, dt) => {
+                renderRichTextOntoSubtitles(updatedSubtitles, dt);
                 channel?.subtitlesUpdated(updatedSubtitles);
                 onSubtitles((prevSubtitles) => {
                     if (!prevSubtitles?.length) return prevSubtitles;
@@ -447,7 +449,7 @@ const Player = React.memo(function Player({
             if (!(subtitleCollectionRef.current instanceof SubtitleColoring)) return;
             subtitleCollectionRef.current.unbind();
         };
-    }, [channel, dictionaryProvider, settingsProvider, settings.dictionaryTracks, tab, onSubtitles]);
+    }, [channel, dictionaryProvider, settingsProvider, tab, onSubtitles]);
 
     useEffect(() => {
         if (!subtitleCollectionRef.current) return;

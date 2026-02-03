@@ -27,14 +27,14 @@ export interface TokenReading {
 
 export interface Token {
     pos: number[]; // Relative position inside parent text
-    states?: TokenState[];
+    states: TokenState[];
     status?: TokenStatus;
-    readings?: TokenReading[];
+    readings: TokenReading[];
 }
 
 export interface Tokenization {
-    readonly tokens?: Token[];
-    readonly error?: boolean;
+    tokens: Token[];
+    error?: boolean;
 }
 
 export interface SubtitleModel {

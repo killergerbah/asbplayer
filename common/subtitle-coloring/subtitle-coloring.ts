@@ -129,6 +129,10 @@ const tokenizationsAreSame = (a: Tokenization, b: Tokenization) => {
     return true;
 };
 
+interface InternalToken extends Token {
+    __internal?: boolean;
+}
+
 interface InternalSubtitleModel extends TokenizedSubtitleModel {
     text: string;
     __tokenized?: boolean;
@@ -161,7 +165,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
     private shouldCancelBuild: boolean; // Set to true to stop current color cache build, checked after each async call
     private tokenRequestFailed: boolean;
 
-    private readonly subtitleColorsUpdated: (updatedSubtitles: RichSubtitleModel[]) => void;
+    private readonly subtitleColorsUpdated: (updatedSubtitles: RichSubtitleModel[], dt: DictionaryTrack[]) => void;
     private readonly getMediaTimeMs?: () => number;
 
     private removeBuildAnkiCacheStateChangeCB?: () => void;
@@ -171,7 +175,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
         dictionaryProvider: DictionaryProvider,
         settingsProvider: SettingsProvider,
         options: SubtitleCollectionOptions,
-        subtitleColorsUpdated: (updatedSubtitles: RichSubtitleModel[]) => void,
+        subtitleColorsUpdated: (updatedSubtitles: RichSubtitleModel[], dt: DictionaryTrack[]) => void,
         getMediaTimeMs?: () => number,
         fetcher?: Fetcher
     ) {
@@ -220,10 +224,6 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                     subtitlesWithRichText.push(s);
                 }
             }
-
-            // Colors need to be re-published because it's possible the passed-in subtitles are only missing
-            // the colors e.g. if the same subtitle file is reloaded twice in a row
-            this.subtitleColorsUpdated(subtitlesWithRichText);
         }
         this._subtitles = subtitles.map((s) => ({ ...s })); // Separate internals from react state changes
         super.setSubtitles(this._subtitles);
@@ -245,7 +245,13 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
         this.ankiRecentlyModifiedCardIds.clear();
         this.ankiRecentlyModifiedTrigger = false;
         this.ankiRecentlyModifiedFirstCheck = true;
-        this._subtitles.forEach((s) => (s.__tokenized = undefined));
+        this._subtitles.forEach((s) => {
+            s.__tokenized = undefined;
+            s.richText = undefined;
+            if (s.tokenization) {
+                s.tokenization.tokens = s.tokenization.tokens.filter((t) => !(t as InternalToken).__internal);
+            }
+        });
         this.buildLowerThreshold = 0;
         this.buildUpperThreshold = 0;
     }
@@ -266,16 +272,22 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
         }
         if (settingsAreEqual) return;
 
-        const subtitlesToReset: TokenizedSubtitleModel[] = []; // Tracks that went from enabled to disabled need all subscribers to purge their richText
+        const subtitlesToReset: InternalSubtitleModel[] = []; // Tracks that went from enabled to disabled need all subscribers to purge their richText
         for (const ts of this.trackStates) {
             if (!dictionaryTrackEnabled(ts.dt)) continue; // Already disabled
             const newDt = settings.dictionaryTracks[ts.track];
             if (newDt && dictionaryTrackEnabled(newDt)) continue; // We will be processing, keep current richText on screen until then
             subtitlesToReset.push(...this._subtitles.filter((s) => s.track === ts.track));
+            ts.dt = newDt;
         }
         if (subtitlesToReset.length) {
-            for (const s of subtitlesToReset) s.tokenization = undefined;
-            this.subtitleColorsUpdated(subtitlesToReset);
+            for (const s of subtitlesToReset) {
+                s.tokenization = {
+                    tokens: s.tokenization?.tokens?.filter((t) => !(t as InternalToken).__internal) ?? [],
+                };
+                s.richText = undefined;
+            }
+            this.subtitleColorsUpdated(subtitlesToReset, settings.dictionaryTracks);
         }
         this._resetCache();
     }
@@ -564,7 +576,10 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                                     subtitle.__tokenized = true;
                                     updatedSubtitles.push(subtitle);
                                 }
-                                this.subtitleColorsUpdated(updatedSubtitles);
+                                this.subtitleColorsUpdated(
+                                    updatedSubtitles,
+                                    this.trackStates.map((ts) => ts.dt)
+                                );
                             } finally {
                                 this.colorCacheBuildingCurrentIndexes.delete(index);
                             }
@@ -738,11 +753,16 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
         if (!existingTokenization.tokens?.length) {
             return this._tokenizationModel(fullText, index, ts);
         }
+
+        // We only respect tokens that were not generated by this class i.e. not marked __internal: true
+        existingTokenization.tokens = existingTokenization.tokens.filter((t) => !(t as InternalToken).__internal);
+
         // To ensure that the final token list is in-order, all tokens (existing or not) are chained onto this promise
         let promise: Promise<void> = Promise.resolve();
         const reconstructedTextParts: string[] = [];
         const allTokens: Token[] = [];
         let canceled = false;
+
         iterateOverStringInBlocks(
             fullText,
             (_, blockIndex) => existingTokenization.tokens?.[blockIndex],
@@ -816,14 +836,21 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                     .trim();
                 const untrimmedToken = tokenParts.map((p) => p.text).join('');
                 reconstructedTextParts.push(untrimmedToken);
-                const states = ts.tokenStates.get(trimmedToken);
-                const token: Token = {
+
+                // Build token
+                const token: InternalToken = {
                     pos: [baseIndex + currentOffset, baseIndex + currentOffset + untrimmedToken.length],
+                    states: [],
+                    __internal: true, // This token was generated by this class
+                    readings: [],
                 };
+
+                const states = ts.tokenStates.get(trimmedToken);
                 if (states) {
                     token.states = states;
                 }
-                currentOffset += untrimmedToken.length;
+
+                // Build readings
                 const readings: TokenReading[] = [];
                 let currentPartOffset = 0;
                 for (const part of tokenParts) {
@@ -835,10 +862,10 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                     }
                     currentPartOffset += part.text.length;
                 }
-                if (readings.length > 0) {
-                    token.readings = readings;
-                }
+
+                token.readings = readings;
                 tokens.push(token);
+                currentOffset += untrimmedToken.length;
 
                 if (
                     (ts.tokenStates.get(trimmedToken) ?? []).includes(TokenState.IGNORED) ||
@@ -871,7 +898,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
             this.tokenRequestFailed = true;
             console.error(`Error colorizing subtitle text for Track${ts.track + 1}:`, error);
             this.erroredCache.add(index);
-            return { reconstructedText: fullText, tokenization: { error: true } };
+            return { reconstructedText: fullText, tokenization: { tokens: [], error: true } };
         }
     }
 
@@ -1193,26 +1220,38 @@ export class HoveredToken {
     }
 }
 
-export const renderRichTextOntoSubtitles = (subtitles: RichSubtitleModel[], dictionaryTracks: DictionaryTrack[]) => {
+export const renderRichTextOntoSubtitles = (subtitles: RichSubtitleModel[], dictionaryTracks?: DictionaryTrack[]) => {
     for (const s of subtitles) {
         if (s.tokenization && !s.richText) {
-            s.richText = computeRichText(s.text, s.tokenization, dictionaryTracks[s.track]);
+            s.richText = computeRichText(s.text, s.tokenization, dictionaryTracks?.[s.track]);
         }
     }
 };
 
-const computeRichText = (fullText: string, tokenization: Tokenization, dt: DictionaryTrack) => {
+const computeRichText = (fullText: string, tokenization: Tokenization, dt?: DictionaryTrack) => {
     if (!tokenization.tokens?.length) {
         return undefined;
     }
 
-    return tokenization.tokens.map((token) => applyTokenStyle(fullText, token, dt)).join('');
+    const parts: string[] = [];
+    iterateOverStringInBlocks(
+        fullText,
+        (_, blockIndex) => tokenization.tokens[blockIndex],
+        (left, right, token?: Token) => {
+            if (token === undefined) {
+                parts.push(fullText.substring(left, right));
+            } else {
+                parts.push(applyTokenStyle(fullText, token, dt));
+            }
+        }
+    );
+    return parts.join('');
 };
 
-const applyTokenStyle = (fullText: string, token: Token, dt: DictionaryTrack) => {
+const applyTokenStyle = (fullText: string, token: Token, dt?: DictionaryTrack) => {
     const tokenText = applyReadingAnnotation(fullText, token, dt);
     if (token.status === undefined) return `<span style="text-decoration: line-through red 3px;">${tokenText}</span>`;
-    if (!dt.dictionaryColorizeSubtitles) return tokenText;
+    if (!dt?.dictionaryColorizeSubtitles) return tokenText;
 
     const s = HAS_LETTER_REGEX.test(tokenText)
         ? `<span class="${ASB_TOKEN_CLASS}${dt.dictionaryHighlightOnHover ? ` ${ASB_TOKEN_HIGHLIGHT_CLASS}` : ''}"`
@@ -1236,26 +1275,31 @@ const applyTokenStyle = (fullText: string, token: Token, dt: DictionaryTrack) =>
     }
 };
 
-const applyReadingAnnotation = (fullText: string, token: Token, dt: DictionaryTrack) => {
+const applyReadingAnnotation = (fullText: string, token: Token, dt?: DictionaryTrack) => {
     const tokenText = fullText.substring(token.pos[0], token.pos[1]);
     if (!token.readings?.length || !HAS_LETTER_REGEX.test(tokenText) || ONLY_ASCII_LETTERS_REGEX.test(tokenText)) {
         return tokenText; // Prevent 。 -> まる or english words from getting ruby
     }
-    const ignoredToken = token.states?.includes(TokenState.IGNORED);
-    const ano = ignoredToken
-        ? dt.dictionaryDisplayIgnoredTokenReadings
-            ? TokenReadingAnnotation.ALWAYS
-            : TokenReadingAnnotation.NEVER
-        : dt.dictionaryTokenReadingAnnotation;
-    if (ano === TokenReadingAnnotation.NEVER) return tokenText;
-    if (token.status !== undefined) {
-        if (
-            (ano === TokenReadingAnnotation.LEARNING_OR_BELOW && token.status > TokenStatus.LEARNING) ||
-            (ano === TokenReadingAnnotation.UNKNOWN_OR_BELOW && token.status > TokenStatus.UNKNOWN)
-        ) {
-            return tokenText;
+
+    // Only apply skip logic for tokens generated by this class i.e. marked __internal: true
+    if (dt && (token as InternalToken).__internal) {
+        const ignoredToken = token.states?.includes(TokenState.IGNORED);
+        const ano = ignoredToken
+            ? dt.dictionaryDisplayIgnoredTokenReadings
+                ? TokenReadingAnnotation.ALWAYS
+                : TokenReadingAnnotation.NEVER
+            : dt.dictionaryTokenReadingAnnotation;
+        if (ano === TokenReadingAnnotation.NEVER) return tokenText;
+        if (token.status !== undefined) {
+            if (
+                (ano === TokenReadingAnnotation.LEARNING_OR_BELOW && token.status > TokenStatus.LEARNING) ||
+                (ano === TokenReadingAnnotation.UNKNOWN_OR_BELOW && token.status > TokenStatus.UNKNOWN)
+            ) {
+                return tokenText;
+            }
         }
     }
+
     const parts: string[] = [];
     iterateOverStringInBlocks(
         tokenText,
