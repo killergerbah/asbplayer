@@ -519,6 +519,8 @@ export default class SubtitleReader {
             tokens.push({
                 pos: [offset, offset + base.length],
                 readings: [{ pos: [0, reading.length], reading }],
+                states: [],
+                status: getFullyKnownTokenStatus(),
             });
             return base;
         });
