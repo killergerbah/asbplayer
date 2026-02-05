@@ -27,7 +27,7 @@ if WEBSOCKETS_AVAILABLE:
             super().__init__(parent)
             self._port = port
             self._server: QWebSocketServer | None = None
-            self._clients: set[QWebSocket] = set()
+            self._client: QWebSocket | None = None
 
         def start(self) -> bool:
             """Start the WebSocket server. Returns True on success."""
@@ -50,35 +50,33 @@ if WEBSOCKETS_AVAILABLE:
             return True
 
         def stop(self) -> None:
-            """Stop the WebSocket server and disconnect all clients."""
+            """Stop the WebSocket server and disconnect the client."""
             if self._server is None:
                 return
 
-            for client in list(self._clients):
-                client.close()
-            self._clients.clear()
+            if self._client is not None:
+                self._client.close()
+                self._client = None
 
             self._server.close()
             self._server = None
             _log("WebSocket server stopped")
 
         def has_clients(self) -> bool:
-            """Return True if there are connected clients."""
-            return len(self._clients) > 0
+            """Return True if there is a connected client."""
+            return self._client is not None
 
-        def broadcast_message(self, message: dict) -> None:
-            """Broadcast a JSON message to all connected clients."""
-            if not self._clients:
+        def send_message(self, message: dict) -> None:
+            """Send a JSON message to the connected client."""
+            if self._client is None or not self._client.isValid():
                 return
 
             json_str = json.dumps(message)
-            for client in list(self._clients):
-                if client.isValid():
-                    client.sendTextMessage(json_str)
+            self._client.sendTextMessage(json_str)
 
         @pyqtSlot()
         def _on_new_connection(self) -> None:
-            """Handle new client connection."""
+            """Handle new client connection, replacing any existing one."""
             if self._server is None:
                 return
 
@@ -86,21 +84,24 @@ if WEBSOCKETS_AVAILABLE:
             if client is None:
                 return
 
-            self._clients.add(client)
+            if self._client is not None:
+                _log("Replacing existing client connection")
+                self._client.close()
 
-            client.textMessageReceived.connect(
-                lambda msg, c=client: self._on_text_message(c, msg)
-            )
-            client.disconnected.connect(
-                lambda c=client: self._on_client_disconnected(c)
-            )
+            self._client = client
+
+            client.textMessageReceived.connect(self._on_text_message)
+            client.disconnected.connect(self._on_client_disconnected)
 
             _log(f"Client connected: {client.peerAddress().toString()}")
 
-        def _on_text_message(self, client: QWebSocket, message: str) -> None:
+        def _on_text_message(self, message: str) -> None:
             """Handle incoming text message from client."""
+            if self._client is None:
+                return
+
             if message == "PING":
-                client.sendTextMessage("PONG")
+                self._client.sendTextMessage("PONG")
                 return
 
             try:
@@ -110,11 +111,13 @@ if WEBSOCKETS_AVAILABLE:
             except json.JSONDecodeError:
                 _log(f"Invalid JSON received: {message[:100]}")
 
-        def _on_client_disconnected(self, client: QWebSocket) -> None:
+        def _on_client_disconnected(self) -> None:
             """Handle client disconnection."""
-            self._clients.discard(client)
+            if self._client is not None:
+                self._client.deleteLater()
+                self._client = None
+
             _log("Client disconnected")
-            client.deleteLater()
 
 else:
 
@@ -134,5 +137,5 @@ else:
         def has_clients(self) -> bool:
             return False
 
-        def broadcast_message(self, message: dict) -> None:
+        def send_message(self, message: dict) -> None:
             pass

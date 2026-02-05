@@ -43,7 +43,7 @@ def _handle_note_added(note: Note) -> None:
         },
     }
 
-    server.broadcast_message(command)
+    server.send_message(command)
 
 
 def start_server() -> None:
