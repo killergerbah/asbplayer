@@ -1,4 +1,5 @@
-from typing import Set, Optional
+from __future__ import annotations
+
 import json
 
 
@@ -12,20 +13,9 @@ try:
     from PyQt6.QtWebSockets import QWebSocketServer, QWebSocket
     from PyQt6.QtNetwork import QHostAddress
 
-    _log("Using PyQt6 for WebSockets")
-
     WEBSOCKETS_AVAILABLE = True
 except ImportError:
-    try:
-        from PyQt5.QtWebSockets import QWebSocketServer, QWebSocket
-        from PyQt5.QtNetwork import QHostAddress
-        from PyQt5.QtCore import QObject, pyqtSlot
-
-        _log("Using PyQt5 for WebSockets")
-
-        WEBSOCKETS_AVAILABLE = True
-    except ImportError:
-        WEBSOCKETS_AVAILABLE = False
+    WEBSOCKETS_AVAILABLE = False
 
 
 if WEBSOCKETS_AVAILABLE:
@@ -33,11 +23,11 @@ if WEBSOCKETS_AVAILABLE:
     class AsbplayerWebSocketServer(QObject):
         """WebSocket server for asbplayer communication."""
 
-        def __init__(self, port: int, parent: Optional[QObject] = None):
+        def __init__(self, port: int, parent: QObject | None = None):
             super().__init__(parent)
             self._port = port
-            self._server: Optional[QWebSocketServer] = None
-            self._clients: Set[QWebSocket] = set()
+            self._server: QWebSocketServer | None = None
+            self._clients: set[QWebSocket] = set()
 
         def start(self) -> bool:
             """Start the WebSocket server. Returns True on success."""
