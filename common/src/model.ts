@@ -21,12 +21,12 @@ export interface SubtitleTextImage {
 }
 
 export interface TokenReading {
-    pos: number[]; // Relative position inside parent token
+    pos: [number, number]; // Start/end relative position inside parent token
     reading: string;
 }
 
 export interface Token {
-    pos: number[]; // Relative position inside parent text
+    pos: [number, number]; // Start/end relative position inside parent text
     states: TokenState[];
     status?: TokenStatus;
     readings: TokenReading[];

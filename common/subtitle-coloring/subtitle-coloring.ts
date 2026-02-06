@@ -34,6 +34,7 @@ import {
     inBatches,
     iterateOverStringInBlocks,
     ONLY_ASCII_LETTERS_REGEX,
+    areTokenizationsEqual,
 } from '@project/common/util';
 import { Yomitan } from '@project/common/yomitan/yomitan';
 
@@ -74,60 +75,6 @@ function shouldUseLemmaForm(s: TokenMatchStrategy): boolean {
 function shouldUseAnyForm(s: TokenMatchStrategy): boolean {
     return s === TokenMatchStrategy.ANY_FORM_COLLECTED;
 }
-
-const readingsAreSame = (a: TokenReading, b: TokenReading) => arrayEquals(a.pos, b.pos) && a.reading === b.reading;
-
-const tokenizationsAreSame = (a: Tokenization, b: Tokenization) => {
-    if (a.error !== b.error) {
-        return false;
-    }
-    if ((a.tokens === undefined && b.tokens !== undefined) || (a.tokens !== undefined && b.tokens === undefined)) {
-        return false;
-    }
-    if (a.tokens === undefined && b.tokens === undefined) {
-        return true;
-    }
-    if (a.tokens!.length !== b.tokens!.length) {
-        return false;
-    }
-    for (let i = 0; i < a.tokens!.length; ++i) {
-        const aToken = a.tokens![i];
-        const bToken = b.tokens![i];
-
-        if (!arrayEquals(aToken.pos, bToken.pos)) {
-            return false;
-        }
-        if (aToken.status !== bToken.status) {
-            return false;
-        }
-        if (!arrayEquals(aToken.pos, bToken.pos)) {
-            return false;
-        }
-        if (
-            (aToken.states === undefined && bToken.states !== undefined) ||
-            (aToken.states !== undefined && bToken.states === undefined)
-        ) {
-            return false;
-        }
-        if (aToken.states !== undefined && bToken.states !== undefined && !arrayEquals(aToken.states, bToken.states)) {
-            return false;
-        }
-        if (
-            (aToken.readings === undefined && bToken.readings !== undefined) ||
-            (aToken.readings !== undefined && bToken.readings === undefined)
-        ) {
-            return false;
-        }
-        if (
-            aToken.readings !== undefined &&
-            bToken.readings !== undefined &&
-            !arrayEquals(aToken.readings, bToken.readings, readingsAreSame)
-        ) {
-            return false;
-        }
-    }
-    return true;
-};
 
 interface InternalToken extends Token {
     __internal?: boolean;
@@ -215,14 +162,10 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
             subtitles.some((s) => s.text !== this._subtitles[s.index].text);
         if (!needsReset) {
             // Preserve existing cache here so callers don't need to be aware of it
-            const subtitlesWithRichText: TokenizedSubtitleModel[] = [];
-
             for (const s of subtitles) {
                 s.tokenization = this._subtitles[s.index].tokenization;
                 s.richText = this._subtitles[s.index].richText;
-                if (s.richText !== undefined) {
-                    subtitlesWithRichText.push(s);
-                }
+                (s as InternalSubtitleModel).__tokenized = this._subtitles[s.index].__tokenized;
             }
         }
         this._subtitles = subtitles.map((s) => ({ ...s })); // Separate internals from react state changes
@@ -562,7 +505,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                                     tokenizationModel?.tokenization === existingTokenization ||
                                     (tokenizationModel?.tokenization &&
                                         existingTokenization &&
-                                        tokenizationsAreSame(tokenizationModel.tokenization, existingTokenization))
+                                        areTokenizationsEqual(tokenizationModel.tokenization, existingTokenization))
                                 ) {
                                     return;
                                 }
@@ -856,7 +799,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                 for (const part of tokenParts) {
                     if (part.reading) {
                         readings.push({
-                            pos: [currentPartOffset, currentPartOffset + part.text.length],
+                            pos: [currentPartOffset, currentPartOffset + part.reading.length],
                             reading: part.reading,
                         });
                     }
@@ -1250,7 +1193,7 @@ const computeRichText = (fullText: string, tokenization: Tokenization, dt?: Dict
 
 const applyTokenStyle = (fullText: string, token: Token, dt?: DictionaryTrack) => {
     const tokenText = applyReadingAnnotation(fullText, token, dt);
-    if (token.status === undefined) return `<span style="text-decoration: line-through red 3px;">${tokenText}</span>`;
+    if (token.status === undefined) return tokenText;
     if (!dt?.dictionaryColorizeSubtitles) return tokenText;
 
     const s = HAS_LETTER_REGEX.test(tokenText)

@@ -3,7 +3,6 @@ import SrtParser from '@qgustavor/srt-parser';
 import { WebVTT } from 'vtt.js';
 import { XMLParser } from 'fast-xml-parser';
 import { SubtitleHtml, SubtitleTextImage, Token, Tokenization } from '@project/common';
-import { getFullyKnownTokenStatus } from '../settings';
 
 const vttClassRegex = /<(\/)?c(\.[^>]*)?>/g;
 const assNewLineRegex = RegExp(/\\[nN]/, 'ig');
@@ -520,7 +519,6 @@ export default class SubtitleReader {
                 pos: [offset, offset + base.length],
                 readings: [{ pos: [0, reading.length], reading }],
                 states: [],
-                status: getFullyKnownTokenStatus(),
             });
             return base;
         });

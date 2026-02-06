@@ -1,5 +1,5 @@
 import sanitize from 'sanitize-filename';
-import { Rgb, SubtitleModel } from '../src/model';
+import { Rgb, SubtitleModel, Tokenization, TokenReading } from '../src/model';
 import { TextSubtitleSettings } from '../settings/settings';
 
 export function arrayEquals<T>(a: T[], b: T[], equals = (lhs: T, rhs: T) => lhs === rhs): boolean {
@@ -520,3 +520,58 @@ export function iterateOverStringInBlocks<T, B extends Block>(
         callback(left, right);
     }
 }
+
+export const areTokenReadingsEqual = (a: TokenReading, b: TokenReading) =>
+    arrayEquals(a.pos, b.pos) && a.reading === b.reading;
+
+export const areTokenizationsEqual = (a: Tokenization, b: Tokenization) => {
+    if (a.error !== b.error) {
+        return false;
+    }
+    if ((a.tokens === undefined && b.tokens !== undefined) || (a.tokens !== undefined && b.tokens === undefined)) {
+        return false;
+    }
+    if (a.tokens === undefined && b.tokens === undefined) {
+        return true;
+    }
+    if (a.tokens!.length !== b.tokens!.length) {
+        return false;
+    }
+    for (let i = 0; i < a.tokens!.length; ++i) {
+        const aToken = a.tokens![i];
+        const bToken = b.tokens![i];
+
+        if (!arrayEquals(aToken.pos, bToken.pos)) {
+            return false;
+        }
+        if (aToken.status !== bToken.status) {
+            return false;
+        }
+        if (!arrayEquals(aToken.pos, bToken.pos)) {
+            return false;
+        }
+        if (
+            (aToken.states === undefined && bToken.states !== undefined) ||
+            (aToken.states !== undefined && bToken.states === undefined)
+        ) {
+            return false;
+        }
+        if (aToken.states !== undefined && bToken.states !== undefined && !arrayEquals(aToken.states, bToken.states)) {
+            return false;
+        }
+        if (
+            (aToken.readings === undefined && bToken.readings !== undefined) ||
+            (aToken.readings !== undefined && bToken.readings === undefined)
+        ) {
+            return false;
+        }
+        if (
+            aToken.readings !== undefined &&
+            bToken.readings !== undefined &&
+            !arrayEquals(aToken.readings, bToken.readings, areTokenReadingsEqual)
+        ) {
+            return false;
+        }
+    }
+    return true;
+};
