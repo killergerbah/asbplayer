@@ -741,7 +741,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                         }
                         const text = fullText.substring(token.pos[0], token.pos[1]);
                         const tokenStatus = await this._tokenStatus(text.trim(), ts);
-                        token.status = tokenStatus ?? undefined;
+                        token.status = tokenStatus;
                         reconstructedTextParts.push(text);
                         allTokens.push(token);
                         if (tokenStatus === null) {
@@ -1172,6 +1172,10 @@ export const renderRichTextOntoSubtitles = (subtitles: RichSubtitleModel[], dict
 };
 
 const computeRichText = (fullText: string, tokenization: Tokenization, dt?: DictionaryTrack) => {
+    if (tokenization.error) {
+        return `<span style="text-decoration: line-through red 3px;">${fullText}</span>`;
+    }
+
     if (!tokenization.tokens?.length) {
         return undefined;
     }
@@ -1234,7 +1238,7 @@ const applyReadingAnnotation = (fullText: string, token: Token, dt?: DictionaryT
                 : TokenReadingAnnotation.NEVER
             : dt.dictionaryTokenReadingAnnotation;
         if (ano === TokenReadingAnnotation.NEVER) return tokenText;
-        if (token.status !== undefined) {
+        if (token.status !== undefined && token.status !== null) {
             if (
                 (ano === TokenReadingAnnotation.LEARNING_OR_BELOW && token.status > TokenStatus.LEARNING) ||
                 (ano === TokenReadingAnnotation.UNKNOWN_OR_BELOW && token.status > TokenStatus.UNKNOWN)
