@@ -28,7 +28,7 @@ export interface TokenReading {
 export interface Token {
     pos: [number, number]; // Start/end relative position inside parent text
     states: TokenState[];
-    status?: TokenStatus;
+    status?: TokenStatus | null; // null means "error"
     readings: TokenReading[];
 }
 
