@@ -90,7 +90,15 @@ function untokenize(s: InternalSubtitleModel) {
     s.richText = undefined;
     if (s.tokenization) {
         s.tokenization.tokens = s.tokenization.tokens.filter((t) => !(t as InternalToken).__internal);
-        if (!s.tokenization.tokens.length) s.tokenization = undefined;
+        if (s.tokenization.tokens.length) {
+            s.tokenization.error = undefined;
+            for (const token of s.tokenization.tokens) {
+                token.states = [];
+                token.status = undefined;
+            }
+        } else {
+            s.tokenization = undefined;
+        }
     }
     if (s.originalText) s.text = s.originalText;
 }
@@ -498,6 +506,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                                 return;
                             const ts = trackStates[track];
                             if (!dictionaryTrackEnabled(ts.dt)) return;
+                            const deletedFromErroredCache = this.erroredCache.delete(index); // Need to delete here since we update cache in multiple places
                             try {
                                 this.colorCacheBuildingCurrentIndexes.add(index);
                                 const existingTokenization = this._subtitles[index].tokenization;
@@ -528,7 +537,11 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                                     updatedSubtitles,
                                     this.trackStates.map((ts) => ts.dt)
                                 );
+                            } catch (e) {
+                                console.error(`Error building color cache for subtitle index ${index}:`, e);
+                                this.erroredCache.add(index);
                             } finally {
+                                if (this.shouldCancelBuild && deletedFromErroredCache) this.erroredCache.add(index);
                                 this.colorCacheBuildingCurrentIndexes.delete(index);
                             }
                         })
@@ -697,7 +710,13 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
         existingTokenization: Tokenization,
         index: number,
         ts: TrackState
-    ) {
+    ): Promise<{ reconstructedText: string; tokenization: Tokenization } | undefined> {
+        if (!ts.yt) {
+            this.tokenRequestFailed = true;
+            console.error(`Yomitan not initialized`);
+            existingTokenization.error = true;
+            return { reconstructedText: fullText, tokenization: existingTokenization };
+        }
         if (!existingTokenization.tokens?.length) {
             return this._tokenizationModel(fullText, index, ts);
         }
@@ -709,7 +728,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
         let promise: Promise<void> = Promise.resolve();
         const reconstructedTextParts: string[] = [];
         const allTokens: Token[] = [];
-        let canceled = false;
+        let error = false;
 
         iterateOverStringInBlocks(
             fullText,
@@ -717,50 +736,62 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
             (left, right, token?: Token) => {
                 if (token === undefined) {
                     promise = promise.then(async () => {
-                        if (canceled) {
-                            return;
-                        }
                         const model = await this._tokenizationModel(fullText.substring(left, right), index, ts, left);
-                        if (canceled) {
+                        if (this.shouldCancelBuild) return;
+                        if (!model) {
+                            error = true; // Should only be undefined if this.shouldCancelBuild
+                            this.erroredCache.add(index);
                             return;
                         }
-                        if (model === undefined) {
-                            canceled = true;
-                            return;
-                        }
-                        const {
-                            reconstructedText,
-                            tokenization: { tokens },
-                        } = model;
-                        reconstructedTextParts.push(reconstructedText);
-                        if (tokens !== undefined) {
-                            for (const t of tokens) {
-                                allTokens.push(t);
-                            }
+                        reconstructedTextParts.push(model.reconstructedText);
+                        if (model.tokenization.tokens.length) {
+                            for (const t of model.tokenization.tokens) allTokens.push(t);
+                        } else if (model.tokenization.error) {
+                            error = true;
+                            this.erroredCache.add(index);
                         }
                     });
                 } else {
                     promise = promise.then(async () => {
-                        if (canceled) {
-                            return;
-                        }
                         const text = fullText.substring(token.pos[0], token.pos[1]);
-                        const tokenStatus = await this._tokenStatus(text.trim(), ts);
-                        token.status = tokenStatus;
+                        const trimmedToken = text.trim();
+
+                        const tokenToIndexes = this.tokenToIndexesCache.get(trimmedToken);
+                        if (tokenToIndexes) tokenToIndexes.add(index);
+                        else this.tokenToIndexesCache.set(trimmedToken, new Set([index]));
+                        const lemmas = await ts.yt!.lemmatize(trimmedToken);
+                        if (this.shouldCancelBuild) return;
+                        for (const lemma of lemmas) {
+                            const lemmaToIndexes = this.tokenToIndexesCache.get(lemma);
+                            if (lemmaToIndexes) lemmaToIndexes.add(index);
+                            else this.tokenToIndexesCache.set(lemma, new Set([index]));
+                        }
+
+                        token.states = ts.tokenStates.get(trimmedToken) ?? [];
+                        token.status =
+                            token.states.includes(TokenState.IGNORED) || !HAS_LETTER_REGEX.test(trimmedToken)
+                                ? getFullyKnownTokenStatus()
+                                : await this._tokenStatus(trimmedToken, ts);
+                        if (this.shouldCancelBuild) return;
+                        if (token.status === null) this.erroredCache.add(index);
+
                         reconstructedTextParts.push(text);
                         allTokens.push(token);
-                        if (tokenStatus === null) {
-                            this.erroredCache.add(index);
-                        }
                     });
                 }
             }
         );
-        await promise;
-        if (canceled) {
-            return undefined;
+        try {
+            await promise;
+        } catch (e) {
+            this.tokenRequestFailed = true;
+            console.error(`Tokenization request failed for index ${index}:`, e);
+            this.erroredCache.add(index);
+            existingTokenization.error = true;
+            return { reconstructedText: fullText, tokenization: existingTokenization };
         }
-        return { reconstructedText: reconstructedTextParts.join(''), tokenization: { tokens: allTokens } };
+        if (this.shouldCancelBuild) return;
+        return { reconstructedText: reconstructedTextParts.join(''), tokenization: { tokens: allTokens, error } };
     }
 
     private async _tokenizationModel(
@@ -771,7 +802,6 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
     ): Promise<{ reconstructedText: string; tokenization: Tokenization } | undefined> {
         try {
             if (!ts.yt) throw new Error(`Yomitan not initialized for Track${ts.track + 1}`);
-            let textHasError = false;
             const tokenizeRes = await ts.yt.tokenize(fullText);
             if (this.shouldCancelBuild) return;
             const tokens: Token[] = [];
@@ -788,40 +818,24 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                 // Build token
                 const token: InternalToken = {
                     pos: [baseIndex + currentOffset, baseIndex + currentOffset + untrimmedToken.length],
-                    states: [],
+                    states: ts.tokenStates.get(trimmedToken) ?? [],
                     __internal: true, // This token was generated by this class
                     readings: [],
                 };
-
-                const states = ts.tokenStates.get(trimmedToken);
-                if (states) {
-                    token.states = states;
-                }
+                currentOffset += untrimmedToken.length;
 
                 // Build readings
-                const readings: TokenReading[] = [];
                 let currentPartOffset = 0;
                 for (const part of tokenParts) {
                     if (part.reading) {
-                        readings.push({
+                        token.readings.push({
                             pos: [currentPartOffset, currentPartOffset + part.text.length],
                             reading: part.reading,
                         });
                     }
                     currentPartOffset += part.text.length;
                 }
-
-                token.readings = readings;
                 tokens.push(token);
-                currentOffset += untrimmedToken.length;
-
-                if (
-                    (ts.tokenStates.get(trimmedToken) ?? []).includes(TokenState.IGNORED) ||
-                    !HAS_LETTER_REGEX.test(trimmedToken)
-                ) {
-                    token.status = getFullyKnownTokenStatus();
-                    continue;
-                }
 
                 const tokenToIndexes = this.tokenToIndexesCache.get(trimmedToken);
                 if (tokenToIndexes) tokenToIndexes.add(index);
@@ -834,13 +848,16 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                     else this.tokenToIndexesCache.set(lemma, new Set([index]));
                 }
 
-                let tokenStatus: TokenStatus | null = await this._tokenStatus(trimmedToken, ts);
-                token.status = tokenStatus;
+                // Build token status
+                if (token.states.includes(TokenState.IGNORED) || !HAS_LETTER_REGEX.test(trimmedToken)) {
+                    token.status = getFullyKnownTokenStatus();
+                    continue;
+                }
+                token.status = await this._tokenStatus(trimmedToken, ts);
                 if (this.shouldCancelBuild) return;
-                if (tokenStatus === null) textHasError = true;
+                if (token.status === null) this.erroredCache.add(index);
             }
 
-            textHasError ? this.erroredCache.add(index) : this.erroredCache.delete(index);
             return { reconstructedText: reconstructedTextParts.join(''), tokenization: { tokens } };
         } catch (error) {
             this.tokenRequestFailed = true;
@@ -1178,7 +1195,7 @@ export const renderRichTextOntoSubtitles = (subtitles: RichSubtitleModel[], dict
 
 const computeRichText = (fullText: string, tokenization: Tokenization, dt?: DictionaryTrack) => {
     if (tokenization.error) {
-        return `<span style="text-decoration: line-through red 3px;">${fullText}</span>`;
+        return `<span ${ERROR_STYLE}>${fullText}</span>`;
     }
 
     if (!tokenization.tokens?.length) {
@@ -1200,11 +1217,14 @@ const computeRichText = (fullText: string, tokenization: Tokenization, dt?: Dict
     return parts.join('');
 };
 
+const ERROR_STYLE = `style="text-decoration: line-through red 3px;"`;
+const LOGIC_ERROR_STYLE = `style="text-decoration: line-through red 3px double;"`;
+
 const applyTokenStyle = (fullText: string, token: Token, dt?: DictionaryTrack) => {
     const tokenText = applyReadingAnnotation(fullText, token, dt);
-    if (token.status === null) return `<span style="text-decoration: line-through red 3px;">${tokenText}</span>`;
+    if (token.status === null) return `<span ${ERROR_STYLE}>${tokenText}</span>`;
     if (token.status === undefined) {
-        return `<span style="text-decoration: line-through red 3px double;">${tokenText}</span>`; // Should never happen
+        return `<span ${LOGIC_ERROR_STYLE}>${tokenText}</span>`;
     }
     if (!dt?.dictionaryColorizeSubtitles) return tokenText;
 
@@ -1226,7 +1246,7 @@ const applyTokenStyle = (fullText: string, token: Token, dt?: DictionaryTrack) =
         case TokenStyling.OUTLINE:
             return `${s} style="-webkit-text-stroke: ${t}px ${c};">${tokenText}</span>`;
         default:
-            return `${s} style="text-decoration: line-through red 3px double;">${tokenText}</span>`;
+            return `${s} ${LOGIC_ERROR_STYLE}>${tokenText}</span>`;
     }
 };
 
