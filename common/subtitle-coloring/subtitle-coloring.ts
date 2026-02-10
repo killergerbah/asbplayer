@@ -100,7 +100,20 @@ function untokenize(s: InternalSubtitleModel) {
             s.tokenization = undefined;
         }
     }
-    if (s.originalText) s.text = s.originalText;
+    if (s.originalText !== undefined) s.text = s.originalText;
+}
+
+function originalTokenization(tokenization: Tokenization | undefined): Tokenization {
+    return {
+        tokens:
+            tokenization?.tokens
+                ?.filter((t) => !(t as InternalToken).__internal)
+                .map((t) => ({
+                    pos: [t.pos[0], t.pos[1]],
+                    readings: t.readings.map((r) => ({ pos: [r.pos[0], r.pos[1]], reading: r.reading })),
+                    states: [],
+                })) ?? [],
+    };
 }
 
 export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
@@ -118,6 +131,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
     private readonly fetcher?: Fetcher;
     private trackStates: TrackState[];
     private erroredCache: Set<number>;
+    private externalTokenReadings: Map<string, Map<number, TokenReading[]>>;
     private tokenToIndexesCache: Map<string, Set<number>>;
     private tokensForRefresh: Set<string>;
     private ankiRecentlyModifiedCardIds: Set<number>;
@@ -157,6 +171,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
         this.getMediaTimeMs = getMediaTimeMs;
         this.showingNeedsRefreshCount = 0;
         this.erroredCache = new Set();
+        this.externalTokenReadings = new Map();
         this.tokenToIndexesCache = new Map();
         this.tokensForRefresh = new Set();
         this.ankiRecentlyModifiedCardIds = new Set();
@@ -175,16 +190,19 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
     }
 
     setSubtitles(subtitles: TokenizedSubtitleModel[]) {
-        for (const subtitle of subtitles) {
-            if (!subtitle.originalText) subtitle.originalText = subtitle.text;
+        for (const s of subtitles) {
+            if (s.originalText === undefined) s.originalText = s.text;
         }
         const needsReset =
             subtitles.length !== this._subtitles.length ||
-            subtitles.some(
-                (s) =>
-                    (s.originalText ?? s.text) !==
-                    (this._subtitles[s.index].originalText ?? this._subtitles[s.index].text)
-            );
+            subtitles.some((s) => {
+                const prev = this._subtitles[s.index];
+                if ((s.originalText ?? s.text) !== (prev.originalText ?? prev.text)) return true;
+                return !areTokenizationsEqual(
+                    originalTokenization(s.tokenization),
+                    originalTokenization(prev.tokenization)
+                );
+            });
         if (!needsReset) {
             // Preserve existing cache here so callers don't need to be aware of it
             for (const s of subtitles) {
@@ -198,6 +216,21 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
         super.setSubtitles(this._subtitles);
         if (needsReset) {
             this._resetCache();
+            this.externalTokenReadings.clear();
+            for (const subtitle of this._subtitles) {
+                if (!subtitle.tokenization) continue;
+                for (const token of subtitle.tokenization.tokens) {
+                    if ((token as InternalToken).__internal) continue;
+                    if (!token.readings.length) continue;
+                    const tokenText = subtitle.text.substring(token.pos[0], token.pos[1]);
+                    let externalReadings = this.externalTokenReadings.get(tokenText);
+                    if (!externalReadings) {
+                        externalReadings = new Map();
+                        this.externalTokenReadings.set(tokenText, externalReadings);
+                    }
+                    externalReadings.set(subtitle.track, token.readings);
+                }
+            }
             const { colorBufferStartIndex, colorBufferEndIndex } = this._getColorBufferIndexes(true);
             void this._buildColorCache(colorBufferStartIndex, colorBufferEndIndex, true);
         }
@@ -528,7 +561,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                                     const subtitle = this._subtitles[index];
                                     subtitle.tokenization = tokenization;
                                     subtitle.richText = undefined;
-                                    if (!subtitle.originalText) subtitle.originalText = subtitle.text;
+                                    if (subtitle.originalText === undefined) subtitle.originalText = subtitle.text;
                                     subtitle.text = reconstructedText;
                                     subtitle.__tokenized = true;
                                     updatedSubtitles.push(subtitle);
@@ -753,8 +786,8 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                     });
                 } else {
                     promise = promise.then(async () => {
-                        const text = fullText.substring(token.pos[0], token.pos[1]);
-                        const trimmedToken = text.trim();
+                        const tokenText = fullText.substring(token.pos[0], token.pos[1]);
+                        const trimmedToken = tokenText.trim();
 
                         const tokenToIndexes = this.tokenToIndexesCache.get(trimmedToken);
                         if (tokenToIndexes) tokenToIndexes.add(index);
@@ -775,7 +808,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                         if (this.shouldCancelBuild) return;
                         if (token.status === null) this.erroredCache.add(index);
 
-                        reconstructedTextParts.push(text);
+                        reconstructedTextParts.push(tokenText);
                         allTokens.push(token);
                     });
                 }
@@ -808,34 +841,36 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
             let currentOffset = 0;
             let reconstructedTextParts = [];
             for (const tokenParts of tokenizeRes) {
-                const trimmedToken = tokenParts
-                    .map((p) => p.text)
-                    .join('')
-                    .trim();
-                const untrimmedToken = tokenParts.map((p) => p.text).join('');
-                reconstructedTextParts.push(untrimmedToken);
+                const tokenText = tokenParts.map((p) => p.text).join('');
+                reconstructedTextParts.push(tokenText);
+                const trimmedToken = tokenText.trim();
 
                 // Build token
                 const token: InternalToken = {
-                    pos: [baseIndex + currentOffset, baseIndex + currentOffset + untrimmedToken.length],
+                    pos: [baseIndex + currentOffset, baseIndex + currentOffset + tokenText.length],
                     states: ts.tokenStates.get(trimmedToken) ?? [],
                     __internal: true, // This token was generated by this class
                     readings: [],
                 };
-                currentOffset += untrimmedToken.length;
+                tokens.push(token);
+                currentOffset += tokenText.length;
 
                 // Build readings
-                let currentPartOffset = 0;
-                for (const part of tokenParts) {
-                    if (part.reading) {
-                        token.readings.push({
-                            pos: [currentPartOffset, currentPartOffset + part.text.length],
-                            reading: part.reading,
-                        });
+                const externalReadings = this.externalTokenReadings.get(tokenText);
+                if (externalReadings) {
+                    token.readings = externalReadings.get(ts.track) ?? externalReadings.values().next().value!;
+                } else {
+                    let currentPartOffset = 0;
+                    for (const part of tokenParts) {
+                        if (part.reading) {
+                            token.readings.push({
+                                pos: [currentPartOffset, currentPartOffset + part.text.length],
+                                reading: part.reading,
+                            });
+                        }
+                        currentPartOffset += part.text.length;
                     }
-                    currentPartOffset += part.text.length;
                 }
-                tokens.push(token);
 
                 const tokenToIndexes = this.tokenToIndexesCache.get(trimmedToken);
                 if (tokenToIndexes) tokenToIndexes.add(index);
@@ -1113,7 +1148,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
     }
 
     unbind() {
-        this._resetCache();
+        this.reset();
         if (this.removeBuildAnkiCacheStateChangeCB) {
             this.removeBuildAnkiCacheStateChangeCB();
             this.removeBuildAnkiCacheStateChangeCB = undefined;
@@ -1224,7 +1259,7 @@ const applyTokenStyle = (fullText: string, token: Token, dt?: DictionaryTrack) =
     const tokenText = applyReadingAnnotation(fullText, token, dt);
     if (token.status === null) return `<span ${ERROR_STYLE}>${tokenText}</span>`;
     if (token.status === undefined) {
-        return `<span ${LOGIC_ERROR_STYLE}>${tokenText}</span>`;
+        return `<span ${LOGIC_ERROR_STYLE}>${tokenText}</span>`; // External tokens may flash this on initial load
     }
     if (!dt?.dictionaryColorizeSubtitles) return tokenText;
 
@@ -1252,13 +1287,13 @@ const applyTokenStyle = (fullText: string, token: Token, dt?: DictionaryTrack) =
 
 const applyReadingAnnotation = (fullText: string, token: Token, dt?: DictionaryTrack) => {
     const tokenText = fullText.substring(token.pos[0], token.pos[1]);
-    if (!token.readings?.length || !HAS_LETTER_REGEX.test(tokenText) || ONLY_ASCII_LETTERS_REGEX.test(tokenText)) {
+    if (!token.readings.length || !HAS_LETTER_REGEX.test(tokenText) || ONLY_ASCII_LETTERS_REGEX.test(tokenText)) {
         return tokenText; // Prevent 。 -> まる or english words from getting ruby
     }
 
     // Only apply skip logic for tokens generated by this class i.e. marked __internal: true
     if (dt && (token as InternalToken).__internal) {
-        const ignoredToken = token.states?.includes(TokenState.IGNORED);
+        const ignoredToken = token.states.includes(TokenState.IGNORED);
         const ano = ignoredToken
             ? dt.dictionaryDisplayIgnoredTokenReadings
                 ? TokenReadingAnnotation.ALWAYS
@@ -1278,13 +1313,13 @@ const applyReadingAnnotation = (fullText: string, token: Token, dt?: DictionaryT
     const parts: string[] = [];
     iterateOverStringInBlocks(
         tokenText,
-        (_, blockIndex) => token.readings?.[blockIndex],
+        (_, blockIndex) => token.readings[blockIndex],
         (left, right, reading?: TokenReading) => {
             if (reading === undefined) {
                 parts.push(tokenText.substring(left, right));
             } else {
-                const word = tokenText.substring(reading.pos[0], reading.pos[1]);
-                parts.push(`<ruby>${word}<rt>${reading.reading}</rt></ruby>`);
+                const part = tokenText.substring(reading.pos[0], reading.pos[1]);
+                parts.push(`<ruby>${part}<rt>${reading.reading}</rt></ruby>`);
             }
         }
     );
