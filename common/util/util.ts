@@ -524,7 +524,10 @@ export function iterateOverStringInBlocks<T, B extends Block>(
 export const areTokenReadingsEqual = (a: TokenReading, b: TokenReading) =>
     arrayEquals(a.pos, b.pos) && a.reading === b.reading;
 
-export const areTokenizationsEqual = (a: Tokenization, b: Tokenization) => {
+export const areTokenizationsEqual = (a: Tokenization | undefined, b: Tokenization | undefined) => {
+    if (a === b) return true;
+    if (!a || !b) return false;
+
     if (a.error !== b.error) {
         return false;
     }

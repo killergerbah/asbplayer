@@ -517,7 +517,7 @@ export default class SubtitleReader {
         node.text = node.text.replace(netflixRubyRegex, (_match, base, reading, offset) => {
             tokens.push({
                 pos: [offset, offset + base.length],
-                readings: [{ pos: [0, reading.length], reading }],
+                readings: [{ pos: [0, base.length], reading }],
                 states: [],
             });
             return base;
