@@ -90,14 +90,16 @@ function untokenize(s: InternalSubtitleModel) {
     s.richText = undefined;
     if (s.tokenization) {
         s.tokenization.tokens = s.tokenization.tokens.filter((t) => !(t as InternalToken).__internal);
+        if (!s.tokenization.tokens.length) s.tokenization = undefined;
     }
+    if (s.originalText) s.text = s.originalText;
 }
 
 export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
     private _subtitles: InternalSubtitleModel[];
     private readonly dictionaryProvider: DictionaryProvider;
     private readonly settingsProvider: SettingsProvider;
-    private subtitlesInterval?: NodeJS.Timeout;
+    private subtitlesInterval?: ReturnType<typeof setInterval>;
     private showingSubtitles?: RichSubtitleModel[];
     private showingNeedsRefreshCount: number;
     private buildLowerThreshold: number;
@@ -165,12 +167,20 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
     }
 
     setSubtitles(subtitles: TokenizedSubtitleModel[]) {
+        for (const subtitle of subtitles) {
+            if (!subtitle.originalText) subtitle.originalText = subtitle.text;
+        }
         const needsReset =
             subtitles.length !== this._subtitles.length ||
-            subtitles.some((s) => s.text !== this._subtitles[s.index].text);
+            subtitles.some(
+                (s) =>
+                    (s.originalText ?? s.text) !==
+                    (this._subtitles[s.index].originalText ?? this._subtitles[s.index].text)
+            );
         if (!needsReset) {
             // Preserve existing cache here so callers don't need to be aware of it
             for (const s of subtitles) {
+                (s as InternalSubtitleModel).text = this._subtitles[s.index].text;
                 s.tokenization = this._subtitles[s.index].tokenization;
                 s.richText = this._subtitles[s.index].richText;
                 (s as InternalSubtitleModel).__tokenized = this._subtitles[s.index].__tokenized;
@@ -343,7 +353,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                     if (
                         slice.showing.some(
                             (s) =>
-                                !this._subtitles[s.index].tokenization &&
+                                !this._subtitles[s.index].__tokenized &&
                                 !this.colorCacheBuildingCurrentIndexes.has(s.index)
                         )
                     ) {
@@ -454,7 +464,6 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                     if (!indexes) continue;
                     for (const index of indexes) {
                         indexesForRefresh.add(index);
-                        untokenize(this._subtitles[index]);
                         if (existingIndexes.has(index)) continue;
                         existingIndexes.add(index);
                         subtitles.push(this._subtitles[index]); // Process all relevant subtitles even if not in buffer
@@ -492,21 +501,15 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                             try {
                                 this.colorCacheBuildingCurrentIndexes.add(index);
                                 const existingTokenization = this._subtitles[index].tokenization;
-                                const tokenizationModel =
-                                    existingTokenization === undefined
-                                        ? await this._tokenizationModel(text, index, ts)
-                                        : await this._tokenizationModelMergedWithExistingOne(
-                                              text,
-                                              existingTokenization,
-                                              index,
-                                              ts
-                                          );
-                                if (
-                                    tokenizationModel?.tokenization === existingTokenization ||
-                                    (tokenizationModel?.tokenization &&
-                                        existingTokenization &&
-                                        areTokenizationsEqual(tokenizationModel.tokenization, existingTokenization))
-                                ) {
+                                const tokenizationModel = !existingTokenization
+                                    ? await this._tokenizationModel(text, index, ts)
+                                    : await this._tokenizationModelMergedWithExistingOne(
+                                          text,
+                                          existingTokenization,
+                                          index,
+                                          ts
+                                      );
+                                if (areTokenizationsEqual(tokenizationModel?.tokenization, existingTokenization)) {
                                     return;
                                 }
                                 if (this.shouldCancelBuild) return;
@@ -515,6 +518,8 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                                     const { tokenization, reconstructedText } = tokenizationModel;
                                     const subtitle = this._subtitles[index];
                                     subtitle.tokenization = tokenization;
+                                    subtitle.richText = undefined;
+                                    if (!subtitle.originalText) subtitle.originalText = subtitle.text;
                                     subtitle.text = reconstructedText;
                                     subtitle.__tokenized = true;
                                     updatedSubtitles.push(subtitle);
@@ -698,7 +703,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
         }
 
         // We only respect tokens that were not generated by this class i.e. not marked __internal: true
-        existingTokenization.tokens = existingTokenization.tokens.filter((t) => !(t as InternalToken).__internal);
+        const externalTokens = existingTokenization.tokens.filter((t) => !(t as InternalToken).__internal);
 
         // To ensure that the final token list is in-order, all tokens (existing or not) are chained onto this promise
         let promise: Promise<void> = Promise.resolve();
@@ -708,7 +713,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
 
         iterateOverStringInBlocks(
             fullText,
-            (_, blockIndex) => existingTokenization.tokens?.[blockIndex],
+            (_, blockIndex) => externalTokens[blockIndex],
             (left, right, token?: Token) => {
                 if (token === undefined) {
                     promise = promise.then(async () => {
@@ -830,7 +835,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                 }
 
                 let tokenStatus: TokenStatus | null = await this._tokenStatus(trimmedToken, ts);
-                token.status = tokenStatus ?? undefined;
+                token.status = tokenStatus;
                 if (this.shouldCancelBuild) return;
                 if (tokenStatus === null) textHasError = true;
             }
@@ -1197,8 +1202,10 @@ const computeRichText = (fullText: string, tokenization: Tokenization, dt?: Dict
 
 const applyTokenStyle = (fullText: string, token: Token, dt?: DictionaryTrack) => {
     const tokenText = applyReadingAnnotation(fullText, token, dt);
-    if (token.status === undefined) return tokenText;
-    if (token.status === null) return `<span style="text-decoration: line-through red 3px;">${token}</span>`;
+    if (token.status === null) return `<span style="text-decoration: line-through red 3px;">${tokenText}</span>`;
+    if (token.status === undefined) {
+        return `<span style="text-decoration: line-through red 3px double;">${tokenText}</span>`; // Should never happen
+    }
     if (!dt?.dictionaryColorizeSubtitles) return tokenText;
 
     const s = HAS_LETTER_REGEX.test(tokenText)

@@ -59,6 +59,7 @@ export interface RichSubtitleModel extends IndexedSubtitleModel {
 }
 
 export interface TokenizedSubtitleModel extends RichSubtitleModel {
+    originalText?: string;
     tokenization?: Tokenization;
 }
 
