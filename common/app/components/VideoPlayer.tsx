@@ -616,12 +616,30 @@ export default function VideoPlayer({
             for (const updatedSubtitle of updatedSubtitles) {
                 domCacheRef.current?.delete(String(updatedSubtitle.index));
             }
+
+            const updatedByIndex = new Map(updatedSubtitles.map((s) => [s.index, s] as const));
+            if (showSubtitlesRef.current.some((s) => updatedByIndex.has(s.index))) {
+                setShowSubtitles((prevShowSubtitles) =>
+                    prevShowSubtitles.map((showSubtitle) => {
+                        const updatedShowSubtitle = updatedByIndex.get(showSubtitle.index);
+                        if (!updatedShowSubtitle) return showSubtitle;
+                        return {
+                            ...showSubtitle,
+                            text: updatedShowSubtitle.text,
+                            richText: updatedShowSubtitle.richText,
+                            tokenization: updatedShowSubtitle.tokenization,
+                        };
+                    })
+                );
+            }
+
             setSubtitles((prevSubtitles) => {
                 if (!prevSubtitles.length) return prevSubtitles;
                 const allSubtitles = prevSubtitles.slice();
                 for (const s of updatedSubtitles) {
                     allSubtitles[s.index] = {
                         ...allSubtitles[s.index],
+                        text: s.text,
                         richText: s.richText,
                         tokenization: s.tokenization,
                     };
@@ -1637,9 +1655,9 @@ export default function VideoPlayer({
         parent.document.body.clientWidth === document.body.clientWidth;
 
     const subtitleAlignmentForTrack = (track: number) => subtitleAlignments[track] ?? subtitleAlignments[0];
-    const elementForSubtitle = (subtitle: RichSubtitleModel, index: number) => (
+    const elementForSubtitle = (subtitle: RichSubtitleModel) => (
         <CachedShowingSubtitle
-            key={index}
+            key={subtitle.index}
             index={subtitle.index}
             domCache={domCacheRef.current ?? getSubtitleDomCache()}
             renderHtml={() => getSubtitleHtml(subtitle)}
