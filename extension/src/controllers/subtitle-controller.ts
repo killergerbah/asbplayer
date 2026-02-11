@@ -341,17 +341,19 @@ export default class SubtitleController {
             renderRichTextOntoSubtitles(updatedSubtitles, this.dictionaryTrackSettings);
         }
 
-        for (const updatedSubtitle of updatedSubtitles) {
+        const htmls = this._buildSubtitlesHtml(updatedSubtitles);
+        for (const [index, updatedSubtitle] of updatedSubtitles.entries()) {
+            const html = htmls[index];
             if (this._getSubtitleTrackAlignment(updatedSubtitle.track) === 'bottom') {
                 if (
                     this.shouldRenderBottomOverlay &&
                     this.bottomSubtitlesElementOverlay instanceof CachingElementOverlay
                 ) {
-                    this.bottomSubtitlesElementOverlay.uncacheHtmlKey(String(updatedSubtitle.index));
+                    this.bottomSubtitlesElementOverlay.cacheHtml(html.key, html.html());
                 }
             } else {
                 if (this.shouldRenderTopOverlay && this.topSubtitlesElementOverlay instanceof CachingElementOverlay) {
-                    this.topSubtitlesElementOverlay.uncacheHtmlKey(String(updatedSubtitle.index));
+                    this.topSubtitlesElementOverlay.cacheHtml(html.key, html.html());
                 }
             }
             if (this.showingSubtitles?.some((s) => s.index === updatedSubtitle.index)) {

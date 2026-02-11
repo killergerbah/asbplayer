@@ -17,10 +17,13 @@ export default class OffscreenDomCache {
     }
 
     add(key: string, html: string) {
-        const cached = document.createElement('div');
+        let cached = this._cachedContentElements[key];
+        if (!cached) {
+            cached = document.createElement('div');
+            this._cachedContentElements[key] = cached;
+            this._offscreenElement().appendChild(cached);
+        }
         cached.innerHTML = `${html}\n`;
-        this._cachedContentElements[key] = cached;
-        this._offscreenElement().appendChild(cached);
         this._empty = false;
     }
 
