@@ -766,8 +766,8 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
         iterateOverStringInBlocks(
             fullText,
             (_, blockIndex) => externalTokens[blockIndex],
-            (left, right, token?: Token) => {
-                if (token === undefined) {
+            (left, right, existingToken?: Token) => {
+                if (existingToken === undefined) {
                     promise = promise.then(async () => {
                         const model = await this._tokenizationModel(fullText.substring(left, right), index, ts, left);
                         if (this.shouldCancelBuild) return;
@@ -786,7 +786,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                     });
                 } else {
                     promise = promise.then(async () => {
-                        const tokenText = fullText.substring(token.pos[0], token.pos[1]);
+                        const tokenText = fullText.substring(existingToken.pos[0], existingToken.pos[1]);
                         const trimmedToken = tokenText.trim();
 
                         const tokenToIndexes = this.tokenToIndexesCache.get(trimmedToken);
@@ -800,13 +800,21 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                             else this.tokenToIndexesCache.set(lemma, new Set([index]));
                         }
 
-                        token.states = ts.tokenStates.get(trimmedToken) ?? [];
-                        token.status =
-                            token.states.includes(TokenState.IGNORED) || !HAS_LETTER_REGEX.test(trimmedToken)
-                                ? getFullyKnownTokenStatus()
-                                : await this._tokenStatus(trimmedToken, ts);
-                        if (this.shouldCancelBuild) return;
+                        const states = ts.tokenStates.get(trimmedToken) ?? [];
+                        const token: Token = {
+                            pos: [existingToken.pos[0], existingToken.pos[1]],
+                            readings: existingToken.readings.map((r) => ({
+                                pos: [r.pos[0], r.pos[1]],
+                                reading: r.reading,
+                            })),
+                            states,
+                            status:
+                                states.includes(TokenState.IGNORED) || !HAS_LETTER_REGEX.test(trimmedToken)
+                                    ? getFullyKnownTokenStatus()
+                                    : await this._tokenStatus(trimmedToken, ts),
+                        };
                         if (token.status === null) this.erroredCache.add(index);
+                        if (this.shouldCancelBuild) return;
 
                         reconstructedTextParts.push(tokenText);
                         allTokens.push(token);
@@ -889,8 +897,8 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                     continue;
                 }
                 token.status = await this._tokenStatus(trimmedToken, ts);
-                if (this.shouldCancelBuild) return;
                 if (token.status === null) this.erroredCache.add(index);
+                if (this.shouldCancelBuild) return;
             }
 
             return { reconstructedText: reconstructedTextParts.join(''), tokenization: { tokens } };
