@@ -910,8 +910,8 @@ const DictionarySettingsTab: React.FC<Props> = ({
                         onSettingChanged('dictionaryTracks', newTracks);
                     }}
                     disableCloseOnSelect
-                    renderOption={(props, option, { selected }) => (
-                        <li {...props}>
+                    renderOption={({ key, ...restOfProps }, option, { selected }) => (
+                        <li key={key} {...restOfProps}>
                             <ListItemIcon>
                                 <Checkbox edge="start" checked={selected} tabIndex={-1} disableRipple />
                             </ListItemIcon>
