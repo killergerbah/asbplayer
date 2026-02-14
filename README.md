@@ -177,9 +177,9 @@ yarn 3.2.0
 # Install dependencies
 yarn
 
-# Builds Firefox extension to extension/.output/projectextension-<version>-firefox.zip
+# Builds Firefox extension to extension/.output/asbplayer-<version>-firefox.zip
 yarn workspace @project/extension run wxt zip -b firefox
 
-# Builds Firefox for Android extension to extension/.output/projectextension-<version>-firefox-android.zip
+# Builds Firefox for Android extension to extension/.output/asbplayer-<version>-firefox-android.zip
 yarn workspace @project/extension run wxt zip -b firefox-android --mv2
 ```
