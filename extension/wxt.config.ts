@@ -52,13 +52,15 @@ export default defineConfig({
     manifest: ({ browser, mode }) => {
         const version = '1.14.0';
         const isDev = mode === 'development';
-        const name = `${extName}${isDev ? ' (Dev)' : ''}: Language-learning with subtitles`;
+        const devLabel = isDev ? ' (Dev)' : '';
+        const title = `${extName}${devLabel}`;
+        const name = `${title}: Language-learning with subtitles`;
 
         let manifest: UserManifest = {
             name,
             description: '__MSG_extensionDescription__',
             version,
-            action: { default_title: `${extName}${isDev ? ' (Dev)' : ''}` },
+            action: { default_title: title },
             default_locale: 'en',
             icons: {
                 '16': 'icon/icon16.png',
@@ -161,14 +163,16 @@ export default defineConfig({
         if (browser === 'chrome') {
             permissions = [...permissions, 'tabCapture', 'activeTab', 'contextMenus', 'sidePanel', 'offscreen'];
 
+            const key = isDev
+                ? {}
+                : {
+                      key: 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxmdAa3ymqAjLms43ympXqtyuJnC2bSYh70+5ZZmtyx/MsnGhTEdfbqtsp3BKxHbv0rPd49+Joacm1Shik5/mCppZ0h4I4ISMm983X01H6p/hfAzQYAcnvw/ZQNHAv1QgY9JiuyTBirCDoYB50Fxol/kI/0EviYXuX83KoYpjB0VGP/ssY9ocT//fQUbRmeLDJnciry8y6MduWXHzseOP99axQIjeVsNTE30L4fRN+ppX3aOkG/RFJNx0eI02qbLul3qw5dUuBK5GgMbYftwjHnDoOegnZYFr1sxRO1zsgmxdp/6du75RiDPRJOkPCz2GTrw4CX2FCywbDZlqaIpwqQIDAQAB',
+                  };
+
             manifest = {
                 ...manifest,
+                ...key,
                 minimum_chrome_version: '116',
-                ...(isDev
-                    ? {}
-                    : {
-                          key: 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxmdAa3ymqAjLms43ympXqtyuJnC2bSYh70+5ZZmtyx/MsnGhTEdfbqtsp3BKxHbv0rPd49+Joacm1Shik5/mCppZ0h4I4ISMm983X01H6p/hfAzQYAcnvw/ZQNHAv1QgY9JiuyTBirCDoYB50Fxol/kI/0EviYXuX83KoYpjB0VGP/ssY9ocT//fQUbRmeLDJnciry8y6MduWXHzseOP99axQIjeVsNTE30L4fRN+ppX3aOkG/RFJNx0eI02qbLul3qw5dUuBK5GgMbYftwjHnDoOegnZYFr1sxRO1zsgmxdp/6du75RiDPRJOkPCz2GTrw4CX2FCywbDZlqaIpwqQIDAQAB',
-                      }),
                 commands,
             };
         }
@@ -176,21 +180,21 @@ export default defineConfig({
         if (browser === 'firefox') {
             permissions = [...permissions, 'contextMenus', 'webRequest', 'webRequestBlocking', 'clipboardWrite'];
 
-            const geckoId = isDev ? `${extName}-dev-${version}@example.com` : '{e4b27483-2e73-4762-b2ec-8d988a143a40}';
+            const gecko = isDev
+                ? {
+                      id: `${extName}-dev-${version}@example.com`,
+                  }
+                : {
+                      id: '{e4b27483-2e73-4762-b2ec-8d988a143a40}',
+                      update_url: 'https://killergerbah.github.io/asbplayer/firefox-extension-updates.json',
+                  };
 
             manifest = {
                 ...manifest,
                 host_permissions: ['<all_urls>'],
                 commands,
                 browser_specific_settings: {
-                    gecko: {
-                        id: geckoId,
-                        ...(isDev
-                            ? {}
-                            : {
-                                  update_url: 'https://killergerbah.github.io/asbplayer/firefox-extension-updates.json',
-                              }),
-                    },
+                    gecko,
                 },
             };
         }
