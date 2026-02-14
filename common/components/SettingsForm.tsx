@@ -2801,6 +2801,11 @@ export default function SettingsForm({
                                                 const metadata = pageMetadata[pageKey];
                                                 const page = settings.streamingPages[pageKey];
 
+                                                if (metadata === undefined || page === undefined) {
+                                                    // Can happen if extension supports more pages than this version of the app
+                                                    return null;
+                                                }
+
                                                 return (
                                                     <TableRowWithHoverEffect
                                                         key={key}
