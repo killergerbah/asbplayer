@@ -457,7 +457,7 @@
         "buildAnkiCache": "Ankiの単語データベースを再構築",
         "buildAnkiCacheHelperText": "Ankiの単語データベースは、トラックが有効になっておりAnkiが接続可能なときに、メディア再生中に自動的に更新されます。",
         "buildAnkiCacheAnkiEnableHelperText": "習得した単語を収集するためには、<0>検索対象の文章または単語フィールドを設定</0>してください。",
-        "ankiCacheDependentSettingsHelperText": "Changing \"{{field}}\" could invalidate the Anki cache, trigger a rebuild now or have it done automatically on your next playback when this track is enabled and Anki is connectable.\n「{{field}}」を変更すると、Ankiの単語データベースが無効になり、データベースの再構築が今、または次にメディアを再生するときに実行されます。",
+        "ankiCacheDependentSettingsHelperText": "「{{field}}」を変更すると、Ankiの単語データベースが無効になり、データベースの再構築が今、または次にメディアを再生するときに実行されます。",
         "dictionaryLocalWordDatabase": "ローカルの単語データベース",
         "dictionaryAnkiWordDatabase": "Ankiの単語データベース",
         "dictionaryColorizeSubtitles": "単語の成熟度をもとに字幕を色づけます",
