@@ -1271,8 +1271,8 @@ const LOGIC_ERROR_STYLE = `style="text-decoration: line-through red 3px double;"
 
 const applyTokenStyle = (fullText: string, token: Token, dt?: DictionaryTrack) => {
     const tokenText = applyReadingAnnotation(fullText, token, dt);
-    if (!dt?.dictionaryColorizeSubtitles) return tokenText;
     if (token.status === null) return `<span ${ERROR_STYLE}>${tokenText}</span>`;
+    if (!dt?.dictionaryColorizeSubtitles) return tokenText;
     if (token.status === undefined) {
         return `<span ${LOGIC_ERROR_STYLE}>${tokenText}</span>`; // External tokens may flash this on initial load
     }
