@@ -540,3 +540,73 @@ const areTokensEqual = (aToken: any, bToken: any) => {
 
 const areTokenReadingsEqual = (a: TokenReading, b: TokenReading) =>
     arrayEquals(a.pos, b.pos) && a.reading === b.reading;
+
+/**
+ * An async safe semaphore implementation that preserves FIFO order.
+ * It uses an id for release to allow multiple releases (e.g try/finally with early releases).
+ * @param options.permits The number of concurrent permits.
+ * @param options.lifetimeMs Maximum lifetime of an acquire before automatic release.
+ */
+export class AsyncSemaphore {
+    private permits: number;
+    private lifetimeMs?: number;
+    private acquired: Set<number> = new Set();
+    private timers: Map<number, ReturnType<typeof setTimeout>> = new Map();
+    private waiting: ((id: number) => void)[] = [];
+    private counter: number = 0;
+    private getNextId = () => {
+        if (this.counter === Number.MAX_SAFE_INTEGER) this.counter = 0;
+        return ++this.counter;
+    };
+
+    constructor(options: { permits: number; lifetimeMs?: number }) {
+        this.permits = Math.floor(options.permits);
+        if (this.permits <= 0) {
+            throw new Error('Permits count must be positive');
+        }
+        this.lifetimeMs = options.lifetimeMs;
+        if (this.lifetimeMs && this.lifetimeMs <= 0) {
+            throw new Error('Lifetime must be positive');
+        }
+    }
+
+    acquire(): Promise<number> {
+        return new Promise<number>((resolve) => {
+            if (this.permits > 0) {
+                this.permits--;
+                const id = this.getNextId();
+                this.acquired.add(id);
+                if (this.lifetimeMs) {
+                    this.timers.set(
+                        id,
+                        setTimeout(() => this.release(id), this.lifetimeMs)
+                    );
+                }
+                resolve(id);
+            } else {
+                this.waiting.push(resolve);
+            }
+        });
+    }
+
+    release(id: number): void {
+        if (!this.acquired.has(id)) return;
+        this.acquired.delete(id);
+        clearTimeout(this.timers.get(id)!);
+        this.timers.delete(id);
+
+        if (this.waiting.length > 0) {
+            const newId = this.getNextId();
+            this.acquired.add(newId);
+            if (this.lifetimeMs) {
+                this.timers.set(
+                    newId,
+                    setTimeout(() => this.release(newId), this.lifetimeMs)
+                );
+            }
+            this.waiting.shift()!(newId);
+        } else {
+            this.permits++;
+        }
+    }
+}

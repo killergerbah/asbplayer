@@ -1,6 +1,6 @@
 import { Fetcher, HttpFetcher } from '@project/common';
 import { DictionaryTrack } from '@project/common/settings';
-import { fromBatches, HAS_LETTER_REGEX, isKanaOnly } from '@project/common/util';
+import { AsyncSemaphore, fromBatches, HAS_LETTER_REGEX, isKanaOnly } from '@project/common/util';
 import { coerce, lt, gte } from 'semver';
 
 const YOMITAN_BATCH_SIZE = 100; // 1k can cause 1.5GB memory on Yomitan for subtitles, Anki cards may be larger too
@@ -13,12 +13,13 @@ export interface TokenPart {
 export class Yomitan {
     private readonly dt: DictionaryTrack;
     private readonly fetcher: Fetcher;
+    private readonly asyncSemaphore: AsyncSemaphore;
     private readonly tokenizeCache: Map<string, TokenPart[][]>;
     private readonly lemmatizeCache: Map<string, string[]>;
     private readonly frequencyCache: Map<string, number | null>;
+    private readonly tokensWereModified?: (token: string) => void;
     private supportsTokenizeFrequency: boolean;
-    private tokensWereModified?: (token: string) => void;
-    private tokensWereModifiedPromise?: Promise<void>;
+    private lastCancelledAt: number;
 
     constructor(
         dictionaryTrack: DictionaryTrack,
@@ -27,17 +28,24 @@ export class Yomitan {
     ) {
         this.dt = dictionaryTrack;
         this.fetcher = fetcher;
+        this.asyncSemaphore = new AsyncSemaphore({ permits: 1, lifetimeMs: 10000 });
         this.tokenizeCache = new Map();
         this.lemmatizeCache = new Map();
         this.frequencyCache = new Map();
-        this.supportsTokenizeFrequency = false;
         this.tokensWereModified = tokensWereModified;
+        this.supportsTokenizeFrequency = false;
+        this.lastCancelledAt = 0;
+    }
+
+    getSupportsTokenizeFrequency(): boolean {
+        return this.supportsTokenizeFrequency;
     }
 
     resetCache() {
         this.tokenizeCache.clear();
         this.lemmatizeCache.clear();
         this.frequencyCache.clear();
+        this.lastCancelledAt = Date.now();
     }
 
     async splitAndTokenizeBulk(text: string, yomitanUrl?: string): Promise<TokenPart[][]> {
@@ -205,15 +213,18 @@ export class Yomitan {
         }
         if (this.tokensWereModified) {
             void (async () => {
-                while (this.tokensWereModifiedPromise) await this.tokensWereModifiedPromise;
-                if (this.frequencyCache.has(token)) return;
-                this.tokensWereModifiedPromise = this._executeAction('termEntries', { term: token }, yomitanUrl).then(
-                    (response) => {
-                        this.extractFrequency(token, response.dictionaryEntries);
-                        this.tokensWereModified!(token);
-                        this.tokensWereModifiedPromise = undefined;
-                    }
-                );
+                const now = Date.now();
+                const semaphoreId = await this.asyncSemaphore.acquire();
+                try {
+                    if (this.frequencyCache.has(token)) return;
+                    if (now <= this.lastCancelledAt) return;
+                    const entries = (await this._executeAction('termEntries', { term: token }, yomitanUrl))
+                        .dictionaryEntries;
+                    this.extractFrequency(token, entries);
+                    this.tokensWereModified!(token);
+                } finally {
+                    this.asyncSemaphore.release(semaphoreId);
+                }
             })();
             return;
         }
@@ -242,7 +253,7 @@ export class Yomitan {
             for (const f of entry.frequencies) {
                 if (!matchingHeadwordIndices.has(f.headwordIndex)) continue;
                 if (!Number.isFinite(f.frequency) || f.frequency <= 0) continue;
-                if (f.frequencyMode !== 'rank-based' && this.supportsTokenizeFrequency) continue;
+                if (f.frequencyMode !== 'rank-based' && this.supportsTokenizeFrequency) continue; // Exposed with this.supportsTokenizeFrequency
                 minFrequency = minFrequency === undefined ? f.frequency : Math.min(minFrequency, f.frequency);
             }
         }

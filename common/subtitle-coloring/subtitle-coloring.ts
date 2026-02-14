@@ -129,6 +129,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
     private showingNeedsRefreshCount: number;
     private buildLowerThreshold: number;
     private buildUpperThreshold: number;
+    private initialized: boolean; // The first build after startup/reset has been completed
 
     private profile: string | undefined | null;
     private anki: Anki | undefined;
@@ -167,6 +168,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
         this._subtitles = [];
         this.buildLowerThreshold = 0;
         this.buildUpperThreshold = 0;
+        this.initialized = false;
         this.dictionaryProvider = dictionaryProvider;
         this.settingsProvider = settingsProvider;
         this.profile = null;
@@ -246,6 +248,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
         if (this.colorCacheBuilding) this.shouldCancelBuild = true;
         this.profile = null;
         this.anki = undefined;
+        this.trackStates.forEach((ts) => ts.yt?.resetCache());
         this.trackStates = [];
         this.erroredCache.clear();
         this.tokenToIndexesCache.clear();
@@ -257,6 +260,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
         this._subtitles.forEach(untokenize);
         this.buildLowerThreshold = 0;
         this.buildUpperThreshold = 0;
+        this.initialized = false;
     }
 
     reset() {
@@ -405,7 +409,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                                 !this.colorCacheBuildingCurrentIndexes.has(s.index)
                         )
                     ) {
-                        if (this.colorCacheBuilding) this.shouldCancelBuild = true;
+                        if (this.colorCacheBuilding && this.initialized) this.shouldCancelBuild = true;
                     }
                 }
                 if (this.showingNeedsRefreshCount) {
@@ -543,7 +547,11 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                 await this._buildTokenAndLemmaMap(profile, subtitles, trackStates);
             } catch (e) {
                 console.error('Error building token and lemma map:', e);
-                trackStates.forEach((ts) => (ts.yt = undefined)); // Propagate error so that subtitles are error styled
+                trackStates.forEach((ts) => {
+                    if (!ts.yt) return;
+                    ts.yt.resetCache();
+                    ts.yt = undefined; // Propagate error so that subtitles are error styled
+                });
             } finally {
                 this.colorCacheBuildingCurrentIndexes.clear();
             }
@@ -611,10 +619,16 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
         } finally {
             if (this.tokenRequestFailed) {
                 this.tokenRequestFailed = false;
-                trackStates.forEach((ts) => (ts.yt = undefined));
+                trackStates.forEach((ts) => {
+                    if (!ts.yt) return;
+                    ts.yt.resetCache();
+                    ts.yt = undefined;
+                });
                 tokensRefreshed = [];
                 frequencyTokensRefreshed = [];
                 updateThresholds = false;
+            } else if (!this.shouldCancelBuild) {
+                this.initialized = true;
             }
             if (updateThresholds && !init) {
                 this.buildUpperThreshold = colorBufferEndIndex - TOKEN_CACHE_BUILD_AHEAD_THRESHOLD;
@@ -848,8 +862,10 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                             (token.status === TokenStatus.UNCOLLECTED &&
                                 ts.dt.dictionaryTokenFrequencyAnnotation === TokenFrequencyAnnotation.UNCOLLECTED_ONLY)
                         ) {
-                            token.frequency = await ts.yt!.frequency(trimmedToken);
-                            if (this.shouldCancelBuild) return;
+                            if (ts.yt!.getSupportsTokenizeFrequency() || this.initialized) {
+                                token.frequency = await ts.yt!.frequency(trimmedToken);
+                                if (this.shouldCancelBuild) return;
+                            }
                         }
 
                         reconstructedTextParts.push(tokenText);
@@ -940,8 +956,10 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                     (token.status === TokenStatus.UNCOLLECTED &&
                         ts.dt.dictionaryTokenFrequencyAnnotation === TokenFrequencyAnnotation.UNCOLLECTED_ONLY)
                 ) {
-                    token.frequency = await ts.yt!.frequency(trimmedToken);
-                    if (this.shouldCancelBuild) return;
+                    if (ts.yt!.getSupportsTokenizeFrequency() || this.initialized) {
+                        token.frequency = await ts.yt!.frequency(trimmedToken);
+                        if (this.shouldCancelBuild) return;
+                    }
                 }
             }
 
