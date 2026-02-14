@@ -25,6 +25,8 @@ const addToPublicPathsType = (srcPath: string, destPath: string, paths: string[]
     }
 };
 
+const extName = 'asbplayer';
+
 // See https://wxt.dev/api/config.html
 export default defineConfig({
     modules: ['@wxt-dev/module-react'],
@@ -32,6 +34,8 @@ export default defineConfig({
     zip: {
         sourcesRoot: '..',
         includeSources: ['.yarn/patches/**'],
+        artifactTemplate: `${extName}-{{version}}-{{browser}}.zip`,
+        sourcesTemplate: `${extName}-{{version}}-sources.zip`,
     },
     hooks: {
         'build:publicAssets': (wxt: Wxt, files: ResolvedPublicFile[]) => {
@@ -46,11 +50,15 @@ export default defineConfig({
         },
     },
     manifest: ({ browser, mode }) => {
+        const version = '1.14.0';
+        const isDev = mode === 'development';
+        const name = `${extName}${isDev ? ' (Dev)' : ''}: Language-learning with subtitles`;
+
         let manifest: UserManifest = {
-            name: 'asbplayer: Language-learning with subtitles',
+            name,
             description: '__MSG_extensionDescription__',
-            version: '1.14.0',
-            action: { default_title: 'asbplayer' },
+            version,
+            action: { default_title: `${extName}${isDev ? ' (Dev)' : ''}` },
             default_locale: 'en',
             icons: {
                 '16': 'icon/icon16.png',
@@ -138,7 +146,7 @@ export default defineConfig({
             },
         };
 
-        if (mode === 'development') {
+        if (isDev) {
             commands['wxt:reload-extension'] = {
                 description: 'Reload the extension during development',
                 // Normally there is a suggested key for this, but Chrome only supports up to 4 suggested keys.
@@ -156,7 +164,11 @@ export default defineConfig({
             manifest = {
                 ...manifest,
                 minimum_chrome_version: '116',
-                key: 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxmdAa3ymqAjLms43ympXqtyuJnC2bSYh70+5ZZmtyx/MsnGhTEdfbqtsp3BKxHbv0rPd49+Joacm1Shik5/mCppZ0h4I4ISMm983X01H6p/hfAzQYAcnvw/ZQNHAv1QgY9JiuyTBirCDoYB50Fxol/kI/0EviYXuX83KoYpjB0VGP/ssY9ocT//fQUbRmeLDJnciry8y6MduWXHzseOP99axQIjeVsNTE30L4fRN+ppX3aOkG/RFJNx0eI02qbLul3qw5dUuBK5GgMbYftwjHnDoOegnZYFr1sxRO1zsgmxdp/6du75RiDPRJOkPCz2GTrw4CX2FCywbDZlqaIpwqQIDAQAB',
+                ...(isDev
+                    ? {}
+                    : {
+                          key: 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxmdAa3ymqAjLms43ympXqtyuJnC2bSYh70+5ZZmtyx/MsnGhTEdfbqtsp3BKxHbv0rPd49+Joacm1Shik5/mCppZ0h4I4ISMm983X01H6p/hfAzQYAcnvw/ZQNHAv1QgY9JiuyTBirCDoYB50Fxol/kI/0EviYXuX83KoYpjB0VGP/ssY9ocT//fQUbRmeLDJnciry8y6MduWXHzseOP99axQIjeVsNTE30L4fRN+ppX3aOkG/RFJNx0eI02qbLul3qw5dUuBK5GgMbYftwjHnDoOegnZYFr1sxRO1zsgmxdp/6du75RiDPRJOkPCz2GTrw4CX2FCywbDZlqaIpwqQIDAQAB',
+                      }),
                 commands,
             };
         }
@@ -164,14 +176,20 @@ export default defineConfig({
         if (browser === 'firefox') {
             permissions = [...permissions, 'contextMenus', 'webRequest', 'webRequestBlocking', 'clipboardWrite'];
 
+            const geckoId = isDev ? `${extName}-dev-${version}@example.com` : '{e4b27483-2e73-4762-b2ec-8d988a143a40}';
+
             manifest = {
                 ...manifest,
                 host_permissions: ['<all_urls>'],
                 commands,
                 browser_specific_settings: {
                     gecko: {
-                        id: '{e4b27483-2e73-4762-b2ec-8d988a143a40}',
-                        update_url: 'https://killergerbah.github.io/asbplayer/firefox-extension-updates.json',
+                        id: geckoId,
+                        ...(isDev
+                            ? {}
+                            : {
+                                  update_url: 'https://killergerbah.github.io/asbplayer/firefox-extension-updates.json',
+                              }),
                     },
                 },
             };
@@ -180,12 +198,16 @@ export default defineConfig({
         if (browser === 'firefox-android') {
             permissions = [...permissions, 'webRequest', 'webRequestBlocking', 'clipboardWrite'];
 
+            const geckoId = isDev
+                ? `${extName}-android-dev-${version}@example.com`
+                : '{49de9206-c73e-4829-be4d-bda770d7f4b5}';
+
             manifest = {
                 ...manifest,
                 host_permissions: ['<all_urls>'],
                 browser_specific_settings: {
                     gecko: {
-                        id: '{49de9206-c73e-4829-be4d-bda770d7f4b5}',
+                        id: geckoId,
                     },
                     gecko_android: {},
                 },
