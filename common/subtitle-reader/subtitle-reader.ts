@@ -514,12 +514,15 @@ export default class SubtitleReader {
         }
 
         const tokens: Token[] = [];
+        let currentLengthChangeDueToStringReplacement = 0;
         node.text = node.text.replace(netflixRubyRegex, (_match, base, reading, offset) => {
+            const adjustedOffset = offset + currentLengthChangeDueToStringReplacement;
             tokens.push({
-                pos: [offset, offset + base.length],
+                pos: [adjustedOffset, adjustedOffset + base.length],
                 readings: [{ pos: [0, base.length], reading }],
                 states: [],
             });
+            currentLengthChangeDueToStringReplacement += base.length - _match.length;
             return base;
         });
         if (tokens.length > 0) {
