@@ -12,7 +12,7 @@ export const useCurrentTabId = () => {
     }, []);
 
     useEffect(() => {
-        const listener = (info: Browser.tabs.TabActiveInfo) => setCurrentTabId(info.tabId);
+        const listener = (info: Browser.tabs.OnActivatedInfo) => setCurrentTabId(info.tabId);
         browser.tabs.onActivated.addListener(listener);
         return () => browser.tabs.onActivated.removeListener(listener);
     });

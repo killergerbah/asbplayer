@@ -8,6 +8,7 @@ export interface ExtensionConfig {
         url: string;
     };
     languages: LocalizationConfig[];
+    ttl?: number;
 }
 
 export interface LocalizationConfig {
@@ -28,13 +29,14 @@ export const fetchExtensionConfig = async (noCache = false): Promise<ExtensionCo
         const result = await storage.get(['config']);
         const cachedConfig = result ? result.config : undefined;
 
-        if (cachedConfig === '-') {
+        if (cachedConfig === '-' || cachedConfig === null) {
             return undefined;
         }
 
         if (cachedConfig !== undefined) {
-            if (typeof cachedConfig.ttl !== 'number' || Date.now() < cachedConfig.ttl) {
-                return cachedConfig as ExtensionConfig;
+            const config = cachedConfig as ExtensionConfig;
+            if (typeof config.ttl !== 'number' || Date.now() < config.ttl) {
+                return config;
             }
         }
     }
