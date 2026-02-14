@@ -521,60 +521,22 @@ export function iterateOverStringInBlocks<T, B extends Block>(
     }
 }
 
-export const areTokenReadingsEqual = (a: TokenReading, b: TokenReading) =>
-    arrayEquals(a.pos, b.pos) && a.reading === b.reading;
-
 export const areTokenizationsEqual = (a: Tokenization | undefined, b: Tokenization | undefined) => {
     if (a === b) return true;
     if (!a || !b) return false;
 
-    if (a.error !== b.error) {
-        return false;
-    }
-    if ((a.tokens === undefined && b.tokens !== undefined) || (a.tokens !== undefined && b.tokens === undefined)) {
-        return false;
-    }
-    if (a.tokens === undefined && b.tokens === undefined) {
-        return true;
-    }
-    if (a.tokens!.length !== b.tokens!.length) {
-        return false;
-    }
-    for (let i = 0; i < a.tokens!.length; ++i) {
-        const aToken = a.tokens![i];
-        const bToken = b.tokens![i];
+    if (a.error !== b.error) return false;
+    return arrayEquals(a.tokens, b.tokens, areTokensEqual);
+};
 
-        if (!arrayEquals(aToken.pos, bToken.pos)) {
-            return false;
-        }
-        if (aToken.status !== bToken.status) {
-            return false;
-        }
-        if (!arrayEquals(aToken.pos, bToken.pos)) {
-            return false;
-        }
-        if (
-            (aToken.states === undefined && bToken.states !== undefined) ||
-            (aToken.states !== undefined && bToken.states === undefined)
-        ) {
-            return false;
-        }
-        if (aToken.states !== undefined && bToken.states !== undefined && !arrayEquals(aToken.states, bToken.states)) {
-            return false;
-        }
-        if (
-            (aToken.readings === undefined && bToken.readings !== undefined) ||
-            (aToken.readings !== undefined && bToken.readings === undefined)
-        ) {
-            return false;
-        }
-        if (
-            aToken.readings !== undefined &&
-            bToken.readings !== undefined &&
-            !arrayEquals(aToken.readings, bToken.readings, areTokenReadingsEqual)
-        ) {
-            return false;
-        }
-    }
+const areTokensEqual = (aToken: any, bToken: any) => {
+    if (!arrayEquals(aToken.pos, bToken.pos)) return false;
+    if (aToken.status !== bToken.status) return false;
+    if (!arrayEquals(aToken.states, bToken.states)) return false;
+    if (!arrayEquals(aToken.readings, bToken.readings, areTokenReadingsEqual)) return false;
+    if (aToken.frequency !== bToken.frequency) return false;
     return true;
 };
+
+const areTokenReadingsEqual = (a: TokenReading, b: TokenReading) =>
+    arrayEquals(a.pos, b.pos) && a.reading === b.reading;

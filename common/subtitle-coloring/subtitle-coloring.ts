@@ -19,6 +19,7 @@ import {
     dictionaryTrackEnabled,
     getFullyKnownTokenStatus,
     SettingsProvider,
+    TokenFrequencyAnnotation,
     TokenMatchStrategy,
     TokenMatchStrategyPriority,
     TokenReadingAnnotation,
@@ -47,6 +48,9 @@ const ANKI_RECENTLY_MODIFIED_INTERVAL = 10000;
 
 const ASB_TOKEN_CLASS = 'asb-token';
 const ASB_TOKEN_HIGHLIGHT_CLASS = 'asb-token-highlight';
+const ASB_READING_CLASS = 'asb-reading';
+const ASB_FREQUENCY_CLASS = 'asb-frequency';
+const ASB_FREQUENCY_HOVER_CLASS = 'asb-frequency-hover';
 
 interface TokenStatusResult {
     status: TokenStatus;
@@ -134,6 +138,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
     private externalTokenReadings: Map<string, Map<number, TokenReading[]>>;
     private tokenToIndexesCache: Map<string, Set<number>>;
     private tokensForRefresh: Set<string>;
+    private tokensForFrequencyRefresh: Set<string>;
     private ankiRecentlyModifiedCardIds: Set<number>;
     private ankiLastRecentlyModifiedCheck: number;
     private ankiRecentlyModifiedTrigger: boolean;
@@ -174,6 +179,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
         this.externalTokenReadings = new Map();
         this.tokenToIndexesCache = new Map();
         this.tokensForRefresh = new Set();
+        this.tokensForFrequencyRefresh = new Set();
         this.ankiRecentlyModifiedCardIds = new Set();
         this.ankiLastRecentlyModifiedCheck = Date.now();
         this.ankiRecentlyModifiedTrigger = false;
@@ -244,6 +250,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
         this.erroredCache.clear();
         this.tokenToIndexesCache.clear();
         this.tokensForRefresh = new Set();
+        this.tokensForFrequencyRefresh = new Set();
         this.ankiRecentlyModifiedCardIds.clear();
         this.ankiRecentlyModifiedTrigger = false;
         this.ankiRecentlyModifiedFirstCheck = true;
@@ -480,6 +487,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
         if (this.colorCacheBuilding) return false;
 
         let tokensRefreshed: string[] = [];
+        let frequencyTokensRefreshed: string[] = [];
         let buildWasCancelled = false;
         let updateThresholds = false;
         try {
@@ -488,7 +496,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
             for (const ts of trackStates) {
                 if (!dictionaryTrackEnabled(ts.dt) || ts.yt) continue;
                 try {
-                    const yt = new Yomitan(ts.dt, this.fetcher);
+                    const yt = new Yomitan(ts.dt, this.fetcher, (token) => this.tokensForFrequencyRefresh.add(token));
                     await yt.version();
                     ts.yt = yt;
                 } catch (e) {
@@ -497,10 +505,21 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
             }
 
             const indexesForRefresh = new Set<number>();
-            if (this.tokensForRefresh.size) {
+            if (this.tokensForRefresh.size || this.tokensForFrequencyRefresh.size) {
                 const existingIndexes = new Set(subtitles.map((s) => s.index));
                 for (const token of this.tokensForRefresh) {
                     tokensRefreshed.push(token);
+                    const indexes = this.tokenToIndexesCache.get(token);
+                    if (!indexes) continue;
+                    for (const index of indexes) {
+                        indexesForRefresh.add(index);
+                        if (existingIndexes.has(index)) continue;
+                        existingIndexes.add(index);
+                        subtitles.push(this._subtitles[index]); // Process all relevant subtitles even if not in buffer
+                    }
+                }
+                for (const token of this.tokensForFrequencyRefresh) {
+                    frequencyTokensRefreshed.push(token);
                     const indexes = this.tokenToIndexesCache.get(token);
                     if (!indexes) continue;
                     for (const index of indexes) {
@@ -535,8 +554,9 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                     await Promise.all(
                         batch.map(async ({ index, text, track, __tokenized: alreadyTokenized }) => {
                             if (this.shouldCancelBuild) return;
-                            if (alreadyTokenized && !this.erroredCache.has(index) && !indexesForRefresh.has(index))
+                            if (alreadyTokenized && !this.erroredCache.has(index) && !indexesForRefresh.has(index)) {
                                 return;
+                            }
                             const ts = trackStates[track];
                             if (!dictionaryTrackEnabled(ts.dt)) return;
                             const deletedFromErroredCache = this.erroredCache.delete(index); // Need to delete here since we update cache in multiple places
@@ -585,6 +605,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
             if (this.shouldCancelBuild) {
                 buildWasCancelled = true;
                 tokensRefreshed = [];
+                frequencyTokensRefreshed = [];
                 updateThresholds = false;
             }
         } finally {
@@ -592,6 +613,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                 this.tokenRequestFailed = false;
                 trackStates.forEach((ts) => (ts.yt = undefined));
                 tokensRefreshed = [];
+                frequencyTokensRefreshed = [];
                 updateThresholds = false;
             }
             if (updateThresholds && !init) {
@@ -605,6 +627,12 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                 tokensRefreshed.every((token) => this.tokensForRefresh.has(token))
             ) {
                 this.tokensForRefresh = new Set();
+            }
+            if (
+                frequencyTokensRefreshed.length === this.tokensForFrequencyRefresh.size &&
+                frequencyTokensRefreshed.every((token) => this.tokensForFrequencyRefresh.has(token))
+            ) {
+                this.tokensForFrequencyRefresh = new Set();
             }
         }
         return !buildWasCancelled;
@@ -815,6 +843,14 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                         };
                         if (token.status === null) this.erroredCache.add(index);
                         if (this.shouldCancelBuild) return;
+                        if (
+                            ts.dt.dictionaryTokenFrequencyAnnotation === TokenFrequencyAnnotation.ALWAYS ||
+                            (token.status === TokenStatus.UNCOLLECTED &&
+                                ts.dt.dictionaryTokenFrequencyAnnotation === TokenFrequencyAnnotation.UNCOLLECTED_ONLY)
+                        ) {
+                            token.frequency = await ts.yt!.frequency(trimmedToken);
+                            if (this.shouldCancelBuild) return;
+                        }
 
                         reconstructedTextParts.push(tokenText);
                         allTokens.push(token);
@@ -899,6 +935,14 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                 token.status = await this._tokenStatus(trimmedToken, ts);
                 if (token.status === null) this.erroredCache.add(index);
                 if (this.shouldCancelBuild) return;
+                if (
+                    ts.dt.dictionaryTokenFrequencyAnnotation === TokenFrequencyAnnotation.ALWAYS ||
+                    (token.status === TokenStatus.UNCOLLECTED &&
+                        ts.dt.dictionaryTokenFrequencyAnnotation === TokenFrequencyAnnotation.UNCOLLECTED_ONLY)
+                ) {
+                    token.frequency = await ts.yt!.frequency(trimmedToken);
+                    if (this.shouldCancelBuild) return;
+                }
             }
 
             return { reconstructedText: reconstructedTextParts.join(''), tokenization: { tokens } };
@@ -1197,13 +1241,8 @@ export class HoveredToken {
     }
 
     parse(): { token: string; track: number } | null {
-        const tokenEl =
-            this._hoveredElement?.tagName === 'RUBY'
-                ? this._hoveredElement.parentElement
-                : this._hoveredElement?.tagName === 'RT'
-                  ? this._hoveredElement.parentElement?.parentElement
-                  : this._hoveredElement;
-        if (!tokenEl?.classList.contains(ASB_TOKEN_CLASS)) return null;
+        const tokenEl = this._hoveredElement?.closest(`.${ASB_TOKEN_CLASS}`);
+        if (!tokenEl) return null;
 
         const trackStr = tokenEl.closest('[data-track]')?.getAttribute('data-track');
         if (!trackStr) return null;
@@ -1270,7 +1309,7 @@ const ERROR_STYLE = `style="text-decoration: line-through red 3px;"`;
 const LOGIC_ERROR_STYLE = `style="text-decoration: line-through red 3px double;"`;
 
 const applyTokenStyle = (fullText: string, token: Token, dt?: DictionaryTrack) => {
-    const tokenText = applyReadingAnnotation(fullText, token, dt);
+    const tokenText = applyFrequencyAnnotation(applyReadingAnnotation(fullText, token, dt), token, dt);
     if (token.status === null) return `<span ${ERROR_STYLE}>${tokenText}</span>`;
     if (token.status === undefined && dt && dictionaryTrackEnabled(dt)) {
         return `<span ${LOGIC_ERROR_STYLE}>${tokenText}</span>`; // External tokens may flash this on initial load
@@ -1302,7 +1341,7 @@ const applyTokenStyle = (fullText: string, token: Token, dt?: DictionaryTrack) =
 const applyReadingAnnotation = (fullText: string, token: Token, dt?: DictionaryTrack) => {
     const tokenText = fullText.substring(token.pos[0], token.pos[1]);
     if (!token.readings.length || !HAS_LETTER_REGEX.test(tokenText) || ONLY_ASCII_LETTERS_REGEX.test(tokenText)) {
-        return tokenText; // Prevent 。 -> まる or english words from getting ruby
+        return tokenText; // Prevent 。 -> まる or english words from getting readings
     }
 
     // Only apply skip logic for tokens generated by this class i.e. marked __internal: true
@@ -1333,9 +1372,21 @@ const applyReadingAnnotation = (fullText: string, token: Token, dt?: DictionaryT
                 parts.push(tokenText.substring(left, right));
             } else {
                 const part = tokenText.substring(reading.pos[0], reading.pos[1]);
-                parts.push(`<ruby>${part}<rt>${reading.reading}</rt></ruby>`);
+                parts.push(`<ruby class="${ASB_READING_CLASS}">${part}<rt>${reading.reading}</rt></ruby>`);
             }
         }
     );
     return parts.join('');
+};
+
+const applyFrequencyAnnotation = (tokenText: string, token: Token, dt?: DictionaryTrack) => {
+    if (token.frequency === undefined || !HAS_LETTER_REGEX.test(tokenText) || !dt) return tokenText;
+    if (dt.dictionaryTokenFrequencyAnnotation === TokenFrequencyAnnotation.NEVER) return tokenText;
+    if (
+        dt.dictionaryTokenFrequencyAnnotation === TokenFrequencyAnnotation.UNCOLLECTED_ONLY &&
+        token.status !== TokenStatus.UNCOLLECTED
+    ) {
+        return tokenText;
+    }
+    return `<ruby class="${ASB_FREQUENCY_CLASS}">${tokenText}<rt>${token.frequency}</rt></ruby>`;
 };
