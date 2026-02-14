@@ -6,17 +6,28 @@ import { AppSettingsStorage } from '../services/app-settings-storage';
 import { useSettingsProfileContext } from '../../hooks/use-settings-profile-context';
 import ChromeExtension from '../services/chrome-extension';
 import { GlobalState, GlobalStateProvider } from '../../global-state';
+import { DictionaryProvider, DictionaryStorage } from '../../dictionary-db';
 
 interface Props {
     origin: string;
     logoUrl: string;
     fetcher: Fetcher;
+    dictionaryStorage: DictionaryStorage;
     settingsStorage: AppSettingsStorage;
     globalStateProvider: GlobalStateProvider;
     extension: ChromeExtension;
 }
 
-const RootApp = ({ extension, origin, logoUrl, settingsStorage, globalStateProvider, fetcher }: Props) => {
+const RootApp = ({
+    extension,
+    origin,
+    logoUrl,
+    dictionaryStorage,
+    settingsStorage,
+    globalStateProvider,
+    fetcher,
+}: Props) => {
+    const dictionaryProvider = useMemo(() => new DictionaryProvider(dictionaryStorage), [dictionaryStorage]);
     const settingsProvider = useMemo(() => new SettingsProvider(settingsStorage), [settingsStorage]);
     const [settings, setSettings] = useState<AsbplayerSettings>();
     const [globalState, setGlobalState] = useState<GlobalState>();
@@ -38,6 +49,7 @@ const RootApp = ({ extension, origin, logoUrl, settingsStorage, globalStateProvi
         settingsProvider.getAll().then(setSettings);
     }, [settingsProvider]);
     const { refreshProfileContext, ...profilesContext } = useSettingsProfileContext({
+        dictionaryProvider,
         settingsProvider,
         onProfileChanged: handleProfileChanged,
     });
@@ -75,6 +87,8 @@ const RootApp = ({ extension, origin, logoUrl, settingsStorage, globalStateProvi
         <App
             origin={origin}
             logoUrl={logoUrl}
+            dictionaryProvider={dictionaryProvider}
+            settingsProvider={settingsProvider}
             settings={settings}
             globalState={globalState}
             extension={extension}

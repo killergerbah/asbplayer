@@ -11,11 +11,15 @@ import {
     PlayMode,
     PostMineAction,
     PostMinePlayback,
+    RequestSubtitlesResponse,
     SubtitleModel,
+    TokenizedSubtitleModel,
     VideoTabModel,
 } from '@project/common';
-import { AsbplayerSettings } from '@project/common/settings';
+import { ApplyStrategy, AsbplayerSettings, SettingsProvider, TokenState } from '@project/common/settings';
+import { DictionaryProvider } from '@project/common/dictionary-db';
 import { SubtitleCollection } from '@project/common/subtitle-collection';
+import { renderRichTextOntoSubtitles, HoveredToken, SubtitleColoring } from '@project/common/subtitle-coloring';
 import { SubtitleReader } from '@project/common/subtitle-reader';
 import { KeyBinder } from '@project/common/key-binder';
 import { timeDurationDisplay } from '../services/util';
@@ -34,6 +38,7 @@ import { useAppBarHeight } from '../hooks/use-app-bar-height';
 import { createBlobUrl } from '../../blob-url';
 import { MiningContext } from '../services/mining-context';
 import { SeekTimestampCommand, WebSocketClient } from '../../web-socket-client';
+import { ensureStoragePersisted } from '../../util';
 
 const minVideoPlayerWidth = 300;
 
@@ -91,6 +96,8 @@ interface PlayerProps {
     sources?: MediaSources;
     subtitles: DisplaySubtitleModel[];
     subtitleReader: SubtitleReader;
+    dictionaryProvider: DictionaryProvider;
+    settingsProvider: SettingsProvider;
     settings: AsbplayerSettings;
     playbackPreferences: PlaybackPreferences;
     keyBinder: KeyBinder;
@@ -118,7 +125,7 @@ interface PlayerProps {
     onHideSubtitlePlayer: () => void;
     onVideoPopOut: () => void;
     onPlayModeChangedViaBind: (oldPlayMode: PlayMode, newPlayMode: PlayMode) => void;
-    onSubtitles: (subtitles: DisplaySubtitleModel[]) => void;
+    onSubtitles: React.Dispatch<React.SetStateAction<DisplaySubtitleModel[] | undefined>>;
     onLoadFiles?: () => void;
     disableKeyEvents: boolean;
     jumpToSubtitle?: SubtitleModel;
@@ -132,6 +139,8 @@ const Player = React.memo(function Player({
     sources,
     subtitles,
     subtitleReader,
+    dictionaryProvider,
+    settingsProvider,
     settings,
     playbackPreferences,
     keyBinder,
@@ -171,15 +180,6 @@ const Player = React.memo(function Player({
     const [subtitlesSentThroughChannel, setSubtitlesSentThroughChannel] = useState<boolean>();
     const subtitlesRef = useRef<DisplaySubtitleModel[]>(undefined);
     subtitlesRef.current = subtitles;
-    const subtitleCollection = useMemo<SubtitleCollection<DisplaySubtitleModel>>(
-        () =>
-            new SubtitleCollection(subtitles ?? [], {
-                returnLastShown: true,
-                returnNextToShow: playMode === PlayMode.condensed || playMode === PlayMode.fastForward,
-                showingCheckRadiusMs: 100,
-            }),
-        [subtitles, playMode]
-    );
     const subtitleFiles = sources?.subtitleFiles;
     const flattenSubtitleFiles = sources?.flattenSubtitleFiles;
     const videoFile = sources?.videoFile;
@@ -211,6 +211,8 @@ const Player = React.memo(function Player({
         return new MediaAdapter({ current: undefined });
     }, [channel, videoFileUrl, tab]);
     const clock = useMemo<Clock>(() => new Clock(), []);
+    const clockRef = useRef<Clock>(clock);
+    clockRef.current = clock;
     const appBarHeight = useAppBarHeight();
     const classes = useStyles({ appBarHidden, appBarHeight });
     const calculateLength = () => trackLength(channelRef.current, subtitlesRef.current);
@@ -303,6 +305,8 @@ const Player = React.memo(function Player({
                 displayTime: timeDurationDisplay(s.originalStart + offset, length),
                 track: s.track,
                 index: i,
+                richText: s.richText,
+                tokenization: s.tokenization,
             }));
 
             if (forwardToVideo) {
@@ -375,7 +379,10 @@ const Player = React.memo(function Player({
                         displayTime: timeDurationDisplay(s.start + offset, length),
                         track: s.track,
                         index: i,
+                        tokenization: s.tokenization,
                     }));
+
+                    renderRichTextOntoSubtitles(subtitles);
 
                     setSubtitlesSentThroughChannel(false);
                     onSubtitles(subtitles);
@@ -394,6 +401,205 @@ const Player = React.memo(function Player({
 
         init().then(() => onLoaded(subtitleFiles ?? []));
     }, [subtitleReader, onLoaded, onError, subtitleFiles, flattenSubtitleFiles, onSubtitles]);
+
+    const [subtitleCollection, setSubtitleCollection] = useState<
+        SubtitleColoring | SubtitleCollection<DisplaySubtitleModel>
+    >(SubtitleCollection.empty<DisplaySubtitleModel>());
+    const subtitleCollectionRef = useRef<SubtitleColoring | SubtitleCollection<DisplaySubtitleModel>>(
+        subtitleCollection
+    );
+    subtitleCollectionRef.current = subtitleCollection;
+
+    useEffect(() => {
+        const options = { returnLastShown: true, returnNextToShow: true, showingCheckRadiusMs: 150 };
+        if (tab) {
+            const newCol = new SubtitleCollection<DisplaySubtitleModel>(options);
+            newCol.setSubtitles(subtitlesRef.current ?? []);
+            setSubtitleCollection(newCol);
+            subtitleCollectionRef.current = newCol;
+            return; // Handled by extension
+        }
+
+        const subtitleColoring = new SubtitleColoring(
+            dictionaryProvider,
+            settingsProvider,
+            options,
+            (updatedSubtitles, dictionaryTracks) => {
+                renderRichTextOntoSubtitles(updatedSubtitles, dictionaryTracks);
+                channel?.subtitlesUpdated(updatedSubtitles);
+                onSubtitles((prevSubtitles) => {
+                    if (!prevSubtitles?.length) return prevSubtitles;
+                    const allSubtitles = prevSubtitles.slice();
+                    for (const s of updatedSubtitles) {
+                        allSubtitles[s.index] = {
+                            ...allSubtitles[s.index],
+                            text: s.text,
+                            richText: s.richText,
+                            tokenization: s.tokenization,
+                        };
+                    }
+                    return allSubtitles;
+                });
+            },
+            () => clockRef.current.time(calculateLength())
+        );
+        if (subtitlesRef.current) subtitleColoring.setSubtitles(subtitlesRef.current);
+        subtitleColoring.bind();
+        setSubtitleCollection(subtitleColoring);
+        subtitleCollectionRef.current = subtitleColoring;
+        return () => {
+            if (!(subtitleCollectionRef.current instanceof SubtitleColoring)) return;
+            subtitleCollectionRef.current.unbind();
+        };
+    }, [channel, dictionaryProvider, settingsProvider, tab, onSubtitles]);
+
+    useEffect(() => {
+        if (!subtitleCollectionRef.current) return;
+        subtitleCollectionRef.current.setSubtitles(subtitles);
+    }, [subtitles]);
+
+    useEffect(() => {
+        if (!(subtitleCollectionRef.current instanceof SubtitleColoring)) return;
+        subtitleCollectionRef.current.settingsUpdated(settings);
+    }, [settings]);
+
+    useEffect(() => {
+        return channel?.onSubtitlesUpdated((updatedSubtitles) => {
+            onSubtitles((prevSubtitles) => {
+                if (!prevSubtitles?.length) return prevSubtitles;
+                const allSubtitles = prevSubtitles.slice();
+                for (const s of updatedSubtitles) {
+                    // FIXME: Primitive check to ensure we don't apply a color update from a completely different subtitle or subtitle file.
+                    // We should probably have a hash or ID associated with the subtitle file this color update is for.
+                    const updatedText = (s as TokenizedSubtitleModel).originalText ?? s.text;
+                    const prevText =
+                        (allSubtitles[s.index] as TokenizedSubtitleModel).originalText ?? allSubtitles[s.index].text;
+                    if (updatedText === prevText) {
+                        allSubtitles[s.index] = {
+                            ...allSubtitles[s.index],
+                            text: s.text,
+                            richText: s.richText,
+                            tokenization: s.tokenization,
+                        };
+                    }
+                }
+                return allSubtitles;
+            });
+        });
+    }, [channel, onSubtitles]);
+
+    useEffect(() => {
+        if (!tab) return; // Only matters for extension
+
+        // If the user is on the app's tab in the same window where the chrome side panel is now displaying
+        // the mining history, the subtitle side panel on the video will not receive the updated subtitles.
+        // Once the subtitle side panel is active, we only need to refresh the colors once to get anything missed.
+        (async () => {
+            if (!subtitlesRef.current) return;
+            const response = (await extension.requestSubtitles(tab.id, tab.src)) as
+                | RequestSubtitlesResponse
+                | undefined;
+            if (!response) return;
+            const { subtitles: updatedSubtitles } = response;
+            onSubtitles((prevSubtitles) => {
+                if (!prevSubtitles?.length) return prevSubtitles;
+                const allSubtitles = prevSubtitles.slice();
+                for (const s of updatedSubtitles) {
+                    // FIXME: Primitive check to ensure we don't apply a color update from a completely different subtitle or subtitle file.
+                    // We should probably have a hash or ID associated with the subtitle file this color update is for.
+                    const updatedText = (s as TokenizedSubtitleModel).originalText ?? s.text;
+                    const prevText =
+                        (allSubtitles[s.index] as TokenizedSubtitleModel).originalText ?? allSubtitles[s.index].text;
+                    if (updatedText === prevText) {
+                        allSubtitles[s.index] = {
+                            ...allSubtitles[s.index],
+                            text: s.text,
+                            richText: s.richText,
+                            tokenization: s.tokenization,
+                        };
+                    }
+                }
+                return allSubtitles;
+            });
+        })();
+
+        const removeCardUpdatedDialog = channel?.onCardUpdatedDialog(() =>
+            extension.cardUpdatedDialog(tab.id, tab.src)
+        );
+        const removeCardExportedDialog = channel?.onCardExportedDialog(() =>
+            extension.cardExportedDialog(tab.id, tab.src)
+        );
+        return () => {
+            if (removeCardUpdatedDialog) removeCardUpdatedDialog();
+            if (removeCardExportedDialog) removeCardExportedDialog();
+        };
+    }, [channel, extension, tab, onSubtitles]);
+
+    const hoveredToken = useMemo(() => new HoveredToken(), []);
+
+    const handleMouseOver = useCallback(
+        (e: React.MouseEvent) => hoveredToken.handleMouseOver(e.nativeEvent),
+        [hoveredToken]
+    );
+
+    const handleMouseOut = useCallback(
+        (e: React.MouseEvent) => hoveredToken.handleMouseOut(e.nativeEvent),
+        [hoveredToken]
+    );
+
+    useEffect(() => {
+        return keyBinder.bindMarkHoveredToken(
+            (event, tokenStatus) => {
+                const res = hoveredToken.parse();
+                if (!res) return;
+                void ensureStoragePersisted();
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                const applyStates = ApplyStrategy.ADD;
+                if (subtitleCollectionRef.current instanceof SubtitleColoring) {
+                    void subtitleCollectionRef.current.saveTokenLocal(
+                        res.track,
+                        res.token,
+                        tokenStatus,
+                        [],
+                        applyStates
+                    );
+                    return;
+                }
+                if (!tab) return;
+                void extension.saveTokenLocal(tab.id, tab.src, res.track, res.token, tokenStatus, [], applyStates);
+            },
+            () => disableKeyEvents
+        );
+    }, [hoveredToken, keyBinder, disableKeyEvents, tab, extension]);
+
+    useEffect(() => {
+        return keyBinder.bindToggleHoveredTokenIgnored(
+            (event) => {
+                const res = hoveredToken.parse();
+                if (!res) return;
+                void ensureStoragePersisted();
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                const states = [TokenState.IGNORED];
+                const applyStates = ApplyStrategy.TOGGLE;
+                if (subtitleCollectionRef.current instanceof SubtitleColoring) {
+                    void subtitleCollectionRef.current.saveTokenLocal(res.track, res.token, null, states, applyStates);
+                    return;
+                }
+                if (!tab) return;
+                void extension.saveTokenLocal(tab.id, tab.src, res.track, res.token, null, states, applyStates);
+            },
+            () => disableKeyEvents
+        );
+    }, [hoveredToken, keyBinder, disableKeyEvents, tab, extension]);
+
+    useEffect(() => {
+        return channel?.onSaveTokenLocal((track, token, status, states, applyStates) => {
+            if (!(subtitleCollectionRef.current instanceof SubtitleColoring)) return;
+            subtitleCollectionRef.current.saveTokenLocal(track, token, status, states, applyStates);
+        });
+    }, [channel]);
 
     useEffect(() => {
         setSubtitlesSentThroughChannel(false);
@@ -1065,6 +1271,8 @@ const Player = React.memo(function Player({
                         disabledSubtitleTracks={disabledSubtitleTracks}
                         onSeek={handleSeekToTimestamp}
                         onCopy={handleCopyFromSubtitlePlayer}
+                        onMouseOver={handleMouseOver}
+                        onMouseOut={handleMouseOut}
                         onOffsetChange={handleOffsetChange}
                         onToggleSubtitleTrack={handleToggleSubtitleTrack}
                         onSubtitlesHighlighted={handleSubtitlesHighlighted}

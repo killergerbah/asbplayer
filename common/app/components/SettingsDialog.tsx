@@ -15,6 +15,7 @@ import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
 import { type Theme } from '@mui/material';
+import { DictionaryProvider } from '../../dictionary-db';
 
 const appTestCard = () => {
     const basePath = window.location.pathname === '/' ? '' : window.location.pathname;
@@ -44,6 +45,7 @@ interface Props {
     anki: Anki;
     extension: ChromeExtension;
     open: boolean;
+    dictionaryProvider: DictionaryProvider;
     settings: AsbplayerSettings;
     scrollToId?: string;
     onSettingsChanged: (settings: Partial<AsbplayerSettings>) => void;
@@ -59,6 +61,7 @@ export default function SettingsDialog({
     anki,
     extension,
     open,
+    dictionaryProvider,
     settings,
     scrollToId,
     onSettingsChanged,
@@ -104,13 +107,17 @@ export default function SettingsDialog({
                     extensionSupportsPauseOnHover={extension.supportsPauseOnHover}
                     extensionSupportsExportCardBind={extension.supportsExportCardBind}
                     extensionSupportsPageSettings={extension.supportsPageSettings}
+                    extensionSupportsDictionary={extension.supportsDictionary}
                     pageConfigs={extension.pageConfig}
                     insideApp
                     appVersion={import.meta.env.VITE_APP_GIT_COMMIT}
                     chromeKeyBinds={extension.extensionCommands}
                     onOpenChromeExtensionShortcuts={extension.openShortcuts}
                     onSettingsChanged={onSettingsChanged}
+                    dictionaryProvider={dictionaryProvider}
                     settings={settings}
+                    profiles={profilesContext.profiles}
+                    activeProfile={profilesContext.activeProfile}
                     scrollToId={scrollToId}
                     localFontsAvailable={localFontsAvailable}
                     localFontsPermission={localFontsPermission}

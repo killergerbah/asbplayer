@@ -32,7 +32,7 @@ export default function WordField({
 }: Props) {
     const { t } = useTranslation();
     const [lastSearchedWord, setLastSearchedWord] = useState<string>();
-    const [duplicateNotes, setDuplicateNotes] = useState<string[]>([]);
+    const [duplicateNotes, setDuplicateNotes] = useState<number[]>([]);
     const [wordTimestamp, setWordTimestamp] = useState<number>(0);
 
     useEffect(() => {

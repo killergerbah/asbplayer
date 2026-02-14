@@ -13,6 +13,7 @@ import Typography from '@mui/material/Typography';
 import { useTheme, withStyles } from '@mui/styles';
 import { type Theme } from '@mui/material';
 import { useTranslation } from 'react-i18next';
+import SettingsSection from './SettingsSection';
 
 interface Props {
     appVersion?: string;
@@ -231,14 +232,13 @@ const About = ({ appVersion, extensionVersion }: Props) => {
                 )}
             </Box>
             <p />
-            <Typography variant="h5">{t('about.license')}</Typography>
-            <p />
+            <SettingsSection>{t('about.license')}</SettingsSection>
             <Paper variant="outlined" style={{ padding: theme.spacing(2), height: 'auto' }}>
                 <Typography variant="body2">
                     MIT License
                     <br />
                     <br />
-                    Copyright (c) 2020-2025 asbplayer authors
+                    Copyright (c) 2020-2026 asbplayer authors
                     <br />
                     <br />
                     Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
@@ -260,9 +260,7 @@ const About = ({ appVersion, extensionVersion }: Props) => {
                 </Typography>
             </Paper>
             <br />
-            <br />
-            <Typography variant="h5">{t('about.deps')}</Typography>
-            <p />
+            <SettingsSection>{t('about.deps')}</SettingsSection>
             <TableContainer variant="outlined" component={Paper} style={{ height: 'auto' }}>
                 <Table style={{ margin: 0, padding: 0 }}>
                     <TableHead>

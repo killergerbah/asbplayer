@@ -15,12 +15,11 @@ import {
     JumpToSubtitleMessage,
     DownloadImageMessage,
     DownloadAudioMessage,
-    PostMineAction,
     CardExportedMessage,
 } from '@project/common';
 import type { Message } from '@project/common';
 import type { BulkExportStartedPayload } from '../../controllers/bulk-export-controller';
-import { AsbplayerSettings } from '@project/common/settings';
+import { AsbplayerSettings, SettingsProvider } from '@project/common/settings';
 import { AudioClip } from '@project/common/audio-clip';
 import { ChromeExtension, useCopyHistory } from '@project/common/app';
 import { useI18n } from '../hooks/use-i18n';
@@ -52,8 +51,11 @@ import BulkExportModal from '@project/common/app/components/BulkExportModal';
 import { IndexedDBCopyHistoryRepository } from '@project/common/copy-history';
 import { mp3WorkerFactory } from '../../services/mp3-worker-factory';
 import { pgsParserWorkerFactory } from '../../services/pgs-parser-worker-factory';
+import { DictionaryProvider } from '@project/common/dictionary-db';
 
 interface Props {
+    dictionaryProvider: DictionaryProvider;
+    settingsProvider: SettingsProvider;
     settings: AsbplayerSettings;
     extension: ChromeExtension;
 }
@@ -65,7 +67,7 @@ const sameVideoTab = (a: VideoTabModel, b: VideoTabModel) => {
 const emptyArray: VideoTabModel[] = [];
 const miningContext = new MiningContext();
 
-export default function SidePanel({ settings, extension }: Props) {
+export default function SidePanel({ dictionaryProvider, settingsProvider, settings, extension }: Props) {
     const { t } = useTranslation();
     const playbackPreferences = useMemo(() => new PlaybackPreferences(settings, extension), [settings, extension]);
     const subtitleReader = useMemo(
@@ -74,6 +76,7 @@ export default function SidePanel({ settings, extension }: Props) {
                 regexFilter: settings.subtitleRegexFilter,
                 regexFilterTextReplacement: settings.subtitleRegexFilterTextReplacement,
                 subtitleHtml: settings.subtitleHtml,
+                convertNetflixRuby: settings.convertNetflixRuby,
                 pgsParserWorkerFactory,
             }),
         [settings]
@@ -564,6 +567,8 @@ export default function SidePanel({ settings, extension }: Props) {
                                 showCopyButton={true}
                                 forceCompressedMode={true}
                                 subtitleReader={subtitleReader}
+                                dictionaryProvider={dictionaryProvider}
+                                settingsProvider={settingsProvider}
                                 settings={settings}
                                 playbackPreferences={playbackPreferences}
                                 onCopy={handleMineFromSubtitlePlayer}

@@ -2,10 +2,11 @@ import { compile as parseAss } from 'ass-compiler';
 import SrtParser from '@qgustavor/srt-parser';
 import { WebVTT } from 'vtt.js';
 import { XMLParser } from 'fast-xml-parser';
-import { SubtitleHtml, SubtitleTextImage } from '@project/common';
+import { SubtitleHtml, SubtitleTextImage, Token, Tokenization } from '@project/common';
 
 const vttClassRegex = /<(\/)?c(\.[^>]*)?>/g;
 const assNewLineRegex = RegExp(/\\[nN]/, 'ig');
+const netflixRubyRegex = /([\p{sc=Hira}\p{sc=Kana}\p{sc=Han}々〆〤ヶ]+)\((?=[^)]*[\p{sc=Hira}\p{sc=Kana}])([^)]+)\)/gu;
 const helperElement = document.createElement('div');
 
 interface SubtitleNode {
@@ -14,6 +15,7 @@ interface SubtitleNode {
     text: string;
     textImage?: SubtitleTextImage;
     track: number;
+    tokenization?: Tokenization;
 }
 
 export interface TextFilter {
@@ -58,6 +60,7 @@ const sortVttCues = (list: VTTCue[]) => {
 export default class SubtitleReader {
     private readonly _textFilter?: TextFilter;
     private readonly _removeXml: boolean;
+    private readonly _convertNetflixRuby: boolean;
     private readonly _pgsWorkerFactory: () => Promise<Worker>;
     private xmlParser?: XMLParser;
 
@@ -65,11 +68,13 @@ export default class SubtitleReader {
         regexFilter,
         regexFilterTextReplacement,
         subtitleHtml,
+        convertNetflixRuby,
         pgsParserWorkerFactory: pgsWorkerFactory,
     }: {
         regexFilter: string;
         regexFilterTextReplacement: string;
         subtitleHtml: SubtitleHtml;
+        convertNetflixRuby: boolean;
         pgsParserWorkerFactory: () => Promise<Worker>;
     }) {
         let regex: RegExp | undefined;
@@ -87,6 +92,7 @@ export default class SubtitleReader {
         }
 
         this._removeXml = subtitleHtml === SubtitleHtml.remove;
+        this._convertNetflixRuby = convertNetflixRuby;
 
         this._pgsWorkerFactory = pgsWorkerFactory;
     }
@@ -99,6 +105,12 @@ export default class SubtitleReader {
 
         if (flatten) {
             return this._deduplicate(allNodes);
+        }
+
+        if (this._convertNetflixRuby) {
+            for (const node of allNodes) {
+                this._convertNetflixRubyToHtml(node);
+            }
         }
 
         return allNodes;
@@ -488,14 +500,31 @@ export default class SubtitleReader {
     private _decodeHTML(text: string): string {
         helperElement.innerHTML = text;
 
-        // Remove <rt> element content
         const rubyTextElements = [...helperElement.getElementsByTagName('rt')];
         for (const rubyTextElement of rubyTextElements) {
             rubyTextElement.remove();
         }
 
-        // Remove all HTML tags
         return helperElement.textContent ?? helperElement.innerText;
+    }
+
+    private _convertNetflixRubyToHtml(node: SubtitleNode) {
+        if (!node.text) {
+            return;
+        }
+
+        const tokens: Token[] = [];
+        node.text = node.text.replace(netflixRubyRegex, (_match, base, reading, offset) => {
+            tokens.push({
+                pos: [offset, offset + base.length],
+                readings: [{ pos: [0, base.length], reading }],
+                states: [],
+            });
+            return base;
+        });
+        if (tokens.length > 0) {
+            node.tokenization = { tokens };
+        }
     }
 
     private _xmlParser() {
@@ -503,6 +532,8 @@ export default class SubtitleReader {
             this.xmlParser = new XMLParser({
                 ignoreAttributes: false,
                 trimValues: false,
+                parseTagValue: false,
+                parseAttributeValue: false,
             });
         }
 

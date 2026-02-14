@@ -49,7 +49,7 @@ export default defineConfig({
         let manifest: UserManifest = {
             name: 'asbplayer: Language-learning with subtitles',
             description: '__MSG_extensionDescription__',
-            version: '1.12.0',
+            version: '1.14.0',
             action: { default_title: 'asbplayer' },
             default_locale: 'en',
             icons: {
@@ -71,6 +71,7 @@ export default defineConfig({
                         'bandai-channel-page.js',
                         'amazon-prime-page.js',
                         'hulu-page.js',
+                        'iwanttfc-page.js',
                         'disney-plus-page.js',
                         'apps-disney-plus-page.js',
                         'viki-page.js',
@@ -147,7 +148,7 @@ export default defineConfig({
             };
         }
 
-        let permissions = ['tabs', 'storage'];
+        let permissions = ['tabs', 'storage', 'unlimitedStorage'];
 
         if (browser === 'chrome') {
             permissions = [...permissions, 'tabCapture', 'activeTab', 'contextMenus', 'sidePanel', 'offscreen'];

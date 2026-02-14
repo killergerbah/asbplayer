@@ -56,6 +56,7 @@ export class MobileVideoOverlayController {
             contentPositionOffset: 8,
             contentWidthPercentage: -1,
             onMouseOver: () => {},
+            onMouseOut: () => {},
         });
     }
 

@@ -21,8 +21,10 @@ import { settingsPageConfigs } from '@/services/pages';
 import Stack from '@mui/material/Stack';
 import TutorialIcon from '@project/common/components/TutorialIcon';
 import Paper from '@mui/material/Paper';
+import { DictionaryProvider } from '@project/common/dictionary-db';
 
 interface Props {
+    dictionaryProvider: DictionaryProvider;
     settings: AsbplayerSettings;
     commands: any;
     onSettingsChanged: (settings: Partial<AsbplayerSettings>) => void;
@@ -53,6 +55,7 @@ class ExtensionFetcher implements Fetcher {
 }
 
 const Popup = ({
+    dictionaryProvider,
     settings,
     commands,
     onOpenApp,
@@ -102,6 +105,7 @@ const Popup = ({
                     }}
                 >
                     <SettingsForm
+                        heightConstrained
                         extensionInstalled
                         extensionVersion={browser.runtime.getManifest().version}
                         extensionSupportsAppIntegration
@@ -113,10 +117,14 @@ const Popup = ({
                         extensionSupportsPauseOnHover
                         extensionSupportsExportCardBind
                         extensionSupportsPageSettings
+                        extensionSupportsDictionary
                         forceVerticalTabs={false}
                         anki={anki}
                         chromeKeyBinds={chromeCommandBindsToKeyBinds(commands)}
+                        dictionaryProvider={dictionaryProvider}
                         settings={settings}
+                        profiles={profilesContext.profiles}
+                        activeProfile={profilesContext.activeProfile}
                         pageConfigs={settingsPageConfigs}
                         localFontsAvailable={localFontsAvailable}
                         localFontsPermission={localFontsPermission}

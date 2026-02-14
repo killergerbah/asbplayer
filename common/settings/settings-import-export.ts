@@ -1,7 +1,7 @@
 import { Validator } from 'jsonschema';
 import { AsbplayerSettings } from './settings';
 import { ensureConsistencyOnRead } from './settings-provider';
-import { download } from '../util';
+import { download, getCurrentTimeString } from '../util';
 
 const keyBindSchema = {
     id: '/KeyBind',
@@ -25,6 +25,81 @@ const ankiFieldSchema = {
         },
     },
     required: ['order', 'display'],
+};
+const dictionaryTrackSchema = {
+    id: '/DictionaryTrack',
+    type: 'object',
+    properties: {
+        dictionaryColorizeSubtitles: {
+            type: 'boolean',
+        },
+        dictionaryColorizeOnHoverOnly: {
+            type: 'boolean',
+        },
+        dictionaryHighlightOnHover: {
+            type: 'boolean',
+        },
+        dictionaryTokenMatchStrategy: {
+            type: 'string',
+        },
+        dictionaryTokenMatchStrategyPriority: {
+            type: 'string',
+        },
+        dictionaryYomitanUrl: {
+            type: 'string',
+        },
+        dictionaryYomitanScanLength: {
+            type: 'number',
+        },
+        dictionaryTokenReadingAnnotation: {
+            type: 'string',
+        },
+        dictionaryDisplayIgnoredTokenReadings: {
+            type: 'boolean',
+        },
+        dictionaryAnkiDecks: {
+            type: 'array',
+            items: {
+                type: 'string',
+            },
+        },
+        dictionaryAnkiWordFields: {
+            type: 'array',
+            items: {
+                type: 'string',
+            },
+        },
+        dictionaryAnkiSentenceFields: {
+            type: 'array',
+            items: {
+                type: 'string',
+            },
+        },
+        dictionaryAnkiSentenceTokenMatchStrategy: {
+            type: 'string',
+        },
+        dictionaryAnkiMatureCutoff: {
+            type: 'number',
+        },
+        dictionaryAnkiTreatSuspended: {
+            type: ['string', 'number'],
+        },
+        dictionaryTokenStyling: {
+            type: 'string',
+        },
+        dictionaryTokenStylingThickness: {
+            type: 'number',
+        },
+        dictionaryColorizeFullyKnownTokens: {
+            type: 'boolean',
+        },
+        dictionaryTokenStatusColors: {
+            type: 'array',
+            items: {
+                type: 'string',
+            },
+        },
+    },
 };
 const textSubtitleSettingsSchema = {
     id: '/TextSubtitleSettings',
@@ -274,6 +349,13 @@ const settingsSchema = {
                 moveBottomSubtitlesDown: { $ref: '/KeyBind' },
                 moveTopSubtitlesUp: { $ref: '/KeyBind' },
                 moveTopSubtitlesDown: { $ref: '/KeyBind' },
+                markHoveredToken5: { $ref: '/KeyBind' },
+                markHoveredToken4: { $ref: '/KeyBind' },
+                markHoveredToken3: { $ref: '/KeyBind' },
+                markHoveredToken2: { $ref: '/KeyBind' },
+                markHoveredToken1: { $ref: '/KeyBind' },
+                markHoveredToken0: { $ref: '/KeyBind' },
+                toggleHoveredTokenIgnored: { $ref: '/KeyBind' },
             },
         },
         recordWithAudioPlayback: {
@@ -320,6 +402,9 @@ const settingsSchema = {
         },
         subtitleRegexFilterTextReplacement: {
             type: 'string',
+        },
+        convertNetflixRuby: {
+            type: 'boolean',
         },
         language: {
             type: 'string',
@@ -416,6 +501,12 @@ const settingsSchema = {
         lastSelectedAnkiExportMode: {
             type: 'string',
         },
+        dictionaryTracks: {
+            type: 'array',
+            items: {
+                $ref: '/DictionaryTrack',
+            },
+        },
         _schema: {
             type: 'number',
         },
@@ -435,14 +526,9 @@ const withIgnoredKeysRemoved = (settings: any) => {
 };
 
 export const exportSettings = (settings: AsbplayerSettings) => {
-    const now = new Date();
-    const timeString = `${now.getFullYear()}-${
-        now.getMonth() + 1
-    }-${now.getDate()}-${now.getHours()}-${now.getMinutes()}-${now.getSeconds()}`;
-
     download(
-        new Blob([JSON.stringify(withIgnoredKeysRemoved(settings))], { type: 'appliction/json' }),
-        `asbplayer-settings-${timeString}.json`
+        new Blob([JSON.stringify(withIgnoredKeysRemoved(settings))], { type: 'application/json' }),
+        `asbplayer-settings-${getCurrentTimeString()}.json`
     );
 };
 
@@ -451,6 +537,7 @@ export const validateSettings = (settings: any) => {
     const validator = new Validator();
     validator.addSchema(keyBindSchema);
     validator.addSchema(ankiFieldSchema);
+    validator.addSchema(dictionaryTrackSchema);
     validator.addSchema(textSubtitleSettingsSchema);
     const result = validator.validate(copy, settingsSchema);
     validateAllKnownKeys(copy, []);
@@ -504,6 +591,10 @@ const schemaForRef = (ref: string) => {
 
     if (ref === '/AnkiField') {
         return ankiFieldSchema;
+    }
+
+    if (ref === '/DictionaryTrack') {
+        return dictionaryTrackSchema;
     }
 
     if (ref === '/TextSubtitleSettings') {

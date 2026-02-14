@@ -29,8 +29,38 @@ import {
     ClearCopyHistoryMessage,
     SetGlobalStateMessage,
     GetGlobalStateMessage,
+    DictionaryBuildAnkiCacheMessage,
+    DictionaryGetBulkMessage,
+    DictionaryGetByLemmaBulkMessage,
+    DictionarySaveRecordLocalBulkMessage,
+    DictionaryDeleteRecordLocalBulkMessage,
+    DictionaryDeleteProfileMessage,
+    DictionaryExportRecordLocalBulkMessage,
+    DictionaryImportRecordLocalBulkMessage,
+    CardUpdatedDialogMessage,
+    CardExportedDialogMessage,
+    SaveTokenLocalFromAppMessage,
 } from '@project/common';
-import { AsbplayerSettings, PageSettings, Profile, SettingsFormPageConfig } from '@project/common/settings';
+import {
+    DictionaryLocalTokenInput,
+    DictionaryTokenRecord,
+    DictionaryExportRecordLocalResult,
+    DictionaryImportRecordLocalResult,
+    LemmaResults,
+    DictionarySaveRecordLocalResult,
+    TokenResults,
+    DictionaryDeleteRecordLocalResult,
+    DictionaryDeleteProfileResult,
+} from '@project/common/dictionary-db';
+import {
+    ApplyStrategy,
+    AsbplayerSettings,
+    PageSettings,
+    Profile,
+    SettingsFormPageConfig,
+    TokenState,
+    TokenStatus,
+} from '@project/common/settings';
 import { GlobalState } from '@project/common/global-state';
 import { v4 as uuidv4 } from 'uuid';
 import gte from 'semver/functions/gte';
@@ -132,6 +162,10 @@ export default class ChromeExtension {
         };
 
         window.addEventListener('message', this.windowEventListener);
+    }
+
+    get supportsDictionary() {
+        return this.installed && gte(this.version, '1.14.0');
     }
 
     get supportsPageSettings() {
@@ -318,6 +352,30 @@ export default class ChromeExtension {
         window.postMessage(command);
     }
 
+    cardUpdatedDialog(tabId: number, src: string) {
+        const command: AsbPlayerToVideoCommandV2<CardUpdatedDialogMessage> = {
+            sender: 'asbplayerv2',
+            tabId,
+            src,
+            message: {
+                command: 'card-updated-dialog',
+            },
+        };
+        window.postMessage(command);
+    }
+
+    cardExportedDialog(tabId: number, src: string) {
+        const command: AsbPlayerToVideoCommandV2<CardExportedDialogMessage> = {
+            sender: 'asbplayerv2',
+            tabId,
+            src,
+            message: {
+                command: 'card-exported-dialog',
+            },
+        };
+        window.postMessage(command);
+    }
+
     requestSubtitles(tabId: number, src: string) {
         const messageId = uuidv4();
         const command: AsbPlayerToVideoCommandV2<RequestSubtitlesFromAppMessage> = {
@@ -326,6 +384,34 @@ export default class ChromeExtension {
             src,
             message: {
                 command: 'request-subtitles',
+                messageId,
+            },
+        };
+        window.postMessage(command);
+        return this._createResponsePromise(messageId);
+    }
+
+    saveTokenLocal(
+        tabId: number,
+        src: string,
+        track: number,
+        token: string,
+        status: TokenStatus | null,
+        states: TokenState[],
+        applyStates: ApplyStrategy
+    ) {
+        const messageId = uuidv4();
+        const command: AsbPlayerToVideoCommandV2<SaveTokenLocalFromAppMessage> = {
+            sender: 'asbplayerv2',
+            tabId,
+            src,
+            message: {
+                command: 'save-token-local',
+                track,
+                token,
+                status,
+                states,
+                applyStates,
                 messageId,
             },
         };
@@ -517,7 +603,136 @@ export default class ChromeExtension {
         return this._createResponsePromise(messageId);
     }
 
-    private _createResponsePromise<T>(messageId: string) {
+    async dictionaryGetBulk(profile: string | undefined, track: number, tokens: string[]): Promise<TokenResults> {
+        const messageId = uuidv4();
+        const command: AsbPlayerCommand<DictionaryGetBulkMessage> = {
+            sender: 'asbplayerv2',
+            message: {
+                command: 'dictionary-get-bulk',
+                profile,
+                track,
+                tokens,
+                messageId,
+            },
+        };
+        window.postMessage(command);
+        return await this._createResponsePromise(messageId);
+    }
+
+    async dictionaryGetByLemmaBulk(
+        profile: string | undefined,
+        track: number,
+        lemmas: string[]
+    ): Promise<LemmaResults> {
+        const messageId = uuidv4();
+        const command: AsbPlayerCommand<DictionaryGetByLemmaBulkMessage> = {
+            sender: 'asbplayerv2',
+            message: {
+                command: 'dictionary-get-by-lemma-bulk',
+                profile,
+                track,
+                lemmas,
+                messageId,
+            },
+        };
+        window.postMessage(command);
+        return await this._createResponsePromise(messageId);
+    }
+
+    async dictionarySaveRecordLocalBulk(
+        profile: string | undefined,
+        localTokenInputs: DictionaryLocalTokenInput[],
+        applyStates: ApplyStrategy
+    ): Promise<DictionarySaveRecordLocalResult> {
+        const messageId = uuidv4();
+        const command: AsbPlayerCommand<DictionarySaveRecordLocalBulkMessage> = {
+            sender: 'asbplayerv2',
+            message: {
+                command: 'dictionary-save-record-local-bulk',
+                profile,
+                localTokenInputs,
+                applyStates,
+                messageId,
+            },
+        };
+        window.postMessage(command);
+        return await this._createResponsePromise(messageId);
+    }
+
+    async dictionaryDeleteRecordLocalBulk(
+        profile: string | undefined,
+        tokens: string[]
+    ): Promise<DictionaryDeleteRecordLocalResult> {
+        const messageId = uuidv4();
+        const command: AsbPlayerCommand<DictionaryDeleteRecordLocalBulkMessage> = {
+            sender: 'asbplayerv2',
+            message: {
+                command: 'dictionary-delete-record-local-bulk',
+                profile,
+                tokens,
+                messageId,
+            },
+        };
+        window.postMessage(command);
+        return await this._createResponsePromise(messageId);
+    }
+
+    async dictionaryDeleteProfile(profile: string): Promise<DictionaryDeleteProfileResult> {
+        const messageId = uuidv4();
+        const command: AsbPlayerCommand<DictionaryDeleteProfileMessage> = {
+            sender: 'asbplayerv2',
+            message: {
+                command: 'dictionary-delete-profile',
+                profile,
+                messageId,
+            },
+        };
+        window.postMessage(command);
+        return await this._createResponsePromise(messageId);
+    }
+
+    async dictionaryExportRecordLocalBulk(): Promise<DictionaryExportRecordLocalResult> {
+        const messageId = uuidv4();
+        const command: AsbPlayerCommand<DictionaryExportRecordLocalBulkMessage> = {
+            sender: 'asbplayerv2',
+            message: {
+                command: 'dictionary-export-record-local-bulk',
+                messageId,
+            },
+        };
+        window.postMessage(command);
+        return await this._createResponsePromise(messageId);
+    }
+
+    async dictionaryImportRecordLocalBulk(
+        records: Partial<DictionaryTokenRecord>[],
+        profiles: string[]
+    ): Promise<DictionaryImportRecordLocalResult> {
+        const messageId = uuidv4();
+        const command: AsbPlayerCommand<DictionaryImportRecordLocalBulkMessage> = {
+            sender: 'asbplayerv2',
+            message: {
+                command: 'dictionary-import-record-local-bulk',
+                records,
+                profiles,
+                messageId,
+            },
+        };
+        window.postMessage(command);
+        return await this._createResponsePromise(messageId);
+    }
+
+    buildAnkiCache(profile: string | undefined, settings: AsbplayerSettings): Promise<void> {
+        const messageId = uuidv4();
+        const command: AsbPlayerCommand<DictionaryBuildAnkiCacheMessage> = {
+            sender: 'asbplayerv2',
+            message: { command: 'dictionary-build-anki-cache', messageId, profile, settings },
+        };
+        window.postMessage(command);
+        return this._createResponsePromise(messageId, 60000); // Usually <10s
+    }
+
+    private _createResponsePromise<T>(messageId: string, timeout = 5000) {
         return new Promise<T>((resolve, reject) => {
             this._responseResolves[messageId] = resolve;
             setTimeout(() => {
@@ -525,7 +740,7 @@ export default class ChromeExtension {
                     delete this._responseResolves[messageId];
                     reject('Request timed out');
                 }
-            }, 5000);
+            }, timeout);
         });
     }
 

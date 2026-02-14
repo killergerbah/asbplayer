@@ -47,8 +47,9 @@ import {
     VideoDisappearedMessage,
     VideoHeartbeatMessage,
     VideoToExtensionCommand,
+    IndexedSubtitleModel,
+    SaveTokenLocalMessage,
 } from '@project/common';
-import Mp3Encoder from '@project/common/audio-clip/mp3-encoder';
 import { adjacentSubtitle } from '@project/common/key-binder';
 import {
     extractAnkiSettings,
@@ -65,7 +66,7 @@ import DragController from '../controllers/drag-controller';
 import { MobileGestureController } from '../controllers/mobile-gesture-controller';
 import { MobileVideoOverlayController } from '../controllers/mobile-video-overlay-controller';
 import NotificationController from '../controllers/notification-controller';
-import SubtitleController, { SubtitleModelWithIndex } from '../controllers/subtitle-controller';
+import SubtitleController from '../controllers/subtitle-controller';
 import BulkExportController from '../controllers/bulk-export-controller';
 import VideoDataSyncController from '../controllers/video-data-sync-controller';
 import AudioRecorder, { TimedRecordingInProgressError } from './audio-recorder';
@@ -77,6 +78,9 @@ import KeyBindings from './key-bindings';
 import { shouldShowUpdateAlert } from './update-alert';
 import { bufferToBase64 } from '@project/common/base64';
 import { pgsParserWorkerFactory } from './pgs-parser-worker-factory';
+import { DictionaryProvider } from '@project/common/dictionary-db/dictionary-provider';
+import { ExtensionDictionaryStorage } from './extension-dictionary-storage';
+import { HoveredToken, SubtitleColoring } from '@project/common/subtitle-coloring';
 
 let netflix = false;
 document.addEventListener('asbplayer-netflix-enabled', (e) => {
@@ -140,6 +144,7 @@ export default class Binding {
     readonly mobileVideoOverlayController: MobileVideoOverlayController;
     readonly mobileGestureController: MobileGestureController;
     readonly keyBindings: KeyBindings;
+    readonly dictionary: DictionaryProvider;
     readonly settings: SettingsProvider;
     private readonly _audioRecorder = new AudioRecorder();
     readonly bulkExportController: BulkExportController;
@@ -157,6 +162,7 @@ export default class Binding {
     private fastForwardModePlaybackRate = 2.7;
     private imageDelay = 0;
     private pauseOnHoverMode: PauseOnHoverMode = PauseOnHoverMode.disabled;
+    hoveredToken: HoveredToken;
     recordMedia: boolean;
 
     private playListener?: EventListener;
@@ -183,8 +189,9 @@ export default class Binding {
     constructor(video: HTMLMediaElement, hasPageScript: boolean, frameId?: string) {
         this.video = video;
         this.hasPageScript = hasPageScript;
+        this.dictionary = new DictionaryProvider(new ExtensionDictionaryStorage());
         this.settings = new SettingsProvider(new ExtensionSettingsStorage());
-        this.subtitleController = new SubtitleController(video, this.settings);
+        this.subtitleController = new SubtitleController(video, this.dictionary, this.settings);
         this.videoDataSyncController = new VideoDataSyncController(this, this.settings);
         this.controlsController = new ControlsController(video);
         this.dragController = new DragController(video);
@@ -195,6 +202,7 @@ export default class Binding {
         this.subtitleController.onOffsetChange = () => this.mobileVideoOverlayController.updateModel();
         this.mobileGestureController = new MobileGestureController(this);
         this.bulkExportController = new BulkExportController(this);
+        this.hoveredToken = new HoveredToken();
         this.recordMedia = true;
         this.takeScreenshot = true;
         this.cleanScreenshot = true;
@@ -302,7 +310,7 @@ export default class Binding {
                 changed = true;
                 break;
             case PlayMode.fastForward:
-                this.subtitleController.onSlice = async (slice: SubtitleSlice<SubtitleModelWithIndex>) => {
+                this.subtitleController.onSlice = async (slice: SubtitleSlice<IndexedSubtitleModel>) => {
                     const subtitlesAreSufficientlyOffsetFromNow = (subtitleEdgeTime: number | undefined) => {
                         return (
                             subtitleEdgeTime &&
@@ -547,7 +555,7 @@ export default class Binding {
         this.video.addEventListener('seeked', this.seekedListener);
         this.video.addEventListener('ratechange', this.playbackRateListener);
 
-        this.subtitleController.onMouseOver = () => {
+        this.subtitleController.onMouseOver = (mouseEvent: MouseEvent) => {
             if (this.pauseOnHoverMode !== PauseOnHoverMode.disabled && !this.video.paused) {
                 this.video.pause();
                 this.pausedDueToHover = true;
@@ -569,7 +577,9 @@ export default class Binding {
 
                 document.addEventListener('mousemove', this.mouseMoveListener);
             }
+            this.hoveredToken.handleMouseOver(mouseEvent);
         };
+        this.subtitleController.onMouseOut = (mouseEvent: MouseEvent) => this.hoveredToken.handleMouseOut(mouseEvent);
 
         if (this.hasPageScript) {
             this.videoChangeListener = () => {
@@ -625,7 +635,7 @@ export default class Binding {
                     case 'close':
                         // ignore
                         break;
-                    case 'subtitles':
+                    case 'subtitles': {
                         const subtitlesMessage = request.message as SubtitlesToVideoMessage;
                         const subtitles: SubtitleModel[] = subtitlesMessage.value;
                         this._updateSubtitles(
@@ -633,12 +643,14 @@ export default class Binding {
                             subtitlesMessage.names || [subtitlesMessage.name]
                         );
                         break;
-                    case 'request-subtitles':
+                    }
+                    case 'request-subtitles': {
                         sendResponse({
                             subtitles: this.subtitleController.subtitles,
                             subtitleFileNames: this.subtitleController.subtitleFileNames ?? [],
                         });
                         break;
+                    }
                     // This is useful because when we kick off bulk export the side panel needs to know
                     // what subtitle to start from.
                     case 'request-current-subtitle':
@@ -712,9 +724,11 @@ export default class Binding {
                         switch (cardMessage.command) {
                             case 'card-updated':
                                 locKey = 'info.updatedCard';
+                                this.subtitleController.subtitleColoring.ankiCardWasModified();
                                 break;
                             case 'card-exported':
                                 locKey = 'info.exportedCard';
+                                this.subtitleController.subtitleColoring.ankiCardWasModified();
                                 break;
                             case 'card-saved':
                                 locKey = 'info.copiedSubtitle2';
@@ -736,6 +750,20 @@ export default class Binding {
                             dialogRequestedTimestamp: this.video.currentTime * 1000,
                         };
                         this.mobileVideoOverlayController.updateModel();
+                        break;
+                    case 'card-updated-dialog':
+                    case 'card-exported-dialog':
+                        this.subtitleController.subtitleColoring.ankiCardWasModified();
+                        break;
+                    case 'save-token-local':
+                        const { track, token, status, states, applyStates } = request.message as SaveTokenLocalMessage;
+                        this.subtitleController.subtitleColoring.saveTokenLocal(
+                            track,
+                            token,
+                            status,
+                            states,
+                            applyStates
+                        );
                         break;
                     case 'notify-error':
                         const notifyErrorMessage = request.message as NotifyErrorMessage;
@@ -942,7 +970,22 @@ export default class Binding {
         this.subtitleController.surroundingSubtitlesCountRadius = currentSettings.surroundingSubtitlesCountRadius;
         this.subtitleController.surroundingSubtitlesTimeRadius = currentSettings.surroundingSubtitlesTimeRadius;
         this.subtitleController.autoCopyCurrentSubtitle = currentSettings.autoCopyCurrentSubtitle;
+        this.subtitleController.dictionaryTrackSettings = currentSettings.dictionaryTracks;
+
+        const convertNetflixRubyChanged =
+            this.subtitleController.convertNetflixRuby !== currentSettings.convertNetflixRuby;
+        this.subtitleController.convertNetflixRuby = currentSettings.convertNetflixRuby;
+
+        const subtitleHtmlChanged = this.subtitleController.subtitleHtml !== currentSettings.subtitleHtml;
+        this.subtitleController.subtitleHtml = currentSettings.subtitleHtml;
+
+        this.subtitleController.subtitleColoring.settingsUpdated(currentSettings);
         this.subtitleController.setSubtitleSettings(currentSettings);
+
+        if (convertNetflixRubyChanged || subtitleHtmlChanged) {
+            this.subtitleController.cacheHtml();
+        }
+
         this.subtitleController.refresh();
 
         this.videoDataSyncController.updateSettings(currentSettings);
@@ -1349,6 +1392,7 @@ export default class Binding {
             rememberSubtitleOffset,
             lastSubtitleOffset,
             subtitleHtml,
+            convertNetflixRuby: convertNetflixRuby,
         } = await this.settings.get([
             'streamingSubtitleListPreference',
             'subtitleRegexFilter',
@@ -1356,6 +1400,7 @@ export default class Binding {
             'rememberSubtitleOffset',
             'lastSubtitleOffset',
             'subtitleHtml',
+            'convertNetflixRuby',
         ]);
         const syncWithAsbplayerTab = async (withSyncedAsbplayerOnly: boolean, withAsbplayerId: string | undefined) => {
             const syncMessage: VideoToExtensionCommand<ExtensionSyncMessage> = {
@@ -1386,10 +1431,23 @@ export default class Binding {
                     regexFilter: subtitleRegexFilter,
                     regexFilterTextReplacement: subtitleRegexFilterTextReplacement,
                     subtitleHtml: subtitleHtml,
+                    convertNetflixRuby: convertNetflixRuby,
                     pgsParserWorkerFactory: pgsParserWorkerFactory,
                 });
                 const offset = rememberSubtitleOffset ? lastSubtitleOffset : 0;
                 const subtitles = await reader.subtitles(files, flatten);
+
+                // Order is important: sync with tab first, then update our subtitle controller
+                // since the subtitle controller may send coloring messages as soon as it gets
+                // the new subtitles, and the tab needs to have the new subtitles loaded before
+                // receiving their colors.
+
+                // If target asbplayer is not specified, then sync with any already-synced asbplayer
+                // Otherwise, sync with the target asbplayer.
+
+                const withSyncedAsbplayerOnly = syncWithAsbplayerId === undefined;
+                syncWithAsbplayerTab(withSyncedAsbplayerOnly, syncWithAsbplayerId);
+
                 this._updateSubtitles(
                     subtitles.map((s, index) => ({
                         start: s.start + offset,
@@ -1400,13 +1458,10 @@ export default class Binding {
                         index,
                         originalStart: s.start,
                         originalEnd: s.end,
+                        tokenization: s.tokenization,
                     })),
                     flatten ? [files[0].name] : files.map((f) => f.name)
                 );
-                // If target asbplayer is not specified, then sync with any already-synced asbplayer
-                // Otherwise, sync with the target asbplayer
-                const withSyncedAsbplayerOnly = syncWithAsbplayerId === undefined;
-                syncWithAsbplayerTab(withSyncedAsbplayerOnly, syncWithAsbplayerId);
                 break;
             case SubtitleListPreference.app:
                 syncWithAsbplayerTab(false, undefined);
@@ -1414,7 +1469,7 @@ export default class Binding {
         }
     }
 
-    private _updateSubtitles(subtitles: SubtitleModelWithIndex[], subtitleFileNames: string[]) {
+    private _updateSubtitles(subtitles: IndexedSubtitleModel[], subtitleFileNames: string[]) {
         this.subtitleController.subtitles = subtitles;
         this.subtitleController.subtitleFileNames = subtitleFileNames;
         this.subtitleController.cacheHtml();

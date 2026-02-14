@@ -1,10 +1,13 @@
 import type {
     AnkiSettings,
+    ApplyStrategy,
     AsbplayerSettings,
     MiscSettings,
     PageSettings,
     SettingsFormPageConfig,
     SubtitleSettings,
+    TokenState,
+    TokenStatus,
 } from '../settings/settings';
 import type { GlobalState } from '../global-state';
 import {
@@ -22,8 +25,10 @@ import {
     CopyHistoryItem,
     AnkiDialogSettings,
     AnkiExportMode,
+    RichSubtitleModel,
 } from './model';
 import { AsbPlayerToVideoCommandV2 } from './command';
+import { DictionaryLocalTokenInput, DictionaryTokenRecord } from '../dictionary-db/dictionary-db';
 
 export interface Message {
     readonly command: string;
@@ -202,12 +207,20 @@ export interface CardUpdatedMessage extends Message, CardModel {
     readonly cardName: string;
 }
 
+export interface CardUpdatedDialogMessage extends Message {
+    readonly command: 'card-updated-dialog';
+}
+
 export interface CardExportedMessage extends Message, CardModel {
     readonly command: 'card-exported';
     readonly cardName: string;
     readonly isBulkExport?: boolean;
     readonly skippedDuplicate?: boolean;
     readonly exportError?: string;
+}
+
+export interface CardExportedDialogMessage extends Message {
+    readonly command: 'card-exported-dialog';
 }
 
 export interface CardSavedMessage extends Message, CardModel {
@@ -383,12 +396,22 @@ export interface SubtitlesToVideoMessage extends Message {
     readonly names: string[];
 }
 
-export interface RequestSubtitlesMessage extends Message {
-    readonly command: 'request-subtitles';
+export interface SubtitlesUpdatedToVideoMessage extends Message {
+    readonly command: 'subtitlesUpdated';
+    readonly subtitles: RichSubtitleModel[];
 }
 
 export interface RequestCurrentSubtitleMessage extends Message {
     readonly command: 'request-current-subtitle';
+}
+
+export interface RequestSubtitlesMessage extends Message {
+    readonly command: 'request-subtitles';
+}
+
+export interface SubtitlesUpdatedFromVideoMessage extends Message {
+    readonly command: 'subtitlesUpdated';
+    readonly updatedSubtitles: RichSubtitleModel[];
 }
 
 export interface RequestSubtitlesFromAppMessage extends MessageWithId {
@@ -683,7 +706,7 @@ export interface AckMessage extends MessageWithId {
 }
 
 export interface RequestSubtitlesResponse {
-    subtitles: SubtitleModel[];
+    subtitles: RichSubtitleModel[];
     subtitleFileNames: string[];
 }
 
@@ -755,4 +778,148 @@ export interface DeleteCopyHistoryMessage extends MessageWithId {
 
 export interface ClearCopyHistoryMessage extends MessageWithId {
     readonly command: 'clear-copy-history';
+}
+
+export interface DictionaryGetBulkMessage extends MessageWithId {
+    readonly command: 'dictionary-get-bulk';
+    readonly profile: string | undefined;
+    readonly track: number;
+    readonly tokens: string[];
+}
+
+export interface DictionaryGetByLemmaBulkMessage extends MessageWithId {
+    readonly command: 'dictionary-get-by-lemma-bulk';
+    readonly profile: string | undefined;
+    readonly track: number;
+    readonly lemmas: string[];
+}
+
+export interface DictionarySaveRecordLocalBulkMessage extends MessageWithId {
+    readonly command: 'dictionary-save-record-local-bulk';
+    readonly profile: string | undefined;
+    readonly localTokenInputs: DictionaryLocalTokenInput[];
+    readonly applyStates: ApplyStrategy;
+}
+
+export interface DictionaryDeleteRecordLocalBulkMessage extends MessageWithId {
+    readonly command: 'dictionary-delete-record-local-bulk';
+    readonly profile: string | undefined;
+    readonly tokens: string[];
+}
+
+export interface DictionaryDeleteProfileMessage extends MessageWithId {
+    readonly command: 'dictionary-delete-profile';
+    readonly profile: string;
+}
+
+export interface DictionaryExportRecordLocalBulkMessage extends MessageWithId {
+    readonly command: 'dictionary-export-record-local-bulk';
+}
+
+export interface DictionaryImportRecordLocalBulkMessage extends MessageWithId {
+    readonly command: 'dictionary-import-record-local-bulk';
+    readonly records: Partial<DictionaryTokenRecord>[];
+    readonly profiles: string[];
+}
+
+export interface DictionaryBuildAnkiCacheMessage extends MessageWithId {
+    readonly command: 'dictionary-build-anki-cache';
+    readonly profile: string | undefined;
+    readonly settings: AsbplayerSettings;
+}
+
+export interface DictionaryBuildAnkiCacheStateBody {
+    modifiedTokens?: string[];
+}
+
+export interface DictionaryBuildAnkiCacheState {
+    body?: DictionaryBuildAnkiCacheStateBody;
+    type: DictionaryBuildAnkiCacheStateType;
+}
+
+export interface DictionaryBuildAnkiCacheStateMessage extends DictionaryBuildAnkiCacheState, Message {
+    readonly command: 'dictionary-build-anki-cache-state';
+}
+
+export enum DictionaryBuildAnkiCacheStateType {
+    unknown = 1,
+    error = 2,
+    stats = 3,
+    progress = 4,
+}
+
+export interface DictionaryBuildAnkiCacheStats extends DictionaryBuildAnkiCacheStateBody {
+    tracksToBuild?: number[];
+    tracksToClear?: number[];
+    orphanedCards?: number;
+    modifiedCards?: number;
+    buildTimestamp?: number;
+}
+
+export interface DictionaryBuildAnkiCacheProgress extends DictionaryBuildAnkiCacheStateBody {
+    current: number;
+    total: number;
+    buildTimestamp: number;
+}
+
+export enum DictionaryBuildAnkiCacheStateErrorCode {
+    concurrentBuild = 1,
+    noAnki = 2,
+    noYomitan = 3,
+    failedToSyncTrackStates = 4,
+    failedToBuild = 5,
+}
+
+export interface DictionaryBuildAnkiCacheStateErrorTrackNumberData {
+    track: number;
+}
+
+export interface DictionaryBuildAnkiCacheStateErrorBuildExpirationData {
+    expiration: number;
+}
+
+export type DictionaryBuildAnkiCacheStateErrorData =
+    | DictionaryBuildAnkiCacheStateErrorTrackNumberData
+    | DictionaryBuildAnkiCacheStateErrorBuildExpirationData;
+
+export interface DictionaryBuildAnkiCacheStateError extends DictionaryBuildAnkiCacheStateBody {
+    code: DictionaryBuildAnkiCacheStateErrorCode;
+    msg?: string;
+    data?: DictionaryBuildAnkiCacheStateErrorData;
+}
+
+export interface SaveTokenLocalMessage extends Message {
+    readonly command: 'save-token-local';
+    readonly track: number;
+    readonly token: string;
+    readonly status: TokenStatus | null;
+    readonly states: TokenState[];
+    readonly applyStates: ApplyStrategy;
+}
+
+export interface SaveTokenLocalFromAppMessage extends MessageWithId {
+    readonly command: 'save-token-local';
+    readonly track: number;
+    readonly token: string;
+    readonly status: TokenStatus | null;
+    readonly states: TokenState[];
+    readonly applyStates: ApplyStrategy;
+}
+
+export interface SaveTokenLocalFromVideoMessage extends Message {
+    readonly command: 'saveTokenLocal';
+    readonly track: number;
+    readonly token: string;
+    readonly status: TokenStatus | null;
+    readonly states: TokenState[];
+    readonly applyStates: ApplyStrategy;
+}
+
+export interface SaveTokenLocalToVideoMessage extends Message {
+    readonly command: 'saveTokenLocal';
+    readonly track: number;
+    readonly token: string;
+    readonly status: TokenStatus | null;
+    readonly states: TokenState[];
+    readonly applyStates: ApplyStrategy;
 }

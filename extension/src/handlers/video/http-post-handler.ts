@@ -1,16 +1,21 @@
 import { Command, HttpPostMessage, Message } from '@project/common';
 
-const allowedKeys = ['version', 'action', 'params'];
+const allowedKeys = ['version', 'action', 'params', 'text', 'scanLength', 'term'];
 const allowedActions = [
+    'areSuspended',
     'guiAddCards',
     'deckNames',
     'modelNames',
     'modelFieldNames',
+    'findCards',
     'findNotes',
+    'getIntervals',
     'guiBrowse',
     'requestPermission',
-    'findNotes',
+    'cardsInfo',
+    'cardsModTime',
     'notesInfo',
+    'notesModTime',
     'updateNoteFields',
     'addNote',
     'storeMediaFile',
@@ -49,6 +54,8 @@ export default class HttpPostHandler {
     }
 
     private _validateBody(body: any) {
+        if (body === null) return true;
+
         const bodyKeys = Object.keys(body);
 
         for (const k of bodyKeys) {

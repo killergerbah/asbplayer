@@ -7,6 +7,7 @@ import {
     AudioTrackSelectedFromVideoMessage,
     AudioTrackSelectedToVideoMessage,
     CardTextFieldValues,
+    RichSubtitleModel,
     CopyMessage,
     CopyToVideoMessage,
     CurrentTimeFromVideoMessage,
@@ -32,8 +33,19 @@ import {
     SubtitlesToVideoMessage,
     TakeScreenshotToVideoPlayerMessage,
     ToggleSubtitleTrackInListFromVideoMessage,
+    SubtitlesUpdatedFromVideoMessage,
+    SubtitlesUpdatedToVideoMessage,
+    SaveTokenLocalFromVideoMessage,
+    SaveTokenLocalToVideoMessage,
 } from '@project/common';
-import { AnkiSettings, MiscSettings, SubtitleSettings } from '@project/common/settings';
+import {
+    AnkiSettings,
+    ApplyStrategy,
+    MiscSettings,
+    SubtitleSettings,
+    TokenState,
+    TokenStatus,
+} from '@project/common/settings';
 import { VideoProtocol } from './video-protocol';
 
 export default class VideoChannel {
@@ -65,7 +77,17 @@ export default class VideoChannel {
     private appBarToggleCallbacks: (() => void)[];
     private ankiDialogRequestCallbacks: (() => void)[];
     private toggleSubtitleTrackInListCallbacks: ((track: number) => void)[];
+    private subtitlesUpdatedCallbacks: ((updatedSubtitles: RichSubtitleModel[]) => void)[];
+    private saveTokenLocalCallbacks: ((
+        track: number,
+        token: string,
+        status: TokenStatus | null,
+        states: TokenState[],
+        applyStates: ApplyStrategy
+    ) => void)[];
     private loadFilesCallbacks: (() => void)[];
+    private cardUpdatedDialogCallbacks: (() => void)[];
+    private cardExportedDialogCallbacks: (() => void)[];
 
     readyState: number;
     oncanplay: ((ev: Event) => void) | null = null;
@@ -97,7 +119,11 @@ export default class VideoChannel {
         this.appBarToggleCallbacks = [];
         this.ankiDialogRequestCallbacks = [];
         this.toggleSubtitleTrackInListCallbacks = [];
+        this.subtitlesUpdatedCallbacks = [];
+        this.saveTokenLocalCallbacks = [];
         this.loadFilesCallbacks = [];
+        this.cardUpdatedDialogCallbacks = [];
+        this.cardExportedDialogCallbacks = [];
 
         const that = this;
 
@@ -230,8 +256,32 @@ export default class VideoChannel {
                         callback(toggleSubtitleTrackInListMessage.track);
                     }
                     break;
+                case 'subtitlesUpdated':
+                    const subtitlesUpdatedMessage = event.data as SubtitlesUpdatedFromVideoMessage;
+
+                    for (const callback of that.subtitlesUpdatedCallbacks) {
+                        callback(subtitlesUpdatedMessage.updatedSubtitles);
+                    }
+                    break;
+                case 'saveTokenLocal':
+                    const { track, token, status, states, applyStates } = event.data as SaveTokenLocalFromVideoMessage;
+
+                    for (const callback of that.saveTokenLocalCallbacks) {
+                        callback(track, token, status, states, applyStates);
+                    }
+                    break;
                 case 'loadFiles':
                     for (const callback of that.loadFilesCallbacks) {
+                        callback();
+                    }
+                    break;
+                case 'card-updated-dialog':
+                    for (const callback of that.cardUpdatedDialogCallbacks) {
+                        callback();
+                    }
+                    break;
+                case 'card-exported-dialog':
+                    for (const callback of that.cardExportedDialogCallbacks) {
                         callback();
                     }
                     break;
@@ -351,9 +401,37 @@ export default class VideoChannel {
         return () => this._remove(callback, this.toggleSubtitleTrackInListCallbacks);
     }
 
+    onSubtitlesUpdated(callback: (updatedSubtitles: RichSubtitleModel[]) => void) {
+        this.subtitlesUpdatedCallbacks.push(callback);
+        return () => this._remove(callback, this.subtitlesUpdatedCallbacks);
+    }
+
+    onSaveTokenLocal(
+        callback: (
+            track: number,
+            token: string,
+            status: TokenStatus | null,
+            states: TokenState[],
+            applyStates: ApplyStrategy
+        ) => void
+    ) {
+        this.saveTokenLocalCallbacks.push(callback);
+        return () => this._remove(callback, this.saveTokenLocalCallbacks);
+    }
+
     onLoadFiles(callback: () => void) {
         this.loadFilesCallbacks.push(callback);
         return () => this._remove(callback, this.loadFilesCallbacks);
+    }
+
+    onCardUpdatedDialog(callback: () => void) {
+        this.cardUpdatedDialogCallbacks.push(callback);
+        return () => this._remove(callback, this.cardUpdatedDialogCallbacks);
+    }
+
+    onCardExportedDialog(callback: () => void) {
+        this.cardExportedDialogCallbacks.push(callback);
+        return () => this._remove(callback, this.cardExportedDialogCallbacks);
     }
 
     ready(duration: number, videoFileName?: string) {
@@ -387,6 +465,22 @@ export default class VideoChannel {
             name: subtitleFileNames.length > 0 ? subtitleFileNames[0] : null,
             names: subtitleFileNames,
         } as SubtitlesToVideoMessage);
+    }
+
+    saveTokenLocal(token: string, status: TokenStatus, states: TokenState[]) {
+        this.protocol.postMessage({
+            command: 'saveTokenLocal',
+            token,
+            status,
+            states,
+        } as SaveTokenLocalToVideoMessage);
+    }
+
+    subtitlesUpdated(subtitles: RichSubtitleModel[]) {
+        this.protocol.postMessage({
+            command: 'subtitlesUpdated',
+            subtitles,
+        } as SubtitlesUpdatedToVideoMessage);
     }
 
     offset(offset: number) {
@@ -549,6 +643,7 @@ export default class VideoChannel {
             subtitleRegexFilter,
             subtitleRegexFilterTextReplacement,
             subtitleHtml,
+            convertNetflixRuby: convertNetflixRuby,
             miningHistoryStorageLimit,
             clickToMineDefaultAction,
             postMiningPlaybackState,
@@ -574,6 +669,7 @@ export default class VideoChannel {
                 subtitleRegexFilter,
                 subtitleRegexFilterTextReplacement,
                 subtitleHtml,
+                convertNetflixRuby: convertNetflixRuby,
                 miningHistoryStorageLimit,
                 clickToMineDefaultAction,
                 postMiningPlaybackState,
@@ -631,7 +727,10 @@ export default class VideoChannel {
         this.appBarToggleCallbacks = [];
         this.ankiDialogRequestCallbacks = [];
         this.toggleSubtitleTrackInListCallbacks = [];
+        this.subtitlesUpdatedCallbacks = [];
         this.loadFilesCallbacks = [];
+        this.cardUpdatedDialogCallbacks = [];
+        this.cardExportedDialogCallbacks = [];
     }
 
     _remove(callback: Function, callbacks: Function[]) {
