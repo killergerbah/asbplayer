@@ -28,7 +28,7 @@ export class Yomitan {
     ) {
         this.dt = dictionaryTrack;
         this.fetcher = fetcher;
-        this.asyncSemaphore = new AsyncSemaphore({ permits: 1, lifetimeMs: 10000 });
+        this.asyncSemaphore = new AsyncSemaphore({ permits: 1 });
         this.tokenizeCache = new Map();
         this.lemmatizeCache = new Map();
         this.frequencyCache = new Map();
@@ -216,8 +216,11 @@ export class Yomitan {
                 const now = Date.now();
                 const semaphoreId = await this.asyncSemaphore.acquire();
                 try {
+                    if (now <= this.lastCancelledAt) {
+                        this.tokensWereModified!(token); // May need to reprocess with the new Yomitan instance
+                        return;
+                    }
                     if (this.frequencyCache.has(token)) return;
-                    if (now <= this.lastCancelledAt) return;
                     const entries = (await this._executeAction('termEntries', { term: token }, yomitanUrl))
                         .dictionaryEntries;
                     this.extractFrequency(token, entries);
@@ -239,13 +242,13 @@ export class Yomitan {
         let minFrequency: number | undefined;
         for (const entry of entries) {
             const matchingHeadwordIndices = new Set<number>();
-            for (const headword of entry.headwords) {
+            for (const [i, headword] of entry.headwords.entries()) {
                 for (const source of headword.sources) {
                     if (source.originalText !== token) continue;
                     if (!source.isPrimary) continue;
                     if (source.matchType !== 'exact') continue;
                     if (source.matchSource !== 'term' && preferTermSource) continue; // Frequency of this exact form, don't promote rare kanji
-                    matchingHeadwordIndices.add(headword.headwordIndex ?? headword.index); // index can be inaccurate but requires this.supportsTokenizeFrequency
+                    matchingHeadwordIndices.add(headword.headwordIndex ?? i); // requires this.supportsTokenizeFrequency otherwise array index is more accurate than headword.index
                     break;
                 }
             }

@@ -545,7 +545,7 @@ const areTokenReadingsEqual = (a: TokenReading, b: TokenReading) =>
  * An async safe semaphore implementation that preserves FIFO order.
  * It uses an id for release to allow multiple releases (e.g try/finally with early releases).
  * @param options.permits The number of concurrent permits.
- * @param options.lifetimeMs Maximum lifetime of an acquire before automatic release.
+ * @param options.lifetimeMs Maximum lifetime of an acquire before automatic release (prevents deadlocks if callers don't call this.release()).
  */
 export class AsyncSemaphore {
     private permits: number;
@@ -570,19 +570,23 @@ export class AsyncSemaphore {
         }
     }
 
+    private _acquire(): number {
+        const id = this.getNextId();
+        this.acquired.add(id);
+        if (this.lifetimeMs) {
+            this.timers.set(
+                id,
+                setTimeout(() => this.release(id), this.lifetimeMs)
+            );
+        }
+        return id;
+    }
+
     acquire(): Promise<number> {
         return new Promise<number>((resolve) => {
             if (this.permits > 0) {
                 this.permits--;
-                const id = this.getNextId();
-                this.acquired.add(id);
-                if (this.lifetimeMs) {
-                    this.timers.set(
-                        id,
-                        setTimeout(() => this.release(id), this.lifetimeMs)
-                    );
-                }
-                resolve(id);
+                resolve(this._acquire());
             } else {
                 this.waiting.push(resolve);
             }
@@ -596,15 +600,7 @@ export class AsyncSemaphore {
         this.timers.delete(id);
 
         if (this.waiting.length > 0) {
-            const newId = this.getNextId();
-            this.acquired.add(newId);
-            if (this.lifetimeMs) {
-                this.timers.set(
-                    newId,
-                    setTimeout(() => this.release(newId), this.lifetimeMs)
-                );
-            }
-            this.waiting.shift()!(newId);
+            this.waiting.shift()!(this._acquire());
         } else {
             this.permits++;
         }

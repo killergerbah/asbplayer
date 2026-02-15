@@ -135,11 +135,11 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
     private anki: Anki | undefined;
     private readonly fetcher?: Fetcher;
     private trackStates: TrackState[];
-    private erroredCache: Set<number>;
-    private externalTokenReadings: Map<string, Map<number, TokenReading[]>>;
+    private refreshCache: Set<number>; // Re-processes these indexes on next build
+    private erroredCache: Set<number>; // Re-processes these indexes if they are in the build threshold
     private tokenToIndexesCache: Map<string, Set<number>>;
     private tokensForRefresh: Set<string>;
-    private tokensForFrequencyRefresh: Set<string>;
+    private externalTokenReadings: Map<string, Map<number, TokenReading[]>>;
     private ankiRecentlyModifiedCardIds: Set<number>;
     private ankiLastRecentlyModifiedCheck: number;
     private ankiRecentlyModifiedTrigger: boolean;
@@ -177,11 +177,11 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
         this.subtitleColorsUpdated = subtitleColorsUpdated;
         this.getMediaTimeMs = getMediaTimeMs;
         this.showingNeedsRefreshCount = 0;
+        this.refreshCache = new Set();
         this.erroredCache = new Set();
-        this.externalTokenReadings = new Map();
         this.tokenToIndexesCache = new Map();
         this.tokensForRefresh = new Set();
-        this.tokensForFrequencyRefresh = new Set();
+        this.externalTokenReadings = new Map();
         this.ankiRecentlyModifiedCardIds = new Set();
         this.ankiLastRecentlyModifiedCheck = Date.now();
         this.ankiRecentlyModifiedTrigger = false;
@@ -224,6 +224,10 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
         super.setSubtitles(this._subtitles);
         if (needsReset) {
             this._resetCache();
+            this.refreshCache.clear();
+            this.erroredCache.clear();
+            this.tokenToIndexesCache.clear();
+            this.tokensForRefresh.clear();
             this.externalTokenReadings.clear();
             for (const subtitle of this._subtitles) {
                 if (!subtitle.tokenization) continue;
@@ -250,10 +254,6 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
         this.anki = undefined;
         this.trackStates.forEach((ts) => ts.yt?.resetCache());
         this.trackStates = [];
-        this.erroredCache.clear();
-        this.tokenToIndexesCache.clear();
-        this.tokensForRefresh = new Set();
-        this.tokensForFrequencyRefresh = new Set();
         this.ankiRecentlyModifiedCardIds.clear();
         this.ankiRecentlyModifiedTrigger = false;
         this.ankiRecentlyModifiedFirstCheck = true;
@@ -425,7 +425,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                 }
             }
             if (
-                this.tokensForRefresh.size ||
+                this.tokensForRefresh.size || // Don't force a build for this.refreshCache.size as it may update too frequently for token.frequency
                 Date.now() - this.colorCacheLastRefresh >= TOKEN_CACHE_ERROR_REFRESH_INTERVAL
             ) {
                 const { colorBufferStartIndex, colorBufferEndIndex } = this._getColorBufferIndexes();
@@ -465,42 +465,41 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
         colorBufferEndIndex: number,
         init?: boolean
     ): Promise<boolean> {
-        const subtitles = this._subtitles.slice(colorBufferStartIndex, colorBufferEndIndex);
-        if (!subtitles.length) return true;
-        if (this.profile === null) {
-            const profile = (await this.settingsProvider.activeProfile())?.name;
-            if (this.profile === null) {
-                this.profile = profile;
-                this.ankiRecentlyModifiedTrigger = true;
-            }
-        }
-        const profile = this.profile;
-        if (!this.trackStates.length) {
-            this.trackStates = (await this.settingsProvider.getSingle('dictionaryTracks')).map((dt, track) => ({
-                track,
-                dt,
-                yt: undefined,
-                collectedExactForm: new Map(),
-                collectedLemmaForm: new Map(),
-                collectedAnyForm: new Map(),
-                tokenStates: new Map(),
-            }));
-        }
-        const trackStates = this.trackStates;
-        if (trackStates.every((t) => !dictionaryTrackEnabled(t.dt))) return true;
         if (this.colorCacheBuilding) return false;
-
         let tokensRefreshed: string[] = [];
-        let frequencyTokensRefreshed: string[] = [];
         let buildWasCancelled = false;
         let updateThresholds = false;
         try {
             this.colorCacheBuilding = true;
-            this.tokenRequestFailed = false;
-            for (const ts of trackStates) {
+            const subtitles = this._subtitles.slice(colorBufferStartIndex, colorBufferEndIndex);
+            if (!subtitles.length) return true;
+            if (this.profile === null) {
+                const profile = (await this.settingsProvider.activeProfile())?.name;
+                if (this.profile === null) {
+                    this.profile = profile;
+                    this.ankiRecentlyModifiedTrigger = true;
+                }
+            }
+            const profile = this.profile;
+            if (!this.trackStates.length) {
+                this.trackStates = (await this.settingsProvider.getSingle('dictionaryTracks')).map((dt, track) => ({
+                    track,
+                    dt,
+                    yt: undefined,
+                    collectedExactForm: new Map(),
+                    collectedLemmaForm: new Map(),
+                    collectedAnyForm: new Map(),
+                    tokenStates: new Map(),
+                }));
+            }
+            if (this.trackStates.every((t) => !dictionaryTrackEnabled(t.dt))) return true;
+
+            for (const ts of this.trackStates) {
                 if (!dictionaryTrackEnabled(ts.dt) || ts.yt) continue;
                 try {
-                    const yt = new Yomitan(ts.dt, this.fetcher, (token) => this.tokensForFrequencyRefresh.add(token));
+                    const yt = new Yomitan(ts.dt, this.fetcher, (token) => {
+                        for (const index of this.tokenToIndexesCache.get(token) ?? []) this.refreshCache.add(index);
+                    });
                     await yt.version();
                     ts.yt = yt;
                 } catch (e) {
@@ -508,30 +507,16 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                 }
             }
 
-            const indexesForRefresh = new Set<number>();
-            if (this.tokensForRefresh.size || this.tokensForFrequencyRefresh.size) {
+            if (this.refreshCache.size || this.tokensForRefresh.size) {
                 const existingIndexes = new Set(subtitles.map((s) => s.index));
                 for (const token of this.tokensForRefresh) {
                     tokensRefreshed.push(token);
-                    const indexes = this.tokenToIndexesCache.get(token);
-                    if (!indexes) continue;
-                    for (const index of indexes) {
-                        indexesForRefresh.add(index);
-                        if (existingIndexes.has(index)) continue;
-                        existingIndexes.add(index);
-                        subtitles.push(this._subtitles[index]); // Process all relevant subtitles even if not in buffer
-                    }
+                    for (const index of this.tokenToIndexesCache.get(token) ?? []) this.refreshCache.add(index);
                 }
-                for (const token of this.tokensForFrequencyRefresh) {
-                    frequencyTokensRefreshed.push(token);
-                    const indexes = this.tokenToIndexesCache.get(token);
-                    if (!indexes) continue;
-                    for (const index of indexes) {
-                        indexesForRefresh.add(index);
-                        if (existingIndexes.has(index)) continue;
-                        existingIndexes.add(index);
-                        subtitles.push(this._subtitles[index]); // Process all relevant subtitles even if not in buffer
-                    }
+                for (const index of this.refreshCache) {
+                    if (existingIndexes.has(index)) continue;
+                    existingIndexes.add(index);
+                    subtitles.push(this._subtitles[index]); // Process all relevant subtitles even if not in buffer
                 }
             } else if (!subtitles.some((s) => this.erroredCache.has(s.index))) {
                 if (
@@ -544,10 +529,10 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
             }
 
             try {
-                await this._buildTokenAndLemmaMap(profile, subtitles, trackStates);
+                await this._buildTokenAndLemmaMap(profile, subtitles);
             } catch (e) {
                 console.error('Error building token and lemma map:', e);
-                trackStates.forEach((ts) => {
+                this.trackStates.forEach((ts) => {
                     if (!ts.yt) return;
                     ts.yt.resetCache();
                     ts.yt = undefined; // Propagate error so that subtitles are error styled
@@ -562,12 +547,13 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                     await Promise.all(
                         batch.map(async ({ index, text, track, __tokenized: alreadyTokenized }) => {
                             if (this.shouldCancelBuild) return;
-                            if (alreadyTokenized && !this.erroredCache.has(index) && !indexesForRefresh.has(index)) {
+                            if (alreadyTokenized && !this.refreshCache.has(index) && !this.erroredCache.has(index)) {
                                 return;
                             }
-                            const ts = trackStates[track];
+                            const ts = this.trackStates[track];
                             if (!dictionaryTrackEnabled(ts.dt)) return;
-                            const deletedFromErroredCache = this.erroredCache.delete(index); // Need to delete here since we update cache in multiple places
+                            const deletedFromRefreshCache = this.refreshCache.delete(index);
+                            const deletedFromErroredCache = this.erroredCache.delete(index);
                             try {
                                 this.colorCacheBuildingCurrentIndexes.add(index);
                                 const existingTokenization = this._subtitles[index].tokenization;
@@ -579,10 +565,10 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                                           index,
                                           ts
                                       );
+                                if (this.shouldCancelBuild) return;
                                 if (areTokenizationsEqual(tokenizationModel?.tokenization, existingTokenization)) {
                                     return;
                                 }
-                                if (this.shouldCancelBuild) return;
                                 const updatedSubtitles: RichSubtitleModel[] = [];
                                 if (tokenizationModel) {
                                     const { tokenization, reconstructedText } = tokenizationModel;
@@ -600,9 +586,13 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                                 );
                             } catch (e) {
                                 console.error(`Error building color cache for subtitle index ${index}:`, e);
-                                this.erroredCache.add(index);
+                                if (deletedFromRefreshCache) this.refreshCache.add(index);
+                                else this.erroredCache.add(index);
                             } finally {
-                                if (this.shouldCancelBuild && deletedFromErroredCache) this.erroredCache.add(index);
+                                if (this.shouldCancelBuild) {
+                                    if (deletedFromRefreshCache) this.refreshCache.add(index);
+                                    else if (deletedFromErroredCache) this.erroredCache.add(index);
+                                }
                                 this.colorCacheBuildingCurrentIndexes.delete(index);
                             }
                         })
@@ -613,19 +603,17 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
             if (this.shouldCancelBuild) {
                 buildWasCancelled = true;
                 tokensRefreshed = [];
-                frequencyTokensRefreshed = [];
                 updateThresholds = false;
             }
         } finally {
             if (this.tokenRequestFailed) {
                 this.tokenRequestFailed = false;
-                trackStates.forEach((ts) => {
+                this.trackStates.forEach((ts) => {
                     if (!ts.yt) return;
                     ts.yt.resetCache();
                     ts.yt = undefined;
                 });
                 tokensRefreshed = [];
-                frequencyTokensRefreshed = [];
                 updateThresholds = false;
             } else if (!this.shouldCancelBuild) {
                 this.initialized = true;
@@ -634,29 +622,19 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                 this.buildUpperThreshold = colorBufferEndIndex - TOKEN_CACHE_BUILD_AHEAD_THRESHOLD;
                 this.buildLowerThreshold = colorBufferStartIndex; // Build whenever the user seeks backwards
             }
-            this.shouldCancelBuild = false;
-            this.colorCacheBuilding = false;
             if (
                 tokensRefreshed.length === this.tokensForRefresh.size &&
                 tokensRefreshed.every((token) => this.tokensForRefresh.has(token))
             ) {
-                this.tokensForRefresh = new Set();
+                this.tokensForRefresh.clear();
             }
-            if (
-                frequencyTokensRefreshed.length === this.tokensForFrequencyRefresh.size &&
-                frequencyTokensRefreshed.every((token) => this.tokensForFrequencyRefresh.has(token))
-            ) {
-                this.tokensForFrequencyRefresh = new Set();
-            }
+            this.shouldCancelBuild = false;
+            this.colorCacheBuilding = false;
         }
         return !buildWasCancelled;
     }
 
-    private async _buildTokenAndLemmaMap(
-        profile: string | undefined,
-        subtitles: RichSubtitleModel[],
-        trackStates: TrackState[]
-    ): Promise<void> {
+    private async _buildTokenAndLemmaMap(profile: string | undefined, subtitles: RichSubtitleModel[]): Promise<void> {
         const eventsPerTrack = new Map<number, string[]>();
         for (const subtitle of subtitles) {
             const eventsForTrack = eventsPerTrack.get(subtitle.track);
@@ -666,7 +644,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
         }
 
         for (const [track, texts] of eventsPerTrack.entries()) {
-            const ts = trackStates[track];
+            const ts = this.trackStates[track];
             if (!ts.yt) continue;
             const tokenizeBulkRes = await ts.yt.tokenizeBulk(texts);
             if (!dictionaryStatusCollectionEnabled(ts.dt)) continue; // Still want to bulk tokenize if TokenReadingAnnotation.ALWAYS but no coloring
@@ -865,6 +843,8 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                             if (ts.yt!.getSupportsTokenizeFrequency() || this.initialized) {
                                 token.frequency = await ts.yt!.frequency(trimmedToken);
                                 if (this.shouldCancelBuild) return;
+                            } else {
+                                this.refreshCache.add(index);
                             }
                         }
 
@@ -956,9 +936,11 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                     (token.status === TokenStatus.UNCOLLECTED &&
                         ts.dt.dictionaryTokenFrequencyAnnotation === TokenFrequencyAnnotation.UNCOLLECTED_ONLY)
                 ) {
-                    if (ts.yt!.getSupportsTokenizeFrequency() || this.initialized) {
-                        token.frequency = await ts.yt!.frequency(trimmedToken);
+                    if (ts.yt.getSupportsTokenizeFrequency() || this.initialized) {
+                        token.frequency = await ts.yt.frequency(trimmedToken);
                         if (this.shouldCancelBuild) return;
+                    } else {
+                        this.refreshCache.add(index);
                     }
                 }
             }
