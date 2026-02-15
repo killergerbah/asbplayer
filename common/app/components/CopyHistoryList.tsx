@@ -246,30 +246,25 @@ export default function CopyHistoryList({
 }: CopyHistoryListProps) {
     const classes = useStyles();
     const listContainerRef = useRef<HTMLDivElement | null>(null);
-    const [shouldAutoScroll, setShouldAutoScroll] = useState<boolean>(true);
-    const scrollToBottomRefCallback = useCallback(
-        (element: HTMLElement | null) => {
-            if (element && shouldAutoScroll) {
-                element.scrollIntoView();
-            }
-        },
-        [shouldAutoScroll]
-    );
+    const scrollToBottomRefCallback = useCallback((element: HTMLElement | null) => {
+        if (!element || !listContainerRef.current) {
+            return;
+        }
+
+        const listElement = listContainerRef.current;
+        const threshold = 20;
+        const distanceToBottom =
+            listElement.scrollHeight - listElement.scrollTop - listElement.clientHeight - element.clientHeight;
+        const shouldAutoScroll = distanceToBottom <= threshold;
+
+        if (shouldAutoScroll) {
+            element.scrollIntoView();
+        }
+    }, []);
     const [menuItem, setMenuItem] = useState<CopyHistoryItem>();
     const [menuOpen, setMenuOpen] = useState<boolean>(false);
     const [menuAnchorEl, setMenuAnchorEl] = useState<Element>();
     const { t } = useTranslation();
-
-    const handleScroll = useCallback(() => {
-        const el = listContainerRef.current;
-        if (!el) {
-            return;
-        }
-
-        const threshold = 20;
-        const distanceToBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
-        setShouldAutoScroll(distanceToBottom <= threshold);
-    }, []);
 
     const handleMenu = useCallback((e: React.MouseEvent, item: CopyHistoryItem) => {
         setMenuItem(item);
@@ -335,7 +330,7 @@ export default function CopyHistoryList({
             }
 
             itemsBySection[currentKey!].push(item);
-            const ref = i === items.length - 1 && shouldAutoScroll ? scrollToBottomRefCallback : null;
+            const ref = i === items.length - 1 ? scrollToBottomRefCallback : null;
 
             elements.push(
                 <ListItem
@@ -375,7 +370,7 @@ export default function CopyHistoryList({
         }
 
         content = (
-            <Paper className={classes.listContainer} ref={listContainerRef} onScroll={handleScroll}>
+            <Paper className={classes.listContainer} ref={listContainerRef}>
                 <List className={classes.list}>{elements}</List>
                 <Button
                     variant="contained"
