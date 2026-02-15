@@ -693,53 +693,40 @@ export default function SubtitlePlayer({
         return () => table?.removeEventListener('wheel', handleScroll);
     }, [containerRef, lastScrollTimestampRef]);
 
-    const findJumpToIndex = useCallback(() => {
+    const lastJumpToKeyRef = useRef<string>();
+
+    useEffect(() => {
         if (!jumpToSubtitle || !subtitles) {
-            return -1;
+            return;
         }
 
+        let jumpToIndex = -1;
         let i = 0;
         for (const s of subtitles) {
             if (s.originalStart === jumpToSubtitle.originalStart && jumpToSubtitle.text.includes(s.text)) {
-                return i;
+                jumpToIndex = i;
+                break;
             }
             ++i;
         }
 
-        return -1;
-    }, [jumpToSubtitle, subtitles]);
-
-    useEffect(() => {
-        if (!jumpToSubtitle || !subtitles) {
-            return;
-        }
-
-        const jumpToIndex = findJumpToIndex();
         const target = jumpToIndex !== -1 ? subtitles[jumpToIndex] : jumpToSubtitle;
-
-        if (target.start !== undefined) {
+        const jumpToKey = `${jumpToSubtitle.originalStart}:${jumpToSubtitle.track}:${jumpToSubtitle.text}`;
+        if (lastJumpToKeyRef.current !== jumpToKey) {
             onSeek(target.start, clock.running);
-        }
-    }, [jumpToSubtitle, subtitles, findJumpToIndex, onSeek, clock]);
-
-    useEffect(() => {
-        if (hidden || !jumpToSubtitle || !subtitles) {
-            return;
+            lastJumpToKeyRef.current = jumpToKey;
         }
 
-        const jumpToIndex = findJumpToIndex();
-        if (jumpToIndex === -1) {
-            return;
+        if (!hidden && jumpToIndex !== -1) {
+            subtitleRefs[jumpToIndex]?.current?.scrollIntoView({
+                block: 'center',
+                inline: 'nearest',
+                behavior: 'smooth',
+            });
+            setHighlightedJumpToSubtitleIndex(jumpToIndex);
+            setTimeout(() => setHighlightedJumpToSubtitleIndex(undefined), 1000);
         }
-
-        subtitleRefs[jumpToIndex]?.current?.scrollIntoView({
-            block: 'center',
-            inline: 'nearest',
-            behavior: 'smooth',
-        });
-        setHighlightedJumpToSubtitleIndex(jumpToIndex);
-        setTimeout(() => setHighlightedJumpToSubtitleIndex(undefined), 1000);
-    }, [hidden, jumpToSubtitle, subtitles, findJumpToIndex, subtitleRefs]);
+    }, [hidden, jumpToSubtitle, subtitles, subtitleRefs, onSeek, clock]);
 
     const currentMockSubtitle = useCallback(() => {
         const timestamp = clock.time(length);
