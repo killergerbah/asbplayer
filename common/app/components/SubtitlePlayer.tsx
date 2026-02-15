@@ -693,8 +693,6 @@ export default function SubtitlePlayer({
         return () => table?.removeEventListener('wheel', handleScroll);
     }, [containerRef, lastScrollTimestampRef]);
 
-    const lastJumpToKeyRef = useRef<string>();
-
     useEffect(() => {
         if (!jumpToSubtitle || !subtitles) {
             return;
@@ -711,23 +709,18 @@ export default function SubtitlePlayer({
         }
 
         const target = jumpToIndex !== -1 ? subtitles[jumpToIndex] : jumpToSubtitle;
-        const jumpToKey = `${jumpToSubtitle.originalStart}:${jumpToSubtitle.track}:${jumpToSubtitle.text}`;
-        const isNewJump = lastJumpToKeyRef.current !== jumpToKey;
-        if (isNewJump) {
-            onSeek(target.start, clock.running);
-            lastJumpToKeyRef.current = jumpToKey;
+        onSeek(target.start, clock.running);
 
-            if (!hidden && jumpToIndex !== -1) {
-                subtitleRefs[jumpToIndex]?.current?.scrollIntoView({
-                    block: 'center',
-                    inline: 'nearest',
-                    behavior: 'smooth',
-                });
-                setHighlightedJumpToSubtitleIndex(jumpToIndex);
-                setTimeout(() => setHighlightedJumpToSubtitleIndex(undefined), 1000);
-            }
+        if (!hiddenRef.current && jumpToIndex !== -1) {
+            subtitleRefs[jumpToIndex]?.current?.scrollIntoView({
+                block: 'center',
+                inline: 'nearest',
+                behavior: 'smooth',
+            });
+            setHighlightedJumpToSubtitleIndex(jumpToIndex);
+            setTimeout(() => setHighlightedJumpToSubtitleIndex(undefined), 1000);
         }
-    }, [hidden, jumpToSubtitle, subtitles, subtitleRefs, onSeek, clock]);
+    }, [jumpToSubtitle, subtitles, subtitleRefs, onSeek, clock]);
 
     const currentMockSubtitle = useCallback(() => {
         const timestamp = clock.time(length);

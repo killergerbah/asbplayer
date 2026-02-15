@@ -674,7 +674,7 @@ function App({
                 return;
             }
 
-            setJumpToSubtitle(subtitle);
+            setJumpToSubtitle({ ...subtitle });
         },
         [subtitleFiles, handleError, t]
     );
