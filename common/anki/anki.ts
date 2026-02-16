@@ -73,6 +73,7 @@ const makeUniqueFileName = (fileName: string) => {
 };
 
 const htmlTagRegexString = '<([^/ >])*[^>]*>(.*?)</\\1>';
+const anyHtmlTagRegex = /<[^>]+>/;
 
 // Given <a><b>content</b></a> return ['<a><b>content</b></a>', '<b>content</b>', 'content']
 const tagContent = (html: string) => {
@@ -93,6 +94,8 @@ const tagContent = (html: string) => {
 
     return contents;
 };
+
+const containsHtmlTag = (value: string) => anyHtmlTagRegex.test(value);
 
 export const inheritHtmlMarkup = (original: string, markedUp: string) => {
     const htmlTagRegex = new RegExp(htmlTagRegexString, 'ig');
@@ -556,7 +559,10 @@ export class Anki {
             return;
         }
 
-        let newValue = multiline ? value.split('\n').join('<br>') : value;
+        let newValue = value;
+        if (multiline && !containsHtmlTag(value)) {
+            newValue = value.split('\n').join('<br>');
+        }
         const existingValue = fields[fieldName];
 
         if (existingValue) {
