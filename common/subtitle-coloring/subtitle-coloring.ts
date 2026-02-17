@@ -1272,7 +1272,7 @@ const LOGIC_ERROR_STYLE = `style="text-decoration: line-through red 3px double;"
 const applyTokenStyle = (fullText: string, token: Token, dt?: DictionaryTrack) => {
     const tokenText = applyReadingAnnotation(fullText, token, dt);
     if (token.status === null) return `<span ${ERROR_STYLE}>${tokenText}</span>`;
-    if (token.status === undefined) {
+    if (token.status === undefined && dt && dictionaryTrackEnabled(dt)) {
         return `<span ${LOGIC_ERROR_STYLE}>${tokenText}</span>`; // External tokens may flash this on initial load
     }
     if (!dt?.dictionaryColorizeSubtitles) return tokenText;
@@ -1282,7 +1282,7 @@ const applyTokenStyle = (fullText: string, token: Token, dt?: DictionaryTrack) =
         : '<span';
     if (!dt.dictionaryColorizeFullyKnownTokens && token.status === getFullyKnownTokenStatus())
         return `${s}>${tokenText}</span>`;
-    const c = dt.dictionaryTokenStatusColors[token.status];
+    const c = dt.dictionaryTokenStatusColors[token.status!];
     const t = dt.dictionaryTokenStylingThickness;
     switch (dt.dictionaryTokenStyling) {
         case TokenStyling.TEXT:

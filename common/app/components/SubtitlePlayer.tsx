@@ -694,27 +694,24 @@ export default function SubtitlePlayer({
     }, [containerRef, lastScrollTimestampRef]);
 
     useEffect(() => {
-        if (hidden) {
-            return;
-        }
-
         if (!jumpToSubtitle || !subtitles) {
             return;
         }
 
         let jumpToIndex = -1;
         let i = 0;
-
-        for (let s of subtitles) {
+        for (const s of subtitles) {
             if (s.originalStart === jumpToSubtitle.originalStart && jumpToSubtitle.text.includes(s.text)) {
                 jumpToIndex = i;
                 break;
             }
-
             ++i;
         }
 
-        if (jumpToIndex !== -1) {
+        const target = jumpToIndex !== -1 ? subtitles[jumpToIndex] : jumpToSubtitle;
+        onSeek(target.start, clock.running);
+
+        if (!hiddenRef.current && jumpToIndex !== -1) {
             subtitleRefs[jumpToIndex]?.current?.scrollIntoView({
                 block: 'center',
                 inline: 'nearest',
@@ -723,7 +720,7 @@ export default function SubtitlePlayer({
             setHighlightedJumpToSubtitleIndex(jumpToIndex);
             setTimeout(() => setHighlightedJumpToSubtitleIndex(undefined), 1000);
         }
-    }, [hidden, jumpToSubtitle, subtitles, subtitleRefs]);
+    }, [jumpToSubtitle, subtitles, subtitleRefs, onSeek, clock]);
 
     const currentMockSubtitle = useCallback(() => {
         const timestamp = clock.time(length);

@@ -190,16 +190,16 @@ const showingSubtitleHtml = (
 };
 
 interface CachedShowingSubtitleProps {
-    index: number;
+    subtitle: RichSubtitleModel;
     domCache: OffscreenDomCache;
-    renderHtml: () => string;
+    renderHtml: (subtitle: RichSubtitleModel) => string;
     className?: string;
     onMouseOver: React.MouseEventHandler<HTMLDivElement>;
     onMouseOut: React.MouseEventHandler<HTMLDivElement>;
 }
 
 const CachedShowingSubtitle = React.memo(function CachedShowingSubtitle({
-    index,
+    subtitle,
     domCache,
     renderHtml,
     className,
@@ -220,7 +220,7 @@ const CachedShowingSubtitle = React.memo(function CachedShowingSubtitle({
                     domCache.return(ref.lastChild! as HTMLElement);
                 }
 
-                ref.appendChild(domCache.get(String(index), renderHtml));
+                ref.appendChild(domCache.get(String(subtitle.index), () => renderHtml(subtitle)));
             }}
         />
     );
@@ -1658,9 +1658,9 @@ export default function VideoPlayer({
     const elementForSubtitle = (subtitle: RichSubtitleModel) => (
         <CachedShowingSubtitle
             key={subtitle.index}
-            index={subtitle.index}
+            subtitle={subtitle}
             domCache={domCacheRef.current ?? getSubtitleDomCache()}
-            renderHtml={() => getSubtitleHtml(subtitle)}
+            renderHtml={getSubtitleHtml}
             onMouseOver={handleSubtitleMouseOver}
             onMouseOut={handleSubtitleMouseOut}
         />

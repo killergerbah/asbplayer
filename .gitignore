@@ -32,3 +32,6 @@ yarn-error.log*
 .pnp.*
 
 .idea/
+
+# local binaries
+/scripts/web-socket-server/asbplayer-ws
