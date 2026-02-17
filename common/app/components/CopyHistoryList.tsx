@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { makeStyles } from '@mui/styles';
 import { timeDurationDisplay } from '../services/util';
@@ -245,8 +245,19 @@ export default function CopyHistoryList({
     onAnki,
 }: CopyHistoryListProps) {
     const classes = useStyles();
+    const listContainerRef = useRef<HTMLDivElement | null>(null);
     const scrollToBottomRefCallback = useCallback((element: HTMLElement | null) => {
-        if (element) {
+        if (!element || !listContainerRef.current) {
+            return;
+        }
+
+        const listElement = listContainerRef.current;
+        const threshold = 20;
+        const distanceToBottom =
+            listElement.scrollHeight - listElement.scrollTop - listElement.clientHeight - element.clientHeight;
+        const shouldAutoScroll = distanceToBottom <= threshold;
+
+        if (shouldAutoScroll) {
             element.scrollIntoView();
         }
     }, []);
@@ -359,7 +370,7 @@ export default function CopyHistoryList({
         }
 
         content = (
-            <Paper className={classes.listContainer}>
+            <Paper className={classes.listContainer} ref={listContainerRef}>
                 <List className={classes.list}>{elements}</List>
                 <Button
                     variant="contained"

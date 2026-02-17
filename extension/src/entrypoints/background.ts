@@ -83,30 +83,35 @@ export default defineBackground(() => {
     };
 
     const installListener = async (details: Browser.runtime.InstalledDetails) => {
-        if (details.reason !== browser.runtime.OnInstalledReason.INSTALL) {
+        if (details.reason === browser.runtime.OnInstalledReason.UPDATE) {
+            primeLocalization(await settings.getSingle('language'));
             return;
         }
 
-        const defaultUiLanguage = browser.i18n.getUILanguage();
-        const supportedLanguages = await fetchSupportedLanguages();
+        if (details.reason === browser.runtime.OnInstalledReason.INSTALL) {
+            // Remove subtag e.g. "en-US" is converted to "en"
+            const defaultUiLanguage = browser.i18n.getUILanguage().split('-')[0];
+            const supportedLanguages = await fetchSupportedLanguages();
 
-        if (supportedLanguages.includes(defaultUiLanguage)) {
-            await settings.set({ language: defaultUiLanguage });
-            primeLocalization(defaultUiLanguage);
+            if (supportedLanguages.includes(defaultUiLanguage)) {
+                await settings.set({ language: defaultUiLanguage });
+            }
+
+            await primeLocalization(await settings.getSingle('language'));
+
+            if (isMobile) {
+                // Set reasonable defaults for mobile
+                await settings.set({
+                    streamingTakeScreenshot: false, // Kiwi Browser does not support captureVisibleTab
+                    subtitleSize: 18,
+                    subtitlePositionOffset: 25,
+                    topSubtitlePositionOffset: 25,
+                    subtitlesWidth: 100,
+                });
+            }
+
+            browser.tabs.create({ url: browser.runtime.getURL('/ftue-ui.html'), active: true });
         }
-
-        if (isMobile) {
-            // Set reasonable defaults for mobile
-            await settings.set({
-                streamingTakeScreenshot: false, // Kiwi Browser does not support captureVisibleTab
-                subtitleSize: 18,
-                subtitlePositionOffset: 25,
-                topSubtitlePositionOffset: 25,
-                subtitlesWidth: 100,
-            });
-        }
-
-        browser.tabs.create({ url: browser.runtime.getURL('/ftue-ui.html'), active: true });
     };
 
     const updateListener = async (details: Browser.runtime.InstalledDetails) => {
