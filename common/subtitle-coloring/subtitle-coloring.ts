@@ -120,6 +120,12 @@ function originalTokenization(tokenization: Tokenization | undefined): Tokenizat
     };
 }
 
+function resetYomitan(ts: TrackState) {
+    if (!ts.yt) return;
+    ts.yt.resetCache();
+    ts.yt = undefined;
+}
+
 export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
     private _subtitles: InternalSubtitleModel[];
     private readonly dictionaryProvider: DictionaryProvider;
@@ -148,7 +154,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
     private colorCacheBuilding: boolean;
     private colorCacheBuildingCurrentIndexes: Set<number>;
     private shouldCancelBuild: boolean; // Set to true to stop current color cache build, checked after each async call
-    private tokenRequestFailed: boolean;
+    private tokenRequestFailedForTracks: Set<number>;
 
     private readonly subtitleColorsUpdated: (updatedSubtitles: RichSubtitleModel[], dt: DictionaryTrack[]) => void;
     private readonly getMediaTimeMs?: () => number;
@@ -190,7 +196,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
         this.colorCacheBuilding = false;
         this.colorCacheBuildingCurrentIndexes = new Set();
         this.shouldCancelBuild = false;
-        this.tokenRequestFailed = false;
+        this.tokenRequestFailedForTracks = new Set();
     }
 
     get subtitles() {
@@ -252,7 +258,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
         if (this.colorCacheBuilding) this.shouldCancelBuild = true;
         this.profile = null;
         this.anki = undefined;
-        this.trackStates.forEach((ts) => ts.yt?.resetCache());
+        this.trackStates.forEach(resetYomitan);
         this.trackStates = [];
         this.ankiRecentlyModifiedCardIds.clear();
         this.ankiRecentlyModifiedTrigger = false;
@@ -529,14 +535,8 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
             }
 
             try {
+                for (const subtitle of subtitles) this.colorCacheBuildingCurrentIndexes.add(subtitle.index);
                 await this._buildTokenAndLemmaMap(profile, subtitles);
-            } catch (e) {
-                console.error('Error building token and lemma map:', e);
-                this.trackStates.forEach((ts) => {
-                    if (!ts.yt) return;
-                    ts.yt.resetCache();
-                    ts.yt = undefined; // Propagate error so that subtitles are error styled
-                });
             } finally {
                 this.colorCacheBuildingCurrentIndexes.clear();
             }
@@ -606,15 +606,11 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                 updateThresholds = false;
             }
         } finally {
-            if (this.tokenRequestFailed) {
-                this.tokenRequestFailed = false;
-                this.trackStates.forEach((ts) => {
-                    if (!ts.yt) return;
-                    ts.yt.resetCache();
-                    ts.yt = undefined;
-                });
+            if (this.tokenRequestFailedForTracks.size) {
                 tokensRefreshed = [];
                 updateThresholds = false;
+                for (const track of this.tokenRequestFailedForTracks) resetYomitan(this.trackStates[track]);
+                this.tokenRequestFailedForTracks.clear();
             } else if (!this.shouldCancelBuild) {
                 this.initialized = true;
             }
@@ -640,102 +636,106 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
             const eventsForTrack = eventsPerTrack.get(subtitle.track);
             if (eventsForTrack) eventsForTrack.push(subtitle.text);
             else eventsPerTrack.set(subtitle.track, [subtitle.text]);
-            this.colorCacheBuildingCurrentIndexes.add(subtitle.index);
         }
 
         for (const [track, texts] of eventsPerTrack.entries()) {
             const ts = this.trackStates[track];
-            if (!ts.yt) continue;
-            const tokenizeBulkRes = await ts.yt.tokenizeBulk(texts);
-            if (!dictionaryStatusCollectionEnabled(ts.dt)) continue; // Still want to bulk tokenize if TokenReadingAnnotation.ALWAYS but no coloring
-            if (this.shouldCancelBuild) return;
+            try {
+                if (!ts.yt) continue;
+                const tokenizeBulkRes = await ts.yt.tokenizeBulk(texts);
+                if (!dictionaryStatusCollectionEnabled(ts.dt)) continue; // Still want to bulk tokenize if TokenReadingAnnotation.ALWAYS but no coloring
+                if (this.shouldCancelBuild) return;
 
-            const shouldQueryExactForm =
-                shouldUseExactForm(ts.dt.dictionaryTokenMatchStrategy) ||
-                shouldUseExactForm(ts.dt.dictionaryAnkiSentenceTokenMatchStrategy);
-            const shouldQueryLemmaForm =
-                shouldUseLemmaForm(ts.dt.dictionaryTokenMatchStrategy) ||
-                shouldUseLemmaForm(ts.dt.dictionaryAnkiSentenceTokenMatchStrategy);
-            const shouldQueryAnyForm =
-                shouldUseAnyForm(ts.dt.dictionaryTokenMatchStrategy) ||
-                shouldUseAnyForm(ts.dt.dictionaryAnkiSentenceTokenMatchStrategy);
+                const shouldQueryExactForm =
+                    shouldUseExactForm(ts.dt.dictionaryTokenMatchStrategy) ||
+                    shouldUseExactForm(ts.dt.dictionaryAnkiSentenceTokenMatchStrategy);
+                const shouldQueryLemmaForm =
+                    shouldUseLemmaForm(ts.dt.dictionaryTokenMatchStrategy) ||
+                    shouldUseLemmaForm(ts.dt.dictionaryAnkiSentenceTokenMatchStrategy);
+                const shouldQueryAnyForm =
+                    shouldUseAnyForm(ts.dt.dictionaryTokenMatchStrategy) ||
+                    shouldUseAnyForm(ts.dt.dictionaryAnkiSentenceTokenMatchStrategy);
 
-            for (const token of this.tokensForRefresh) {
-                ts.collectedExactForm.delete(token);
-                ts.collectedLemmaForm.delete(token);
-                ts.collectedAnyForm.delete(token);
-                ts.tokenStates.delete(token);
-            }
+                for (const token of this.tokensForRefresh) {
+                    ts.collectedExactForm.delete(token);
+                    ts.collectedLemmaForm.delete(token);
+                    ts.collectedAnyForm.delete(token);
+                    ts.tokenStates.delete(token);
+                }
 
-            const forExactFormQuery = new Set<string>();
-            const forLemmaFormQuery = new Set<string>();
-            const forAnyFormQuery = new Set<string>();
-            for (const tokenParts of tokenizeBulkRes) {
-                const token = tokenParts
-                    .map((p) => p.text)
-                    .join('')
-                    .trim();
-                if (shouldQueryExactForm && !ts.collectedExactForm.has(token)) forExactFormQuery.add(token);
-                if (shouldQueryLemmaForm) {
-                    for (const lemma of await ts.yt.lemmatize(token)) {
-                        if (!ts.collectedLemmaForm.has(lemma)) forLemmaFormQuery.add(lemma);
+                const forExactFormQuery = new Set<string>();
+                const forLemmaFormQuery = new Set<string>();
+                const forAnyFormQuery = new Set<string>();
+                for (const tokenParts of tokenizeBulkRes) {
+                    const token = tokenParts
+                        .map((p) => p.text)
+                        .join('')
+                        .trim();
+                    if (shouldQueryExactForm && !ts.collectedExactForm.has(token)) forExactFormQuery.add(token);
+                    if (shouldQueryLemmaForm) {
+                        for (const lemma of await ts.yt.lemmatize(token)) {
+                            if (!ts.collectedLemmaForm.has(lemma)) forLemmaFormQuery.add(lemma);
+                        }
+                    }
+                    if (shouldQueryAnyForm) {
+                        for (const lemma of await ts.yt.lemmatize(token)) {
+                            if (!ts.collectedAnyForm.has(lemma)) forAnyFormQuery.add(lemma);
+                        }
                     }
                 }
-                if (shouldQueryAnyForm) {
-                    for (const lemma of await ts.yt.lemmatize(token)) {
-                        if (!ts.collectedAnyForm.has(lemma)) forAnyFormQuery.add(lemma);
-                    }
-                }
-            }
-            if (this.shouldCancelBuild) return;
+                if (this.shouldCancelBuild) return;
 
-            const [exactFormResultMap, lemmaFormResultMap, anyFormResultsMap] = await Promise.all([
-                forExactFormQuery.size
-                    ? this.dictionaryProvider.getBulk(profile, track, Array.from(forExactFormQuery))
-                    : ({} as TokenResults),
-                forLemmaFormQuery.size
-                    ? this.dictionaryProvider.getBulk(profile, track, Array.from(forLemmaFormQuery))
-                    : ({} as TokenResults),
-                forAnyFormQuery.size
-                    ? this.dictionaryProvider.getByLemmaBulk(profile, track, Array.from(forAnyFormQuery))
-                    : ({} as LemmaResults),
-            ]);
-            if (this.shouldCancelBuild) return;
+                const [exactFormResultMap, lemmaFormResultMap, anyFormResultsMap] = await Promise.all([
+                    forExactFormQuery.size
+                        ? this.dictionaryProvider.getBulk(profile, track, Array.from(forExactFormQuery))
+                        : ({} as TokenResults),
+                    forLemmaFormQuery.size
+                        ? this.dictionaryProvider.getBulk(profile, track, Array.from(forLemmaFormQuery))
+                        : ({} as TokenResults),
+                    forAnyFormQuery.size
+                        ? this.dictionaryProvider.getByLemmaBulk(profile, track, Array.from(forAnyFormQuery))
+                        : ({} as LemmaResults),
+                ]);
+                if (this.shouldCancelBuild) return;
 
-            for (const [token, { states, statuses, source }] of Object.entries(exactFormResultMap)) {
-                const status = this._getTokenStatus(statuses, ts);
-                ts.collectedExactForm.set(token, { status, source });
-                if (states.length) ts.tokenStates.set(token, states);
-            }
-            for (const [lemma, { states, statuses, source }] of Object.entries(lemmaFormResultMap)) {
-                const status = this._getTokenStatus(statuses, ts);
-                ts.collectedLemmaForm.set(lemma, { status, source });
-                if (!states.length) continue;
-                const tokenStates = ts.tokenStates.get(lemma);
-                if (tokenStates) {
-                    for (const state of states) {
-                        if (!tokenStates.includes(state)) tokenStates.push(state);
-                    }
-                } else {
-                    ts.tokenStates.set(lemma, states);
-                }
-            }
-            for (const [lemma, lemmaResults] of Object.entries(anyFormResultsMap)) {
-                for (const { states, statuses, source, token } of lemmaResults) {
+                for (const [token, { states, statuses, source }] of Object.entries(exactFormResultMap)) {
                     const status = this._getTokenStatus(statuses, ts);
-                    const lemmaCollected = ts.collectedAnyForm.get(lemma);
-                    if (lemmaCollected) lemmaCollected.push({ status, source, token });
-                    else ts.collectedAnyForm.set(lemma, [{ status, source, token }]);
+                    ts.collectedExactForm.set(token, { status, source });
+                    if (states.length) ts.tokenStates.set(token, states);
+                }
+                for (const [lemma, { states, statuses, source }] of Object.entries(lemmaFormResultMap)) {
+                    const status = this._getTokenStatus(statuses, ts);
+                    ts.collectedLemmaForm.set(lemma, { status, source });
                     if (!states.length) continue;
-                    const tokenStates = ts.tokenStates.get(token);
+                    const tokenStates = ts.tokenStates.get(lemma);
                     if (tokenStates) {
                         for (const state of states) {
                             if (!tokenStates.includes(state)) tokenStates.push(state);
                         }
                     } else {
-                        ts.tokenStates.set(token, states);
+                        ts.tokenStates.set(lemma, states);
                     }
                 }
+                for (const [lemma, lemmaResults] of Object.entries(anyFormResultsMap)) {
+                    for (const { states, statuses, source, token } of lemmaResults) {
+                        const status = this._getTokenStatus(statuses, ts);
+                        const lemmaCollected = ts.collectedAnyForm.get(lemma);
+                        if (lemmaCollected) lemmaCollected.push({ status, source, token });
+                        else ts.collectedAnyForm.set(lemma, [{ status, source, token }]);
+                        if (!states.length) continue;
+                        const tokenStates = ts.tokenStates.get(token);
+                        if (tokenStates) {
+                            for (const state of states) {
+                                if (!tokenStates.includes(state)) tokenStates.push(state);
+                            }
+                        } else {
+                            ts.tokenStates.set(token, states);
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error(`Error building token and lemma map for track ${track}:`, e);
+                resetYomitan(ts);
             }
         }
     }
@@ -765,7 +765,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
         ts: TrackState
     ): Promise<{ reconstructedText: string; tokenization: Tokenization } | undefined> {
         if (!ts.yt) {
-            this.tokenRequestFailed = true;
+            this.tokenRequestFailedForTracks.add(ts.track);
             console.error(`Yomitan not initialized`);
             existingTokenization.error = true;
             return { reconstructedText: fullText, tokenization: existingTokenization };
@@ -834,19 +834,8 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                                     : await this._tokenStatus(trimmedToken, ts),
                         };
                         if (token.status === null) this.erroredCache.add(index);
+                        await this._updateFrequency(token, trimmedToken, index, ts);
                         if (this.shouldCancelBuild) return;
-                        if (
-                            ts.dt.dictionaryTokenFrequencyAnnotation === TokenFrequencyAnnotation.ALWAYS ||
-                            (token.status === TokenStatus.UNCOLLECTED &&
-                                ts.dt.dictionaryTokenFrequencyAnnotation === TokenFrequencyAnnotation.UNCOLLECTED_ONLY)
-                        ) {
-                            if (ts.yt!.getSupportsTokenizeFrequency() || this.initialized) {
-                                token.frequency = await ts.yt!.frequency(trimmedToken);
-                                if (this.shouldCancelBuild) return;
-                            } else {
-                                this.refreshCache.add(index);
-                            }
-                        }
 
                         reconstructedTextParts.push(tokenText);
                         allTokens.push(token);
@@ -857,7 +846,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
         try {
             await promise;
         } catch (e) {
-            this.tokenRequestFailed = true;
+            this.tokenRequestFailedForTracks.add(ts.track);
             console.error(`Tokenization request failed for index ${index}:`, e);
             this.erroredCache.add(index);
             existingTokenization.error = true;
@@ -930,35 +919,37 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                 }
                 token.status = await this._tokenStatus(trimmedToken, ts);
                 if (token.status === null) this.erroredCache.add(index);
+                await this._updateFrequency(token, trimmedToken, index, ts);
                 if (this.shouldCancelBuild) return;
-                if (
-                    ts.dt.dictionaryTokenFrequencyAnnotation === TokenFrequencyAnnotation.ALWAYS ||
-                    (token.status === TokenStatus.UNCOLLECTED &&
-                        ts.dt.dictionaryTokenFrequencyAnnotation === TokenFrequencyAnnotation.UNCOLLECTED_ONLY)
-                ) {
-                    if (ts.yt.getSupportsTokenizeFrequency() || this.initialized) {
-                        token.frequency = await ts.yt.frequency(trimmedToken);
-                        if (this.shouldCancelBuild) return;
-                    } else {
-                        this.refreshCache.add(index);
-                    }
-                }
             }
 
             return { reconstructedText: reconstructedTextParts.join(''), tokenization: { tokens } };
         } catch (error) {
-            this.tokenRequestFailed = true;
+            this.tokenRequestFailedForTracks.add(ts.track);
             console.error(`Error colorizing subtitle text for Track${ts.track + 1}:`, error);
             this.erroredCache.add(index);
             return { reconstructedText: fullText, tokenization: { tokens: [], error: true } };
         }
     }
 
-    private async _tokenStatus(trimmedToken: string, ts: TrackState): Promise<TokenStatus | null> {
-        if (!ts.yt) {
-            throw new Error('Yomitan uninitialized - cannot calculate token status');
+    private async _updateFrequency(token: Token, trimmedToken: string, index: number, ts: TrackState): Promise<void> {
+        if (!ts.yt) throw new Error('Yomitan uninitialized - cannot update token frequency');
+        if (ts.dt.dictionaryTokenFrequencyAnnotation === TokenFrequencyAnnotation.NEVER) return;
+        if (
+            ts.dt.dictionaryTokenFrequencyAnnotation === TokenFrequencyAnnotation.UNCOLLECTED_ONLY &&
+            token.status !== TokenStatus.UNCOLLECTED
+        ) {
+            return;
         }
+        if (ts.yt.getSupportsTokenizeFrequency() || this.initialized) {
+            token.frequency = await ts.yt.frequency(trimmedToken);
+        } else {
+            this.refreshCache.add(index);
+        }
+    }
 
+    private async _tokenStatus(trimmedToken: string, ts: TrackState): Promise<TokenStatus | null> {
+        if (!ts.yt) throw new Error('Yomitan uninitialized - cannot calculate token status');
         switch (ts.dt.dictionaryTokenMatchStrategyPriority) {
             case TokenMatchStrategyPriority.EXACT:
                 return await this._handlePriorityExact(trimmedToken, ts);

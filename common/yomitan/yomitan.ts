@@ -139,6 +139,10 @@ export class Yomitan {
                     if (!source.isPrimary) continue;
                     if (source.matchType !== 'exact') continue;
                     if (source.matchSource !== 'term' && preferTermSource) continue; // Frequency of this exact form, don't promote rare kanji
+                    if (!headword.frequencies) {
+                        this.supportsTokenizeFrequency = false;
+                        return;
+                    }
                     for (const f of headword.frequencies) {
                         if (!Number.isFinite(f.frequency) || f.frequency <= 0) continue;
                         if (f.frequencyMode !== 'rank-based') continue;
@@ -204,6 +208,10 @@ export class Yomitan {
         );
     }
 
+    /**
+     * Get the minimum frequency for a token in a rank-based frequency dictionary using Yomitan's API.
+     * This function will return undefined immediately and asynchronously update the cache if tokensWereModified is provided and the token is not in the cache.
+     */
     async frequency(token: string, yomitanUrl?: string): Promise<number | undefined> {
         const minFrequency = this.frequencyCache.get(token);
         if (minFrequency !== undefined) return minFrequency ?? undefined;
