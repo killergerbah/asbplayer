@@ -57,6 +57,9 @@ const dictionaryTrackSchema = {
         dictionaryDisplayIgnoredTokenReadings: {
             type: 'boolean',
         },
+        dictionaryTokenFrequencyAnnotation: {
+            type: 'string',
+        },
         dictionaryAnkiDecks: {
             type: 'array',
             items: {

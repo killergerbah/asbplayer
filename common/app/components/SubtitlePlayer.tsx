@@ -163,12 +163,11 @@ const useSubtitleRowStyles = makeStyles<Theme>((theme) => ({
         width: '100%',
         overflowWrap: 'anywhere',
         whiteSpace: 'pre-wrap',
-        '& ruby': {
-            rubyPosition: 'over',
-        },
-        '& rt': {
+        '& .asb-frequency rt': {
             fontSize: '0.5em',
-            lineHeight: 1,
+        },
+        '& .asb-frequency-hover rt': {
+            fontSize: '0.5em',
         },
     },
     compressedSubtitle: {
@@ -177,12 +176,11 @@ const useSubtitleRowStyles = makeStyles<Theme>((theme) => ({
         width: '100%',
         overflowWrap: 'anywhere',
         whiteSpace: 'pre-wrap',
-        '& ruby': {
-            rubyPosition: 'over',
-        },
-        '& rt': {
+        '& .asb-frequency rt': {
             fontSize: '0.5em',
-            lineHeight: 1,
+        },
+        '& .asb-frequency-hover rt': {
+            fontSize: '0.5em',
         },
     },
     disabledSubtitle: {

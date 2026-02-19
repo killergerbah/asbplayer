@@ -521,60 +521,88 @@ export function iterateOverStringInBlocks<T, B extends Block>(
     }
 }
 
-export const areTokenReadingsEqual = (a: TokenReading, b: TokenReading) =>
-    arrayEquals(a.pos, b.pos) && a.reading === b.reading;
-
 export const areTokenizationsEqual = (a: Tokenization | undefined, b: Tokenization | undefined) => {
     if (a === b) return true;
     if (!a || !b) return false;
 
-    if (a.error !== b.error) {
-        return false;
-    }
-    if ((a.tokens === undefined && b.tokens !== undefined) || (a.tokens !== undefined && b.tokens === undefined)) {
-        return false;
-    }
-    if (a.tokens === undefined && b.tokens === undefined) {
-        return true;
-    }
-    if (a.tokens!.length !== b.tokens!.length) {
-        return false;
-    }
-    for (let i = 0; i < a.tokens!.length; ++i) {
-        const aToken = a.tokens![i];
-        const bToken = b.tokens![i];
+    if (a.error !== b.error) return false;
+    return arrayEquals(a.tokens, b.tokens, areTokensEqual);
+};
 
-        if (!arrayEquals(aToken.pos, bToken.pos)) {
-            return false;
-        }
-        if (aToken.status !== bToken.status) {
-            return false;
-        }
-        if (!arrayEquals(aToken.pos, bToken.pos)) {
-            return false;
-        }
-        if (
-            (aToken.states === undefined && bToken.states !== undefined) ||
-            (aToken.states !== undefined && bToken.states === undefined)
-        ) {
-            return false;
-        }
-        if (aToken.states !== undefined && bToken.states !== undefined && !arrayEquals(aToken.states, bToken.states)) {
-            return false;
-        }
-        if (
-            (aToken.readings === undefined && bToken.readings !== undefined) ||
-            (aToken.readings !== undefined && bToken.readings === undefined)
-        ) {
-            return false;
-        }
-        if (
-            aToken.readings !== undefined &&
-            bToken.readings !== undefined &&
-            !arrayEquals(aToken.readings, bToken.readings, areTokenReadingsEqual)
-        ) {
-            return false;
-        }
-    }
+const areTokensEqual = (aToken: any, bToken: any) => {
+    if (!arrayEquals(aToken.pos, bToken.pos)) return false;
+    if (aToken.status !== bToken.status) return false;
+    if (!arrayEquals(aToken.states, bToken.states)) return false;
+    if (!arrayEquals(aToken.readings, bToken.readings, areTokenReadingsEqual)) return false;
+    if (aToken.frequency !== bToken.frequency) return false;
     return true;
 };
+
+const areTokenReadingsEqual = (a: TokenReading, b: TokenReading) =>
+    arrayEquals(a.pos, b.pos) && a.reading === b.reading;
+
+/**
+ * An async safe semaphore implementation that preserves FIFO order.
+ * It uses an id for release to allow multiple releases (e.g try/finally with early releases).
+ * @param options.permits The number of concurrent permits.
+ * @param options.lifetimeMs Maximum lifetime of an acquire before automatic release (prevents deadlocks if callers don't call this.release()).
+ */
+export class AsyncSemaphore {
+    private permits: number;
+    private lifetimeMs?: number;
+    private acquired: Set<number> = new Set();
+    private timers: Map<number, ReturnType<typeof setTimeout>> = new Map();
+    private waiting: ((id: number) => void)[] = [];
+    private counter: number = 0;
+    private getNextId = () => {
+        if (this.counter === Number.MAX_SAFE_INTEGER) this.counter = 0;
+        return ++this.counter;
+    };
+
+    constructor(options: { permits: number; lifetimeMs?: number }) {
+        this.permits = Math.floor(options.permits);
+        if (this.permits <= 0) {
+            throw new Error('Permits count must be positive');
+        }
+        this.lifetimeMs = options.lifetimeMs;
+        if (this.lifetimeMs && this.lifetimeMs <= 0) {
+            throw new Error('Lifetime must be positive');
+        }
+    }
+
+    private _acquire(): number {
+        const id = this.getNextId();
+        this.acquired.add(id);
+        if (this.lifetimeMs) {
+            this.timers.set(
+                id,
+                setTimeout(() => this.release(id), this.lifetimeMs)
+            );
+        }
+        return id;
+    }
+
+    acquire(): Promise<number> {
+        return new Promise<number>((resolve) => {
+            if (this.permits > 0) {
+                this.permits--;
+                resolve(this._acquire());
+            } else {
+                this.waiting.push(resolve);
+            }
+        });
+    }
+
+    release(id: number): void {
+        if (!this.acquired.has(id)) return;
+        this.acquired.delete(id);
+        clearTimeout(this.timers.get(id)!);
+        this.timers.delete(id);
+
+        if (this.waiting.length > 0) {
+            this.waiting.shift()!(this._acquire());
+        } else {
+            this.permits++;
+        }
+    }
+}

@@ -33,6 +33,7 @@ import {
     compareDTField,
     Profile,
     dictionaryStatusCollectionEnabled,
+    TokenFrequencyAnnotation,
 } from '@project/common/settings';
 import { Anki } from '../anki';
 import { Yomitan } from '../yomitan/yomitan';
@@ -546,6 +547,69 @@ const DictionarySettingsTab: React.FC<Props> = ({
                     label={t('settings.dictionaryDisplayIgnoredTokenReadings')}
                     labelPlacement="start"
                 />
+                <FormControl>
+                    <FormLabel component="legend">{t('settings.dictionaryTokenFrequencyAnnotation')}</FormLabel>
+                    <RadioGroup row={false}>
+                        <LabelWithHoverEffect
+                            control={
+                                <Radio
+                                    checked={
+                                        selectedDictionary.dictionaryTokenFrequencyAnnotation ===
+                                        TokenFrequencyAnnotation.ALWAYS
+                                    }
+                                    onChange={() => {
+                                        const newTracks = [...dictionaryTracks];
+                                        newTracks[selectedDictionaryTrack] = {
+                                            ...newTracks[selectedDictionaryTrack],
+                                            dictionaryTokenFrequencyAnnotation: TokenFrequencyAnnotation.ALWAYS,
+                                        };
+                                        onSettingChanged('dictionaryTracks', newTracks);
+                                    }}
+                                />
+                            }
+                            label={t('settings.dictionaryTokenFrequencyAnnotationAlways')}
+                        />
+                        <LabelWithHoverEffect
+                            control={
+                                <Radio
+                                    checked={
+                                        selectedDictionary.dictionaryTokenFrequencyAnnotation ===
+                                        TokenFrequencyAnnotation.UNCOLLECTED_ONLY
+                                    }
+                                    onChange={() => {
+                                        const newTracks = [...dictionaryTracks];
+                                        newTracks[selectedDictionaryTrack] = {
+                                            ...newTracks[selectedDictionaryTrack],
+                                            dictionaryTokenFrequencyAnnotation:
+                                                TokenFrequencyAnnotation.UNCOLLECTED_ONLY,
+                                        };
+                                        onSettingChanged('dictionaryTracks', newTracks);
+                                    }}
+                                />
+                            }
+                            label={t('settings.dictionaryTokenFrequencyAnnotationUncollectedOnly')}
+                        />
+                        <LabelWithHoverEffect
+                            control={
+                                <Radio
+                                    checked={
+                                        selectedDictionary.dictionaryTokenFrequencyAnnotation ===
+                                        TokenFrequencyAnnotation.NEVER
+                                    }
+                                    onChange={() => {
+                                        const newTracks = [...dictionaryTracks];
+                                        newTracks[selectedDictionaryTrack] = {
+                                            ...newTracks[selectedDictionaryTrack],
+                                            dictionaryTokenFrequencyAnnotation: TokenFrequencyAnnotation.NEVER,
+                                        };
+                                        onSettingChanged('dictionaryTracks', newTracks);
+                                    }}
+                                />
+                            }
+                            label={t('settings.dictionaryTokenFrequencyAnnotationNever')}
+                        />
+                    </RadioGroup>
+                </FormControl>
                 <SwitchLabelWithHoverEffect
                     control={
                         <Switch

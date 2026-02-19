@@ -114,11 +114,18 @@ export enum TokenReadingAnnotation {
     NEVER = 'NEVER',
 }
 
+export enum TokenFrequencyAnnotation {
+    ALWAYS = 'ALWAYS',
+    UNCOLLECTED_ONLY = 'UNCOLLECTED_ONLY',
+    NEVER = 'NEVER',
+}
+
 export function dictionaryTrackEnabled(dt: DictionaryTrack): boolean {
     return (
         dt.dictionaryColorizeSubtitles ||
         dt.dictionaryTokenReadingAnnotation !== TokenReadingAnnotation.NEVER ||
-        dt.dictionaryDisplayIgnoredTokenReadings
+        dt.dictionaryDisplayIgnoredTokenReadings ||
+        dt.dictionaryTokenFrequencyAnnotation !== TokenFrequencyAnnotation.NEVER
     );
 }
 
@@ -126,7 +133,8 @@ export function dictionaryStatusCollectionEnabled(dt: DictionaryTrack): boolean 
     return (
         dt.dictionaryColorizeSubtitles ||
         dt.dictionaryTokenReadingAnnotation === TokenReadingAnnotation.LEARNING_OR_BELOW ||
-        dt.dictionaryTokenReadingAnnotation === TokenReadingAnnotation.UNKNOWN_OR_BELOW
+        dt.dictionaryTokenReadingAnnotation === TokenReadingAnnotation.UNKNOWN_OR_BELOW ||
+        dt.dictionaryTokenFrequencyAnnotation === TokenFrequencyAnnotation.UNCOLLECTED_ONLY
     );
 }
 
@@ -140,6 +148,7 @@ export interface DictionaryTrack {
     readonly dictionaryYomitanScanLength: number;
     readonly dictionaryTokenReadingAnnotation: TokenReadingAnnotation;
     readonly dictionaryDisplayIgnoredTokenReadings: boolean;
+    readonly dictionaryTokenFrequencyAnnotation: TokenFrequencyAnnotation;
     readonly dictionaryAnkiDecks: string[];
     readonly dictionaryAnkiWordFields: string[];
     readonly dictionaryAnkiSentenceFields: string[];
@@ -168,6 +177,7 @@ const dictionaryTrackComparators: {
     dictionaryYomitanScanLength: (a, b) => a === b,
     dictionaryTokenReadingAnnotation: (a, b) => a === b,
     dictionaryDisplayIgnoredTokenReadings: (a, b) => a === b,
+    dictionaryTokenFrequencyAnnotation: (a, b) => a === b,
     dictionaryAnkiDecks: (a, b) => arrayEquals(a, b),
     dictionaryAnkiWordFields: (a, b) => arrayEquals(a, b),
     dictionaryAnkiSentenceFields: (a, b) => arrayEquals(a, b),
