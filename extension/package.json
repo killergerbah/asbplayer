@@ -26,7 +26,7 @@
         "@mui/material": "^6.4.8",
         "@mui/styles": "^6.4.8",
         "@project/common": "workspace:^",
-        "@types/chrome": "^0.1.1",
+        "@types/chrome": "^0.1.37",
         "@types/dom-mediacapture-record": "^1.0.22",
         "@types/react": "^19.1.8",
         "@types/react-dom": "^19.1.6",
