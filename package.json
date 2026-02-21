@@ -9,7 +9,6 @@
         ]
     },
     "devDependencies": {
-        "@types/opencc-js": "^1.0.3",
         "@typescript-eslint/parser": "^8.38.0",
         "eslint": "^9.32.0",
         "eslint-plugin-react": "^7.37.5",
@@ -25,8 +24,5 @@
     "packageManager": "yarn@3.2.0",
     "resolutions": {
         "lamejs@1.2.0": "patch:lamejs@npm:1.2.0#.yarn/patches/lamejs-npm-1.2.0-b0315d05aa.patch"
-    },
-    "dependencies": {
-        "opencc-js": "^1.0.5"
     }
 }
