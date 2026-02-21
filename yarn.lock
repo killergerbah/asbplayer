@@ -4590,6 +4590,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/opencc-js@npm:^1.0.3":
+  version: 1.0.3
+  resolution: "@types/opencc-js@npm:1.0.3"
+  checksum: 3cc08b83e933d79783c3a50f5d99c6256b86db45a024aad9fe2a9cc78720dcad680a6a6e7562ec4260ed5de7c7c475a3cafef2f688356317fdc3be988a172209
+  languageName: node
+  linkType: hard
+
 "@types/parse-json@npm:^4.0.0":
   version: 4.0.2
   resolution: "@types/parse-json@npm:4.0.2"
@@ -12482,6 +12489,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"opencc-js@npm:^1.0.5":
+  version: 1.0.5
+  resolution: "opencc-js@npm:1.0.5"
+  checksum: 584066299dbaced2a22ecfe5b15095613f03692a6f6180ae41209ae838a0574a3b30b30f984fa902a5d8b6644ddddc31cb3d5afee2a2d8031a13a58a12fa0d37
+  languageName: node
+  linkType: hard
+
 "optionator@npm:^0.9.3":
   version: 0.9.3
   resolution: "optionator@npm:0.9.3"
@@ -13788,10 +13802,12 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "root@workspace:."
   dependencies:
+    "@types/opencc-js": ^1.0.3
     "@typescript-eslint/parser": ^8.38.0
     eslint: ^9.32.0
     eslint-plugin-react: ^7.37.5
     eslint-plugin-react-hooks: ^5.2.0
+    opencc-js: ^1.0.5
     prettier: ^3.6.2
     yarn-upgrade-all: ^0.7.5
   languageName: unknown
