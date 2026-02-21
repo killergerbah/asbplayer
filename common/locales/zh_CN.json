@@ -522,7 +522,8 @@
         "dictionaryImportedMaturity": "Treat imported words as",
         "ui": "UI",
         "webSocketInterface": "WebSocket interface",
-        "yomitanHelperText": "Instructions to setup Yomitan API are <0>here<0>."
+        "yomitanHelperText": "Instructions to setup Yomitan API are <0>here<0>.",
+        "seekableTracks": "用于通过快捷键跳转和自动暂停的字幕轨道"
     },
     "subtitlePlayer": {
         "multiSubtitleSelectHelp": "长按并拖动以挖掘多个字幕"

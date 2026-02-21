@@ -1,4 +1,4 @@
-import { SubtitleModel } from '../src/model';
+import { SeekableTracks, SubtitleModel } from '../src/model';
 import hotkeys from 'hotkeys-js';
 import { KeyBindSet, TokenStatus } from '../settings/settings';
 
@@ -63,6 +63,7 @@ export interface KeyBinder {
         disabledGetter: () => boolean,
         timeGetter: () => number,
         subtitlesGetter: () => SubtitleModel[] | undefined,
+        seekableTracksGetter: () => SeekableTracks,
         capture?: boolean
     ): () => void;
     bindSeekToBeginningOfCurrentSubtitle(
@@ -70,6 +71,7 @@ export interface KeyBinder {
         disabledGetter: () => boolean,
         timeGetter: () => number,
         subtitlesGetter: () => SubtitleModel[] | undefined,
+        seekableTracksGetter: () => SeekableTracks,
         capture?: boolean
     ): () => void;
     bindSeekBackwardOrForward(
@@ -343,6 +345,7 @@ export class DefaultKeyBinder implements KeyBinder {
         disabledGetter: () => boolean,
         timeGetter: () => number,
         subtitlesGetter: () => SubtitleModel[] | undefined,
+        seekableTracksGetter: () => SeekableTracks,
         capture = false
     ) {
         const delegate = (event: KeyboardEvent, forward: boolean) => {
@@ -350,7 +353,9 @@ export class DefaultKeyBinder implements KeyBinder {
                 return false;
             }
 
-            const subtitles = subtitlesGetter();
+            const seekableTracks = seekableTracksGetter();
+
+            const subtitles = subtitlesGetter()?.filter((s) => seekableTracks[s.track]);
 
             if (!subtitles || subtitles.length === 0) {
                 return false;
@@ -392,6 +397,7 @@ export class DefaultKeyBinder implements KeyBinder {
         disabledGetter: () => boolean,
         timeGetter: () => number,
         subtitlesGetter: () => SubtitleModel[] | undefined,
+        seekableTracksGetter: () => SeekableTracks,
         capture = false
     ) {
         const shortcut = this.keyBindSet.seekToBeginningOfCurrentSubtitle.keys;
@@ -405,7 +411,9 @@ export class DefaultKeyBinder implements KeyBinder {
                 return false;
             }
 
-            const subtitles = subtitlesGetter();
+            const seekableTracks = seekableTracksGetter();
+
+            const subtitles = subtitlesGetter()?.filter((s) => seekableTracks[s.track]);
 
             if (!subtitles || subtitles.length === 0) {
                 return false;

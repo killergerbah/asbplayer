@@ -754,7 +754,7 @@ export default function VideoPlayer({
         const interval = setInterval(() => {
             const now = clock.time(length);
             let showSubtitles: RichSubtitleModel[] = [];
-            const slice = subtitleCollection.subtitlesAt(now);
+            const slice = subtitleCollection.subtitlesAt(now, settings.seekableTracks);
 
             for (const s of slice.showing) {
                 if (!disabledSubtitleTracks[s.track]) {
@@ -793,6 +793,7 @@ export default function VideoPlayer({
         autoPauseContext,
         miscSettings,
         extension,
+        settings,
     ]);
 
     const handleOffsetChange = useCallback(
@@ -818,9 +819,10 @@ export default function VideoPlayer({
             },
             () => !videoRef.current,
             () => clock.time(length),
-            () => subtitles
+            () => subtitles,
+            () => settings.seekableTracks
         );
-    }, [keyBinder, playerChannel, subtitles, length, clock]);
+    }, [keyBinder, playerChannel, subtitles, length, clock, settings]);
 
     useEffect(() => {
         return keyBinder.bindSeekToBeginningOfCurrentSubtitle(
@@ -834,7 +836,8 @@ export default function VideoPlayer({
             },
             () => !videoRef.current,
             () => clock.time(length),
-            () => subtitles
+            () => subtitles,
+            () => settings.seekableTracks
         );
     }, [keyBinder, playerChannel, subtitles, length, clock, settings]);
 

@@ -522,7 +522,8 @@
         "dictionaryImportedMaturity": "Treat imported words as",
         "ui": "UI",
         "webSocketInterface": "WebSocket interface",
-        "yomitanHelperText": "As instruções para configurar a API do Yomitan estão <0>aqui<0>."
+        "yomitanHelperText": "As instruções para configurar a API do Yomitan estão <0>aqui<0>.",
+        "seekableTracks": "Faixas de legenda a considerar para busca por atalhos e autopausa"
     },
     "subtitlePlayer": {
         "multiSubtitleSelectHelp": "Clique, segure e arraste para minerar múltiplas legendas"

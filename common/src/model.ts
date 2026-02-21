@@ -310,3 +310,5 @@ export enum ControlType {
     subtitleOffset = 1,
     playbackRate = 2,
 }
+
+export type SeekableTracks = [boolean, boolean, boolean]; // [firstTrack, secondTrack, thirdTrack]

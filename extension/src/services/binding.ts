@@ -49,6 +49,7 @@ import {
     VideoToExtensionCommand,
     IndexedSubtitleModel,
     SaveTokenLocalMessage,
+    SeekableTracks,
 } from '@project/common';
 import { adjacentSubtitle } from '@project/common/key-binder';
 import {
@@ -126,6 +127,7 @@ export default class Binding {
     recordingPostMineAction?: PostMineAction;
     wasPlayingBeforeRecordingMedia?: boolean;
     postMinePlayback: PostMinePlayback = PostMinePlayback.remember;
+    seekableTracks: SeekableTracks = [true, false, false];
     private recordingMediaStartedTimestamp?: number;
     private recordingMediaWithScreenshot: boolean;
     private pausedDueToHover = false;
@@ -191,7 +193,12 @@ export default class Binding {
         this.hasPageScript = hasPageScript;
         this.dictionary = new DictionaryProvider(new ExtensionDictionaryStorage());
         this.settings = new SettingsProvider(new ExtensionSettingsStorage());
-        this.subtitleController = new SubtitleController(video, this.dictionary, this.settings);
+        this.subtitleController = new SubtitleController(
+            video,
+            this.dictionary,
+            this.settings,
+            () => this.seekableTracks
+        );
         this.videoDataSyncController = new VideoDataSyncController(this, this.settings);
         this.controlsController = new ControlsController(video);
         this.dragController = new DragController(video);
@@ -948,6 +955,7 @@ export default class Binding {
         const currentSettings = await this.settings.getAll();
         this._seekDuration = currentSettings.seekDuration;
         this._speedChangeStep = currentSettings.speedChangeStep;
+        this.seekableTracks = currentSettings.seekableTracks;
         this.recordMedia = currentSettings.streamingRecordMedia;
         this.takeScreenshot = currentSettings.streamingTakeScreenshot;
         this.cleanScreenshot = currentSettings.streamingTakeScreenshot && currentSettings.streamingCleanScreenshot;

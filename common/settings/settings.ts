@@ -1,4 +1,11 @@
-import { AnkiExportMode, AutoPausePreference, PostMineAction, PostMinePlayback, SubtitleHtml } from '../src/model';
+import {
+    AnkiExportMode,
+    AutoPausePreference,
+    PostMineAction,
+    PostMinePlayback,
+    SeekableTracks,
+    SubtitleHtml,
+} from '../src/model';
 import { arrayEquals } from '../util';
 
 export enum PauseOnHoverMode {
@@ -11,6 +18,7 @@ export interface MiscSettings {
     readonly themeType: 'dark' | 'light';
     readonly copyToClipboardOnMine: boolean;
     readonly autoPausePreference: AutoPausePreference;
+    readonly seekableTracks: SeekableTracks;
     readonly seekDuration: number;
     readonly speedChangeStep: number;
     readonly fastForwardModePlaybackRate: number;

@@ -1,5 +1,5 @@
 import IntervalTree, { Interval, NumericTuple } from '@flatten-js/interval-tree';
-import { SubtitleModel } from '../src/model';
+import { SeekableTracks, SubtitleModel } from '../src/model';
 
 export interface SubtitleSlice<T> {
     showing: T[];
@@ -62,7 +62,7 @@ export class SubtitleCollection<T extends SubtitleModel> {
         return SubtitleCollection.emptySubtitleCollection as SubtitleCollection<S>;
     }
 
-    subtitlesAt(timestamp: number): SubtitleSlice<T> {
+    subtitlesAt(timestamp: number, seekableTracks?: SeekableTracks): SubtitleSlice<T> {
         const interval: NumericTuple = [timestamp, timestamp];
         const showing = this.tree.search(interval) as T[];
         let lastShown: T[] | undefined;
@@ -86,6 +86,9 @@ export class SubtitleCollection<T extends SubtitleModel> {
             }
         } else if (this.options.showingCheckRadiusMs !== undefined) {
             for (const s of showing) {
+                if (seekableTracks && !seekableTracks[s.track]) {
+                    continue;
+                }
                 if (willStopShowing === undefined && s.end <= timestamp + this.options.showingCheckRadiusMs) {
                     willStopShowing = s;
                 }

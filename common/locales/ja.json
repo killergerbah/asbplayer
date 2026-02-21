@@ -522,7 +522,8 @@
         "dictionaryImportedMaturity": "インポートされた単語を次のように扱います",
         "ui": "UI",
         "webSocketInterface": "WebSocketインターフェース",
-        "yomitanHelperText": "YomitanのAPIのセットアップは<0>こちら<0>をご参考にしてください。"
+        "yomitanHelperText": "YomitanのAPIのセットアップは<0>こちら<0>をご参考にしてください。",
+        "seekableTracks": "キーボードショートカットでシーク／自動一時停止の対象とする字幕トラック"
     },
     "subtitlePlayer": {
         "multiSubtitleSelectHelp": "複数の字幕をマイニングするには、クリックし、押し続け、ドラッグしてください"
