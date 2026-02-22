@@ -522,7 +522,8 @@
         "dictionaryImportedMaturity": "Treat imported words as",
         "ui": "UI",
         "webSocketInterface": "WebSocket interface",
-        "yomitanHelperText": "Instructions to setup Yomitan API are <0>here<0>."
+        "yomitanHelperText": "Instructions to setup Yomitan API are <0>here<0>.",
+        "seekableTracks": "키보드 단축키로 탐색하고 자동 일시정지할 자막 트랙"
     },
     "subtitlePlayer": {
         "multiSubtitleSelectHelp": "여러 자막을 추출하려면 클릭한 채로 드래그하세요"

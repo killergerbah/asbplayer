@@ -10,6 +10,7 @@ import {
     HttpPostMessage,
     IndexedSubtitleModel,
     RichSubtitleModel,
+    SeekableTracks,
 } from '@project/common';
 import {
     DictionaryTrack,
@@ -102,6 +103,7 @@ export default class SubtitleController {
     refreshCurrentSubtitle: boolean;
     _preCacheDom;
     dictionaryTrackSettings?: DictionaryTrack[];
+    seekableTracks: () => SeekableTracks;
 
     readonly autoPauseContext: AutoPauseContext = new AutoPauseContext();
 
@@ -111,10 +113,16 @@ export default class SubtitleController {
     onMouseOver?: (event: MouseEvent) => void;
     onMouseOut?: (event: MouseEvent) => void;
 
-    constructor(video: HTMLMediaElement, dictionary: DictionaryProvider, settings: SettingsProvider) {
+    constructor(
+        video: HTMLMediaElement,
+        dictionary: DictionaryProvider,
+        settings: SettingsProvider,
+        seekableTracks: () => SeekableTracks
+    ) {
         this.video = video;
         this.dictionary = dictionary;
         this.settings = settings;
+        this.seekableTracks = seekableTracks;
         this._preCacheDom = false;
         this.showingSubtitles = [];
         this.shouldRenderBottomOverlay = true;
@@ -391,7 +399,7 @@ export default class SubtitleController {
 
             const showOffset = this.lastOffsetChangeTimestamp > 0 && Date.now() - this.lastOffsetChangeTimestamp < 1000;
             const offset = showOffset ? this._computeOffset() : 0;
-            const slice = this.subtitleColoring.subtitlesAt(this.video.currentTime * 1000);
+            const slice = this.subtitleColoring.subtitlesAt(this.video.currentTime * 1000, this.seekableTracks());
             const showingSubtitles = this._findShowingSubtitles(slice);
 
             this.onSlice?.(slice);

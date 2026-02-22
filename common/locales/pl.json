@@ -522,7 +522,8 @@
         "dictionaryImportedMaturity": "Treat imported words as",
         "ui": "UI",
         "webSocketInterface": "WebSocket interface",
-        "yomitanHelperText": "Instructions to setup Yomitan API are <0>here<0>."
+        "yomitanHelperText": "Instructions to setup Yomitan API are <0>here<0>.",
+        "seekableTracks": "Ścieżki napisów brane pod uwagę przy przewijaniu (skróty) i automatycznym pauzowaniu"
     },
     "subtitlePlayer": {
         "multiSubtitleSelectHelp": "Kliknij, przytrzymaj i przeciągnij, aby wykopać więcej linii napisów"

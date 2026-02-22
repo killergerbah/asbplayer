@@ -522,7 +522,8 @@
         "dictionaryImportedMaturity": "Treat imported words as",
         "ui": "UI",
         "webSocketInterface": "WebSocket interface",
-        "yomitanHelperText": "Instructions to setup Yomitan API are <0>here<0>."
+        "yomitanHelperText": "Instructions to setup Yomitan API are <0>here<0>.",
+        "seekableTracks": "Trek subtitle yang dipertimbangkan untuk pencarian (shortcut) dan jeda otomatis"
     },
     "subtitlePlayer": {
         "multiSubtitleSelectHelp": "Klik, tahan, dan seret untuk menambang beberapa takarir sekaligus"
