@@ -78,10 +78,18 @@ export default class RecordMediaHandler {
 
         if (recordMediaCommand.message.screenshot) {
             const { maxWidth, maxHeight, rect, frameId } = recordMediaCommand.message;
+            const imageDelay = recordMediaCommand.message.record
+                ? Math.max(
+                      0,
+                      recordMediaCommand.message.mediaTimestamp -
+                          subtitle.start +
+                          recordMediaCommand.message.audioPaddingStart
+                  )
+                : Math.max(0, recordMediaCommand.message.imageDelay);
             imagePromise = this._imageCapturer.capture(
                 senderTab.id!,
                 recordMediaCommand.src,
-                Math.min(subtitle.end - subtitle.start, recordMediaCommand.message.imageDelay),
+                imageDelay,
                 { maxWidth, maxHeight, rect, frameId }
             );
             imagePromise.finally(() => {

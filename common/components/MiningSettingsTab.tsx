@@ -7,12 +7,13 @@ import LabelWithHoverEffect from './LabelWithHoverEffect';
 import SwitchLabelWithHoverEffect from './SwitchLabelWithHoverEffect';
 import Radio from '@mui/material/Radio';
 import { PostMineAction, PostMinePlayback } from '@project/common';
-import { AsbplayerSettings } from '@project/common/settings';
+import { AsbplayerSettings, MiningScreenshotCaptureTimestamp } from '@project/common/settings';
 import Switch from '@mui/material/Switch';
 import RadioGroup from '@mui/material/RadioGroup';
 import Stack from '@mui/material/Stack';
 import { FormControl } from '@mui/material';
 import SettingsSection from './SettingsSection';
+import MenuItem from '@mui/material/MenuItem';
 
 interface Props {
     settings: AsbplayerSettings;
@@ -33,6 +34,7 @@ const MiningSettingsTab: React.FC<Props> = ({ settings, onSettingChanged }) => {
         recordWithAudioPlayback,
         preferMp3,
         copyToClipboardOnMine,
+        miningScreenshotCaptureTimestamp,
     } = settings;
     return (
         <Stack spacing={1}>
@@ -233,6 +235,35 @@ const MiningSettingsTab: React.FC<Props> = ({ settings, onSettingChanged }) => {
                     },
                 }}
             />
+            <TextField
+                select
+                label={t('settings.miningScreenshotCaptureTimestamp')}
+                fullWidth
+                value={miningScreenshotCaptureTimestamp}
+                color="primary"
+                onChange={(event) =>
+                    onSettingChanged(
+                        'miningScreenshotCaptureTimestamp',
+                        event.target.value as MiningScreenshotCaptureTimestamp
+                    )
+                }
+            >
+                <MenuItem value={MiningScreenshotCaptureTimestamp.beginning}>
+                    {t('settings.miningScreenshotCaptureTimestampBeginning')}
+                </MenuItem>
+                <MenuItem value={MiningScreenshotCaptureTimestamp.beginningPlus1Second}>
+                    {t('settings.miningScreenshotCaptureTimestampBeginningPlus1Second')}
+                </MenuItem>
+                <MenuItem value={MiningScreenshotCaptureTimestamp.middle}>
+                    {t('settings.miningScreenshotCaptureTimestampMiddle')}
+                </MenuItem>
+                <MenuItem value={MiningScreenshotCaptureTimestamp.endingMinus1Second}>
+                    {t('settings.miningScreenshotCaptureTimestampEndingMinus1Second')}
+                </MenuItem>
+                <MenuItem value={MiningScreenshotCaptureTimestamp.ending}>
+                    {t('settings.miningScreenshotCaptureTimestampEnding')}
+                </MenuItem>
+            </TextField>
             <SettingsSection>{t('settings.exportDialog')}</SettingsSection>
             <TextField
                 type="number"

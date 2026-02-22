@@ -15,6 +15,7 @@ import {
     DictionaryTrack,
     TokenReadingAnnotation,
     TokenFrequencyAnnotation,
+    MiningScreenshotCaptureTimestamp,
 } from '.';
 import { AutoPausePreference, PostMineAction, PostMinePlayback, SubtitleHtml } from '..';
 
@@ -88,6 +89,7 @@ export const defaultSettings: AsbplayerSettings = {
     },
     customAnkiFieldSettings: {},
     ...defaultSubtitleTextSettings,
+    miningScreenshotCaptureTimestamp: MiningScreenshotCaptureTimestamp.beginning,
     subtitlePositionOffset: 75,
     topSubtitlePositionOffset: 75,
     subtitleAlignment: 'bottom',

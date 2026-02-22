@@ -53,9 +53,11 @@ import {
 import { adjacentSubtitle } from '@project/common/key-binder';
 import {
     extractAnkiSettings,
+    MiningScreenshotCaptureTimestamp,
     PauseOnHoverMode,
     SettingsProvider,
     SubtitleListPreference,
+    miningScreenshotTimestamp,
 } from '@project/common/settings';
 import { SubtitleSlice } from '@project/common/subtitle-collection';
 import { SubtitleReader } from '@project/common/subtitle-reader';
@@ -161,6 +163,8 @@ export default class Binding {
     private fastForwardPlaybackMinimumGapMs = 600;
     private fastForwardModePlaybackRate = 2.7;
     private imageDelay = 0;
+    private miningScreenshotCaptureTimestamp: MiningScreenshotCaptureTimestamp =
+        MiningScreenshotCaptureTimestamp.beginning;
     private pauseOnHoverMode: PauseOnHoverMode = PauseOnHoverMode.disabled;
     hoveredToken: HoveredToken;
     recordMedia: boolean;
@@ -954,6 +958,7 @@ export default class Binding {
         this.condensedPlaybackMinimumSkipIntervalMs = currentSettings.streamingCondensedPlaybackMinimumSkipIntervalMs;
         this.fastForwardModePlaybackRate = currentSettings.fastForwardModePlaybackRate;
         this.imageDelay = currentSettings.streamingScreenshotDelay;
+        this.miningScreenshotCaptureTimestamp = currentSettings.miningScreenshotCaptureTimestamp;
         this.audioPaddingStart = currentSettings.audioPaddingStart;
         this.audioPaddingEnd = currentSettings.audioPaddingEnd;
         this.maxImageWidth = currentSettings.maxImageWidth;
@@ -1129,6 +1134,12 @@ export default class Binding {
             navigator.clipboard.writeText(subtitle.text);
         }
 
+        const mediaTimestamp = miningScreenshotTimestamp(
+            subtitle.start,
+            subtitle.end,
+            this.miningScreenshotCaptureTimestamp
+        );
+
         if (this.takeScreenshot) {
             await this._prepareScreenshot();
         }
@@ -1148,6 +1159,8 @@ export default class Binding {
             text = extractText(subtitle, surroundingSubtitles);
         }
 
+        const imageDelay = Math.max(0, mediaTimestamp - this.video.currentTime * 1000);
+
         const command: VideoToExtensionCommand<RecordMediaAndForwardSubtitleMessage> = {
             sender: 'asbplayer-video',
             message: {
@@ -1157,12 +1170,12 @@ export default class Binding {
                 record: this.recordMedia,
                 screenshot: this.takeScreenshot,
                 url: this.url(subtitle.start, subtitle.end),
-                mediaTimestamp: this.video.currentTime * 1000,
+                mediaTimestamp,
                 subtitleFileName: this.subtitleFileName(subtitle.track),
                 postMineAction: postMineAction,
                 audioPaddingStart: this.audioPaddingStart,
                 audioPaddingEnd: this.audioPaddingEnd,
-                imageDelay: this.imageDelay,
+                imageDelay,
                 playbackRate: this.video.playbackRate,
                 text,
                 definition,
