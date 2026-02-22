@@ -22,6 +22,7 @@ import KeyboardShortcutsSettingsTab from './KeyboardShortcutsSettingsTab';
 import StreamingVideoSettingsTab from './StreamingVideoSettingsTab';
 import MiscSettingsTab from './MiscSettingsTab';
 import { DictionaryProvider } from '../dictionary-db';
+import TutorialBubble from './TutorialBubble';
 
 interface StylesProps {
     smallScreen: boolean;
@@ -186,6 +187,8 @@ interface Props {
     supportedLanguages: string[];
     forceVerticalTabs?: boolean;
     inTutorial?: boolean;
+    inAnnotationTutorial?: boolean;
+    onAnnotationTutorialSeen?: () => void;
     heightConstrained?: boolean;
     testCard?: () => Promise<CardModel>;
     onSettingsChanged: (settings: Partial<AsbplayerSettings>) => void;
@@ -225,6 +228,8 @@ export default function SettingsForm({
     supportedLanguages,
     forceVerticalTabs,
     inTutorial,
+    inAnnotationTutorial,
+    onAnnotationTutorialSeen,
     heightConstrained,
     testCard,
     onSettingsChanged,
@@ -285,6 +290,10 @@ export default function SettingsForm({
         }
     }, [tutorialStep, noteType]);
 
+    const handleAnnotationTutorialSeen = useCallback(() => {
+        onAnnotationTutorialSeen?.();
+    }, [onAnnotationTutorialSeen]);
+
     const ankiPanelRef = useRef<HTMLDivElement>(null);
     const keyboardShortcutsPanelRef = useRef<HTMLDivElement>(null);
 
@@ -313,7 +322,24 @@ export default function SettingsForm({
                 <Tab tabIndex={1} label={t('settings.mining')} id="mining-settings" />
                 <Tab tabIndex={2} label={t('settings.subtitleAppearance')} id="subtitle-appearance" />
                 <Tab tabIndex={3} label={t('settings.keyboardShortcuts')} id="keyboard-shortcuts" />
-                {supportsDictionary && <Tab tabIndex={4} label={t('settings.annotation')} id="dictionary" />}
+                {supportsDictionary && (
+                    <TutorialBubble
+                        show={inAnnotationTutorial}
+                        placement="right"
+                        text={t('settings.ftueAnnotation')}
+                        onConfirm={handleAnnotationTutorialSeen}
+                    >
+                        <Tab
+                            onClick={() => {
+                                setTabIndex(4);
+                                handleAnnotationTutorialSeen();
+                            }}
+                            tabIndex={4}
+                            label={t('settings.annotation')}
+                            id="dictionary"
+                        />
+                    </TutorialBubble>
+                )}
                 {extensionSupportsAppIntegration && (
                     <Tab
                         tabIndex={4 + Number(supportsDictionary)}

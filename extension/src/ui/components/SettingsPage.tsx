@@ -42,6 +42,8 @@ interface Props {
     profiles: Profile[];
     activeProfile?: string;
     inTutorial?: boolean;
+    inAnnotationTutorial?: boolean;
+    onAnnotationTutorialSeen?: () => void;
     onNewProfile: (name: string) => void;
     onRemoveProfile: (name: string) => void;
     onSetActiveProfile: (name: string | undefined) => void;
@@ -54,7 +56,15 @@ const extensionTestCard: () => Promise<CardModel> = () => {
     });
 };
 
-const SettingsPage = ({ dictionaryProvider, settings, inTutorial, onSettingsChanged, ...profileContext }: Props) => {
+const SettingsPage = ({
+    dictionaryProvider,
+    settings,
+    inTutorial,
+    inAnnotationTutorial,
+    onAnnotationTutorialSeen,
+    onSettingsChanged,
+    ...profileContext
+}: Props) => {
     const { t } = useTranslation();
     const theme = useTheme();
     const anki = useMemo(
@@ -129,6 +139,8 @@ const SettingsPage = ({ dictionaryProvider, settings, inTutorial, onSettingsChan
                         onUnlockLocalFonts={handleUnlockLocalFonts}
                         scrollToId={section}
                         inTutorial={inTutorial}
+                        inAnnotationTutorial={inAnnotationTutorial}
+                        onAnnotationTutorialSeen={onAnnotationTutorialSeen}
                         testCard={extensionTestCard}
                     />
                 </DialogContent>

@@ -451,6 +451,7 @@
         "pauseOnHoverMode": "マウスカーソルを字幕に重ねると自動一時停止",
         "createTestCard": "テストカードを作成",
         "annotation": "アノテーション",
+        "ftueAnnotation": "Subtitle annotation features are now available.",
         "annotationHelperText": "アノテーション機能は<0>Yomitan API</0>が必要です。",
         "annotationNoExtensionWarn": "単語がブラウザによって削除されないためには、asbplayer拡張機能のインストールをお勧めします。設定をなくさないためには拡張機能をインストールする前に設定のエクスポートもお勧めします。",
         "annotationLocalAnkiHelperText": "単語の成熟度は、Ankiの単語データベースより、ローカルの単語データベースが優先されます。単語を収集するためには、こちらのボタンでインポートするか、字幕にマウスカーソルを重ね、<0>キーボードショートカット</0>を使用することができます。",
