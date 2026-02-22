@@ -375,7 +375,7 @@
         "maxImageHeight": "Max Image Height",
         "maxImageWidth": "Max Image Width",
         "miningScreenshotCaptureTimestamp": "Mined subtitle screenshot timing",
-        "miningScreenshotCaptureTimestampBeginning": "Beginning",
+        "miningScreenshotCaptureTimestampBeginning": "Use Delay",
         "miningScreenshotCaptureTimestampAfterBeginning": "After beginning",
         "miningScreenshotCaptureTimestampMiddle": "Middle",
         "miningScreenshotCaptureTimestampBeforeEnding": "Before ending",

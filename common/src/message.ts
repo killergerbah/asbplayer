@@ -128,6 +128,7 @@ export interface RecordMediaAndForwardSubtitleMessage extends Message, CardTextF
     readonly audioPaddingStart: number;
     readonly audioPaddingEnd: number;
     readonly imageDelay: number;
+    readonly useScreenshotCaptureDelay?: boolean;
     readonly playbackRate: number;
     readonly mediaTimestamp: number;
     readonly isBulkExport?: boolean;

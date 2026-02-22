@@ -1134,11 +1134,11 @@ export default class Binding {
             navigator.clipboard.writeText(subtitle.text);
         }
 
-        const mediaTimestamp = miningScreenshotTimestamp(
-            subtitle.start,
-            subtitle.end,
-            this.miningScreenshotCaptureTimestamp
-        );
+        const useScreenshotCaptureDelay =
+            this.miningScreenshotCaptureTimestamp === MiningScreenshotCaptureTimestamp.beginning && this.imageDelay > 0;
+        const mediaTimestamp = useScreenshotCaptureDelay
+            ? subtitle.start
+            : miningScreenshotTimestamp(subtitle.start, subtitle.end, this.miningScreenshotCaptureTimestamp);
 
         if (this.takeScreenshot) {
             await this._prepareScreenshot();
@@ -1159,7 +1159,9 @@ export default class Binding {
             text = extractText(subtitle, surroundingSubtitles);
         }
 
-        const imageDelay = Math.max(0, mediaTimestamp - this.video.currentTime * 1000);
+        const imageDelay = useScreenshotCaptureDelay
+            ? this.imageDelay
+            : Math.max(0, mediaTimestamp - this.video.currentTime * 1000);
 
         const command: VideoToExtensionCommand<RecordMediaAndForwardSubtitleMessage> = {
             sender: 'asbplayer-video',
@@ -1176,6 +1178,7 @@ export default class Binding {
                 audioPaddingStart: this.audioPaddingStart,
                 audioPaddingEnd: this.audioPaddingEnd,
                 imageDelay,
+                useScreenshotCaptureDelay,
                 playbackRate: this.video.playbackRate,
                 text,
                 definition,

@@ -27,6 +27,7 @@ const MiningSettingsTab: React.FC<Props> = ({ settings, onSettingChanged }) => {
         audioPaddingEnd,
         maxImageWidth,
         maxImageHeight,
+        streamingScreenshotDelay,
         surroundingSubtitlesCountRadius,
         surroundingSubtitlesTimeRadius,
         clickToMineDefaultAction,
@@ -264,6 +265,25 @@ const MiningSettingsTab: React.FC<Props> = ({ settings, onSettingChanged }) => {
                     {t('settings.miningScreenshotCaptureTimestampEnding')}
                 </MenuItem>
             </TextField>
+            {miningScreenshotCaptureTimestamp === MiningScreenshotCaptureTimestamp.beginning && (
+                <TextField
+                    type="number"
+                    label={t('extension.settings.screenshotCaptureDelay')}
+                    fullWidth
+                    value={streamingScreenshotDelay}
+                    color="primary"
+                    onChange={(event) => onSettingChanged('streamingScreenshotDelay', Number(event.target.value))}
+                    slotProps={{
+                        htmlInput: {
+                            min: 0,
+                            step: 1,
+                        },
+                        input: {
+                            endAdornment: <InputAdornment position="end">ms</InputAdornment>,
+                        },
+                    }}
+                />
+            )}
             <SettingsSection>{t('settings.exportDialog')}</SettingsSection>
             <TextField
                 type="number"

@@ -78,20 +78,25 @@ export default class RecordMediaHandler {
 
         if (recordMediaCommand.message.screenshot) {
             const { maxWidth, maxHeight, rect, frameId } = recordMediaCommand.message;
+            const subtitleDuration = Math.max(0, subtitle.end - subtitle.start);
+            const delayedCaptureImageDelay = recordMediaCommand.message.useScreenshotCaptureDelay
+                ? Math.min(subtitleDuration, Math.max(0, recordMediaCommand.message.imageDelay))
+                : undefined;
             const imageDelay = recordMediaCommand.message.record
-                ? Math.max(
+                ? (delayedCaptureImageDelay ??
+                  Math.max(
                       0,
                       recordMediaCommand.message.mediaTimestamp -
                           subtitle.start +
                           recordMediaCommand.message.audioPaddingStart
-                  )
-                : Math.max(0, recordMediaCommand.message.imageDelay);
-            imagePromise = this._imageCapturer.capture(
-                senderTab.id!,
-                recordMediaCommand.src,
-                imageDelay,
-                { maxWidth, maxHeight, rect, frameId }
-            );
+                  ))
+                : (delayedCaptureImageDelay ?? Math.max(0, recordMediaCommand.message.imageDelay));
+            imagePromise = this._imageCapturer.capture(senderTab.id!, recordMediaCommand.src, imageDelay, {
+                maxWidth,
+                maxHeight,
+                rect,
+                frameId,
+            });
             imagePromise.finally(() => {
                 const screenshotTakenCommand: ExtensionToVideoCommand<ScreenshotTakenMessage> = {
                     sender: 'asbplayer-extension-to-video',
