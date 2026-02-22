@@ -9,9 +9,9 @@ export enum PauseOnHoverMode {
 
 export enum MiningScreenshotCaptureTimestamp {
     beginning = 'beginning',
-    beginningPlus1Second = 'beginningPlus1Second',
+    afterBeginning = 'afterBeginning',
     middle = 'middle',
-    endingMinus1Second = 'endingMinus1Second',
+    beforeEnding = 'beforeEnding',
     ending = 'ending',
 }
 
@@ -23,17 +23,17 @@ export function miningScreenshotTimestamp(
     const start = Math.min(subtitleStart, subtitleEnd);
     const end = Math.max(subtitleStart, subtitleEnd);
     const duration = Math.max(0, end - start);
-    const oneSecondOffset = duration < 2000 ? Math.floor(duration * 0.3) : 1000;
+    const edgeOffset = duration < 2000 ? Math.floor(duration * 0.3) : 1000;
 
     switch (captureTimestamp) {
         case MiningScreenshotCaptureTimestamp.beginning:
             return start;
-        case MiningScreenshotCaptureTimestamp.beginningPlus1Second:
-            return Math.min(end, start + oneSecondOffset);
+        case MiningScreenshotCaptureTimestamp.afterBeginning:
+            return Math.min(end, start + edgeOffset);
         case MiningScreenshotCaptureTimestamp.middle:
             return start + Math.floor(duration / 2);
-        case MiningScreenshotCaptureTimestamp.endingMinus1Second:
-            return Math.max(start, end - oneSecondOffset);
+        case MiningScreenshotCaptureTimestamp.beforeEnding:
+            return Math.max(start, end - edgeOffset);
         case MiningScreenshotCaptureTimestamp.ending:
             return end;
         default:

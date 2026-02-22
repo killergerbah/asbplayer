@@ -251,14 +251,14 @@ const MiningSettingsTab: React.FC<Props> = ({ settings, onSettingChanged }) => {
                 <MenuItem value={MiningScreenshotCaptureTimestamp.beginning}>
                     {t('settings.miningScreenshotCaptureTimestampBeginning')}
                 </MenuItem>
-                <MenuItem value={MiningScreenshotCaptureTimestamp.beginningPlus1Second}>
-                    {t('settings.miningScreenshotCaptureTimestampBeginningPlus1Second')}
+                <MenuItem value={MiningScreenshotCaptureTimestamp.afterBeginning}>
+                    {t('settings.miningScreenshotCaptureTimestampAfterBeginning')}
                 </MenuItem>
                 <MenuItem value={MiningScreenshotCaptureTimestamp.middle}>
                     {t('settings.miningScreenshotCaptureTimestampMiddle')}
                 </MenuItem>
-                <MenuItem value={MiningScreenshotCaptureTimestamp.endingMinus1Second}>
-                    {t('settings.miningScreenshotCaptureTimestampEndingMinus1Second')}
+                <MenuItem value={MiningScreenshotCaptureTimestamp.beforeEnding}>
+                    {t('settings.miningScreenshotCaptureTimestampBeforeEnding')}
                 </MenuItem>
                 <MenuItem value={MiningScreenshotCaptureTimestamp.ending}>
                     {t('settings.miningScreenshotCaptureTimestampEnding')}
