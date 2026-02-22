@@ -288,6 +288,7 @@
         "disabledAutoPause": "Automaattinen pysäytys: Pois Käytöstä",
         "disabledCondensedPlayback": "Lyhennetty soitto: pois päältä",
         "disabledFastForwardPlayback": "Nopea eteenpäin toisto: pois päältä",
+        "disabledAllPlayModes": "All playback modes: Off",
         "enabledAutoPause": "Automaattinen Pysäytys: Päällä",
         "enabledCondensedPlayback": "Lyhennetty soitto: Päällä",
         "enabledFastForwardPlayback": "Nopea eteenpäin soitto: Päällä",

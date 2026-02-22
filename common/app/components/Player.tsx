@@ -33,6 +33,7 @@ import SubtitlePlayer, { DisplaySubtitleModel, minSubtitlePlayerWidth } from './
 import VideoChannel from '../services/video-channel';
 import ChromeExtension from '../services/chrome-extension';
 import PlaybackPreferences from '../services/playback-preferences';
+import PlayModeManager from '../services/play-mode-manager';
 import { useWindowSize } from '../hooks/use-window-size';
 import { useAppBarHeight } from '../hooks/use-app-bar-height';
 import { createBlobUrl } from '../../blob-url';
@@ -124,7 +125,7 @@ interface PlayerProps {
     onAppBarToggle: () => void;
     onHideSubtitlePlayer: () => void;
     onVideoPopOut: () => void;
-    onPlayModeChangedViaBind: (oldPlayMode: PlayMode, newPlayMode: PlayMode) => void;
+    onPlayModeChangedViaBind: (playModes: Set<PlayMode>, targetMode: PlayMode) => void;
     onSubtitles: React.Dispatch<React.SetStateAction<DisplaySubtitleModel[] | undefined>>;
     onLoadFiles?: () => void;
     disableKeyEvents: boolean;
@@ -176,10 +177,24 @@ const Player = React.memo(function Player({
     forceCompressedMode,
     webSocketClient,
 }: PlayerProps) {
-    const [playMode, setPlayMode] = useState<PlayMode>(PlayMode.normal);
+    const [playModes, setPlayModes] = useState<Set<PlayMode>>(new Set([PlayMode.normal]));
+    const playModesRef = useRef<Set<PlayMode>>(new Set([PlayMode.normal]));
+    const pendingAutoRepeatTargetTimestamp = useRef<number>(0);
+    const lastSeekDurationRef = useRef<number>(0);
+    const resetPendingAutoRepeatTargetTimestamp = useCallback(() => {
+        pendingAutoRepeatTargetTimestamp.current = 0;
+    }, []);
     const [subtitlesSentThroughChannel, setSubtitlesSentThroughChannel] = useState<boolean>();
     const subtitlesRef = useRef<DisplaySubtitleModel[]>(undefined);
     subtitlesRef.current = subtitles;
+    const [subtitleCollection, setSubtitleCollection] = useState<
+        SubtitleColoring | SubtitleCollection<DisplaySubtitleModel>
+    >(SubtitleCollection.empty<DisplaySubtitleModel>());
+    const subtitleCollectionRef = useRef<SubtitleColoring | SubtitleCollection<DisplaySubtitleModel>>(
+        subtitleCollection
+    );
+    subtitleCollectionRef.current = subtitleCollection;
+
     const subtitleFiles = sources?.subtitleFiles;
     const flattenSubtitleFiles = sources?.flattenSubtitleFiles;
     const videoFile = sources?.videoFile;
@@ -217,8 +232,16 @@ const Player = React.memo(function Player({
     const classes = useStyles({ appBarHidden, appBarHeight });
     const calculateLength = () => trackLength(channelRef.current, subtitlesRef.current);
 
+    useEffect(() => {
+        playModesRef.current = playModes;
+    }, [playModes]);
+
     const seek = useCallback(
-        async (time: number, clock: Clock, forwardToMedia: boolean) => {
+        async (time: number, clock: Clock, forwardToMedia: boolean, isUserInitiated: boolean = false) => {
+            if (isUserInitiated) {
+                resetPendingAutoRepeatTargetTimestamp();
+            }
+
             clock.setTime(time);
 
             if (forwardToMedia) {
@@ -227,7 +250,7 @@ const Player = React.memo(function Player({
 
             autoPauseContextRef.current?.clear();
         },
-        [mediaAdapter]
+        [mediaAdapter, resetPendingAutoRepeatTargetTimestamp]
     );
 
     const handleSubtitlePlayerResizeStart = useCallback(() => setSubtitlePlayerResizing(true), []);
@@ -235,7 +258,7 @@ const Player = React.memo(function Player({
 
     const handleOnStartedShowingSubtitle = useCallback(() => {
         if (
-            playMode !== PlayMode.autoPause ||
+            !playModes.has(PlayMode.autoPause) ||
             settings.autoPausePreference !== AutoPausePreference.atStart ||
             videoFileUrl // Let VideoPlayer do the auto-pausing
         ) {
@@ -243,23 +266,75 @@ const Player = React.memo(function Player({
         }
 
         pause(clock, mediaAdapter, true);
-    }, [playMode, clock, mediaAdapter, videoFileUrl, settings.autoPausePreference]);
+    }, [playModes, clock, mediaAdapter, videoFileUrl, settings.autoPausePreference]);
 
     const handleOnWillStopShowingSubtitle = useCallback(
-        (subtitle: SubtitleModel) => {
-            if (playMode === PlayMode.repeat) {
-                // If in repeat mode, seek to the start of the current subtitle
-                seek(subtitle.start, clock, true);
-            } else if (
-                playMode === PlayMode.autoPause &&
-                settings.autoPausePreference === AutoPausePreference.atEnd &&
-                !videoFileUrl // Ensure not to interfere with VideoPlayer's auto-pausing
-            ) {
-                // Handle auto-pause logic
+        async (subtitle: SubtitleModel) => {
+            resetPendingAutoRepeatTargetTimestamp();
+
+            const isAutoPauseAtEndEnabled =
+                playModes.has(PlayMode.autoPause) && settings.autoPausePreference === AutoPausePreference.atEnd;
+            const isAutoPauseAtStartEnabled =
+                playModes.has(PlayMode.autoPause) && settings.autoPausePreference === AutoPausePreference.atStart;
+            const isRepeatEnabled = playModes.has(PlayMode.repeat);
+            const isCondensedEnabled = playModes.has(PlayMode.condensed);
+
+            if (!isAutoPauseAtEndEnabled && !isRepeatEnabled && !isAutoPauseAtStartEnabled) return;
+
+            if (isAutoPauseAtEndEnabled && !videoFileUrl) {
                 pause(clock, mediaAdapter, true);
             }
+
+            if (isRepeatEnabled) {
+                if (isAutoPauseAtEndEnabled) {
+                    pendingAutoRepeatTargetTimestamp.current = subtitle.start;
+                } else {
+                    seek(subtitle.start, clock, true);
+                }
+                return;
+            }
+
+            if (isCondensedEnabled) {
+                const slice = subtitleCollection.subtitlesAt(subtitle.end + 1);
+
+                if (slice.nextToShow && slice.nextToShow.length > 0) {
+                    const nextSubtitle = slice.nextToShow[0];
+                    const timeGap = nextSubtitle.start - subtitle.end;
+
+                    const baseThreshold = lastSeekDurationRef.current || 1000;
+                    const safetyBuffer = 500;
+                    const seekThreshold = baseThreshold + safetyBuffer;
+
+                    if (timeGap < seekThreshold) {
+                        return;
+                    }
+
+                    if (isAutoPauseAtEndEnabled) {
+                        pendingAutoRepeatTargetTimestamp.current = nextSubtitle.start;
+                    } else {
+                        const wasPlaying = clock.running;
+
+                        if (wasPlaying) clock.stop();
+
+                        const t0 = Date.now();
+                        await seek(nextSubtitle.start, clock, true);
+                        lastSeekDurationRef.current = Date.now() - t0;
+
+                        if (wasPlaying) clock.start();
+                    }
+                }
+            }
         },
-        [playMode, clock, mediaAdapter, videoFileUrl, settings.autoPausePreference, seek]
+        [
+            playModes,
+            clock,
+            mediaAdapter,
+            videoFileUrl,
+            settings.autoPausePreference,
+            seek,
+            subtitleCollection,
+            resetPendingAutoRepeatTargetTimestamp,
+        ]
     );
 
     const autoPauseContext = useMemo(() => {
@@ -386,7 +461,9 @@ const Player = React.memo(function Player({
 
                     setSubtitlesSentThroughChannel(false);
                     onSubtitles(subtitles);
-                    setPlayMode((playMode) => (!subtitles || subtitles.length === 0 ? PlayMode.normal : playMode));
+                    setPlayModes((playModes) =>
+                        !subtitles || subtitles.length === 0 ? new Set([PlayMode.normal]) : playModes
+                    );
                 } catch (e) {
                     onError(e);
                     onSubtitles([]);
@@ -395,20 +472,12 @@ const Player = React.memo(function Player({
                 }
             } else {
                 subtitles = undefined;
-                setPlayMode(PlayMode.normal);
+                setPlayModes(new Set([PlayMode.normal]));
             }
         }
 
         init().then(() => onLoaded(subtitleFiles ?? []));
     }, [subtitleReader, onLoaded, onError, subtitleFiles, flattenSubtitleFiles, onSubtitles]);
-
-    const [subtitleCollection, setSubtitleCollection] = useState<
-        SubtitleColoring | SubtitleCollection<DisplaySubtitleModel>
-    >(SubtitleCollection.empty<DisplaySubtitleModel>());
-    const subtitleCollectionRef = useRef<SubtitleColoring | SubtitleCollection<DisplaySubtitleModel>>(
-        subtitleCollection
-    );
-    subtitleCollectionRef.current = subtitleCollection;
 
     useEffect(() => {
         const options = { returnLastShown: true, returnNextToShow: true, showingCheckRadiusMs: 150 };
@@ -645,7 +714,7 @@ const Player = React.memo(function Player({
     );
     useEffect(() => channel?.ankiSettings(settings), [channel, settings]);
     useEffect(() => channel?.miscSettings(settings), [channel, settings]);
-    useEffect(() => channel?.playMode(playMode), [channel, playMode]);
+    useEffect(() => channel?.playModes(playModes), [channel, playModes]);
     useEffect(
         () =>
             channel?.onReady(() => {
@@ -732,11 +801,12 @@ const Player = React.memo(function Player({
     );
     useEffect(
         () =>
-            channel?.onPlayMode((playMode) => {
-                setPlayMode(playMode);
-                channel?.playMode(playMode);
+            channel?.onPlayModes((playModes) => {
+                playModesRef.current = playModes;
+                setPlayModes(playModes);
+                channel?.playModes(playModes);
             }),
-        [channel, playMode]
+        [channel, playModes]
     );
     useEffect(
         () =>
@@ -747,7 +817,11 @@ const Player = React.memo(function Player({
                     clock.stop();
                 }
 
-                await seek(currentTime * 1000, clock, forwardToMedia);
+                // When forwardToMedia is false, the message came from the video element's seeked event,
+                // which is typically triggered by user actions (progress bar, keyboard shortcuts)
+                const isUserInitiated = !forwardToMedia;
+
+                await seek(currentTime * 1000, clock, forwardToMedia, isUserInitiated);
 
                 if (playing) {
                     clock.start();
@@ -786,13 +860,21 @@ const Player = React.memo(function Player({
         [channel]
     );
     useEffect(() => channel?.onLoadFiles(() => onLoadFiles?.()), [channel, onLoadFiles]);
-    function play(clock: Clock, mediaAdapter: MediaAdapter, forwardToMedia: boolean) {
+    const play = (clock: Clock, mediaAdapter: MediaAdapter, forwardToMedia: boolean) => {
+        if (
+            (playModesRef.current.has(PlayMode.repeat) || playModesRef.current.has(PlayMode.autoPause)) &&
+            pendingAutoRepeatTargetTimestamp.current > 0
+        ) {
+            seek(pendingAutoRepeatTargetTimestamp.current, clock, forwardToMedia);
+            resetPendingAutoRepeatTargetTimestamp();
+        }
+
         clock.start();
 
         if (forwardToMedia) {
             mediaAdapter.play();
         }
-    }
+    };
 
     function pause(clock: Clock, mediaAdapter: MediaAdapter, forwardToMedia: boolean) {
         clock.stop();
@@ -832,7 +914,7 @@ const Player = React.memo(function Player({
     }, [miningContext, clock, mediaAdapter]);
 
     useEffect(() => {
-        if (playMode !== PlayMode.condensed) {
+        if (!playModes.has(PlayMode.condensed)) {
             return;
         }
 
@@ -856,10 +938,13 @@ const Player = React.memo(function Player({
 
                 const playing = clock.running;
 
+                if (pendingAutoRepeatTargetTimestamp.current > 0) {
+                    return;
+                }
+
                 if (playing) {
                     clock.stop();
                 }
-
                 if (!seeking) {
                     seeking = true;
                     const t0 = Date.now();
@@ -867,7 +952,6 @@ const Player = React.memo(function Player({
                     expectedSeekTime = Date.now() - t0;
                     seeking = false;
                 }
-
                 if (playing) {
                     clock.start();
                 }
@@ -875,10 +959,10 @@ const Player = React.memo(function Player({
         }, 100);
 
         return () => clearInterval(interval);
-    }, [subtitles, subtitleCollection, playMode, clock, seek]);
+    }, [subtitles, subtitleCollection, playModes, clock, seek]);
 
     useEffect(() => {
-        if (playMode !== PlayMode.fastForward) {
+        if (!playModes.has(PlayMode.fastForward)) {
             return;
         }
 
@@ -887,6 +971,8 @@ const Player = React.memo(function Player({
         }
 
         const interval = setInterval(async () => {
+            if (!playModesRef.current.has(PlayMode.fastForward)) return;
+
             const timestamp = clock.time(calculateLength());
             const slice = subtitleCollection.subtitlesAt(timestamp);
 
@@ -902,7 +988,7 @@ const Player = React.memo(function Player({
         }, 100);
 
         return () => clearInterval(interval);
-    }, [updatePlaybackRate, subtitleCollection, clock, subtitles, playMode, settings.fastForwardModePlaybackRate]);
+    }, [updatePlaybackRate, subtitleCollection, clock, subtitles, playModes, settings.fastForwardModePlaybackRate]);
 
     useEffect(() => {
         if (videoPopOut && videoFileUrl && channelId) {
@@ -926,7 +1012,7 @@ const Player = React.memo(function Player({
                 clock.stop();
             }
 
-            await seek(progress * calculateLength(), clock, true);
+            await seek(progress * calculateLength(), clock, true, true);
 
             if (playing) {
                 clock.start();
@@ -941,7 +1027,7 @@ const Player = React.memo(function Player({
                 pause(clock, mediaAdapter, true);
             }
 
-            await seek(time, clock, true);
+            await seek(time, clock, true, true);
 
             if (shouldPlay && !clock.running) {
                 // play method will start the clock again
@@ -1002,7 +1088,7 @@ const Player = React.memo(function Player({
             channel?.audioTrackSelected(id);
             pause(clock, mediaAdapter, true);
 
-            await seek(0, clock, true);
+            await seek(0, clock, true, true);
 
             if (clock.running) {
                 play(clock, mediaAdapter, true);
@@ -1026,7 +1112,12 @@ const Player = React.memo(function Player({
         [updatePlaybackRate]
     );
 
-    const handlePlayMode = useCallback((playMode: PlayMode) => setPlayMode(playMode), []);
+    const handlePlayMode = useCallback((targetMode: PlayMode) => {
+        setPlayModes((prevModes) => {
+            const manager = new PlayModeManager(prevModes);
+            return manager.toggle(targetMode);
+        });
+    }, []);
 
     const handleToggleSubtitleTrack = useCallback(
         (track: number) =>
@@ -1061,7 +1152,8 @@ const Player = React.memo(function Player({
 
             if (progress >= 1) {
                 pause(clock, mediaAdapter, true);
-                await seek(0, clock, true);
+
+                await seek(0, clock, true, true);
                 setLastJumpToTopTimestamp(Date.now());
             }
         }, 1000);
@@ -1101,22 +1193,31 @@ const Player = React.memo(function Player({
     }, [updatePlaybackRate, playbackRate, disableKeyEvents, keyBinder]);
 
     const togglePlayMode = useCallback(
-        (event: KeyboardEvent, togglePlayMode: PlayMode) => {
+        (event: KeyboardEvent, targetMode: PlayMode) => {
             if (!playModeEnabled) {
                 return;
             }
 
             event.preventDefault();
-            const newPlayMode = playMode === togglePlayMode ? PlayMode.normal : togglePlayMode;
-            setPlayMode(newPlayMode);
-            onPlayModeChangedViaBind(playMode, newPlayMode);
-            channel?.playMode(newPlayMode);
 
-            if (playMode === PlayMode.fastForward) {
-                updatePlaybackRate(1, true);
-            }
+            setPlayModes((prevModes) => {
+                const manager = new PlayModeManager(prevModes);
+                const newModes = manager.toggle(targetMode, ({ shouldResetPlaybackRate }) => {
+                    if (shouldResetPlaybackRate) {
+                        updatePlaybackRate(1, true);
+                    }
+                });
+
+                // Update ref immediately to prevent race conditions with interval callbacks
+                playModesRef.current = newModes;
+
+                channel?.playModes(newModes);
+                onPlayModeChangedViaBind(prevModes, targetMode);
+
+                return newModes;
+            });
         },
-        [channel, playMode, playModeEnabled, onPlayModeChangedViaBind, updatePlaybackRate]
+        [playModeEnabled, updatePlaybackRate, channel, onPlayModeChangedViaBind]
     );
 
     useEffect(() => {
@@ -1164,7 +1265,8 @@ const Player = React.memo(function Player({
         }
 
         pause(clock, mediaAdapter, true);
-        seek(rewindSubtitle.start, clock, true);
+
+        seek(rewindSubtitle.start, clock, true, true);
     }, [clock, rewindSubtitle?.start, mediaAdapter, seek]);
 
     useEffect(() => {
@@ -1173,7 +1275,7 @@ const Player = React.memo(function Player({
         }
 
         webSocketClient.onSeekTimestamp = async ({ body: { timestamp } }: SeekTimestampCommand) => {
-            seek(timestamp * 1000, clock, true);
+            seek(timestamp * 1000, clock, true, true);
         };
     }, [webSocketClient, extension, seek, clock]);
 
@@ -1235,7 +1337,7 @@ const Player = React.memo(function Player({
                             playbackRateEnabled={!tab || extension.supportsPlaybackRateMessage}
                             onPlaybackRateChange={handlePlaybackRateChange}
                             playModeEnabled={playModeEnabled}
-                            playMode={playMode}
+                            playModes={playModes}
                             onPlay={handlePlay}
                             onPause={handlePause}
                             onSeek={handleSeek}

@@ -288,6 +288,7 @@
         "disabledAutoPause": "自动暂停：关闭",
         "disabledCondensedPlayback": "浓缩播放：关闭",
         "disabledFastForwardPlayback": "Fast forward playback: Off",
+        "disabledAllPlayModes": "All playback modes: Off",
         "enabledAutoPause": "自动暂停：打开",
         "enabledCondensedPlayback": "浓缩播放：打开",
         "enabledFastForwardPlayback": "Fast forward playback: On",

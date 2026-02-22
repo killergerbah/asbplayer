@@ -127,7 +127,7 @@ export class MobileVideoOverlayController {
 
             if (message.message.command === 'playMode') {
                 const command = message as MobileOverlayToVideoCommand<PlayModeMessage>;
-                this._context.playMode = command.message.playMode;
+                this._context.togglePlayMode(command.message.playMode);
             } else if (message.message.command === 'hidden') {
                 this._doHide();
             }
@@ -182,7 +182,7 @@ export class MobileVideoOverlayController {
             postMineAction: clickToMineDefaultAction,
             subtitleDisplaying,
             subtitlesAreVisible: streamingDisplaySubtitles,
-            playMode: this._context.playMode,
+            playModes: Array.from(this._context.playModes),
             themeType,
         };
         return model;
