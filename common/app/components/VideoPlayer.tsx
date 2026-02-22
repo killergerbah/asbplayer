@@ -21,6 +21,7 @@ import {
     AnkiSettings,
     AsbplayerSettings,
     SubtitleAlignment,
+    SubtitleAboveThumbnail,
     changeForTextSubtitleSetting,
     textSubtitleSettingsForTrack,
     PauseOnHoverMode,
@@ -48,7 +49,7 @@ import Alert from './Alert';
 import { useSubtitleDomCache } from '../hooks/use-subtitle-dom-cache';
 import { useAppKeyBinder } from '../hooks/use-app-key-binder';
 import { Direction, useSwipe } from '../hooks/use-swipe';
-import './subtitles.css';
+import './video-player.css';
 import i18n from 'i18next';
 import { useTranslation } from 'react-i18next';
 import { adjacentSubtitle } from '../../key-binder';
@@ -190,16 +191,16 @@ const showingSubtitleHtml = (
 };
 
 interface CachedShowingSubtitleProps {
-    subtitle: RichSubtitleModel;
+    index: number;
     domCache: OffscreenDomCache;
-    renderHtml: (subtitle: RichSubtitleModel) => string;
+    renderHtml: () => string;
     className?: string;
     onMouseOver: React.MouseEventHandler<HTMLDivElement>;
     onMouseOut: React.MouseEventHandler<HTMLDivElement>;
 }
 
 const CachedShowingSubtitle = React.memo(function CachedShowingSubtitle({
-    subtitle,
+    index,
     domCache,
     renderHtml,
     className,
@@ -220,7 +221,7 @@ const CachedShowingSubtitle = React.memo(function CachedShowingSubtitle({
                     domCache.return(ref.lastChild! as HTMLElement);
                 }
 
-                ref.appendChild(domCache.get(String(subtitle.index), () => renderHtml(subtitle)));
+                ref.appendChild(domCache.get(String(index), renderHtml));
             }}
         />
     );
@@ -240,16 +241,16 @@ const useSubtitleContainerStyles = makeStyles(() => ({
 interface SubtitleContainerProps {
     subtitleSettings: SubtitleSettings;
     alignment: SubtitleAlignment;
+    subtitleZIndex: SubtitleAboveThumbnail;
     baseOffset: number;
     children: React.ReactNode;
 }
 
 const SubtitleContainer = React.forwardRef<HTMLDivElement, SubtitleContainerProps>(function SubtitleContainer(
-    { subtitleSettings, alignment, baseOffset, children }: SubtitleContainerProps,
+    { subtitleSettings, alignment, baseOffset, children, subtitleZIndex }: SubtitleContainerProps,
     ref
 ) {
     const classes = useSubtitleContainerStyles();
-
     return (
         <div
             ref={ref}
@@ -259,6 +260,7 @@ const SubtitleContainer = React.forwardRef<HTMLDivElement, SubtitleContainerProp
                     ? { bottom: subtitleSettings.subtitlePositionOffset + baseOffset }
                     : { top: subtitleSettings.topSubtitlePositionOffset + baseOffset }),
                 ...(subtitleSettings.subtitlesWidth === -1 ? {} : { width: `${subtitleSettings.subtitlesWidth}%` }),
+                zIndex: subtitleZIndex ? 12 : 0,
             }}
         >
             {children}
@@ -345,6 +347,7 @@ export default function VideoPlayer({
     const { t } = useTranslation();
     const poppingInRef = useRef<boolean>(undefined);
     const videoRef = useRef<ExperimentalHTMLVideoElement>(undefined);
+    const hiddenVideoRef = useRef<HTMLVideoElement>(null); // seek preview thumbnail
     const [windowWidth, windowHeight] = useWindowSize(true);
     if (videoRef.current) {
         videoRef.current.width = windowWidth;
@@ -403,6 +406,8 @@ export default function VideoPlayer({
     const mobileOverlayRef = useRef<HTMLDivElement>(null);
     const bottomSubtitleContainerRef = useRef<HTMLDivElement>(null);
     const domCacheRef = useRef<OffscreenDomCache | undefined>(undefined);
+    const thumbnailsRef = useRef<Map<number, string>>(new Map()); // cache thumbnails, in intervals of 4s
+    const isGeneratingRef = useRef(false); // avoid subsequent calls to generate thumbnail while generating one
 
     useEffect(() => {
         setMiscSettings(settings);
@@ -630,33 +635,11 @@ export default function VideoPlayer({
             for (const updatedSubtitle of updatedSubtitles) {
                 domCacheRef.current?.delete(String(updatedSubtitle.index));
             }
-
-            const updatedByIndex = new Map(updatedSubtitles.map((s) => [s.index, s] as const));
-            if (showSubtitlesRef.current.some((s) => updatedByIndex.has(s.index))) {
-                setShowSubtitles((prevShowSubtitles) =>
-                    prevShowSubtitles.map((showSubtitle) => {
-                        const updatedShowSubtitle = updatedByIndex.get(showSubtitle.index);
-                        if (!updatedShowSubtitle) return showSubtitle;
-                        return {
-                            ...showSubtitle,
-                            text: updatedShowSubtitle.text,
-                            richText: updatedShowSubtitle.richText,
-                            tokenization: updatedShowSubtitle.tokenization,
-                        };
-                    })
-                );
-            }
-
             setSubtitles((prevSubtitles) => {
                 if (!prevSubtitles.length) return prevSubtitles;
                 const allSubtitles = prevSubtitles.slice();
                 for (const s of updatedSubtitles) {
-                    allSubtitles[s.index] = {
-                        ...allSubtitles[s.index],
-                        text: s.text,
-                        richText: s.richText,
-                        tokenization: s.tokenization,
-                    };
+                    allSubtitles[s.index] = { ...allSubtitles[s.index], richText: s.richText };
                 }
                 return allSubtitles;
             });
@@ -708,9 +691,54 @@ export default function VideoPlayer({
             }
 
             const time = progress * length;
+            // get a screenshot of this time when hovered
             playerChannel.currentTime(time / 1000);
         },
         [length, clock, playerChannel]
+    );
+
+    const handleSeekPreview = useCallback(
+        (progress: number): string | undefined => {
+            if (!Number.isFinite(length)) {
+                return;
+            }
+
+            if (!hiddenVideoRef.current) {
+                return;
+            }
+
+            const time = progress * length;
+            const video = hiddenVideoRef.current;
+
+            const thumbnailKey = Math.floor(((time / 1000) / 4));
+
+            // cached url found, return url
+            if (thumbnailsRef.current.has(thumbnailKey)) {
+                return (thumbnailsRef.current.get(thumbnailKey));
+            }
+
+            if (isGeneratingRef.current) return;
+            // if not in cache, generate new one in the background
+            isGeneratingRef.current = true;
+
+            const onSeeked = () => {                
+                const canvas = document.createElement('canvas');
+                canvas.width = video.videoWidth * 0.7;
+                canvas.height = video.videoHeight * 0.7;
+                const ctx = canvas.getContext('2d');
+                ctx?.drawImage(video, 0, 0, canvas.width, canvas.height);
+                
+                const thumbnailUrl = canvas.toDataURL('image/jpeg', 0.7);
+                thumbnailsRef.current.set(thumbnailKey, thumbnailUrl);
+                isGeneratingRef.current = false;
+            };
+            
+            video.addEventListener('seeked', onSeeked, { once: true });
+            video.currentTime = time / 1000;
+            
+            return;
+        },
+        [length, clock]
     );
 
     const handleSeekByTimestamp = useCallback(
@@ -1669,12 +1697,12 @@ export default function VideoPlayer({
         parent.document.body.clientWidth === document.body.clientWidth;
 
     const subtitleAlignmentForTrack = (track: number) => subtitleAlignments[track] ?? subtitleAlignments[0];
-    const elementForSubtitle = (subtitle: RichSubtitleModel) => (
+    const elementForSubtitle = (subtitle: RichSubtitleModel, index: number) => (
         <CachedShowingSubtitle
-            key={subtitle.index}
-            subtitle={subtitle}
+            key={index}
+            index={subtitle.index}
             domCache={domCacheRef.current ?? getSubtitleDomCache()}
-            renderHtml={getSubtitleHtml}
+            renderHtml={() => getSubtitleHtml(subtitle)}
             onMouseOver={handleSubtitleMouseOver}
             onMouseOut={handleSubtitleMouseOut}
         />
@@ -1715,13 +1743,7 @@ export default function VideoPlayer({
     }
 
     return (
-        <div
-            ref={containerRef}
-            onMouseMove={handleMouseMove}
-            onMouseLeave={handleMouseLeave}
-            className={`${classes.root} asbplayer-token-container`}
-            tabIndex={-1}
-        >
+        <div ref={containerRef} onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave} className={classes.root}>
             <Alert
                 open={alertOpen}
                 disableAutoHide={alertDisableAutoHide}
@@ -1757,8 +1779,17 @@ export default function VideoPlayer({
                 src={videoFile}
                 onMouseOver={handleVideoMouseOver}
             />
+            {/* this video is for getting the seek preview below */}
+            <video
+                src={videoFile}
+                muted
+                preload="auto"
+                autoPlay={false}
+                style={{position: "absolute", left: "-9999px"}}
+                ref={hiddenVideoRef}
+            />
             {topSubtitleElements.length > 0 && (
-                <SubtitleContainer alignment={'top'} subtitleSettings={subtitleSettings} baseOffset={0}>
+                <SubtitleContainer alignment={'top'} subtitleSettings={subtitleSettings} baseOffset={0} subtitleZIndex={settings.subtitleAboveThumbnail}>
                     {topSubtitleElements}
                 </SubtitleContainer>
             )}
@@ -1768,6 +1799,7 @@ export default function VideoPlayer({
                     alignment={'bottom'}
                     subtitleSettings={subtitleSettings}
                     baseOffset={baseBottomSubtitleOffset}
+                    subtitleZIndex={settings.subtitleAboveThumbnail}
                 >
                     {bottomSubtitleElements}
                 </SubtitleContainer>
@@ -1799,6 +1831,7 @@ export default function VideoPlayer({
                 onPlay={handlePlay}
                 onPause={handlePause}
                 onSeek={handleSeek}
+                onSeekPreview={handleSeekPreview}
                 onAudioTrackSelected={handleAudioTrackSelected}
                 onSubtitlesToggle={handleSubtitlesToggle}
                 onFullscreenToggle={handleFullscreenToggle}

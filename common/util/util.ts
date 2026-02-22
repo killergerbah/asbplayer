@@ -477,6 +477,7 @@ export async function ensureStoragePersisted(): Promise<void> {
     const persisted = await navigator.storage.persist();
     if (!persisted) console.warn('Storage could not be persisted, data may be cleared by the browser');
 }
+<<<<<<< HEAD
 
 type Block = {
     pos: number[];
@@ -606,3 +607,5 @@ export class AsyncSemaphore {
         }
     }
 }
+=======
+>>>>>>> 595feb5f (feat(dictionary): support local and ignored tokens (#853))

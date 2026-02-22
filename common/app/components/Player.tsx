@@ -13,13 +13,12 @@ import {
     PostMinePlayback,
     RequestSubtitlesResponse,
     SubtitleModel,
-    TokenizedSubtitleModel,
     VideoTabModel,
 } from '@project/common';
 import { ApplyStrategy, AsbplayerSettings, SettingsProvider, TokenState } from '@project/common/settings';
 import { DictionaryProvider } from '@project/common/dictionary-db';
 import { SubtitleCollection } from '@project/common/subtitle-collection';
-import { renderRichTextOntoSubtitles, HoveredToken, SubtitleColoring } from '@project/common/subtitle-coloring';
+import { HoveredToken, SubtitleColoring } from '@project/common/subtitle-coloring';
 import { SubtitleReader } from '@project/common/subtitle-reader';
 import { KeyBinder } from '@project/common/key-binder';
 import { timeDurationDisplay } from '../services/util';
@@ -305,8 +304,6 @@ const Player = React.memo(function Player({
                 displayTime: timeDurationDisplay(s.originalStart + offset, length),
                 track: s.track,
                 index: i,
-                richText: s.richText,
-                tokenization: s.tokenization,
             }));
 
             if (forwardToVideo) {
@@ -379,10 +376,7 @@ const Player = React.memo(function Player({
                         displayTime: timeDurationDisplay(s.start + offset, length),
                         track: s.track,
                         index: i,
-                        tokenization: s.tokenization,
                     }));
-
-                    renderRichTextOntoSubtitles(subtitles);
 
                     setSubtitlesSentThroughChannel(false);
                     onSubtitles(subtitles);
@@ -424,19 +418,13 @@ const Player = React.memo(function Player({
             dictionaryProvider,
             settingsProvider,
             options,
-            (updatedSubtitles, dictionaryTracks) => {
-                renderRichTextOntoSubtitles(updatedSubtitles, dictionaryTracks);
+            (updatedSubtitles) => {
                 channel?.subtitlesUpdated(updatedSubtitles);
                 onSubtitles((prevSubtitles) => {
                     if (!prevSubtitles?.length) return prevSubtitles;
                     const allSubtitles = prevSubtitles.slice();
                     for (const s of updatedSubtitles) {
-                        allSubtitles[s.index] = {
-                            ...allSubtitles[s.index],
-                            text: s.text,
-                            richText: s.richText,
-                            tokenization: s.tokenization,
-                        };
+                        allSubtitles[s.index] = { ...allSubtitles[s.index], richText: s.richText };
                     }
                     return allSubtitles;
                 });
@@ -469,19 +457,7 @@ const Player = React.memo(function Player({
                 if (!prevSubtitles?.length) return prevSubtitles;
                 const allSubtitles = prevSubtitles.slice();
                 for (const s of updatedSubtitles) {
-                    // FIXME: Primitive check to ensure we don't apply a color update from a completely different subtitle or subtitle file.
-                    // We should probably have a hash or ID associated with the subtitle file this color update is for.
-                    const updatedText = (s as TokenizedSubtitleModel).originalText ?? s.text;
-                    const prevText =
-                        (allSubtitles[s.index] as TokenizedSubtitleModel).originalText ?? allSubtitles[s.index].text;
-                    if (updatedText === prevText) {
-                        allSubtitles[s.index] = {
-                            ...allSubtitles[s.index],
-                            text: s.text,
-                            richText: s.richText,
-                            tokenization: s.tokenization,
-                        };
-                    }
+                    allSubtitles[s.index] = { ...allSubtitles[s.index], richText: s.richText };
                 }
                 return allSubtitles;
             });
@@ -505,19 +481,7 @@ const Player = React.memo(function Player({
                 if (!prevSubtitles?.length) return prevSubtitles;
                 const allSubtitles = prevSubtitles.slice();
                 for (const s of updatedSubtitles) {
-                    // FIXME: Primitive check to ensure we don't apply a color update from a completely different subtitle or subtitle file.
-                    // We should probably have a hash or ID associated with the subtitle file this color update is for.
-                    const updatedText = (s as TokenizedSubtitleModel).originalText ?? s.text;
-                    const prevText =
-                        (allSubtitles[s.index] as TokenizedSubtitleModel).originalText ?? allSubtitles[s.index].text;
-                    if (updatedText === prevText) {
-                        allSubtitles[s.index] = {
-                            ...allSubtitles[s.index],
-                            text: s.text,
-                            richText: s.richText,
-                            tokenization: s.tokenization,
-                        };
-                    }
+                    allSubtitles[s.index] = { ...allSubtitles[s.index], richText: s.richText };
                 }
                 return allSubtitles;
             });

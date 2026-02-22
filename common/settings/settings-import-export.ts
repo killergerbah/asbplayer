@@ -36,9 +36,6 @@ const dictionaryTrackSchema = {
         dictionaryColorizeOnHoverOnly: {
             type: 'boolean',
         },
-        dictionaryHighlightOnHover: {
-            type: 'boolean',
-        },
         dictionaryTokenMatchStrategy: {
             type: 'string',
         },
@@ -56,9 +53,6 @@ const dictionaryTrackSchema = {
         },
         dictionaryDisplayIgnoredTokenReadings: {
             type: 'boolean',
-        },
-        dictionaryTokenFrequencyAnnotation: {
-            type: 'string',
         },
         dictionaryAnkiDecks: {
             type: 'array',
@@ -87,16 +81,16 @@ const dictionaryTrackSchema = {
         dictionaryAnkiTreatSuspended: {
             type: ['string', 'number'],
         },
-        dictionaryTokenStyling: {
+        tokenStyling: {
             type: 'string',
         },
-        dictionaryTokenStylingThickness: {
+        tokenStylingThickness: {
             type: 'number',
         },
-        dictionaryColorizeFullyKnownTokens: {
+        colorizeFullyKnownTokens: {
             type: 'boolean',
         },
-        dictionaryTokenStatusColors: {
+        tokenStatusColors: {
             type: 'array',
             items: {
                 type: 'string',

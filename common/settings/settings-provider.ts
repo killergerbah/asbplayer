@@ -14,7 +14,6 @@ import {
     TokenStyling,
     DictionaryTrack,
     TokenReadingAnnotation,
-    TokenFrequencyAnnotation,
 } from '.';
 import { AutoPausePreference, PostMineAction, PostMinePlayback, SubtitleHtml } from '..';
 
@@ -40,24 +39,22 @@ const defaultSubtitleTextSettings = {
 const defaultDictionaryTrackSettings: DictionaryTrack = {
     dictionaryColorizeSubtitles: false,
     dictionaryColorizeOnHoverOnly: false,
-    dictionaryHighlightOnHover: true,
     dictionaryTokenMatchStrategy: TokenMatchStrategy.ANY_FORM_COLLECTED,
     dictionaryTokenMatchStrategyPriority: TokenMatchStrategyPriority.EXACT,
     dictionaryYomitanUrl: 'http://127.0.0.1:19633',
     dictionaryYomitanScanLength: 16,
     dictionaryTokenReadingAnnotation: TokenReadingAnnotation.NEVER,
     dictionaryDisplayIgnoredTokenReadings: false,
-    dictionaryTokenFrequencyAnnotation: TokenFrequencyAnnotation.NEVER,
     dictionaryAnkiDecks: [],
     dictionaryAnkiWordFields: [],
     dictionaryAnkiSentenceFields: [],
     dictionaryAnkiSentenceTokenMatchStrategy: TokenMatchStrategy.EXACT_FORM_COLLECTED,
     dictionaryAnkiMatureCutoff: 21,
     dictionaryAnkiTreatSuspended: 'NORMAL',
-    dictionaryTokenStyling: TokenStyling.UNDERLINE,
-    dictionaryTokenStylingThickness: 3,
-    dictionaryColorizeFullyKnownTokens: false,
-    dictionaryTokenStatusColors: ['#FF0000', '#FFA500', '#FFFF00', '#00FF00', '#0000FF', '#FFFFFF'],
+    tokenStyling: TokenStyling.UNDERLINE,
+    tokenStylingThickness: 3,
+    colorizeFullyKnownTokens: false,
+    tokenStatusColors: ['#FF0000', '#FFA500', '#FFFF00', '#00FF00', '#0000FF', '#FFFFFF'],
 };
 
 export const defaultSettings: AsbplayerSettings = {
@@ -91,6 +88,7 @@ export const defaultSettings: AsbplayerSettings = {
     subtitlePositionOffset: 75,
     topSubtitlePositionOffset: 75,
     subtitleAlignment: 'bottom',
+    subtitleAboveThumbnail: true,
     subtitleTracksV2: [],
     subtitlesWidth: -1,
     audioPaddingStart: 0,
@@ -215,7 +213,7 @@ export const defaultSettings: AsbplayerSettings = {
 };
 
 export const NUM_DICTIONARY_TRACKS = defaultSettings.dictionaryTracks.length;
-export const NUM_TOKEN_STATUSES = defaultDictionaryTrackSettings.dictionaryTokenStatusColors.length;
+export const NUM_TOKEN_STATUSES = defaultDictionaryTrackSettings.tokenStatusColors.length;
 
 export interface AnkiFieldUiModel {
     key: string;
@@ -540,10 +538,10 @@ export class SettingsProvider {
         if (settings.dictionaryTracks !== undefined) {
             const defaultTrack = defaultSettings.dictionaryTracks[0];
             for (const dt of settings.dictionaryTracks) {
-                while (dt.dictionaryTokenStatusColors.length < NUM_TOKEN_STATUSES) {
-                    const currLength = dt.dictionaryTokenStatusColors.length;
-                    const color = defaultTrack.dictionaryTokenStatusColors[currLength];
-                    dt.dictionaryTokenStatusColors.push(color);
+                while (dt.tokenStatusColors.length < NUM_TOKEN_STATUSES) {
+                    const currLength = dt.tokenStatusColors.length;
+                    const color = defaultTrack.tokenStatusColors[currLength];
+                    dt.tokenStatusColors.push(color);
                 }
             }
             while (settings.dictionaryTracks.length < NUM_DICTIONARY_TRACKS) {
