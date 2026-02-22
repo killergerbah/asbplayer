@@ -192,6 +192,9 @@ export default defineConfig({
             manifest = {
                 ...manifest,
                 host_permissions: ['<all_urls>'],
+                sidebar_action: {
+                    default_panel: 'index.html',
+                },
                 commands,
                 browser_specific_settings: {
                     gecko,
