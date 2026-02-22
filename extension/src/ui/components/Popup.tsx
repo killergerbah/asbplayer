@@ -22,6 +22,10 @@ import Stack from '@mui/material/Stack';
 import TutorialIcon from '@project/common/components/TutorialIcon';
 import Paper from '@mui/material/Paper';
 import { DictionaryProvider } from '@project/common/dictionary-db';
+import { useAnnotationTutorial } from '@project/common/hooks/use-annotation-tutorial';
+import { ExtensionGlobalStateProvider } from '@/services/extension-global-state-provider';
+
+const globalStateProvider = new ExtensionGlobalStateProvider();
 
 interface Props {
     dictionaryProvider: DictionaryProvider;
@@ -77,6 +81,7 @@ const Popup = ({
     const { supportedLanguages } = useSupportedLanguages();
     const { localFontsAvailable, localFontsPermission, localFontFamilies } = useLocalFontFamilies();
     const theme = useTheme();
+    const { handleAnnotationTutorialSeen, inAnnotationTutorial } = useAnnotationTutorial({ globalStateProvider });
 
     if (!i18nInitialized) {
         return null;
@@ -133,6 +138,8 @@ const Popup = ({
                         onSettingsChanged={onSettingsChanged}
                         onOpenChromeExtensionShortcuts={onOpenExtensionShortcuts}
                         onUnlockLocalFonts={handleUnlockLocalFonts}
+                        inAnnotationTutorial={inAnnotationTutorial}
+                        onAnnotationTutorialSeen={handleAnnotationTutorialSeen}
                     />
                 </Grid>
                 <Grid item>
