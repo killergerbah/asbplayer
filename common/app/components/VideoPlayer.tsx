@@ -28,6 +28,7 @@ import {
     DictionaryTrack,
     TokenState,
     ApplyStrategy,
+    MiningScreenshotCaptureTimestamp,
     miningScreenshotTimestamp,
 } from '@project/common/settings';
 import {
@@ -1147,11 +1148,17 @@ export default function VideoPlayer({
             if (subtitles.length === 0 && subtitle.text === '') {
                 mediaTimestamp = clock.time(length);
             } else {
-                mediaTimestamp = miningScreenshotTimestamp(
-                    subtitle.start,
-                    subtitle.end,
-                    settings.miningScreenshotCaptureTimestamp
-                );
+                mediaTimestamp =
+                    settings.miningScreenshotCaptureTimestamp === MiningScreenshotCaptureTimestamp.beginning
+                        ? Math.max(
+                              subtitle.start,
+                              Math.min(subtitle.end, subtitle.start + settings.streamingScreenshotDelay)
+                          )
+                        : miningScreenshotTimestamp(
+                              subtitle.start,
+                              subtitle.end,
+                              settings.miningScreenshotCaptureTimestamp
+                          );
             }
 
             mineSubtitle(
@@ -1173,6 +1180,7 @@ export default function VideoPlayer({
             length,
             subtitles,
             settings.miningScreenshotCaptureTimestamp,
+            settings.streamingScreenshotDelay,
             selectedAudioTrack,
             videoFile,
             videoFileName,
