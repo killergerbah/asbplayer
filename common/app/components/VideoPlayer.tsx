@@ -28,6 +28,8 @@ import {
     DictionaryTrack,
     TokenState,
     ApplyStrategy,
+    MiningScreenshotCaptureTimestamp,
+    miningScreenshotTimestamp,
 } from '@project/common/settings';
 import {
     arrayEquals,
@@ -1141,9 +1143,22 @@ export default function VideoPlayer({
 
                 subtitle = extracted.currentSubtitle;
                 surroundingSubtitles = extracted.surroundingSubtitles;
+            }
+
+            if (subtitles.length === 0 && subtitle.text === '') {
                 mediaTimestamp = clock.time(length);
             } else {
-                mediaTimestamp = subtitle.start;
+                mediaTimestamp =
+                    settings.miningScreenshotCaptureTimestamp === MiningScreenshotCaptureTimestamp.beginning
+                        ? Math.max(
+                              subtitle.start,
+                              Math.min(subtitle.end, subtitle.start + settings.streamingScreenshotDelay)
+                          )
+                        : miningScreenshotTimestamp(
+                              subtitle.start,
+                              subtitle.end,
+                              settings.miningScreenshotCaptureTimestamp
+                          );
             }
 
             mineSubtitle(
@@ -1158,7 +1173,18 @@ export default function VideoPlayer({
                 mediaTimestamp
             );
         },
-        [mineSubtitle, extractSubtitles, clock, length, selectedAudioTrack, videoFile, videoFileName]
+        [
+            mineSubtitle,
+            extractSubtitles,
+            clock,
+            length,
+            subtitles,
+            settings.miningScreenshotCaptureTimestamp,
+            settings.streamingScreenshotDelay,
+            selectedAudioTrack,
+            videoFile,
+            videoFileName,
+        ]
     );
 
     const toggleSelectMiningInterval = useCallback(

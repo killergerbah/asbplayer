@@ -7,6 +7,40 @@ export enum PauseOnHoverMode {
     inNotOut = 2,
 }
 
+export enum MiningScreenshotCaptureTimestamp {
+    beginning = 'beginning',
+    afterBeginning = 'afterBeginning',
+    middle = 'middle',
+    beforeEnding = 'beforeEnding',
+    ending = 'ending',
+}
+
+export function miningScreenshotTimestamp(
+    subtitleStart: number,
+    subtitleEnd: number,
+    captureTimestamp: MiningScreenshotCaptureTimestamp
+) {
+    const start = Math.min(subtitleStart, subtitleEnd);
+    const end = Math.max(subtitleStart, subtitleEnd);
+    const duration = Math.max(0, end - start);
+    const edgeOffset = duration < 2000 ? Math.floor(duration * 0.3) : 1000;
+
+    switch (captureTimestamp) {
+        case MiningScreenshotCaptureTimestamp.beginning:
+            return start;
+        case MiningScreenshotCaptureTimestamp.afterBeginning:
+            return Math.min(end, start + edgeOffset);
+        case MiningScreenshotCaptureTimestamp.middle:
+            return start + Math.floor(duration / 2);
+        case MiningScreenshotCaptureTimestamp.beforeEnding:
+            return Math.max(start, end - edgeOffset);
+        case MiningScreenshotCaptureTimestamp.ending:
+            return end;
+        default:
+            return start;
+    }
+}
+
 export interface MiscSettings {
     readonly themeType: 'dark' | 'light';
     readonly copyToClipboardOnMine: boolean;
@@ -529,6 +563,7 @@ export interface AsbplayerSettings
         StreamingVideoSettings,
         WebSocketClientSettings {
     readonly subtitlePreview: string;
+    readonly miningScreenshotCaptureTimestamp: MiningScreenshotCaptureTimestamp;
 }
 
 const keyBindNameMap: any = {

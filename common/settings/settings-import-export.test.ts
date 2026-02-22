@@ -69,6 +69,7 @@ it('validates exported settings', () => {
             },
         ],
         subtitlePreview: 'アあ安Aa',
+        miningScreenshotCaptureTimestamp: 'beginning',
         subtitlePositionOffset: 71,
         topSubtitlePositionOffset: 71,
         audioPaddingStart: 0,

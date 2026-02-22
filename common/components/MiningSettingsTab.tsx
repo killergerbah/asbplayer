@@ -7,12 +7,13 @@ import LabelWithHoverEffect from './LabelWithHoverEffect';
 import SwitchLabelWithHoverEffect from './SwitchLabelWithHoverEffect';
 import Radio from '@mui/material/Radio';
 import { PostMineAction, PostMinePlayback } from '@project/common';
-import { AsbplayerSettings } from '@project/common/settings';
+import { AsbplayerSettings, MiningScreenshotCaptureTimestamp } from '@project/common/settings';
 import Switch from '@mui/material/Switch';
 import RadioGroup from '@mui/material/RadioGroup';
 import Stack from '@mui/material/Stack';
 import { FormControl } from '@mui/material';
 import SettingsSection from './SettingsSection';
+import MenuItem from '@mui/material/MenuItem';
 
 interface Props {
     settings: AsbplayerSettings;
@@ -26,6 +27,7 @@ const MiningSettingsTab: React.FC<Props> = ({ settings, onSettingChanged }) => {
         audioPaddingEnd,
         maxImageWidth,
         maxImageHeight,
+        streamingScreenshotDelay,
         surroundingSubtitlesCountRadius,
         surroundingSubtitlesTimeRadius,
         clickToMineDefaultAction,
@@ -33,6 +35,7 @@ const MiningSettingsTab: React.FC<Props> = ({ settings, onSettingChanged }) => {
         recordWithAudioPlayback,
         preferMp3,
         copyToClipboardOnMine,
+        miningScreenshotCaptureTimestamp,
     } = settings;
     return (
         <Stack spacing={1}>
@@ -233,6 +236,54 @@ const MiningSettingsTab: React.FC<Props> = ({ settings, onSettingChanged }) => {
                     },
                 }}
             />
+            <TextField
+                select
+                label={t('settings.miningScreenshotCaptureTimestamp')}
+                fullWidth
+                value={miningScreenshotCaptureTimestamp}
+                color="primary"
+                onChange={(event) =>
+                    onSettingChanged(
+                        'miningScreenshotCaptureTimestamp',
+                        event.target.value as MiningScreenshotCaptureTimestamp
+                    )
+                }
+            >
+                <MenuItem value={MiningScreenshotCaptureTimestamp.beginning}>
+                    {t('settings.miningScreenshotCaptureTimestampBeginning')}
+                </MenuItem>
+                <MenuItem value={MiningScreenshotCaptureTimestamp.afterBeginning}>
+                    {t('settings.miningScreenshotCaptureTimestampAfterBeginning')}
+                </MenuItem>
+                <MenuItem value={MiningScreenshotCaptureTimestamp.middle}>
+                    {t('settings.miningScreenshotCaptureTimestampMiddle')}
+                </MenuItem>
+                <MenuItem value={MiningScreenshotCaptureTimestamp.beforeEnding}>
+                    {t('settings.miningScreenshotCaptureTimestampBeforeEnding')}
+                </MenuItem>
+                <MenuItem value={MiningScreenshotCaptureTimestamp.ending}>
+                    {t('settings.miningScreenshotCaptureTimestampEnding')}
+                </MenuItem>
+            </TextField>
+            {miningScreenshotCaptureTimestamp === MiningScreenshotCaptureTimestamp.beginning && (
+                <TextField
+                    type="number"
+                    label={t('extension.settings.screenshotCaptureDelay')}
+                    fullWidth
+                    value={streamingScreenshotDelay}
+                    color="primary"
+                    onChange={(event) => onSettingChanged('streamingScreenshotDelay', Number(event.target.value))}
+                    slotProps={{
+                        htmlInput: {
+                            min: 0,
+                            step: 1,
+                        },
+                        input: {
+                            endAdornment: <InputAdornment position="end">ms</InputAdornment>,
+                        },
+                    }}
+                />
+            )}
             <SettingsSection>{t('settings.exportDialog')}</SettingsSection>
             <TextField
                 type="number"

@@ -263,6 +263,9 @@ const settingsSchema = {
         subtitlePreview: {
             type: 'string',
         },
+        miningScreenshotCaptureTimestamp: {
+            type: 'string',
+        },
         subtitlePositionOffset: {
             type: 'number',
         },
