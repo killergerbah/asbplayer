@@ -146,7 +146,7 @@ const TabPanel = React.forwardRef<HTMLDivElement, TabPanelProps>(function TabPan
 type TabName =
     | 'anki-settings'
     | 'mining-settings'
-    | 'dictionary'
+    | 'annotation'
     | 'subtitle-appearance'
     | 'keyboard-shortcuts'
     | 'streaming-video'
@@ -254,7 +254,7 @@ export default function SettingsForm({
             'mining-settings',
             'subtitle-appearance',
             'keyboard-shortcuts',
-            'dictionary',
+            'annotation',
             'streaming-video',
             'misc-settings',
             'about',
@@ -264,7 +264,7 @@ export default function SettingsForm({
             tabs.splice(tabs.indexOf('streaming-video'), 1);
         }
         if (!supportsDictionary) {
-            tabs.splice(tabs.indexOf('dictionary'), 1);
+            tabs.splice(tabs.indexOf('annotation'), 1);
         }
 
         return Object.fromEntries(tabs.map((tab, i) => [tab, i]));
@@ -336,7 +336,7 @@ export default function SettingsForm({
                             }}
                             tabIndex={4}
                             label={t('settings.annotation')}
-                            id="dictionary"
+                            id="annotation"
                         />
                     </TutorialBubble>
                 )}
@@ -382,7 +382,7 @@ export default function SettingsForm({
             <TabPanel value={tabIndex} index={tabIndicesById['mining-settings']} tabsOrientation={tabsOrientation}>
                 <MiningSettingsTab settings={settings} onSettingChanged={handleSettingChanged} />
             </TabPanel>
-            <TabPanel value={tabIndex} index={tabIndicesById['dictionary']} tabsOrientation={tabsOrientation}>
+            <TabPanel value={tabIndex} index={tabIndicesById['annotation']} tabsOrientation={tabsOrientation}>
                 <DictionarySettingsTab
                     anki={anki}
                     dictionaryProvider={dictionaryProvider}

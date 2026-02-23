@@ -415,7 +415,7 @@ const DictionarySettingsTab: React.FC<Props> = ({
                         </div>
                     )}
                 </Stack>
-                <SettingsSection>{t('settings.annotation')}</SettingsSection>
+                <SettingsSection docs="docs/reference/settings#annotation">{t('settings.annotation')}</SettingsSection>
                 <SettingsTextField
                     select
                     fullWidth
