@@ -68,6 +68,7 @@ const useStyles = makeStyles<Theme>((theme) => ({
         display: 'flex',
         justifyContent: 'center',
         flexDirection: 'column',
+        alignItems: 'center',
         textAlign: 'center',
         height: '100%',
         padding: 15,

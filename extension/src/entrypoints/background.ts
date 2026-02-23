@@ -70,6 +70,9 @@ import EncodeMp3Handler from '@/handlers/video/encode-mp3-handler';
 import { DictionaryDB } from '@project/common/dictionary-db/dictionary-db';
 import DictionaryHandler from '@/handlers/dictionary/dictionary-handler';
 import SaveTokenLocalHandler from '@/handlers/asbplayerv2/save-token-local-handler';
+import { ExtensionGlobalStateProvider } from '@/services/extension-global-state-provider';
+import { lt as semverLt } from 'semver';
+import { AnnotationTutorialState } from '@project/common/global-state';
 
 export default defineBackground(() => {
     if (!isFirefoxBuild) {
@@ -82,9 +85,38 @@ export default defineBackground(() => {
         primeLocalization(await settings.getSingle('language'));
     };
 
+    const globalStateProvider = new ExtensionGlobalStateProvider();
+
+    const updateBadgeForAnnotationTutorial = () => {
+        browser.action.setBadgeText({ text: '!' });
+        browser.storage.local.onChanged.addListener((changes) => {
+            // Hide the "!" badge when the user views the annotation tutorial
+            for (const [key, { newValue }] of Object.entries(changes)) {
+                if (key === 'ftueAnnotation' && newValue !== AnnotationTutorialState.shouldSee) {
+                    browser.action.setBadgeText({ text: '' });
+                }
+            }
+        });
+    };
+
+    globalStateProvider.get(['ftueAnnotation']).then((s) => {
+        if (s.ftueAnnotation === AnnotationTutorialState.shouldSee) {
+            updateBadgeForAnnotationTutorial();
+        }
+    });
+
     const installListener = async (details: Browser.runtime.InstalledDetails) => {
         if (details.reason === browser.runtime.OnInstalledReason.UPDATE) {
             primeLocalization(await settings.getSingle('language'));
+
+            // Existing users who upgrade to 1.14.0 should see the annotation tutorial
+            if (details.previousVersion !== undefined && semverLt(details.previousVersion, '1.14.0')) {
+                const annotationTutorialState = (await globalStateProvider.get(['ftueAnnotation'])).ftueAnnotation;
+                if (annotationTutorialState === AnnotationTutorialState.hasNotSeen) {
+                    await globalStateProvider.set({ ftueAnnotation: AnnotationTutorialState.shouldSee });
+                    updateBadgeForAnnotationTutorial();
+                }
+            }
             return;
         }
 

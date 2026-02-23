@@ -14,6 +14,7 @@ import {
     TokenStyling,
     DictionaryTrack,
     TokenReadingAnnotation,
+    TokenFrequencyAnnotation,
 } from '.';
 import { AutoPausePreference, PostMineAction, PostMinePlayback, SubtitleHtml } from '..';
 
@@ -46,6 +47,7 @@ const defaultDictionaryTrackSettings: DictionaryTrack = {
     dictionaryYomitanScanLength: 16,
     dictionaryTokenReadingAnnotation: TokenReadingAnnotation.NEVER,
     dictionaryDisplayIgnoredTokenReadings: false,
+    dictionaryTokenFrequencyAnnotation: TokenFrequencyAnnotation.NEVER,
     dictionaryAnkiDecks: [],
     dictionaryAnkiWordFields: [],
     dictionaryAnkiSentenceFields: [],

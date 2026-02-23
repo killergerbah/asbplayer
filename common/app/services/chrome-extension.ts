@@ -217,7 +217,11 @@ export default class ChromeExtension {
     }
 
     get supportsSidePanel() {
-        return this.installed && !isFirefox && !isMobile && gte(this.version, '1.0.0');
+        return (
+            this.installed &&
+            ((!isFirefox && !isMobile && gte(this.version, '1.0.0')) ||
+                (isFirefox && !isMobile && gte(this.version, '1.14.0')))
+        );
     }
 
     get supportsAppIntegration() {

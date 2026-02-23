@@ -106,20 +106,37 @@
     white-space: pre-wrap !important;
 }
 
-.asbplayer-subtitles ruby,
-.asbplayer-fullscreen-subtitles ruby {
+.asb-reading {
     ruby-position: over !important;
 }
 
-.asbplayer-subtitles rt,
-.asbplayer-fullscreen-subtitles rt {
+.asb-reading rt {
     font-size: 0.5em !important;
     line-height: 1 !important;
+    display: revert !important; /* Safari doesn't support 'ruby-text' */
 }
 
-.asbplayer-subtitles rb,
-.asbplayer-fullscreen-subtitles rb {
-    ruby-position: under !important;
+.asb-frequency {
+    ruby-position: under;
+}
+
+.asb-frequency rt {
+    font-size: 0.25em;
+    line-height: 1;
+}
+
+.asb-frequency-hover {
+    ruby-position: under;
+}
+
+.asb-frequency-hover rt {
+    font-size: 0.25em; /* This is overridden for SubtitlePlayer as it's too small */
+    line-height: 1;
+    display: none;
+}
+
+.asb-frequency-hover:hover rt {
+    display: revert; /* Safari doesn't support 'ruby-text' */
 }
 
 .asbplayer-ui-frame {

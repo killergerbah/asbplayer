@@ -3843,7 +3843,7 @@ __metadata:
     "@mui/material": ^6.4.8
     "@mui/styles": ^6.4.8
     "@project/common": "workspace:^"
-    "@types/chrome": ^0.1.1
+    "@types/chrome": ^0.1.37
     "@types/dom-mediacapture-record": ^1.0.22
     "@types/jest": ^30.0.0
     "@types/react": ^19.1.8
@@ -4418,13 +4418,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/chrome@npm:^0.1.1":
-  version: 0.1.1
-  resolution: "@types/chrome@npm:0.1.1"
+"@types/chrome@npm:^0.1.37":
+  version: 0.1.37
+  resolution: "@types/chrome@npm:0.1.37"
   dependencies:
     "@types/filesystem": "*"
     "@types/har-format": "*"
-  checksum: 396618617cc033ab8abf66f838ea28d7118751d979f6307e2a590b8d369716686f9c3cb7e09819a81a91b0d180b49b974fdea1afd5aefb5237e85feb1334eea6
+  checksum: f05247372b35e74b3f858860122b7ed92d2cce8d950ab6239a2489a40b93c12c385214deeb0c6f1c5079648b550671889b715700b5cd2db9e96573b9c51fcafa
   languageName: node
   linkType: hard
 

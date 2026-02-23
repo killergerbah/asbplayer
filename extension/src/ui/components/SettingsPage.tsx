@@ -13,7 +13,6 @@ import { useI18n } from '../hooks/use-i18n';
 import Paper from '@mui/material/Paper';
 import { Anki } from '@project/common/anki';
 import { useSupportedLanguages } from '../hooks/use-supported-languages';
-import { isFirefoxBuild } from '../../services/build-flags';
 import SettingsProfileSelectMenu from '@project/common/components/SettingsProfileSelectMenu';
 import { AsbplayerSettings, Profile, testCard } from '@project/common/settings';
 import { useTheme, type Theme } from '@mui/material/styles';
@@ -42,6 +41,8 @@ interface Props {
     profiles: Profile[];
     activeProfile?: string;
     inTutorial?: boolean;
+    inAnnotationTutorial?: boolean;
+    onAnnotationTutorialSeen?: () => void;
     onNewProfile: (name: string) => void;
     onRemoveProfile: (name: string) => void;
     onSetActiveProfile: (name: string | undefined) => void;
@@ -54,7 +55,15 @@ const extensionTestCard: () => Promise<CardModel> = () => {
     });
 };
 
-const SettingsPage = ({ dictionaryProvider, settings, inTutorial, onSettingsChanged, ...profileContext }: Props) => {
+const SettingsPage = ({
+    dictionaryProvider,
+    settings,
+    inTutorial,
+    inAnnotationTutorial,
+    onAnnotationTutorialSeen,
+    onSettingsChanged,
+    ...profileContext
+}: Props) => {
     const { t } = useTranslation();
     const theme = useTheme();
     const anki = useMemo(
@@ -106,7 +115,7 @@ const SettingsPage = ({ dictionaryProvider, settings, inTutorial, onSettingsChan
                         extensionVersion={browser.runtime.getManifest().version}
                         extensionSupportsAppIntegration
                         extensionSupportsOverlay
-                        extensionSupportsSidePanel={!isFirefoxBuild}
+                        extensionSupportsSidePanel
                         extensionSupportsOrderableAnkiFields
                         extensionSupportsTrackSpecificSettings
                         extensionSupportsSubtitlesWidthSetting
@@ -129,6 +138,8 @@ const SettingsPage = ({ dictionaryProvider, settings, inTutorial, onSettingsChan
                         onUnlockLocalFonts={handleUnlockLocalFonts}
                         scrollToId={section}
                         inTutorial={inTutorial}
+                        inAnnotationTutorial={inAnnotationTutorial}
+                        onAnnotationTutorialSeen={onAnnotationTutorialSeen}
                         testCard={extensionTestCard}
                     />
                 </DialogContent>

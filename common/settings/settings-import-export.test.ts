@@ -4,6 +4,7 @@ import {
     TokenMatchStrategy,
     TokenStyling,
     TokenReadingAnnotation,
+    TokenFrequencyAnnotation,
 } from './settings';
 import { validateSettings } from './settings-import-export';
 import { defaultSettings } from './settings-provider';
@@ -165,6 +166,7 @@ it('validates exported settings', () => {
                 dictionaryYomitanScanLength: 16,
                 dictionaryTokenReadingAnnotation: TokenReadingAnnotation.UNKNOWN_OR_BELOW,
                 dictionaryDisplayIgnoredTokenReadings: true,
+                dictionaryTokenFrequencyAnnotation: TokenFrequencyAnnotation.ALWAYS,
                 dictionaryAnkiDecks: ['Default'],
                 dictionaryAnkiWordFields: ['Word', 'Expression'],
                 dictionaryAnkiSentenceFields: ['Sentence'],
@@ -186,6 +188,7 @@ it('validates exported settings', () => {
                 dictionaryYomitanScanLength: 12,
                 dictionaryTokenReadingAnnotation: TokenReadingAnnotation.ALWAYS,
                 dictionaryDisplayIgnoredTokenReadings: false,
+                dictionaryTokenFrequencyAnnotation: TokenFrequencyAnnotation.UNCOLLECTED_ONLY,
                 dictionaryAnkiDecks: [],
                 dictionaryAnkiWordFields: [],
                 dictionaryAnkiSentenceFields: [],
@@ -207,6 +210,7 @@ it('validates exported settings', () => {
                 dictionaryYomitanScanLength: 8,
                 dictionaryTokenReadingAnnotation: TokenReadingAnnotation.NEVER,
                 dictionaryDisplayIgnoredTokenReadings: true,
+                dictionaryTokenFrequencyAnnotation: TokenFrequencyAnnotation.NEVER,
                 dictionaryAnkiDecks: [],
                 dictionaryAnkiWordFields: [],
                 dictionaryAnkiSentenceFields: [],

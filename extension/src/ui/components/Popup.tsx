@@ -14,7 +14,6 @@ import { Anki } from '@project/common/anki';
 import { useSupportedLanguages } from '../hooks/use-supported-languages';
 import { useI18n } from '../hooks/use-i18n';
 import { isMobile } from 'react-device-detect';
-import { isFirefoxBuild } from '../../services/build-flags';
 import { useTheme } from '@mui/material/styles';
 import SettingsProfileSelectMenu from '@project/common/components/SettingsProfileSelectMenu';
 import { settingsPageConfigs } from '@/services/pages';
@@ -22,6 +21,10 @@ import Stack from '@mui/material/Stack';
 import TutorialIcon from '@project/common/components/TutorialIcon';
 import Paper from '@mui/material/Paper';
 import { DictionaryProvider } from '@project/common/dictionary-db';
+import { useAnnotationTutorial } from '@project/common/hooks/use-annotation-tutorial';
+import { ExtensionGlobalStateProvider } from '@/services/extension-global-state-provider';
+
+const globalStateProvider = new ExtensionGlobalStateProvider();
 
 interface Props {
     dictionaryProvider: DictionaryProvider;
@@ -77,6 +80,7 @@ const Popup = ({
     const { supportedLanguages } = useSupportedLanguages();
     const { localFontsAvailable, localFontsPermission, localFontFamilies } = useLocalFontFamilies();
     const theme = useTheme();
+    const { handleAnnotationTutorialSeen, inAnnotationTutorial } = useAnnotationTutorial({ globalStateProvider });
 
     if (!i18nInitialized) {
         return null;
@@ -89,7 +93,7 @@ const Popup = ({
                     <Button variant="contained" color="primary" startIcon={<LaunchIcon />} onClick={onOpenApp}>
                         {t('action.openApp')}
                     </Button>
-                    {!isMobile && !isFirefoxBuild && (
+                    {!isMobile && (
                         <Button variant="contained" color="primary" startIcon={<PanelIcon />} onClick={onOpenSidePanel}>
                             {t('action.openSidePanel')}
                         </Button>
@@ -110,7 +114,7 @@ const Popup = ({
                         extensionVersion={browser.runtime.getManifest().version}
                         extensionSupportsAppIntegration
                         extensionSupportsOverlay
-                        extensionSupportsSidePanel={!isFirefoxBuild}
+                        extensionSupportsSidePanel
                         extensionSupportsOrderableAnkiFields
                         extensionSupportsTrackSpecificSettings
                         extensionSupportsSubtitlesWidthSetting
@@ -133,6 +137,8 @@ const Popup = ({
                         onSettingsChanged={onSettingsChanged}
                         onOpenChromeExtensionShortcuts={onOpenExtensionShortcuts}
                         onUnlockLocalFonts={handleUnlockLocalFonts}
+                        inAnnotationTutorial={inAnnotationTutorial}
+                        onAnnotationTutorialSeen={handleAnnotationTutorialSeen}
                     />
                 </Grid>
                 <Grid item>

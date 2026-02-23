@@ -23,7 +23,7 @@ const VideoElementInfoText = ({ videoElementCount }: { videoElementCount: number
     const { t } = useTranslation();
     return (
         <Box p={3}>
-            <Typography variant="h6">
+            <Typography align="center" variant="h6">
                 {videoElementCount === 0 ? t('landing.noVideoElementsDetected') : t('landing.videoElementsDetected')}
             </Typography>
         </Box>
