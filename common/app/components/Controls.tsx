@@ -191,16 +191,14 @@ const useProgressBarStyles = makeStyles<Theme>((theme) => ({
     },
     preview: {
         position: 'absolute',
-        width: 145,
-        height: 79,
         backgroundColor: 'grey',
         borderRadius: 5,
+        height: 79,
         top: -90,
         zIndex: -1, 
     },
     thumbnail: {
         height: 79,
-        width: 145,
         borderRadius: 5,
     },
     fillContainer: {
@@ -275,15 +273,22 @@ interface ProgressBarProps {
     onSeek: (progress: number) => void;
     onSeekPreview?: (progress: number) => string | undefined;
     value: number;
+    videoHeight: number | undefined;
+    videoWidth: number | undefined;
 }
 
-function ProgressBar({ onSeek, onSeekPreview, value }: ProgressBarProps) {
+function ProgressBar({ onSeek, onSeekPreview, value, videoHeight, videoWidth }: ProgressBarProps) {
     const classes = useProgressBarStyles();
     const [mouseOver, setMouseOver] = useState(false);
     const containerRef = useRef(null);
     // x position of mouse
     const [hoverX, setHoverX] = useState(0);
     const [thumbnailSrc, setThumbnailSrc] = useState<string>('');
+
+    // calculate width of thumbnail based on aspect ratio of video
+    if (videoHeight && videoWidth) {
+        videoWidth = Math.round((videoWidth / videoHeight) * 79);
+    }   
 
     const handleClick = useCallback(
         (e: React.MouseEvent<HTMLDivElement>) => {
@@ -330,8 +335,8 @@ function ProgressBar({ onSeek, onSeekPreview, value }: ProgressBarProps) {
         <div className={classes.root}>
 
             {mouseOver && 
-            <div style={{left: hoverX}} className={classes.preview}>
-                <img src={thumbnailSrc} className={classes.thumbnail} />
+            <div style={{left: hoverX, width: videoWidth?? 145}} className={classes.preview}>
+                <img src={thumbnailSrc} className={classes.thumbnail} style={{width: videoWidth?? 145}} />
             </div>
             }
             <div ref={containerRef} className={classes.container}>
@@ -569,6 +574,8 @@ interface ControlsProps {
     onSubtitleAlignment?: (alignment: SubtitleAlignment) => void;
     hideToolbar?: boolean;
     onLoadFiles?: () => void;
+    videoWidth?: number | undefined
+    videoHeight?: number | undefined
 }
 
 export default function Controls({
@@ -624,6 +631,8 @@ export default function Controls({
     onSubtitleAlignment,
     hideToolbar,
     onLoadFiles,
+    videoWidth,
+    videoHeight,
 }: ControlsProps) {
     const classes = useControlStyles();
     const { t } = useTranslation();
@@ -951,7 +960,13 @@ export default function Controls({
             >
                 <Fade in={show} timeout={200}>
                     <div className={classes.subContainer}>
-                        <ProgressBar onSeekPreview={onSeekPreview} onSeek={handleSeek} value={progress * 100} />
+                        <ProgressBar 
+                            onSeekPreview={onSeekPreview}
+                            onSeek={handleSeek} 
+                            value={progress * 100} 
+                            videoHeight={videoHeight} 
+                            videoWidth={videoWidth}
+                        />
                         {!hideToolbar && (
                             <Grid container className={classes.gridContainer} direction="row" wrap="nowrap">
                                 <Grid item>
