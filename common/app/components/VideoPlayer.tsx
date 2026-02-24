@@ -360,6 +360,8 @@ export default function VideoPlayer({
     const playing = () => !videoRef.current?.paused || false;
     const [length, setLength] = useState<number>(0);
     const [videoFileName, setVideoFileName] = useState<string>();
+    const [videoWidth, setVideoWidth] = useState<number>(); // width and height are original width and height from metadata
+    const [videoHeight, setVideoHeight] = useState<number>();
     const [offset, setOffset] = useState<number>(0);
     const [audioTracks, setAudioTracks] = useState<AudioTrackModel[]>();
     const [selectedAudioTrack, setSelectedAudioTrack] = useState<string>();
@@ -487,9 +489,14 @@ export default function VideoPlayer({
 
                 if (videoElement.readyState === 4) {
                     notifyReady(videoElement, playerChannel, setAudioTracks, setSelectedAudioTrack);
+                    setVideoWidth(videoElement.videoWidth);
+                    setVideoHeight(videoElement.videoHeight);
                 } else {
-                    videoElement.onloadeddata = () =>
+                    videoElement.onloadeddata = () => {
                         notifyReady(videoElement, playerChannel, setAudioTracks, setSelectedAudioTrack);
+                        setVideoWidth(videoElement.videoWidth);
+                        setVideoHeight(videoElement.videoHeight);
+                    }
                     videoElement.ondurationchange = () =>
                         notifyReady(videoElement, playerChannel, setAudioTracks, setSelectedAudioTrack);
                 }
@@ -515,7 +522,7 @@ export default function VideoPlayer({
                 }
             }
         },
-        [clock, playerChannel, updatePlayerState]
+        [clock, playerChannel, updatePlayerState, videoWidth, videoHeight]
     );
 
     function selectAudioTrack(id: string) {
@@ -1860,6 +1867,8 @@ export default function VideoPlayer({
                 </SubtitleContainer>
             )}
             <Controls
+                videoWidth={videoWidth}
+                videoHeight={videoHeight}
                 mousePositionRef={mousePositionRef}
                 clock={clock}
                 length={length}
