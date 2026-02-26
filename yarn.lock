@@ -3846,6 +3846,7 @@ __metadata:
     "@types/chrome": ^0.1.37
     "@types/dom-mediacapture-record": ^1.0.22
     "@types/jest": ^30.0.0
+    "@types/opencc-js": ^1.0.3
     "@types/react": ^19.1.8
     "@types/react-dom": ^19.1.6
     "@types/semver": ^7.7.0
@@ -3855,6 +3856,7 @@ __metadata:
     jest: ^30.0.5
     m3u8-parser: ^7.2.0
     mpd-parser: ^1.3.1
+    opencc-js: ^1.0.5
     react: ^19.1.0
     react-dom: ^19.1.0
     react-i18next: ^15.6.1
@@ -4587,6 +4589,13 @@ __metadata:
   dependencies:
     undici-types: ~6.21.0
   checksum: dcdfaf95bc55e512e0be5860e86974e467ef939a77381752743cd279c0c4400e317733f4a2819387ceb34e9edba45db74ef441f46b690656beb9c6408743a154
+  languageName: node
+  linkType: hard
+
+"@types/opencc-js@npm:^1.0.3":
+  version: 1.0.3
+  resolution: "@types/opencc-js@npm:1.0.3"
+  checksum: 3cc08b83e933d79783c3a50f5d99c6256b86db45a024aad9fe2a9cc78720dcad680a6a6e7562ec4260ed5de7c7c475a3cafef2f688356317fdc3be988a172209
   languageName: node
   linkType: hard
 
@@ -12479,6 +12488,13 @@ __metadata:
     is-docker: ^2.1.1
     is-wsl: ^2.2.0
   checksum: 6388bfff21b40cb9bd8f913f9130d107f2ed4724ea81a8fd29798ee322b361ca31fa2cdfb491a5c31e43a3996cfe9566741238c7a741ada8d7af1cb78d85cf26
+  languageName: node
+  linkType: hard
+
+"opencc-js@npm:^1.0.5":
+  version: 1.0.5
+  resolution: "opencc-js@npm:1.0.5"
+  checksum: 584066299dbaced2a22ecfe5b15095613f03692a6f6180ae41209ae838a0574a3b30b30f984fa902a5d8b6644ddddc31cb3d5afee2a2d8031a13a58a12fa0d37
   languageName: node
   linkType: hard
 

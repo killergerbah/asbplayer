@@ -3,6 +3,7 @@ import SrtParser from '@qgustavor/srt-parser';
 import { WebVTT } from 'vtt.js';
 import { XMLParser } from 'fast-xml-parser';
 import { SubtitleHtml, SubtitleTextImage, Token, Tokenization } from '@project/common';
+import * as OpenCC from 'opencc-js';
 
 const vttClassRegex = /<(\/)?c(\.[^>]*)?>/g;
 const assNewLineRegex = RegExp(/\\[nN]/, 'ig');
@@ -111,6 +112,11 @@ export default class SubtitleReader {
             for (const node of allNodes) {
                 this._convertNetflixRubyToHtml(node);
             }
+        }
+
+        const converter = OpenCC.Converter({ from: "tw", to: "cn" })
+        for (const node of allNodes) {
+            node.text = converter(node.text);
         }
 
         return allNodes;
