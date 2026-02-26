@@ -27,6 +27,7 @@
 }
 
 .asbplayer-subtitles-blurred {
+    display: inline-block; /* Blur ruby annotations as well */
     filter: blur(10px);
 }
 
