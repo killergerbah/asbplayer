@@ -189,7 +189,6 @@ export default defineConfig({
                   }
                 : {
                       id: '{e4b27483-2e73-4762-b2ec-8d988a143a40}',
-                      update_url: 'https://killergerbah.github.io/asbplayer/firefox-extension-updates.json',
                   };
 
             manifest = {
