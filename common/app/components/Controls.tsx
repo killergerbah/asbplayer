@@ -762,8 +762,6 @@ export default function Controls({
     const handlePlayModeSelected = useCallback(
         (playMode: PlayMode) => {
             onPlayMode?.(playMode);
-            setPlayModeSelectorAnchorEl(undefined);
-            setPlayModeSelectorOpen(false);
         },
         [onPlayMode]
     );
