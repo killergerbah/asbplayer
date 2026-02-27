@@ -73,7 +73,12 @@ export default function PlayModeSelector({
                 <ListItem onClick={() => onPlayMode(PlayMode.normal)}>
                     <ListItemButton>
                         <ListItemIcon>
-                            <Checkbox edge="start" checked={selectedPlayModes.has(PlayMode.normal)} disableRipple tabIndex={-1} />
+                            <Checkbox
+                                edge="start"
+                                checked={selectedPlayModes.has(PlayMode.normal)}
+                                disableRipple
+                                tabIndex={-1}
+                            />
                         </ListItemIcon>
                         <ListItemText>{t('controls.normalMode')}</ListItemText>
                     </ListItemButton>
@@ -81,7 +86,12 @@ export default function PlayModeSelector({
                 <ListItem onClick={() => onPlayMode(PlayMode.condensed)}>
                     <ListItemButton>
                         <ListItemIcon>
-                            <Checkbox edge="start" checked={selectedPlayModes.has(PlayMode.condensed)} disableRipple tabIndex={-1} />
+                            <Checkbox
+                                edge="start"
+                                checked={selectedPlayModes.has(PlayMode.condensed)}
+                                disableRipple
+                                tabIndex={-1}
+                            />
                         </ListItemIcon>
                         <ListItemText>{t('controls.condensedMode')}</ListItemText>
                     </ListItemButton>
@@ -89,7 +99,12 @@ export default function PlayModeSelector({
                 <ListItem onClick={() => onPlayMode(PlayMode.fastForward)}>
                     <ListItemButton>
                         <ListItemIcon>
-                            <Checkbox edge="start" checked={selectedPlayModes.has(PlayMode.fastForward)} disableRipple tabIndex={-1} />
+                            <Checkbox
+                                edge="start"
+                                checked={selectedPlayModes.has(PlayMode.fastForward)}
+                                disableRipple
+                                tabIndex={-1}
+                            />
                         </ListItemIcon>
                         <ListItemText>{t('controls.fastForwardMode')}</ListItemText>
                     </ListItemButton>
@@ -97,7 +112,12 @@ export default function PlayModeSelector({
                 <ListItem onClick={() => onPlayMode(PlayMode.autoPause)}>
                     <ListItemButton>
                         <ListItemIcon>
-                            <Checkbox edge="start" checked={selectedPlayModes.has(PlayMode.autoPause)} disableRipple tabIndex={-1} />
+                            <Checkbox
+                                edge="start"
+                                checked={selectedPlayModes.has(PlayMode.autoPause)}
+                                disableRipple
+                                tabIndex={-1}
+                            />
                         </ListItemIcon>
                         <ListItemText>{t('controls.autoPauseMode')}</ListItemText>
                     </ListItemButton>
@@ -105,7 +125,12 @@ export default function PlayModeSelector({
                 <ListItem onClick={() => onPlayMode(PlayMode.repeat)}>
                     <ListItemButton>
                         <ListItemIcon>
-                            <Checkbox edge="start" checked={selectedPlayModes.has(PlayMode.repeat)} disableRipple tabIndex={-1} />
+                            <Checkbox
+                                edge="start"
+                                checked={selectedPlayModes.has(PlayMode.repeat)}
+                                disableRipple
+                                tabIndex={-1}
+                            />
                         </ListItemIcon>
                         <ListItemText>{t('controls.repeatMode')}</ListItemText>
                     </ListItemButton>
