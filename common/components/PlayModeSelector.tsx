@@ -1,8 +1,10 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import Checkbox from '@mui/material/Checkbox';
 import List from '@mui/material/List';
 import MuiListItem, { ListItemProps } from '@mui/material/ListItem';
 import MuiListItemButton, { ListItemButtonProps } from '@mui/material/ListItemButton';
+import MuiListItemIcon, { ListItemIconProps } from '@mui/material/ListItemIcon';
 import Popover from '@mui/material/Popover';
 import type { PopoverProps } from '@mui/material/Popover';
 import { PlayMode } from '@project/common';
@@ -30,6 +32,14 @@ const ListItemButton = ({ children, ...props }: ListItemButtonProps) => {
         <MuiListItemButton dense {...props}>
             {children}
         </MuiListItemButton>
+    );
+};
+
+const ListItemIcon = ({ children, ...props }: ListItemIconProps) => {
+    return (
+        <MuiListItemIcon style={{ minWidth: 'auto' }} {...props}>
+            {children}
+        </MuiListItemIcon>
     );
 };
 
@@ -61,27 +71,42 @@ export default function PlayModeSelector({
         >
             <List disablePadding dense style={listStyle}>
                 <ListItem onClick={() => onPlayMode(PlayMode.normal)}>
-                    <ListItemButton selected={selectedPlayModes.has(PlayMode.normal)}>
+                    <ListItemButton>
+                        <ListItemIcon>
+                            <Checkbox edge="start" checked={selectedPlayModes.has(PlayMode.normal)} disableRipple tabIndex={-1} />
+                        </ListItemIcon>
                         <ListItemText>{t('controls.normalMode')}</ListItemText>
                     </ListItemButton>
                 </ListItem>
                 <ListItem onClick={() => onPlayMode(PlayMode.condensed)}>
-                    <ListItemButton selected={selectedPlayModes.has(PlayMode.condensed)}>
+                    <ListItemButton>
+                        <ListItemIcon>
+                            <Checkbox edge="start" checked={selectedPlayModes.has(PlayMode.condensed)} disableRipple tabIndex={-1} />
+                        </ListItemIcon>
                         <ListItemText>{t('controls.condensedMode')}</ListItemText>
                     </ListItemButton>
                 </ListItem>
                 <ListItem onClick={() => onPlayMode(PlayMode.fastForward)}>
-                    <ListItemButton selected={selectedPlayModes.has(PlayMode.fastForward)}>
+                    <ListItemButton>
+                        <ListItemIcon>
+                            <Checkbox edge="start" checked={selectedPlayModes.has(PlayMode.fastForward)} disableRipple tabIndex={-1} />
+                        </ListItemIcon>
                         <ListItemText>{t('controls.fastForwardMode')}</ListItemText>
                     </ListItemButton>
                 </ListItem>
                 <ListItem onClick={() => onPlayMode(PlayMode.autoPause)}>
-                    <ListItemButton selected={selectedPlayModes.has(PlayMode.autoPause)}>
+                    <ListItemButton>
+                        <ListItemIcon>
+                            <Checkbox edge="start" checked={selectedPlayModes.has(PlayMode.autoPause)} disableRipple tabIndex={-1} />
+                        </ListItemIcon>
                         <ListItemText>{t('controls.autoPauseMode')}</ListItemText>
                     </ListItemButton>
                 </ListItem>
                 <ListItem onClick={() => onPlayMode(PlayMode.repeat)}>
-                    <ListItemButton selected={selectedPlayModes.has(PlayMode.repeat)}>
+                    <ListItemButton>
+                        <ListItemIcon>
+                            <Checkbox edge="start" checked={selectedPlayModes.has(PlayMode.repeat)} disableRipple tabIndex={-1} />
+                        </ListItemIcon>
                         <ListItemText>{t('controls.repeatMode')}</ListItemText>
                     </ListItemButton>
                 </ListItem>
