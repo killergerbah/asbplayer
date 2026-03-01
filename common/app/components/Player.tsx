@@ -1091,14 +1091,14 @@ const Player = React.memo(function Player({
             (event, increase) => {
                 event.preventDefault();
                 if (increase) {
-                    updatePlaybackRate(Math.min(5, playbackRate + 0.1), true);
+                    updatePlaybackRate(Math.min(5, playbackRate + settings.speedChangeStep), true);
                 } else {
-                    updatePlaybackRate(Math.max(0.1, playbackRate - 0.1), true);
+                    updatePlaybackRate(Math.max(0.1, playbackRate - settings.speedChangeStep), true);
                 }
             },
             () => disableKeyEvents
         );
-    }, [updatePlaybackRate, playbackRate, disableKeyEvents, keyBinder]);
+    }, [updatePlaybackRate, playbackRate, settings.speedChangeStep, disableKeyEvents, keyBinder]);
 
     const togglePlayMode = useCallback(
         (event: KeyboardEvent, togglePlayMode: PlayMode) => {

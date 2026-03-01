@@ -188,6 +188,13 @@ const dependencies: Dependency[] = [
         purpose: 'Subtitle detection',
         extension: true,
     },
+    {
+        name: 'DOMPurify',
+        projectLink: 'https://github.com/cure53/DOMPurify',
+        license: 'Apache 2.0',
+        licenseLink: 'https://github.com/cure53/DOMPurify/blob/main/LICENSE',
+        purpose: 'HTML sanitization',
+    },
 ];
 
 const dependencyPurposeCounts: { [key: string]: number } = {};

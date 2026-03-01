@@ -671,14 +671,14 @@ export default function SubtitlePlayer({
                 event.stopPropagation();
                 event.preventDefault();
                 if (forward) {
-                    onSeek(Math.min(length, clock.time(length) + 10000), clock.running);
+                    onSeek(Math.min(length, clock.time(length) + settings.seekDuration * 1000), clock.running);
                 } else {
-                    onSeek(Math.max(0, clock.time(length) - 10000), clock.running);
+                    onSeek(Math.max(0, clock.time(length) - settings.seekDuration * 1000), clock.running);
                 }
             },
             () => disableKeyEvents
         );
-    }, [keyBinder, clock, length, disableKeyEvents, onSeek]);
+    }, [keyBinder, clock, length, disableKeyEvents, settings.seekDuration, onSeek]);
 
     useEffect(() => {
         function handleScroll() {
