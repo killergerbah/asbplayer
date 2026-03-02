@@ -5,9 +5,9 @@ import { AnkiSettings, AnkiSettingsFieldKey } from '@project/common/settings';
 import sanitize from 'sanitize-filename';
 import { extractText, fromBatches, sourceString } from '@project/common/util';
 
-// No Anki memory impacts, increasing offers negligible speedup
-const ANKI_INFO_BATCH_SIZE = 10000;
-const ANKI_MOD_BATCH_SIZE = 100000;
+const ANKI_CARDS_INFO_BATCH_SIZE = 10;
+const ANKI_NOTES_INFO_BATCH_SIZE = 100;
+const ANKI_MOD_BATCH_SIZE = 10000;
 
 const ankiQuerySpecialCharacters = ['"', '*', '_', '\\', ':'];
 const ankiQueryDeckSpecialCharacters = ['"', '*', '_', '\\'];
@@ -324,7 +324,7 @@ export class Anki {
                 async (cards) => {
                     return (await this._executeAction('cardsInfo', { cards }, ankiConnectUrl)).result as CardInfo[];
                 },
-                { batchSize: ANKI_INFO_BATCH_SIZE }
+                { batchSize: ANKI_CARDS_INFO_BATCH_SIZE }
             )
         ).flat();
     }
@@ -363,7 +363,7 @@ export class Anki {
                 async (notes) => {
                     return (await this._executeAction('notesInfo', { notes }, ankiConnectUrl)).result as NoteInfo[];
                 },
-                { batchSize: ANKI_INFO_BATCH_SIZE }
+                { batchSize: ANKI_NOTES_INFO_BATCH_SIZE }
             )
         ).flat();
     }
