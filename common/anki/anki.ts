@@ -206,16 +206,18 @@ export class DuplicateNoteError extends Error {
     }
 }
 
+// Optional fields are unused thus deleted to save memory
 export interface CardInfo {
-    answer: string;
-    question: string;
+    answer?: string;
+    question?: string;
     deckName: string;
     modelName: string;
     fieldOrder: number;
     fields: { [fieldName: string]: { value: string; order: number } };
-    css: string;
+    css?: string;
     cardId: number;
     interval: number;
+    factor: number;
     note: number;
     ord: number;
     type: number;
@@ -225,6 +227,8 @@ export interface CardInfo {
     lapses: number;
     left: number;
     mod: number;
+    nextReviews: [string, string, string, string];
+    flags: number;
 }
 
 export interface NoteInfo {
@@ -322,7 +326,14 @@ export class Anki {
             await fromBatches(
                 allCards,
                 async (cards) => {
-                    return (await this._executeAction('cardsInfo', { cards }, ankiConnectUrl)).result as CardInfo[];
+                    const cardsInfo: CardInfo[] = (await this._executeAction('cardsInfo', { cards }, ankiConnectUrl))
+                        .result;
+                    for (const cardInfo of cardsInfo) {
+                        delete cardInfo.answer;
+                        delete cardInfo.question;
+                        delete cardInfo.css;
+                    }
+                    return cardsInfo;
                 },
                 { batchSize: ANKI_CARDS_INFO_BATCH_SIZE }
             )
