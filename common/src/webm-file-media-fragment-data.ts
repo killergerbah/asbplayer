@@ -2,7 +2,6 @@ import {
     CancelledMediaFragmentDataRenderingError,
     createVideoElement,
     disposeVideoElement,
-    maxWebmMediaFragmentDurationMs,
     makeMediaFragmentFileName,
     minWebmMediaFragmentDurationMs,
     type MediaFragmentData,
@@ -19,7 +18,7 @@ const clamp = (value: number, min: number, max: number) => Math.max(min, Math.mi
 const durationFromInterval = (startTimestamp: number, endTimestamp: number) => {
     const duration = Math.abs(endTimestamp - startTimestamp);
     const resolvedDuration = duration > 0 ? duration : minWebmMediaFragmentDurationMs;
-    return clamp(resolvedDuration, minWebmMediaFragmentDurationMs, maxWebmMediaFragmentDurationMs);
+    return Math.max(minWebmMediaFragmentDurationMs, resolvedDuration);
 };
 
 const blobToDataUrl = async (blob: Blob): Promise<string> =>
