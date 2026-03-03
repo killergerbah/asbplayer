@@ -86,14 +86,29 @@ export default function ImageField({ image, onViewImage, onCopyImageToClipboard,
                 disabled={!imageAvailable}
                 slotProps={{
                     input: {
-                        startAdornment: image.extension !== 'webm' && dataUrl && width > 0 && height > 0 && (
-                            <img
-                                src={dataUrl}
-                                width={width * resizeRatio}
-                                height={height * resizeRatio}
-                                className={classes.imagePreview}
-                            />
-                        ),
+                        startAdornment:
+                            dataUrl &&
+                            width > 0 &&
+                            height > 0 &&
+                            (image.extension === 'webm' ? (
+                                <video
+                                    src={dataUrl}
+                                    width={width * resizeRatio}
+                                    height={height * resizeRatio}
+                                    className={classes.imagePreview}
+                                    autoPlay
+                                    loop
+                                    muted
+                                    playsInline
+                                />
+                            ) : (
+                                <img
+                                    src={dataUrl}
+                                    width={width * resizeRatio}
+                                    height={height * resizeRatio}
+                                    className={classes.imagePreview}
+                                />
+                            )),
                         endAdornment: (
                             <InputAdornment position="end">
                                 <>
