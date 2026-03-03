@@ -15,6 +15,7 @@ import {
     DictionaryTrack,
     TokenReadingAnnotation,
     TokenFrequencyAnnotation,
+    getFullyKnownTokenStatus,
 } from '.';
 import { AutoPausePreference, PostMineAction, PostMinePlayback, SubtitleHtml } from '..';
 
@@ -57,7 +58,9 @@ const defaultDictionaryTrackSettings: DictionaryTrack = {
     dictionaryTokenStyling: TokenStyling.UNDERLINE,
     dictionaryTokenStylingThickness: 3,
     dictionaryColorizeFullyKnownTokens: false,
+    dictionaryTokenStatusDisplays: [true, true, true, true, true, false],
     dictionaryTokenStatusColors: ['#FF0000', '#FFA500', '#FFFF00', '#00FF00', '#0000FF', '#FFFFFF'],
+    dictionaryTokenStatusAlphas: ['FF', 'FF', 'FF', 'FF', 'FF', 'FF'],
 };
 
 export const defaultSettings: AsbplayerSettings = {
@@ -433,7 +436,56 @@ const deepEquals = (a: any, b: any) => {
     return true;
 };
 
+const ensureDictionaryTracksConsistency = ({ dictionaryTracks }: Partial<AsbplayerSettings>) => {
+    if (!dictionaryTracks) return;
+    const defaultTrack = defaultSettings.dictionaryTracks[0];
+    const fullyKnownStatus = getFullyKnownTokenStatus();
+    for (const dt of dictionaryTracks) {
+        if (!dt.dictionaryTokenStatusDisplays) (dt as any).dictionaryTokenStatusDisplays = [];
+        const migrateFullyKnownDisplay = !dt.dictionaryTokenStatusDisplays.length;
+        while (dt.dictionaryTokenStatusDisplays.length < NUM_TOKEN_STATUSES) {
+            const currLength = dt.dictionaryTokenStatusDisplays.length;
+            const display = defaultTrack.dictionaryTokenStatusDisplays[currLength];
+            dt.dictionaryTokenStatusDisplays.push(display);
+        }
+        while (dt.dictionaryTokenStatusDisplays.length > NUM_TOKEN_STATUSES) {
+            dt.dictionaryTokenStatusDisplays.pop();
+        }
+        if (migrateFullyKnownDisplay) {
+            dt.dictionaryTokenStatusDisplays[fullyKnownStatus] = dt.dictionaryColorizeFullyKnownTokens;
+        }
+
+        if (!dt.dictionaryTokenStatusColors) (dt as any).dictionaryTokenStatusColors = [];
+        while (dt.dictionaryTokenStatusColors.length < NUM_TOKEN_STATUSES) {
+            const currLength = dt.dictionaryTokenStatusColors.length;
+            const color = defaultTrack.dictionaryTokenStatusColors[currLength];
+            dt.dictionaryTokenStatusColors.push(color);
+        }
+        while (dt.dictionaryTokenStatusColors.length > NUM_TOKEN_STATUSES) {
+            dt.dictionaryTokenStatusColors.pop();
+        }
+
+        if (!dt.dictionaryTokenStatusAlphas) (dt as any).dictionaryTokenStatusAlphas = [];
+        while (dt.dictionaryTokenStatusAlphas.length < NUM_TOKEN_STATUSES) {
+            const currLength = dt.dictionaryTokenStatusAlphas.length;
+            const alpha = defaultTrack.dictionaryTokenStatusAlphas[currLength];
+            dt.dictionaryTokenStatusAlphas.push(alpha);
+        }
+        while (dt.dictionaryTokenStatusAlphas.length > NUM_TOKEN_STATUSES) {
+            dt.dictionaryTokenStatusAlphas.pop();
+        }
+    }
+    while (dictionaryTracks.length < NUM_DICTIONARY_TRACKS) {
+        dictionaryTracks.push(defaultTrack);
+    }
+    while (dictionaryTracks.length > NUM_DICTIONARY_TRACKS) {
+        dictionaryTracks.pop();
+    }
+};
+
 export const ensureConsistencyOnRead = (settings: Partial<AsbplayerSettings>) => {
+    ensureDictionaryTracksConsistency(settings);
+
     let keyBindSetModified = false;
     let newKeyBindSet: any = {};
     let ankiFieldSettingsModified = false;
@@ -537,22 +589,7 @@ export class SettingsProvider {
     }
 
     private async _ensureConsistencyOnWrite(settings: Partial<AsbplayerSettings>) {
-        if (settings.dictionaryTracks !== undefined) {
-            const defaultTrack = defaultSettings.dictionaryTracks[0];
-            for (const dt of settings.dictionaryTracks) {
-                while (dt.dictionaryTokenStatusColors.length < NUM_TOKEN_STATUSES) {
-                    const currLength = dt.dictionaryTokenStatusColors.length;
-                    const color = defaultTrack.dictionaryTokenStatusColors[currLength];
-                    dt.dictionaryTokenStatusColors.push(color);
-                }
-            }
-            while (settings.dictionaryTracks.length < NUM_DICTIONARY_TRACKS) {
-                settings.dictionaryTracks.push(defaultTrack);
-            }
-            while (settings.dictionaryTracks.length > NUM_DICTIONARY_TRACKS) {
-                settings.dictionaryTracks.pop();
-            }
-        }
+        ensureDictionaryTracksConsistency(settings);
 
         if (settings.customAnkiFields === undefined) {
             return settings;

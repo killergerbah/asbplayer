@@ -18,6 +18,7 @@ import {
     RadioGroup,
     Stack,
     Switch,
+    TextField,
     Typography,
 } from '@mui/material';
 import MuiAlert, { type AlertProps } from '@mui/material/Alert';
@@ -52,7 +53,7 @@ import {
     DictionaryBuildAnkiCacheStats,
 } from '../src/message';
 import { DictionaryProvider } from '../dictionary-db';
-import { ensureStoragePersisted, humanReadableTime, localizedDate } from '../util';
+import { ensureStoragePersisted, hex2ToPercent, humanReadableTime, localizedDate, percentToHex2 } from '../util';
 import DictionaryImport from './DictionaryImport';
 
 const useBuildAnkiCacheState: () => {
@@ -157,6 +158,7 @@ interface Props {
     settings: AsbplayerSettings;
     dictionaryProvider: DictionaryProvider;
     extensionInstalled: boolean;
+    supportsDictionaryTokenStatusDisplayAlpha: boolean;
     onSettingChanged: <K extends keyof AsbplayerSettings>(key: K, value: AsbplayerSettings[K]) => Promise<void>;
     onViewKeyboardShortcuts: () => void;
     profiles: Profile[];
@@ -168,6 +170,7 @@ const DictionarySettingsTab: React.FC<Props> = ({
     dictionaryProvider,
     settings,
     extensionInstalled,
+    supportsDictionaryTokenStatusDisplayAlpha,
     onSettingChanged,
     onViewKeyboardShortcuts,
     profiles,
@@ -1253,47 +1256,133 @@ const DictionarySettingsTab: React.FC<Props> = ({
                     />
                 )}
                 <SettingsSection>{t('settings.colors')}</SettingsSection>
-                <SwitchLabelWithHoverEffect
-                    control={
-                        <Switch
-                            checked={selectedDictionary.dictionaryColorizeFullyKnownTokens}
-                            onChange={(e) => {
-                                const newTracks = [...dictionaryTracks];
-                                newTracks[selectedDictionaryTrack] = {
-                                    ...newTracks[selectedDictionaryTrack],
-                                    dictionaryColorizeFullyKnownTokens: e.target.checked,
-                                };
-                                onSettingChanged('dictionaryTracks', newTracks);
-                            }}
+                {supportsDictionaryTokenStatusDisplayAlpha ? (
+                    <>
+                        {[...Array(NUM_TOKEN_STATUSES).keys()].map((i) => {
+                            const tokenStatusIndex = NUM_TOKEN_STATUSES - 1 - i;
+                            const display = selectedDictionary.dictionaryTokenStatusDisplays[tokenStatusIndex];
+                            const color = selectedDictionary.dictionaryTokenStatusColors[tokenStatusIndex];
+                            const alpha = selectedDictionary.dictionaryTokenStatusAlphas[tokenStatusIndex];
+
+                            return (
+                                <Stack key={i} direction="row" spacing={1} alignItems="center">
+                                    <Switch
+                                        checked={display}
+                                        onChange={(e) => {
+                                            const newDisplays = [...selectedDictionary.dictionaryTokenStatusDisplays];
+                                            newDisplays[tokenStatusIndex] = e.target.checked;
+                                            const newTracks = [...dictionaryTracks];
+                                            newTracks[selectedDictionaryTrack] = {
+                                                ...newTracks[selectedDictionaryTrack],
+                                                dictionaryTokenStatusDisplays: newDisplays,
+                                            };
+                                            onSettingChanged('dictionaryTracks', newTracks);
+                                        }}
+                                    />
+                                    <div style={{ flex: 1, opacity: display ? 1 : 0.5 }}>
+                                        <SettingsTextField
+                                            type="color"
+                                            label={t(`settings.dictionaryTokenStatus${tokenStatusIndex}`)}
+                                            fullWidth
+                                            value={color}
+                                            color="primary"
+                                            disabled={!display}
+                                            onChange={(e) => {
+                                                const newColors = [...selectedDictionary.dictionaryTokenStatusColors];
+                                                newColors[tokenStatusIndex] = e.target.value;
+                                                const newTracks = [...dictionaryTracks];
+                                                newTracks[selectedDictionaryTrack] = {
+                                                    ...newTracks[selectedDictionaryTrack],
+                                                    dictionaryTokenStatusColors: newColors,
+                                                };
+                                                onSettingChanged('dictionaryTracks', newTracks);
+                                            }}
+                                        />
+                                    </div>
+                                    <Stack
+                                        direction="row"
+                                        spacing={1}
+                                        alignItems="center"
+                                        sx={{ whiteSpace: 'nowrap', opacity: display ? 1 : 0.5 }}
+                                    >
+                                        <Typography variant="body2" color={display ? 'textSecondary' : 'textDisabled'}>
+                                            {t('settings.dictionaryTokenStatusAlpha')}:
+                                        </Typography>
+                                        <TextField
+                                            type="number"
+                                            size="small"
+                                            value={Math.round(hex2ToPercent(alpha) * 100)}
+                                            disabled={!display}
+                                            onChange={(e) => {
+                                                const parsed = Number(e.target.value);
+                                                if (Number.isNaN(parsed)) return;
+                                                const clamped = Math.max(0, Math.min(100, parsed));
+                                                const newAlphas = [...selectedDictionary.dictionaryTokenStatusAlphas];
+                                                newAlphas[tokenStatusIndex] = percentToHex2(clamped / 100);
+                                                const newTracks = [...dictionaryTracks];
+                                                newTracks[selectedDictionaryTrack] = {
+                                                    ...newTracks[selectedDictionaryTrack],
+                                                    dictionaryTokenStatusAlphas: newAlphas,
+                                                };
+                                                onSettingChanged('dictionaryTracks', newTracks);
+                                            }}
+                                            slotProps={{
+                                                htmlInput: { min: 0, max: 100, step: 1 },
+                                                input: {
+                                                    endAdornment: <InputAdornment position="end">%</InputAdornment>,
+                                                },
+                                            }}
+                                        />
+                                    </Stack>
+                                </Stack>
+                            );
+                        })}
+                    </>
+                ) : (
+                    <>
+                        <SwitchLabelWithHoverEffect
+                            control={
+                                <Switch
+                                    checked={selectedDictionary.dictionaryColorizeFullyKnownTokens}
+                                    onChange={(e) => {
+                                        const newTracks = [...dictionaryTracks];
+                                        newTracks[selectedDictionaryTrack] = {
+                                            ...newTracks[selectedDictionaryTrack],
+                                            dictionaryColorizeFullyKnownTokens: e.target.checked,
+                                        };
+                                        onSettingChanged('dictionaryTracks', newTracks);
+                                    }}
+                                />
+                            }
+                            label={t('settings.dictionaryColorizeFullyKnownTokens')}
+                            labelPlacement="start"
                         />
-                    }
-                    label={t('settings.dictionaryColorizeFullyKnownTokens')}
-                    labelPlacement="start"
-                />
-                {[...Array(NUM_TOKEN_STATUSES).keys()].map((i) => {
-                    const tokenStatusIndex = NUM_TOKEN_STATUSES - 1 - i;
-                    if (tokenStatusIndex === tokenStylingToHide) return null;
-                    return (
-                        <SettingsTextField
-                            key={i}
-                            type="color"
-                            label={t(`settings.dictionaryTokenStatus${tokenStatusIndex}`)}
-                            fullWidth
-                            value={selectedDictionary.dictionaryTokenStatusColors[tokenStatusIndex]}
-                            color="primary"
-                            onChange={(e) => {
-                                const newColors = [...selectedDictionary.dictionaryTokenStatusColors];
-                                newColors[tokenStatusIndex] = e.target.value;
-                                const newTracks = [...dictionaryTracks];
-                                newTracks[selectedDictionaryTrack] = {
-                                    ...newTracks[selectedDictionaryTrack],
-                                    dictionaryTokenStatusColors: newColors,
-                                };
-                                onSettingChanged('dictionaryTracks', newTracks);
-                            }}
-                        />
-                    );
-                })}
+                        {[...Array(NUM_TOKEN_STATUSES).keys()].map((i) => {
+                            const tokenStatusIndex = NUM_TOKEN_STATUSES - 1 - i;
+                            if (tokenStatusIndex === tokenStylingToHide) return null;
+                            return (
+                                <SettingsTextField
+                                    key={i}
+                                    type="color"
+                                    label={t(`settings.dictionaryTokenStatus${tokenStatusIndex}`)}
+                                    fullWidth
+                                    value={selectedDictionary.dictionaryTokenStatusColors[tokenStatusIndex]}
+                                    color="primary"
+                                    onChange={(e) => {
+                                        const newColors = [...selectedDictionary.dictionaryTokenStatusColors];
+                                        newColors[tokenStatusIndex] = e.target.value;
+                                        const newTracks = [...dictionaryTracks];
+                                        newTracks[selectedDictionaryTrack] = {
+                                            ...newTracks[selectedDictionaryTrack],
+                                            dictionaryTokenStatusColors: newColors,
+                                        };
+                                        onSettingChanged('dictionaryTracks', newTracks);
+                                    }}
+                                />
+                            );
+                        })}
+                    </>
+                )}
             </Stack>
         </>
     );

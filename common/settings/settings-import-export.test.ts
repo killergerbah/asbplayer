@@ -176,7 +176,9 @@ it('validates exported settings', () => {
                 dictionaryTokenStyling: TokenStyling.UNDERLINE,
                 dictionaryTokenStylingThickness: 1,
                 dictionaryColorizeFullyKnownTokens: false,
+                dictionaryTokenStatusDisplays: [true, true, true, true, true, false],
                 dictionaryTokenStatusColors: ['#FF0000', '#FFA500', '#FFFF00', '#00FF00', '#0000FF', '#FFFFFF'],
+                dictionaryTokenStatusAlphas: ['FF', 'FF', 'FF', 'FF', 'FF', 'FF'],
             },
             {
                 dictionaryColorizeSubtitles: false,
@@ -197,8 +199,10 @@ it('validates exported settings', () => {
                 dictionaryAnkiTreatSuspended: 1,
                 dictionaryTokenStyling: TokenStyling.UNDERLINE,
                 dictionaryTokenStylingThickness: 1,
-                dictionaryColorizeFullyKnownTokens: false,
+                dictionaryColorizeFullyKnownTokens: true,
+                dictionaryTokenStatusDisplays: [true, true, true, true, true, true],
                 dictionaryTokenStatusColors: ['#FF0000', '#FFA500', '#FFFF00', '#00FF00', '#0000FF', '#FFFFFF'],
+                dictionaryTokenStatusAlphas: ['FF', 'FF', 'FF', 'FF', 'FF', 'FF'],
             },
             {
                 dictionaryColorizeSubtitles: false,
@@ -220,7 +224,9 @@ it('validates exported settings', () => {
                 dictionaryTokenStyling: TokenStyling.UNDERLINE,
                 dictionaryTokenStylingThickness: 1,
                 dictionaryColorizeFullyKnownTokens: false,
-                dictionaryTokenStatusColors: ['#FF0000', '#FFA500', '#FFFF00', '#00FF00', '#0000FF', '#FFFFFF'],
+                dictionaryTokenStatusDisplays: [true, true, true, true, true, false],
+                dictionaryTokenStatusColors: ['#00FF00', '#00FFFF', '#0000FF', '#FF00FF', '#FF0000', '#FFFF00'],
+                dictionaryTokenStatusAlphas: ['00', 'FF', '00', 'FF', 'FF', '00'],
             },
         ],
     });

@@ -1310,9 +1310,9 @@ const applyTokenStyle = (fullText: string, token: Token, dt?: DictionaryTrack) =
     const s = HAS_LETTER_REGEX.test(tokenText)
         ? `<span class="${ASB_TOKEN_CLASS}${dt.dictionaryHighlightOnHover ? ` ${ASB_TOKEN_HIGHLIGHT_CLASS}` : ''}"`
         : '<span';
-    if (!dt.dictionaryColorizeFullyKnownTokens && token.status === getFullyKnownTokenStatus())
-        return `${s}>${tokenText}</span>`;
-    const c = dt.dictionaryTokenStatusColors[token.status!];
+    if (!dt.dictionaryTokenStatusDisplays[token.status!]) return `${s}>${tokenText}</span>`;
+
+    const c = `${dt.dictionaryTokenStatusColors[token.status!]}${dt.dictionaryTokenStatusAlphas[token.status!]}`;
     const t = dt.dictionaryTokenStylingThickness;
     switch (dt.dictionaryTokenStyling) {
         case TokenStyling.TEXT:

@@ -157,8 +157,10 @@ export interface DictionaryTrack {
     readonly dictionaryAnkiTreatSuspended: TokenStatus | 'NORMAL';
     readonly dictionaryTokenStyling: TokenStyling;
     readonly dictionaryTokenStylingThickness: number;
-    readonly dictionaryColorizeFullyKnownTokens: boolean;
+    readonly dictionaryColorizeFullyKnownTokens: boolean; // Deprecated in favor of dictionaryTokenStatusDisplays
+    readonly dictionaryTokenStatusDisplays: boolean[]; // Indexed by TokenStatus
     readonly dictionaryTokenStatusColors: string[]; // Indexed by TokenStatus (if adding colors for states, use a separate array indexed by TokenState)
+    readonly dictionaryTokenStatusAlphas: string[]; // Indexed by TokenStatus (if adding alpha for states, use a separate array indexed by TokenState)
 }
 
 export interface DictionarySettings {
@@ -187,7 +189,9 @@ const dictionaryTrackComparators: {
     dictionaryTokenStyling: (a, b) => a === b,
     dictionaryTokenStylingThickness: (a, b) => a === b,
     dictionaryColorizeFullyKnownTokens: (a, b) => a === b,
+    dictionaryTokenStatusDisplays: (a, b) => arrayEquals(a, b),
     dictionaryTokenStatusColors: (a, b) => arrayEquals(a, b),
+    dictionaryTokenStatusAlphas: (a, b) => arrayEquals(a, b),
 };
 
 export function compareDTField<K extends keyof DictionaryTrack>(

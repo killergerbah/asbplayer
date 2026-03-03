@@ -558,7 +558,7 @@ export class DictionaryDB {
                 let status = item.status;
                 if (item.status == null || item.status < TokenStatus.UNKNOWN) {
                     if (!item.states.length) continue; // Status cannot be uncollected unless there is a state
-                    if (status == null) status = TokenStatus.UNCOLLECTED;
+                    status = TokenStatus.UNCOLLECTED;
                 } else if (item.status > fullyKnownStatus) {
                     status = fullyKnownStatus;
                 }

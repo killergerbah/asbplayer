@@ -172,6 +172,7 @@ interface Props {
     extensionSupportsExportCardBind: boolean;
     extensionSupportsPageSettings: boolean;
     extensionSupportsDictionary: boolean;
+    extensionSupportsDictionaryTokenStatusDisplayAlpha: boolean;
     insideApp?: boolean;
     appVersion?: string;
     dictionaryProvider: DictionaryProvider;
@@ -218,6 +219,7 @@ export default function SettingsForm({
     extensionSupportsExportCardBind,
     extensionSupportsPageSettings,
     extensionSupportsDictionary,
+    extensionSupportsDictionaryTokenStatusDisplayAlpha,
     insideApp,
     appVersion,
     scrollToId,
@@ -237,6 +239,8 @@ export default function SettingsForm({
     onUnlockLocalFonts,
 }: Props) {
     const supportsDictionary = !extensionInstalled || extensionSupportsDictionary;
+    const supportsDictionaryTokenStatusDisplayAlpha =
+        !extensionInstalled || extensionSupportsDictionaryTokenStatusDisplayAlpha;
     const theme = useTheme();
     const smallScreen = useMediaQuery(theme.breakpoints.down(500)) && !forceVerticalTabs;
     const classes = useStyles({ smallScreen, heightConstrained });
@@ -390,6 +394,7 @@ export default function SettingsForm({
                     profiles={profiles}
                     activeProfile={activeProfile}
                     extensionInstalled={extensionInstalled}
+                    supportsDictionaryTokenStatusDisplayAlpha={supportsDictionaryTokenStatusDisplayAlpha}
                     onSettingChanged={handleSettingChanged}
                     onViewKeyboardShortcuts={() => {
                         setTabIndex(tabIndicesById['keyboard-shortcuts']);
