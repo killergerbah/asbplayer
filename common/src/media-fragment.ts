@@ -8,17 +8,11 @@ const maxPrefixLength = 24;
 const videoReadyTimeoutMs = 5_000;
 const webmMimeTypeCandidates = [
     // Best-to-worst quality/compression among broadly recognized WebM codec identifiers.
-    'video/webm;codecs=av01.0.19M.08',
-    'video/webm;codecs=av01.0.12M.08',
     'video/webm;codecs=av1',
-    'video/webm;codecs=vp09.00.10.08',
-    'video/webm;codecs=vp9',
-    'video/webm;codecs=vp8',
     'video/webm',
 ] as const;
 
 export const minWebmMediaFragmentDurationMs = 300;
-export const maxWebmMediaFragmentDurationMs = 2_500;
 
 export type MediaFragmentFormat = 'jpeg' | 'webm';
 
@@ -98,6 +92,9 @@ export const createVideoElement = async (blobUrl: string): Promise<HTMLVideoElem
         let settled = false;
         const timeout = setTimeout(() => {
             if (!settled) {
+                console.warn(
+                    `[MediaFragment] Video did not become ready within ${videoReadyTimeoutMs}ms. Continuing with fallback initialization.`
+                );
                 settled = true;
                 cleanup();
                 resolve(video);
