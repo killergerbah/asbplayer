@@ -842,24 +842,29 @@ export interface DictionaryBuildAnkiCacheStateMessage extends DictionaryBuildAnk
 }
 
 export enum DictionaryBuildAnkiCacheStateType {
+    start = 0,
     unknown = 1,
     error = 2,
     stats = 3,
     progress = 4,
 }
 
-export interface DictionaryBuildAnkiCacheStats extends DictionaryBuildAnkiCacheStateBody {
-    tracksToBuild?: number[];
-    tracksToClear?: number[];
-    orphanedCards?: number;
-    modifiedCards?: number;
-    buildTimestamp?: number;
+export interface DictionaryBuildAnkiCacheStart extends DictionaryBuildAnkiCacheStateBody {
+    buildTimestamp: number;
 }
 
 export interface DictionaryBuildAnkiCacheProgress extends DictionaryBuildAnkiCacheStateBody {
     current: number;
     total: number;
     buildTimestamp: number;
+}
+
+export interface DictionaryBuildAnkiCacheStats extends DictionaryBuildAnkiCacheStateBody {
+    buildTimestamp: number;
+    tracksToBuild?: number[];
+    tracksToClear?: number[];
+    orphanedCards?: number;
+    modifiedCards?: number;
 }
 
 export enum DictionaryBuildAnkiCacheStateErrorCode {
