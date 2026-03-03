@@ -37,6 +37,7 @@ import {
     surroundingSubtitlesAroundInterval,
     ensureStoragePersisted,
 } from '@project/common/util';
+import MemoryTester from '@project/common/components/MemoryTester';
 import { SubtitleCollection } from '@project/common/subtitle-collection';
 import { HoveredToken } from '@project/common/subtitle-coloring';
 import Clock from '../services/clock';
@@ -1813,6 +1814,7 @@ export default function VideoPlayer({
                 src={videoFile}
                 onMouseOver={handleVideoMouseOver}
             />
+            <MemoryTester />
             {/* this video is for getting the seek preview below */}
             <video
                 src={videoFile}
