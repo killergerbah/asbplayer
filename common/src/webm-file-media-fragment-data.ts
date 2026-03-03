@@ -11,7 +11,10 @@ import {
 import { FileModel, MediaFragmentErrorCode } from './model';
 
 const videoSeekEpsilonSeconds = 0.001;
-const webmVideoBitsPerSecond = 2_500_000;
+const defaultCaptureFrameRate = 24;
+const minWebmVideoBitsPerSecond = 1_000_000;
+const maxWebmVideoBitsPerSecond = 24_000_000;
+const targetBitsPerPixel = 0.1;
 
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
 
@@ -19,6 +22,54 @@ const durationFromInterval = (startTimestamp: number, endTimestamp: number) => {
     const duration = Math.abs(endTimestamp - startTimestamp);
     const resolvedDuration = duration > 0 ? duration : minWebmMediaFragmentDurationMs;
     return Math.max(minWebmMediaFragmentDurationMs, resolvedDuration);
+};
+
+const normalizeDimension = (value: number) => {
+    const floored = Math.max(1, Math.floor(value));
+
+    if (floored <= 2) {
+        return floored;
+    }
+
+    return floored - (floored % 2);
+};
+
+const estimateVideoBitsPerSecond = (width: number, height: number, frameRate: number) => {
+    const estimated = Math.round(width * height * frameRate * targetBitsPerPixel);
+    return clamp(estimated, minWebmVideoBitsPerSecond, maxWebmVideoBitsPerSecond);
+};
+
+const resolveCaptureFrameRate = (video: HTMLVideoElement) => {
+    let sourceStream: MediaStream | undefined;
+
+    try {
+        const captureCapableVideo = video as HTMLVideoElement & {
+            captureStream?: () => MediaStream;
+            mozCaptureStream?: () => MediaStream;
+            mozCaptureStreamUntilEnded?: () => MediaStream;
+        };
+
+        if (typeof captureCapableVideo.captureStream === 'function') {
+            sourceStream = captureCapableVideo.captureStream();
+        } else if (typeof captureCapableVideo.mozCaptureStream === 'function') {
+            sourceStream = captureCapableVideo.mozCaptureStream();
+        } else if (typeof captureCapableVideo.mozCaptureStreamUntilEnded === 'function') {
+            sourceStream = captureCapableVideo.mozCaptureStreamUntilEnded();
+        }
+
+        const frameRate = sourceStream?.getVideoTracks()[0]?.getSettings().frameRate;
+        if (typeof frameRate === 'number' && Number.isFinite(frameRate) && frameRate > 0) {
+            return frameRate;
+        }
+    } catch (_) {
+        // Ignore and fall back to a safe default when source frame rate is unavailable.
+    } finally {
+        for (const track of sourceStream?.getTracks() ?? []) {
+            track.stop();
+        }
+    }
+
+    return defaultCaptureFrameRate;
 };
 
 const blobToDataUrl = async (blob: Blob): Promise<string> =>
@@ -163,17 +214,24 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
         if (!ctx) {
             throw new Error('Could not create MediaFragment context');
         }
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
 
         const maxVideoDurationMs = Number.isFinite(video.duration)
             ? Math.max(0, video.duration * 1000)
             : this._startTimestamp + this._durationMs;
         const startTimestampMs = clamp(this._startTimestamp, 0, maxVideoDurationMs);
         const targetEndTimestampMs = clamp(startTimestampMs + this._durationMs, startTimestampMs, maxVideoDurationMs);
+        const captureFrameRate = resolveCaptureFrameRate(video);
+        const fallbackFrameDelayMs = Math.max(1, Math.round(1000 / captureFrameRate));
+        const videoBitsPerSecond = estimateVideoBitsPerSecond(width, height, captureFrameRate);
 
         const chunks: BlobPart[] = [];
         let stream: MediaStream | undefined;
+        let captureTrack: CanvasCaptureMediaStreamTrack | undefined;
         let mediaRecorder: MediaRecorder | undefined;
         let stopRecorder: Promise<Blob> | undefined;
+        let recorderStarted: Promise<void> | undefined;
 
         const originalPlaybackRate = video.playbackRate;
         const originalMuted = video.muted;
@@ -203,15 +261,47 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
         };
 
         try {
-            stream = canvas.captureStream();
+            let manualCaptureStream: MediaStream | undefined;
+            try {
+                manualCaptureStream = canvas.captureStream(0);
+            } catch (_) {
+                manualCaptureStream = undefined;
+            }
+
+            const manualCaptureTrack = manualCaptureStream?.getVideoTracks()[0] as
+                | CanvasCaptureMediaStreamTrack
+                | undefined;
+
+            if (manualCaptureStream && manualCaptureTrack && typeof manualCaptureTrack.requestFrame === 'function') {
+                stream = manualCaptureStream;
+                captureTrack = manualCaptureTrack;
+            } else {
+                for (const track of manualCaptureStream?.getTracks() ?? []) {
+                    track.stop();
+                }
+
+                stream = canvas.captureStream(captureFrameRate);
+                captureTrack = undefined;
+            }
+
             mediaRecorder = new MediaRecorder(stream, {
                 mimeType,
-                videoBitsPerSecond: webmVideoBitsPerSecond,
+                videoBitsPerSecond,
             });
 
             const recorder = mediaRecorder;
+            let resolveRecorderStarted: (() => void) | undefined;
+            recorderStarted = new Promise<void>((resolve) => {
+                resolveRecorderStarted = resolve;
+            });
             stopRecorder = new Promise<Blob>((resolve, reject) => {
+                recorder.onstart = () => {
+                    resolveRecorderStarted?.();
+                    resolveRecorderStarted = undefined;
+                };
                 recorder.onerror = (event) => {
+                    resolveRecorderStarted?.();
+                    resolveRecorderStarted = undefined;
                     const error = event.error;
                     reject(error instanceof Error ? error : new Error('Could not encode WebM'));
                 };
@@ -227,11 +317,17 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
 
             const drawFrame = () => {
                 ctx.drawImage(video, 0, 0, width, height);
+                captureTrack?.requestFrame();
             };
-            const done = () => video.currentTime * 1000 >= targetEndTimestampMs;
-            const schedule = (onFrame: () => void) => {
+            const done = (mediaTimeSeconds?: number) => {
+                const mediaTimeMs = (mediaTimeSeconds ?? video.currentTime) * 1000;
+                return mediaTimeMs >= targetEndTimestampMs;
+            };
+            const schedule = (onFrame: (mediaTimeSeconds?: number) => void) => {
                 if (typeof video.requestVideoFrameCallback === 'function') {
-                    videoFrameCallbackHandle = video.requestVideoFrameCallback(() => onFrame());
+                    videoFrameCallbackHandle = video.requestVideoFrameCallback((_, metadata) =>
+                        onFrame(metadata.mediaTime)
+                    );
                     return;
                 }
 
@@ -240,10 +336,9 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
                     return;
                 }
 
-                fallbackTimer = setTimeout(onFrame, 16);
+                fallbackTimer = setTimeout(onFrame, fallbackFrameDelayMs);
             };
 
-            drawFrame();
             video.muted = true;
             video.volume = 0;
             video.playbackRate = 1;
@@ -252,8 +347,12 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
                 videoWithPreservesPitch.preservesPitch = false;
             }
 
-            await video.play();
             mediaRecorder.start();
+            if (mediaRecorder.state !== 'recording') {
+                await recorderStarted;
+            }
+            drawFrame();
+            await video.play();
 
             await new Promise<void>((resolve, reject) => {
                 const finish = () => {
@@ -265,11 +364,11 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
                     reject(error);
                 };
 
-                const onFrame = () => {
+                const onFrame = (mediaTimeSeconds?: number) => {
                     try {
                         drawFrame();
 
-                        if (done()) {
+                        if (done(mediaTimeSeconds)) {
                             finish();
                             return;
                         }
@@ -330,8 +429,8 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
         const ratio = Math.min(1, Math.min(widthRatio, heightRatio));
 
         return {
-            width: Math.max(1, Math.floor(video.videoWidth * ratio)),
-            height: Math.max(1, Math.floor(video.videoHeight * ratio)),
+            width: normalizeDimension(video.videoWidth * ratio),
+            height: normalizeDimension(video.videoHeight * ratio),
         };
     }
 
