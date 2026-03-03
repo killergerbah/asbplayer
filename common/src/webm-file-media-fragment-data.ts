@@ -194,6 +194,7 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
         if (!mimeType || typeof MediaRecorder === 'undefined') {
             throw new Error('WebM capture is not supported in this browser');
         }
+        console.info(`[MediaFragment] Using WebM codec: ${mimeType}`);
 
         const video = await this._videoElement(this._file);
         const { width, height } = this._dimensions(video);

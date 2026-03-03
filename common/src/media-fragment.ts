@@ -6,7 +6,16 @@ import { WebmFileMediaFragmentData } from './webm-file-media-fragment-data';
 
 const maxPrefixLength = 24;
 const videoReadyTimeoutMs = 5_000;
-const webmMimeTypeCandidates = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'] as const;
+const webmMimeTypeCandidates = [
+    // Best-to-worst quality/compression among broadly recognized WebM codec identifiers.
+    'video/webm;codecs=av01.0.19M.08',
+    'video/webm;codecs=av01.0.12M.08',
+    'video/webm;codecs=av1',
+    'video/webm;codecs=vp09.00.10.08',
+    'video/webm;codecs=vp9',
+    'video/webm;codecs=vp8',
+    'video/webm',
+] as const;
 
 export const minWebmMediaFragmentDurationMs = 300;
 export const maxWebmMediaFragmentDurationMs = 2_500;

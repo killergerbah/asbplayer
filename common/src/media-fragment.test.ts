@@ -1,6 +1,7 @@
 import {
     isWebmMediaFragmentSupported,
     minWebmMediaFragmentDurationMs,
+    preferredWebmMediaFragmentMimeType,
     resolveWebmMediaFragmentRange,
 } from './media-fragment';
 
@@ -38,6 +39,35 @@ it('returns false for WebM support when MediaRecorder is unavailable', () => {
     (HTMLCanvasElement.prototype as any).captureStream = () => undefined;
 
     expect(isWebmMediaFragmentSupported()).toEqual(false);
+});
+
+it('prefers higher quality WebM codecs when several are supported', () => {
+    const supported = new Set(['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm']);
+    const mediaRecorder: any = function () {};
+    mediaRecorder.isTypeSupported = (mimeType: string) => supported.has(mimeType);
+
+    (globalThis as any).MediaRecorder = mediaRecorder;
+
+    expect(preferredWebmMediaFragmentMimeType()).toEqual('video/webm;codecs=vp9');
+});
+
+it('prefers AV1 over VP9 and VP8 when available', () => {
+    const supported = new Set(['video/webm;codecs=av1', 'video/webm;codecs=vp9', 'video/webm;codecs=vp8']);
+    const mediaRecorder: any = function () {};
+    mediaRecorder.isTypeSupported = (mimeType: string) => supported.has(mimeType);
+
+    (globalThis as any).MediaRecorder = mediaRecorder;
+
+    expect(preferredWebmMediaFragmentMimeType()).toEqual('video/webm;codecs=av1');
+});
+
+it('falls back to generic WebM when codec probing is unavailable', () => {
+    const mediaRecorder: any = function () {};
+    mediaRecorder.isTypeSupported = undefined;
+
+    (globalThis as any).MediaRecorder = mediaRecorder;
+
+    expect(preferredWebmMediaFragmentMimeType()).toEqual('video/webm');
 });
 
 it('returns true for WebM support when MediaRecorder and captureStream are available', () => {
