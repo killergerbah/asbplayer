@@ -31,6 +31,16 @@ const extName = 'asbplayer';
 export default defineConfig({
     modules: ['@wxt-dev/module-react'],
     srcDir: 'src',
+    vite: () => ({
+        plugins: [
+            {
+                name: 'watch-common',
+                configureServer(server) {
+                    server.watcher.add(path.resolve(__dirname, '../common'));
+                },
+            },
+        ],
+    }),
     zip: {
         sourcesRoot: '..',
         includeSources: ['.yarn/patches/**'],
