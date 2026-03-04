@@ -310,9 +310,7 @@ export default class MediaFragment {
         maxWidth: number,
         maxHeight: number
     ) {
-        return new MediaFragment(
-            new WebmFileMediaFragmentData(file, startTimestamp, endTimestamp, maxWidth, maxHeight, undefined, undefined)
-        );
+        return new MediaFragment(new WebmFileMediaFragmentData(file, startTimestamp, endTimestamp, maxWidth, maxHeight));
     }
 
     get name() {

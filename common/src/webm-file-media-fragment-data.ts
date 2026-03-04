@@ -15,17 +15,8 @@ const defaultCaptureFrameRate = 24;
 const minWebmVideoBitsPerSecond = 1_000_000;
 const maxWebmVideoBitsPerSecond = 24_000_000;
 const minVp9WebmVideoBitsPerSecond = 2_000_000;
-const defaultFrameRateSamplingCount = 8;
-const maxCaptureFrameRate = 120;
 const videoSeekTimeoutMs = 3_000;
-const maxFrameRateSamplingTimeoutMs = 3_000;
-const baseFrameRateSamplingTimeoutMs = 1_500;
 const frameRenderWatchdogTimeoutMs = 3_000;
-const frameRateSamplingPlaybackRate = 0.5;
-const frameRateSamplingTimeoutMs = Math.min(
-    maxFrameRateSamplingTimeoutMs,
-    Math.ceil(baseFrameRateSamplingTimeoutMs / Math.max(0.01, frameRateSamplingPlaybackRate))
-);
 
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
 
@@ -71,20 +62,6 @@ const estimateVideoBitsPerSecond = (width: number, height: number, frameRate: nu
     return clamp(estimated, minBitsPerSecondForMimeType(mimeType), maxWebmVideoBitsPerSecond);
 };
 
-const frameRateFromDeltas = (deltas: number[]) => {
-    const validDeltas = deltas.filter((delta) => Number.isFinite(delta) && delta > 0);
-    if (validDeltas.length <= 0) {
-        return defaultCaptureFrameRate;
-    }
-
-    const sortedDeltas = [...validDeltas].sort((a, b) => a - b);
-    // Use lower-third deltas so dropped/late frames have less influence.
-    const lowWindowSize = Math.max(2, Math.ceil(sortedDeltas.length / 3));
-    const lowWindow = sortedDeltas.slice(0, lowWindowSize);
-    const representativeDelta = lowWindow.reduce((sum, delta) => sum + delta, 0) / lowWindow.length;
-    return clamp(Math.round(1 / representativeDelta), 1, maxCaptureFrameRate);
-};
-
 const blobToDataUrl = async (blob: Blob): Promise<string> =>
     await new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -92,6 +69,23 @@ const blobToDataUrl = async (blob: Blob): Promise<string> =>
         reader.onerror = () => reject(reader.error ?? new Error('Could not read blob as data URL'));
         reader.readAsDataURL(blob);
     });
+
+const errorFromAbortSignal = (abortSignal: AbortSignal) => {
+    const abortSignalWithReason = abortSignal as AbortSignal & { reason?: unknown };
+    const reason = abortSignalWithReason.reason;
+
+    if (reason instanceof Error) {
+        return reason;
+    }
+
+    return new CancelledMediaFragmentDataRenderingError();
+};
+
+const throwIfAborted = (abortSignal: AbortSignal) => {
+    if (abortSignal.aborted) {
+        throw errorFromAbortSignal(abortSignal);
+    }
+};
 
 type RenderCanvasContext = {
     canvas: HTMLCanvasElement;
@@ -119,11 +113,10 @@ type FrameLoopSetup = {
     targetEndTimestampMs: number;
     fallbackFrameDelayMs: number;
     renderWatchdogTimeoutMs: number;
+    abortSignal: AbortSignal;
 };
 
 type WebmCaptureSettings = {
-    mimeType: string;
-    captureMode: 'manual-request-frame' | 'timed-capture-stream';
     sourceWidth: number;
     sourceHeight: number;
     outputWidth: number;
@@ -141,69 +134,25 @@ type WebmCaptureSettings = {
 
 type FrameSchedulerMode = 'video-frame-callback' | 'animation-frame' | 'timeout';
 
-type SavedVideoState = {
-    playbackRate: number;
-    muted: boolean;
-    volume: number;
-    onerror: OnErrorEventHandler;
-    onended: ((this: GlobalEventHandlers, ev: Event) => any) | null;
-    preservesPitch?: boolean;
+type CaptureRunSetup = {
+    video: HTMLVideoElement;
+    canvas: HTMLCanvasElement;
+    ctx: CanvasRenderingContext2D;
+    settings: WebmCaptureSettings;
+    mimeType: string;
+    abortSignal: AbortSignal;
 };
 
-class VideoStateGuard {
-    private readonly _video: HTMLVideoElement;
-    private readonly _saved: SavedVideoState;
+type WebmCaptureLogSettings = WebmCaptureSettings & {
+    mimeType: string;
+    captureMode: 'manual-request-frame' | 'timed-capture-stream';
+};
 
-    constructor(video: HTMLVideoElement) {
-        this._video = video;
-        const videoWithPreservesPitch = video as HTMLVideoElement & { preservesPitch?: boolean };
-        const saved: SavedVideoState = {
-            playbackRate: video.playbackRate,
-            muted: video.muted,
-            volume: video.volume,
-            onerror: video.onerror,
-            onended: video.onended,
-        };
-
-        if (typeof videoWithPreservesPitch.preservesPitch === 'boolean') {
-            saved.preservesPitch = videoWithPreservesPitch.preservesPitch;
-        }
-
-        this._saved = saved;
-    }
-
-    apply(overrides: Partial<SavedVideoState>) {
-        const videoWithPreservesPitch = this._video as HTMLVideoElement & { preservesPitch?: boolean };
-
-        if (overrides.playbackRate !== undefined) {
-            this._video.playbackRate = overrides.playbackRate;
-        }
-
-        if (overrides.muted !== undefined) {
-            this._video.muted = overrides.muted;
-        }
-
-        if (overrides.volume !== undefined) {
-            this._video.volume = overrides.volume;
-        }
-
-        if (overrides.onerror !== undefined) {
-            this._video.onerror = overrides.onerror;
-        }
-
-        if (overrides.onended !== undefined) {
-            this._video.onended = overrides.onended;
-        }
-
-        if (overrides.preservesPitch !== undefined && typeof videoWithPreservesPitch.preservesPitch === 'boolean') {
-            videoWithPreservesPitch.preservesPitch = overrides.preservesPitch;
-        }
-    }
-
-    restore() {
-        this.apply(this._saved);
-    }
-}
+type OwnedRenderResources = {
+    video?: HTMLVideoElement;
+    canvas?: HTMLCanvasElement;
+    ctx?: CanvasRenderingContext2D;
+};
 
 export class WebmFileMediaFragmentData implements MediaFragmentData {
     private readonly _file: FileModel;
@@ -216,10 +165,9 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
     private _canvas?: HTMLCanvasElement;
     private _ctx?: CanvasRenderingContext2D;
     private _blobPromise?: Promise<Blob>;
-    private _blobPromiseReject?: (error: Error) => void;
+    private _renderAbortController?: AbortController;
     private _cachedBlob?: Blob;
-    private _cachedDataUrl?: string;
-    private _rendering = false;
+    private _disposed = false;
 
     constructor(
         file: FileModel,
@@ -227,9 +175,7 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
         endTimestamp: number,
         maxWidth: number,
         maxHeight: number,
-        video: HTMLVideoElement | undefined,
-        canvas: HTMLCanvasElement | undefined,
-        ctx?: CanvasRenderingContext2D
+        resources?: OwnedRenderResources
     ) {
         this._file = file;
         this._startTimestamp = Math.max(0, startTimestamp);
@@ -237,9 +183,9 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
         this._maxWidth = maxWidth;
         this._maxHeight = maxHeight;
         this._baseName = makeMediaFragmentFileName(file.name, this._startTimestamp);
-        this._video = video;
-        this._canvas = canvas;
-        this._ctx = ctx;
+        this._video = resources?.video;
+        this._canvas = resources?.canvas;
+        this._ctx = resources?.ctx;
     }
 
     get name() {
@@ -263,15 +209,27 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
             return this;
         }
 
-        this._blobPromiseReject?.(new CancelledMediaFragmentDataRenderingError());
+        // If render is active, dispose old resources when cancellation settles.
+        // Otherwise transfer ownership to the new timestamp instance.
+        if (this._blobPromise) {
+            this.dispose();
+            return new WebmFileMediaFragmentData(
+                this._file,
+                timestamp,
+                timestamp + this._durationMs,
+                this._maxWidth,
+                this._maxHeight
+            );
+        }
+
+        const resources = this._takeResources();
         return new WebmFileMediaFragmentData(
             this._file,
             timestamp,
             timestamp + this._durationMs,
             this._maxWidth,
             this._maxHeight,
-            undefined,
-            undefined
+            resources
         );
     }
 
@@ -285,15 +243,14 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
     }
 
     async dataUrl() {
-        if (this._cachedDataUrl) {
-            return this._cachedDataUrl;
-        }
-
-        this._cachedDataUrl = await blobToDataUrl(await this.blob());
-        return this._cachedDataUrl;
+        return await blobToDataUrl(await this.blob());
     }
 
     async blob(): Promise<Blob> {
+        if (this._disposed) {
+            throw new CancelledMediaFragmentDataRenderingError();
+        }
+
         if (this._cachedBlob) {
             return this._cachedBlob;
         }
@@ -302,14 +259,10 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
             return this._blobPromise;
         }
 
-        const blobPromise = new Promise<Blob>((resolve, reject) => {
-            this._blobPromiseReject = (error) => {
-                // Allow a clean retry after cancellation/failure.
-                this._blobPromise = undefined;
-                reject(error);
-            };
-            this._renderWebm().then(resolve, reject);
-        })
+        const renderAbortController = new AbortController();
+        this._renderAbortController = renderAbortController;
+
+        const blobPromise = this._renderWebmLocked(renderAbortController.signal)
             .then((blob) => {
                 this._cachedBlob = blob;
                 return blob;
@@ -319,95 +272,111 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
                 throw error;
             })
             .finally(() => {
-                this._blobPromiseReject = undefined;
+                if (this._renderAbortController === renderAbortController) {
+                    this._renderAbortController = undefined;
+                }
+
+                if (this._disposed) {
+                    this._disposeResources();
+                }
             });
 
         this._blobPromise = blobPromise;
         return blobPromise;
     }
 
-    private async _renderWebm(): Promise<Blob> {
-        if (this._rendering) {
-            throw new Error('[MediaFragment] _renderWebm called concurrently on the same instance');
-        }
+    private async _renderWebmLocked(abortSignal: AbortSignal): Promise<Blob> {
+        throwIfAborted(abortSignal);
 
-        this._rendering = true;
-        try {
-            return await this._renderWebmLocked();
-        } finally {
-            this._rendering = false;
-        }
+        const mimeType = this._resolveMimeType();
+        const video = await this._videoElement(this._file);
+        const settings = this._captureSettings(video, mimeType);
+        const { canvas, ctx } = this._setupCanvasContext(video, settings.outputWidth, settings.outputHeight);
+
+        return await this._captureBlob({
+            video,
+            canvas,
+            ctx,
+            settings,
+            mimeType,
+            abortSignal,
+        });
     }
 
-    private async _renderWebmLocked(): Promise<Blob> {
+    private _resolveMimeType() {
         const mimeType = preferredWebmMediaFragmentMimeType();
         if (!mimeType || typeof MediaRecorder === 'undefined') {
             throw new Error('WebM capture is not supported in this browser');
         }
+
         console.info(`[MediaFragment] Using WebM codec: ${mimeType}`);
         if (!mimeType.includes('av1')) {
             console.info(`[MediaFragment] WebM codec fallback triggered: preferred AV1 unavailable, using ${mimeType}`);
         }
 
-        const video = await this._videoElement(this._file);
-        const { width, height } = this._dimensions(video);
-        const { canvas, ctx } = this._setupCanvasContext(video, width, height);
+        return mimeType;
+    }
 
+    private _captureSettings(video: HTMLVideoElement, mimeType: string): WebmCaptureSettings {
+        const { width, height } = this._dimensions(video);
         const maxVideoDurationMs = Number.isFinite(video.duration)
             ? Math.max(0, video.duration * 1000)
             : this._startTimestamp + this._durationMs;
         const startTimestampMs = clamp(this._startTimestamp, 0, maxVideoDurationMs);
-        const targetEndTimestampMs = clamp(startTimestampMs + this._durationMs, startTimestampMs, maxVideoDurationMs);
-        const captureFrameRate = await this._sampleCaptureFrameRate(video, startTimestampMs / 1000);
-        const fallbackFrameDelayMs = Math.max(1, Math.round(1000 / captureFrameRate));
-        const videoBitsPerSecond = estimateVideoBitsPerSecond(width, height, captureFrameRate, mimeType);
-        // Per-frame stall watchdog (not a total render budget).
-        const renderWatchdogTimeoutMs = frameRenderWatchdogTimeoutMs;
+        const endTimestampMs = clamp(startTimestampMs + this._durationMs, startTimestampMs, maxVideoDurationMs);
+        const captureFrameRate = defaultCaptureFrameRate;
 
+        return {
+            sourceWidth: video.videoWidth,
+            sourceHeight: video.videoHeight,
+            outputWidth: width,
+            outputHeight: height,
+            startTimestampMs,
+            endTimestampMs,
+            durationMs: Math.max(0, endTimestampMs - startTimestampMs),
+            captureFrameRate,
+            fallbackFrameDelayMs: Math.max(1, Math.round(1000 / captureFrameRate)),
+            targetBitsPerPixel: targetBitsPerPixelForMimeType(mimeType),
+            minBitsPerSecond: minBitsPerSecondForMimeType(mimeType),
+            videoBitsPerSecond: estimateVideoBitsPerSecond(width, height, captureFrameRate, mimeType),
+            // Per-frame stall watchdog (not a total render budget).
+            renderWatchdogTimeoutMs: frameRenderWatchdogTimeoutMs,
+        };
+    }
+
+    private async _captureBlob({
+        video,
+        canvas,
+        ctx,
+        settings,
+        mimeType,
+        abortSignal,
+    }: CaptureRunSetup): Promise<Blob> {
         const chunks: BlobPart[] = [];
         let stream: MediaStream | undefined;
         let mediaRecorder: MediaRecorder | undefined;
         let stopRecorder: Promise<Blob> | undefined;
         let recorderStarted: Promise<void> | undefined;
         let captureTrack: CanvasCaptureMediaStreamTrack | undefined;
-        const videoStateGuard = new VideoStateGuard(video);
 
         try {
-            const captureStreamSetup = this._setupCaptureStream(canvas, captureFrameRate);
+            const captureStreamSetup = this._setupCaptureStream(canvas, settings.captureFrameRate);
             stream = captureStreamSetup.stream;
             captureTrack = captureStreamSetup.captureTrack;
 
             this._logWebmCaptureSettings({
+                ...settings,
                 mimeType,
                 captureMode: captureTrack ? 'manual-request-frame' : 'timed-capture-stream',
-                sourceWidth: video.videoWidth,
-                sourceHeight: video.videoHeight,
-                outputWidth: width,
-                outputHeight: height,
-                startTimestampMs,
-                endTimestampMs: targetEndTimestampMs,
-                durationMs: Math.max(0, targetEndTimestampMs - startTimestampMs),
-                captureFrameRate,
-                fallbackFrameDelayMs,
-                targetBitsPerPixel: targetBitsPerPixelForMimeType(mimeType),
-                minBitsPerSecond: minBitsPerSecondForMimeType(mimeType),
-                videoBitsPerSecond,
-                renderWatchdogTimeoutMs,
             });
 
-            const recorderSetup = this._setupRecorder(stream, mimeType, videoBitsPerSecond, chunks);
+            const recorderSetup = this._setupRecorder(stream, mimeType, settings.videoBitsPerSecond, chunks);
             mediaRecorder = recorderSetup.recorder;
             recorderStarted = recorderSetup.recorderStarted;
             stopRecorder = recorderSetup.stopRecorder;
 
-            await this._seekVideo(video, startTimestampMs / 1000);
-
-            videoStateGuard.apply({
-                muted: true,
-                volume: 0,
-                playbackRate: 1,
-                preservesPitch: false,
-            });
+            await this._seekVideo(video, settings.startTimestampMs / 1000, abortSignal);
+            this._prepareVideoForCapture(video);
 
             mediaRecorder.start();
             if (mediaRecorder.state !== 'recording') {
@@ -417,28 +386,26 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
             await this._runFrameLoop({
                 video,
                 ctx,
-                width,
-                height,
+                width: settings.outputWidth,
+                height: settings.outputHeight,
                 captureTrack,
-                startTimestampMs,
-                targetEndTimestampMs,
-                fallbackFrameDelayMs,
-                renderWatchdogTimeoutMs,
+                startTimestampMs: settings.startTimestampMs,
+                targetEndTimestampMs: settings.endTimestampMs,
+                fallbackFrameDelayMs: settings.fallbackFrameDelayMs,
+                renderWatchdogTimeoutMs: settings.renderWatchdogTimeoutMs,
+                abortSignal,
             });
-
-            video.pause();
 
             const blob = await this._stopAndFlushRecorder(mediaRecorder, stopRecorder);
             if (!blob || blob.size <= 0) {
                 throw new Error('Could not encode WebM from local video');
             }
+
             mediaRecorder = undefined;
             stopRecorder = undefined;
-
             return blob;
         } finally {
             video.pause();
-            videoStateGuard.restore();
 
             await this._stopAndFlushRecorder(mediaRecorder, stopRecorder).catch(() => undefined);
 
@@ -526,19 +493,24 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
         });
 
         let resolveRecorderStarted: (() => void) | undefined;
-        const recorderStarted = new Promise<void>((resolve) => {
+        let rejectRecorderStarted: ((error: Error) => void) | undefined;
+        const recorderStarted = new Promise<void>((resolve, reject) => {
             resolveRecorderStarted = resolve;
+            rejectRecorderStarted = reject;
         });
         const stopRecorder = new Promise<Blob>((resolve, reject) => {
             recorder.onstart = () => {
                 resolveRecorderStarted?.();
                 resolveRecorderStarted = undefined;
+                rejectRecorderStarted = undefined;
             };
             recorder.onerror = (event) => {
-                resolveRecorderStarted?.();
-                resolveRecorderStarted = undefined;
                 const error = event.error;
-                reject(error instanceof Error ? error : new Error('Could not encode WebM'));
+                const recorderError = error instanceof Error ? error : new Error('Could not encode WebM');
+                rejectRecorderStarted?.(recorderError);
+                resolveRecorderStarted = undefined;
+                rejectRecorderStarted = undefined;
+                reject(recorderError);
             };
             recorder.ondataavailable = (event) => {
                 if (event.data.size > 0) {
@@ -565,7 +537,10 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
         targetEndTimestampMs,
         fallbackFrameDelayMs,
         renderWatchdogTimeoutMs,
+        abortSignal,
     }: FrameLoopSetup): Promise<void> {
+        throwIfAborted(abortSignal);
+
         let videoFrameCallbackHandle: number | undefined;
         let animationFrameHandle: number | undefined;
         let fallbackTimer: ReturnType<typeof setTimeout> | undefined;
@@ -628,46 +603,66 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
 
         drawFrame();
         await video.play();
+        throwIfAborted(abortSignal);
 
         try {
             await new Promise<void>((resolve, reject) => {
                 let settled = false;
                 let watchdogTimer: ReturnType<typeof setTimeout> | undefined;
-                const clearWatchdog = () => {
+                function onVideoError() {
+                    fail(new Error(video.error?.message ?? 'Could not play video to capture WebM'));
+                }
+                function onVideoEnded() {
+                    finish();
+                }
+                function onAbort() {
+                    fail(errorFromAbortSignal(abortSignal));
+                }
+                function clearWatchdog() {
                     if (watchdogTimer !== undefined) {
                         clearTimeout(watchdogTimer);
                         watchdogTimer = undefined;
                     }
-                };
-                const armWatchdog = () => {
+                }
+                function cleanup() {
+                    clearWatchdog();
+                    clearScheduledFrame();
+                    video.removeEventListener('error', onVideoError);
+                    video.removeEventListener('ended', onVideoEnded);
+                    abortSignal.removeEventListener('abort', onAbort);
+                }
+                function armWatchdog() {
                     clearWatchdog();
                     watchdogTimer = setTimeout(() => {
                         fail(new Error(`WebM rendering timed out after ${renderWatchdogTimeoutMs}ms`));
                     }, renderWatchdogTimeoutMs);
-                };
-                const finish = () => {
+                }
+                function finish() {
                     if (settled) {
                         return;
                     }
 
                     settled = true;
-                    clearWatchdog();
-                    clearScheduledFrame();
+                    cleanup();
                     resolve();
-                };
-                const fail = (error: Error) => {
+                }
+                function fail(error: Error) {
                     if (settled) {
                         return;
                     }
 
                     settled = true;
-                    clearWatchdog();
-                    clearScheduledFrame();
+                    cleanup();
                     reject(error);
-                };
+                }
 
                 const onFrame = (mediaTimeSeconds?: number) => {
                     try {
+                        if (abortSignal.aborted) {
+                            fail(errorFromAbortSignal(abortSignal));
+                            return;
+                        }
+
                         if (done(mediaTimeSeconds)) {
                             finish();
                             return;
@@ -687,8 +682,14 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
                     }
                 };
 
-                video.onerror = () => fail(new Error(video.error?.message ?? 'Could not play video to capture WebM'));
-                video.onended = () => finish();
+                video.addEventListener('error', onVideoError);
+                video.addEventListener('ended', onVideoEnded);
+                abortSignal.addEventListener('abort', onAbort, { once: true });
+                if (abortSignal.aborted) {
+                    onAbort();
+                    return;
+                }
+
                 armWatchdog();
                 schedule(onFrame);
             });
@@ -712,131 +713,15 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
         };
     }
 
-    private async _sampleCaptureFrameRate(
-        video: HTMLVideoElement,
-        startTimestampSeconds: number,
-        sampleCount: number = defaultFrameRateSamplingCount
-    ): Promise<number> {
-        if (typeof video.requestVideoFrameCallback !== 'function') {
-            console.info(
-                `[MediaFragment] Frame-rate sampling fallback triggered: requestVideoFrameCallback unavailable, using ${defaultCaptureFrameRate}fps`
-            );
-            return defaultCaptureFrameRate;
-        }
+    private _prepareVideoForCapture(video: HTMLVideoElement) {
+        // Video element is owned by this class instance; capture can mutate playback state.
+        video.muted = true;
+        video.volume = 0;
+        video.playbackRate = 1;
 
-        const resolvedSampleCount = Math.max(1, Math.floor(sampleCount));
-        const videoStateGuard = new VideoStateGuard(video);
-        let videoFrameCallbackHandle: number | undefined;
-
-        try {
-            await this._seekVideo(video, startTimestampSeconds);
-            videoStateGuard.apply({
-                muted: true,
-                volume: 0,
-                playbackRate: frameRateSamplingPlaybackRate,
-                preservesPitch: false,
-            });
-
-            const frameRate = await new Promise<number>((resolve, reject) => {
-                const deltas: number[] = [];
-                let lastMediaTime: number | undefined;
-                let timeout: ReturnType<typeof setTimeout> | undefined;
-                let settled = false;
-                const minPlausibleDeltaSeconds = 1 / maxCaptureFrameRate;
-                const resolveSampledFrameRate = () => {
-                    finish(frameRateFromDeltas(deltas));
-                };
-
-                const cleanup = () => {
-                    if (timeout !== undefined) {
-                        clearTimeout(timeout);
-                        timeout = undefined;
-                    }
-
-                    if (
-                        videoFrameCallbackHandle !== undefined &&
-                        typeof video.cancelVideoFrameCallback === 'function'
-                    ) {
-                        video.cancelVideoFrameCallback(videoFrameCallbackHandle);
-                        videoFrameCallbackHandle = undefined;
-                    }
-                };
-                const finish = (value: number) => {
-                    if (settled) {
-                        return;
-                    }
-
-                    settled = true;
-                    cleanup();
-                    resolve(value);
-                };
-                const fail = (error: Error) => {
-                    if (settled) {
-                        return;
-                    }
-
-                    settled = true;
-                    cleanup();
-                    reject(error);
-                };
-
-                timeout = setTimeout(() => {
-                    fail(new Error(`Could not sample frame rate within ${frameRateSamplingTimeoutMs}ms`));
-                }, frameRateSamplingTimeoutMs);
-
-                const sample = (_: DOMHighResTimeStamp, metadata: VideoFrameCallbackMetadata) => {
-                    if (lastMediaTime !== undefined) {
-                        const delta = metadata.mediaTime - lastMediaTime;
-                        if (Number.isFinite(delta) && delta >= minPlausibleDeltaSeconds) {
-                            deltas.push(delta);
-                        }
-                    }
-
-                    lastMediaTime = metadata.mediaTime;
-
-                    if (deltas.length >= resolvedSampleCount) {
-                        resolveSampledFrameRate();
-                        return;
-                    }
-
-                    videoFrameCallbackHandle = video.requestVideoFrameCallback(sample);
-                };
-
-                video.onerror = () => {
-                    fail(new Error(video.error?.message ?? 'Could not sample frame rate from video'));
-                };
-                video.onended = () => {
-                    if (deltas.length > 0) {
-                        console.info(
-                            `[MediaFragment] Frame-rate sampling fallback triggered: source ended early; resolving from ${deltas.length} sampled delta(s)`
-                        );
-                        resolveSampledFrameRate();
-                        return;
-                    }
-
-                    fail(new Error('Video ended before frame rate sampling completed'));
-                };
-                videoFrameCallbackHandle = video.requestVideoFrameCallback(sample);
-                video.play().catch((error) => {
-                    fail(error instanceof Error ? error : new Error(String(error)));
-                });
-            });
-
-            return frameRate;
-        } catch (error) {
-            console.warn(
-                `[MediaFragment] Falling back to default capture frame rate (${defaultCaptureFrameRate}fps)`,
-                error
-            );
-            return defaultCaptureFrameRate;
-        } finally {
-            if (videoFrameCallbackHandle !== undefined && typeof video.cancelVideoFrameCallback === 'function') {
-                video.cancelVideoFrameCallback(videoFrameCallbackHandle);
-                videoFrameCallbackHandle = undefined;
-            }
-
-            video.pause();
-            videoStateGuard.restore();
+        const videoWithPreservesPitch = video as HTMLVideoElement & { preservesPitch?: boolean };
+        if (typeof videoWithPreservesPitch.preservesPitch === 'boolean') {
+            videoWithPreservesPitch.preservesPitch = false;
         }
     }
 
@@ -855,26 +740,42 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
         return await stopRecorder;
     }
 
-    private _logWebmCaptureSettings(settings: WebmCaptureSettings) {
+    private _logWebmCaptureSettings(settings: WebmCaptureLogSettings) {
         console.info('[MediaFragment] WebM capture settings', settings);
     }
 
-    private async _seekVideo(video: HTMLVideoElement, timestamp: number): Promise<void> {
+    private async _seekVideo(video: HTMLVideoElement, timestamp: number, abortSignal?: AbortSignal): Promise<void> {
+        if (abortSignal) {
+            throwIfAborted(abortSignal);
+        }
+
         return await new Promise<void>((resolve, reject) => {
             const maxTimestamp = Number.isFinite(video.duration) ? video.duration : timestamp;
             const seekTo = clamp(timestamp, 0, maxTimestamp);
             let timeout: ReturnType<typeof setTimeout> | undefined;
             let settled = false;
-            const cleanup = () => {
+            function onSeeked() {
+                finish();
+            }
+            function onVideoError() {
+                fail(new Error(video.error?.message ?? 'Could not seek video to create WebM'));
+            }
+            function onAbort() {
+                if (abortSignal) {
+                    fail(errorFromAbortSignal(abortSignal));
+                }
+            }
+            function cleanup() {
                 if (timeout !== undefined) {
                     clearTimeout(timeout);
                     timeout = undefined;
                 }
 
-                video.onseeked = null;
-                video.onerror = null;
-            };
-            const finish = () => {
+                video.removeEventListener('seeked', onSeeked);
+                video.removeEventListener('error', onVideoError);
+                abortSignal?.removeEventListener('abort', onAbort);
+            }
+            function finish() {
                 if (settled) {
                     return;
                 }
@@ -882,8 +783,8 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
                 settled = true;
                 cleanup();
                 resolve();
-            };
-            const fail = (error: Error) => {
+            }
+            function fail(error: Error) {
                 if (settled) {
                     return;
                 }
@@ -891,9 +792,17 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
                 settled = true;
                 cleanup();
                 reject(error);
-            };
-            video.onseeked = finish;
-            video.onerror = () => fail(new Error(video.error?.message ?? 'Could not seek video to create WebM'));
+            }
+            video.addEventListener('seeked', onSeeked);
+            video.addEventListener('error', onVideoError);
+            if (abortSignal) {
+                abortSignal.addEventListener('abort', onAbort, { once: true });
+                if (abortSignal.aborted) {
+                    onAbort();
+                    return;
+                }
+            }
+
             timeout = setTimeout(() => {
                 fail(new Error(`Video seek timed out after ${videoSeekTimeoutMs}ms`));
             }, videoSeekTimeoutMs);
@@ -908,6 +817,10 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
     }
 
     private async _videoElement(file: FileModel): Promise<HTMLVideoElement> {
+        if (this._disposed) {
+            throw new CancelledMediaFragmentDataRenderingError();
+        }
+
         if (!this._video) {
             this._video = await createVideoElement(file.blobUrl);
         }
@@ -915,12 +828,46 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
         return this._video;
     }
 
-    dispose() {
-        this._blobPromiseReject?.(new CancelledMediaFragmentDataRenderingError());
+    private _cancelRendering() {
+        if (this._renderAbortController && !this._renderAbortController.signal.aborted) {
+            this._renderAbortController.abort(new CancelledMediaFragmentDataRenderingError());
+        }
+    }
 
+    private _takeResources(): OwnedRenderResources {
+        const resources: OwnedRenderResources = {
+            video: this._video,
+            canvas: this._canvas,
+            ctx: this._ctx,
+        };
+
+        this._video = undefined;
+        this._canvas = undefined;
+        this._ctx = undefined;
+        return resources;
+    }
+
+    private _disposeResources() {
         disposeVideoElement(this._video);
         this._video = undefined;
         this._canvas?.remove();
+        this._canvas = undefined;
         this._ctx = undefined;
+    }
+
+    dispose() {
+        this._disposed = true;
+        this._cancelRendering();
+
+        if (this._blobPromise) {
+            this._blobPromise.finally(() => {
+                if (this._disposed) {
+                    this._disposeResources();
+                }
+            });
+            return;
+        }
+
+        this._disposeResources();
     }
 }
