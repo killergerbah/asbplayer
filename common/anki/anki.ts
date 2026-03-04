@@ -5,9 +5,9 @@ import { AnkiSettings, AnkiSettingsFieldKey } from '@project/common/settings';
 import sanitize from 'sanitize-filename';
 import { extractText, fromBatches, sourceString } from '@project/common/util';
 
-// No Anki memory impacts, increasing offers negligible speedup
-const ANKI_INFO_BATCH_SIZE = 10000;
-const ANKI_MOD_BATCH_SIZE = 100000;
+const ANKI_CARDS_INFO_BATCH_SIZE = 10;
+const ANKI_NOTES_INFO_BATCH_SIZE = 100;
+const ANKI_MOD_BATCH_SIZE = 10000;
 
 const ankiQuerySpecialCharacters = ['"', '*', '_', '\\', ':'];
 const ankiQueryDeckSpecialCharacters = ['"', '*', '_', '\\'];
@@ -224,16 +224,18 @@ export class DuplicateNoteError extends Error {
     }
 }
 
+// Optional fields are unused thus deleted to save memory
 export interface CardInfo {
-    answer: string;
-    question: string;
+    answer?: string;
+    question?: string;
     deckName: string;
     modelName: string;
     fieldOrder: number;
     fields: { [fieldName: string]: { value: string; order: number } };
-    css: string;
+    css?: string;
     cardId: number;
     interval: number;
+    factor: number;
     note: number;
     ord: number;
     type: number;
@@ -243,6 +245,8 @@ export interface CardInfo {
     lapses: number;
     left: number;
     mod: number;
+    nextReviews: [string, string, string, string];
+    flags: number;
 }
 
 export interface NoteInfo {
@@ -340,9 +344,16 @@ export class Anki {
             await fromBatches(
                 allCards,
                 async (cards) => {
-                    return (await this._executeAction('cardsInfo', { cards }, ankiConnectUrl)).result as CardInfo[];
+                    const cardsInfo: CardInfo[] = (await this._executeAction('cardsInfo', { cards }, ankiConnectUrl))
+                        .result;
+                    for (const cardInfo of cardsInfo) {
+                        delete cardInfo.answer;
+                        delete cardInfo.question;
+                        delete cardInfo.css;
+                    }
+                    return cardsInfo;
                 },
-                { batchSize: ANKI_INFO_BATCH_SIZE }
+                { batchSize: ANKI_CARDS_INFO_BATCH_SIZE }
             )
         ).flat();
     }
@@ -381,7 +392,7 @@ export class Anki {
                 async (notes) => {
                     return (await this._executeAction('notesInfo', { notes }, ankiConnectUrl)).result as NoteInfo[];
                 },
-                { batchSize: ANKI_INFO_BATCH_SIZE }
+                { batchSize: ANKI_NOTES_INFO_BATCH_SIZE }
             )
         ).flat();
     }

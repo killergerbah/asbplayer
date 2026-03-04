@@ -1,5 +1,6 @@
 import { Anki, escapeAnkiDeckQuery, escapeAnkiQuery, NoteInfo } from '@project/common/anki';
 import {
+    DictionaryBuildAnkiCacheStart,
     DictionaryBuildAnkiCacheState,
     DictionaryBuildAnkiCacheStateError as DictionaryBuildAnkiCacheError,
     DictionaryBuildAnkiCacheStateErrorCode,
@@ -797,6 +798,13 @@ export class DictionaryDB {
         const buildTs = Date.now();
         const activeTracks: DictionaryMetaKey[] = [];
         let clearBuildIds = true;
+        statusUpdates({
+            type: DictionaryBuildAnkiCacheStateType.start,
+            body: {
+                buildTimestamp: buildTs,
+            } as DictionaryBuildAnkiCacheStart,
+        });
+
         try {
             const trackStates: TrackStatesForDB = new Map();
             const settingsToUpdate: { key: DictionaryMetaKey; changes: { settings: string } }[] = [];
@@ -812,7 +820,7 @@ export class DictionaryDB {
                     return await this.db.meta.where('[profile+track]').equals(key).first();
                 });
                 if (existingBuild !== undefined) {
-                    console.warn(`Build already in progress - expires at ${existingBuild.lastBuildExpiresAt}}`);
+                    console.warn(`Build already in progress - expires at ${existingBuild.lastBuildExpiresAt}`);
                     statusUpdates({
                         type: DictionaryBuildAnkiCacheStateType.error,
                         body: {
@@ -882,6 +890,7 @@ export class DictionaryDB {
                     statusUpdates({
                         type: DictionaryBuildAnkiCacheStateType.stats,
                         body: {
+                            buildTimestamp: buildTs,
                             tracksToClear,
                             orphanedCards: numCardsFromOrphanedTracks,
                             modifiedTokens: Array.from(modifiedTokens),
@@ -893,6 +902,7 @@ export class DictionaryDB {
                 statusUpdates({
                     type: DictionaryBuildAnkiCacheStateType.stats,
                     body: {
+                        buildTimestamp: buildTs,
                         modifiedTokens: Array.from(modifiedTokens),
                     } as DictionaryBuildAnkiCacheStats,
                 });
@@ -945,6 +955,7 @@ export class DictionaryDB {
             statusUpdates({
                 type: DictionaryBuildAnkiCacheStateType.stats,
                 body: {
+                    buildTimestamp: buildTs,
                     tracksToBuild: Array.from(trackStates.keys()),
                     modifiedCards: numUpdatedCards,
                     modifiedTokens: [], // Delay publishing deleted modified tokens so tokens aren't flashed uncollected during build
@@ -1303,11 +1314,11 @@ export class DictionaryDB {
                     statusUpdates({
                         type: DictionaryBuildAnkiCacheStateType.stats,
                         body: {
+                            buildTimestamp: buildTs,
                             tracksToBuild: Array.from(trackStates.keys()),
                             modifiedCards: numUpdatedCards,
                             orphanedCards: numCardsFromOrphanedTracks,
                             tracksToClear: tracksToClear,
-                            buildTimestamp: buildTs,
                             modifiedTokens: Array.from(modifiedTokens),
                         } as DictionaryBuildAnkiCacheStats,
                     });
