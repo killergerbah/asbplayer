@@ -219,6 +219,7 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
     private _blobPromiseReject?: (error: Error) => void;
     private _cachedBlob?: Blob;
     private _cachedDataUrl?: string;
+    private _rendering = false;
 
     constructor(
         file: FileModel,
@@ -326,6 +327,19 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
     }
 
     private async _renderWebm(): Promise<Blob> {
+        if (this._rendering) {
+            throw new Error('[MediaFragment] _renderWebm called concurrently on the same instance');
+        }
+
+        this._rendering = true;
+        try {
+            return await this._renderWebmLocked();
+        } finally {
+            this._rendering = false;
+        }
+    }
+
+    private async _renderWebmLocked(): Promise<Blob> {
         const mimeType = preferredWebmMediaFragmentMimeType();
         if (!mimeType || typeof MediaRecorder === 'undefined') {
             throw new Error('WebM capture is not supported in this browser');
@@ -878,18 +892,14 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
                 cleanup();
                 reject(error);
             };
-            const resolveWithCleanup = () => {
-                finish();
-            };
-
-            video.onseeked = resolveWithCleanup;
+            video.onseeked = finish;
             video.onerror = () => fail(new Error(video.error?.message ?? 'Could not seek video to create WebM'));
             timeout = setTimeout(() => {
                 fail(new Error(`Video seek timed out after ${videoSeekTimeoutMs}ms`));
             }, videoSeekTimeoutMs);
 
             if (Math.abs(video.currentTime - seekTo) <= videoSeekEpsilonSeconds) {
-                resolveWithCleanup();
+                finish();
                 return;
             }
 
