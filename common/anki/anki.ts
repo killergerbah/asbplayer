@@ -489,6 +489,7 @@ export class Anki {
 
         const gui = mode === 'gui';
         const updateLast = mode === 'updateLast';
+        if (updateLast && (await this._executeAction('findNotes', { query: 'added:1' }, ankiConnectUrl)).result.length === 0) throw new Error('Could not find note to update');
         let sanitizedAudioName: string | undefined = undefined;
         let sanitizedImageName: string | undefined = undefined;
         let audioDataPromise: Promise<string | undefined> = Promise.resolve(undefined);
