@@ -16,8 +16,8 @@ afterEach(() => {
 it('resolves WebM range with minimum duration when trims collapse the interval', () => {
     const { startTimestamp, endTimestamp } = resolveWebmMediaFragmentRange(1_000, 2_000, 800, 500);
 
-    expect(startTimestamp).toEqual(1_800);
-    expect(endTimestamp).toEqual(1_800 + minWebmMediaFragmentDurationMs);
+    expect(startTimestamp).toEqual(1_500 - minWebmMediaFragmentDurationMs / 2);
+    expect(endTimestamp).toEqual(1_500 + minWebmMediaFragmentDurationMs / 2);
 });
 
 it('resolves WebM range with negative trims by expanding capture range', () => {

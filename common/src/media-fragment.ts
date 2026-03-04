@@ -78,12 +78,22 @@ export const resolveWebmMediaFragmentRange = (
 ) => {
     const resolvedTrimStart = Number.isFinite(mediaFragmentTrimStart) ? mediaFragmentTrimStart : 0;
     const resolvedTrimEnd = Number.isFinite(mediaFragmentTrimEnd) ? mediaFragmentTrimEnd : 0;
-    const startTimestamp = Math.max(0, subtitleStart + resolvedTrimStart);
     const desiredEndTimestamp = subtitleEnd - resolvedTrimEnd;
-    const endTimestamp = Math.max(startTimestamp + minWebmMediaFragmentDurationMs, desiredEndTimestamp);
+    const desiredStartTimestamp = Math.max(0, subtitleStart + resolvedTrimStart);
+
+    if (desiredEndTimestamp < desiredStartTimestamp) {
+        const centeredStartTimestamp = Math.max(0, (subtitleStart + subtitleEnd - minWebmMediaFragmentDurationMs) / 2);
+
+        return {
+            startTimestamp: centeredStartTimestamp,
+            endTimestamp: centeredStartTimestamp + minWebmMediaFragmentDurationMs,
+        };
+    }
+
+    const endTimestamp = Math.max(desiredStartTimestamp + minWebmMediaFragmentDurationMs, desiredEndTimestamp);
 
     return {
-        startTimestamp,
+        startTimestamp: desiredStartTimestamp,
         endTimestamp,
     };
 };
