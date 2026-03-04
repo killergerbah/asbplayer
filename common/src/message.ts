@@ -853,10 +853,17 @@ export interface DictionaryBuildAnkiCacheStart extends DictionaryBuildAnkiCacheS
     buildTimestamp: number;
 }
 
+export interface Progress {
+    current: number;
+    total: number;
+    startedAt: number;
+}
+
 export interface DictionaryBuildAnkiCacheProgress extends DictionaryBuildAnkiCacheStateBody {
     current: number;
     total: number;
     buildTimestamp: number;
+    forAnkiSync?: boolean;
 }
 
 export interface DictionaryBuildAnkiCacheStats extends DictionaryBuildAnkiCacheStateBody {
