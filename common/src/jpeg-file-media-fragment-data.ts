@@ -71,7 +71,13 @@ export class JpegFileMediaFragmentData implements MediaFragmentData {
             return this;
         }
 
-        this._canvasPromiseReject?.(new CancelledMediaFragmentDataRenderingError());
+        const canvasPromiseReject = this._canvasPromiseReject;
+        if (canvasPromiseReject) {
+            this._canvasPromise = undefined;
+            this._canvasPromiseReject = undefined;
+            canvasPromiseReject(new CancelledMediaFragmentDataRenderingError());
+        }
+
         return new JpegFileMediaFragmentData(
             this._file,
             timestamp,
@@ -128,10 +134,25 @@ export class JpegFileMediaFragmentData implements MediaFragmentData {
             return this._canvasPromise;
         }
 
-        this._canvasPromise = new Promise(async (resolve, reject) => {
+        let canvasPromise: Promise<HTMLCanvasElement>;
+        canvasPromise = this._renderCanvas().catch((error) => {
+            if (this._canvasPromise === canvasPromise) {
+                this._canvasPromise = undefined;
+            }
+
+            this._canvasPromiseReject = undefined;
+            throw error;
+        });
+        this._canvasPromise = canvasPromise;
+        return canvasPromise;
+    }
+
+    private async _renderCanvas(): Promise<HTMLCanvasElement> {
+        const video = await this._videoElement(this._file);
+        const calculateCurrentTime = () => Math.max(0, Math.min(video.duration, this._timestamp / 1000));
+
+        return await new Promise((resolve, reject) => {
             this._canvasPromiseReject = reject;
-            const video = await this._videoElement(this._file);
-            const calculateCurrentTime = () => Math.max(0, Math.min(video.duration, this._timestamp / 1000));
 
             if (Number.isFinite(video.duration)) {
                 video.currentTime = calculateCurrentTime();
@@ -142,8 +163,8 @@ export class JpegFileMediaFragmentData implements MediaFragmentData {
                 };
             }
 
-            video.onseeked = async () => {
-                try {
+            video.onseeked = () => {
+                (async () => {
                     this._canvasPromiseReject = undefined;
 
                     if (!this._canvas) {
@@ -162,17 +183,15 @@ export class JpegFileMediaFragmentData implements MediaFragmentData {
                     }
 
                     resolve(canvas);
-                } catch (e) {
-                    reject(e);
-                }
+                })().catch((error) => {
+                    reject(error);
+                });
             };
 
             video.onerror = () => {
                 reject(video.error?.message ?? 'Could not load video to obtain screenshot');
             };
         });
-
-        return this._canvasPromise;
     }
 
     private async _videoElement(file: FileModel): Promise<HTMLVideoElement> {
