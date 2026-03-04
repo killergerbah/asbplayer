@@ -141,6 +141,70 @@ type WebmCaptureSettings = {
 
 type FrameSchedulerMode = 'video-frame-callback' | 'animation-frame' | 'timeout';
 
+type SavedVideoState = {
+    playbackRate: number;
+    muted: boolean;
+    volume: number;
+    onerror: OnErrorEventHandler;
+    onended: ((this: GlobalEventHandlers, ev: Event) => any) | null;
+    preservesPitch?: boolean;
+};
+
+class VideoStateGuard {
+    private readonly _video: HTMLVideoElement;
+    private readonly _saved: SavedVideoState;
+
+    constructor(video: HTMLVideoElement) {
+        this._video = video;
+        const videoWithPreservesPitch = video as HTMLVideoElement & { preservesPitch?: boolean };
+        const saved: SavedVideoState = {
+            playbackRate: video.playbackRate,
+            muted: video.muted,
+            volume: video.volume,
+            onerror: video.onerror,
+            onended: video.onended,
+        };
+
+        if (typeof videoWithPreservesPitch.preservesPitch === 'boolean') {
+            saved.preservesPitch = videoWithPreservesPitch.preservesPitch;
+        }
+
+        this._saved = saved;
+    }
+
+    apply(overrides: Partial<SavedVideoState>) {
+        const videoWithPreservesPitch = this._video as HTMLVideoElement & { preservesPitch?: boolean };
+
+        if (overrides.playbackRate !== undefined) {
+            this._video.playbackRate = overrides.playbackRate;
+        }
+
+        if (overrides.muted !== undefined) {
+            this._video.muted = overrides.muted;
+        }
+
+        if (overrides.volume !== undefined) {
+            this._video.volume = overrides.volume;
+        }
+
+        if (overrides.onerror !== undefined) {
+            this._video.onerror = overrides.onerror;
+        }
+
+        if (overrides.onended !== undefined) {
+            this._video.onended = overrides.onended;
+        }
+
+        if (overrides.preservesPitch !== undefined && typeof videoWithPreservesPitch.preservesPitch === 'boolean') {
+            videoWithPreservesPitch.preservesPitch = overrides.preservesPitch;
+        }
+    }
+
+    restore() {
+        this.apply(this._saved);
+    }
+}
+
 export class WebmFileMediaFragmentData implements MediaFragmentData {
     private readonly _file: FileModel;
     private readonly _startTimestamp: number;
@@ -292,14 +356,7 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
         let stopRecorder: Promise<Blob> | undefined;
         let recorderStarted: Promise<void> | undefined;
         let captureTrack: CanvasCaptureMediaStreamTrack | undefined;
-
-        const originalPlaybackRate = video.playbackRate;
-        const originalMuted = video.muted;
-        const originalVolume = video.volume;
-        const originalOnError = video.onerror;
-        const originalOnEnded = video.onended;
-        const videoWithPreservesPitch = video as HTMLVideoElement & { preservesPitch?: boolean };
-        const originalPreservesPitch = videoWithPreservesPitch.preservesPitch;
+        const videoStateGuard = new VideoStateGuard(video);
 
         try {
             const captureStreamSetup = this._setupCaptureStream(canvas, captureFrameRate);
@@ -331,13 +388,12 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
 
             await this._seekVideo(video, startTimestampMs / 1000);
 
-            video.muted = true;
-            video.volume = 0;
-            video.playbackRate = 1;
-
-            if (typeof originalPreservesPitch === 'boolean') {
-                videoWithPreservesPitch.preservesPitch = false;
-            }
+            videoStateGuard.apply({
+                muted: true,
+                volume: 0,
+                playbackRate: 1,
+                preservesPitch: false,
+            });
 
             mediaRecorder.start();
             if (mediaRecorder.state !== 'recording') {
@@ -368,15 +424,7 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
             return blob;
         } finally {
             video.pause();
-            video.playbackRate = originalPlaybackRate;
-            video.muted = originalMuted;
-            video.volume = originalVolume;
-            video.onerror = originalOnError;
-            video.onended = originalOnEnded;
-
-            if (typeof originalPreservesPitch === 'boolean') {
-                videoWithPreservesPitch.preservesPitch = originalPreservesPitch;
-            }
+            videoStateGuard.restore();
 
             await this._stopAndFlushRecorder(mediaRecorder, stopRecorder).catch(() => undefined);
 
@@ -663,24 +711,17 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
         }
 
         const resolvedSampleCount = Math.max(1, Math.floor(sampleCount));
-        const originalPlaybackRate = video.playbackRate;
-        const originalMuted = video.muted;
-        const originalVolume = video.volume;
-        const originalOnError = video.onerror;
-        const originalOnEnded = video.onended;
-        const videoWithPreservesPitch = video as HTMLVideoElement & { preservesPitch?: boolean };
-        const originalPreservesPitch = videoWithPreservesPitch.preservesPitch;
+        const videoStateGuard = new VideoStateGuard(video);
         let videoFrameCallbackHandle: number | undefined;
 
         try {
             await this._seekVideo(video, startTimestampSeconds);
-            video.muted = true;
-            video.volume = 0;
-            video.playbackRate = frameRateSamplingPlaybackRate;
-
-            if (typeof originalPreservesPitch === 'boolean') {
-                videoWithPreservesPitch.preservesPitch = false;
-            }
+            videoStateGuard.apply({
+                muted: true,
+                volume: 0,
+                playbackRate: frameRateSamplingPlaybackRate,
+                preservesPitch: false,
+            });
 
             const frameRate = await new Promise<number>((resolve, reject) => {
                 const deltas: number[] = [];
@@ -781,16 +822,7 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
             }
 
             video.pause();
-            video.playbackRate = originalPlaybackRate;
-            video.muted = originalMuted;
-            video.volume = originalVolume;
-
-            if (typeof originalPreservesPitch === 'boolean') {
-                videoWithPreservesPitch.preservesPitch = originalPreservesPitch;
-            }
-
-            video.onerror = originalOnError;
-            video.onended = originalOnEnded;
+            videoStateGuard.restore();
         }
     }
 
