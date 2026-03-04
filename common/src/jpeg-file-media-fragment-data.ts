@@ -94,33 +94,25 @@ export class JpegFileMediaFragmentData implements MediaFragmentData {
     }
 
     async base64(): Promise<string> {
-        return new Promise((resolve, reject) => {
-            this._getCanvas()
-                .then((canvas) => {
-                    const dataUrl = canvas.toDataURL('image/jpeg', this._jpegCompressionQuality);
-                    resolve(dataUrl.substring(dataUrl.indexOf(',') + 1));
-                })
-                .catch(reject);
-        });
+        const canvas = await this._getCanvas();
+        const dataUrl = canvas.toDataURL('image/jpeg', this._jpegCompressionQuality);
+        return dataUrl.substring(dataUrl.indexOf(',') + 1);
     }
 
     async blob(): Promise<Blob> {
-        return new Promise((resolve, reject) => {
-            this._getCanvas()
-                .then((canvas) => {
-                    canvas.toBlob(
-                        (blob) => {
-                            if (blob === null) {
-                                reject(new Error('Could not obtain blob'));
-                            } else {
-                                resolve(blob);
-                            }
-                        },
-                        'image/jpeg',
-                        this._jpegCompressionQuality
-                    );
-                })
-                .catch(reject);
+        const canvas = await this._getCanvas();
+        return await new Promise((resolve, reject) => {
+            canvas.toBlob(
+                (blob) => {
+                    if (blob === null) {
+                        reject(new Error('Could not obtain blob'));
+                    } else {
+                        resolve(blob);
+                    }
+                },
+                'image/jpeg',
+                this._jpegCompressionQuality
+            );
         });
     }
 
