@@ -42,6 +42,7 @@ import SettingsTextField from './SettingsTextField';
 import SettingsSection from './SettingsSection';
 import {
     DictionaryBuildAnkiCacheProgress,
+    DictionaryBuildAnkiCacheStart,
     DictionaryBuildAnkiCacheState,
     DictionaryBuildAnkiCacheStateError,
     DictionaryBuildAnkiCacheStateErrorBuildExpirationData,
@@ -98,6 +99,16 @@ const useBuildAnkiCacheState: () => {
                         break;
                 }
                 break;
+            case DictionaryBuildAnkiCacheStateType.start:
+                const start = buildAnkiCacheState.body as DictionaryBuildAnkiCacheStart;
+                msg = `${localizedDate(start.buildTimestamp)}: ${t('settings.dictionaryBuildAnkiStarted')}`;
+                break;
+            case DictionaryBuildAnkiCacheStateType.progress:
+                const progress = buildAnkiCacheState.body as DictionaryBuildAnkiCacheProgress;
+                const rate = progress.current / (Date.now() - progress.buildTimestamp);
+                const eta = rate ? Math.ceil((progress.total - progress.current) / rate) : 0;
+                msg = `${progress.current.toLocaleString('en-US')} / ${t('settings.dictionaryBuildModifiedCards', { numCards: progress.total.toLocaleString('en-US') })} [ETA: ${localizedDate(Date.now() + eta)} (${humanReadableTime(eta)})]`;
+                break;
             case DictionaryBuildAnkiCacheStateType.stats:
                 const stats = buildAnkiCacheState.body as DictionaryBuildAnkiCacheStats;
                 const parts: string[] = [];
@@ -121,19 +132,11 @@ const useBuildAnkiCacheState: () => {
                         })
                     );
                 }
-                if (stats.buildTimestamp !== undefined) {
-                    const duration = Math.floor((Date.now() - stats.buildTimestamp) / 1000);
-                    if (duration > 0) {
-                        parts.push(`[${duration.toLocaleString('en-US')}s]`);
-                    }
+                const duration = Math.floor((Date.now() - stats.buildTimestamp) / 1000);
+                if (duration > 0) {
+                    parts.push(`[${duration.toLocaleString('en-US')}s]`);
                 }
                 msg = parts.join(' | ');
-                break;
-            case DictionaryBuildAnkiCacheStateType.progress:
-                const progress = buildAnkiCacheState.body as DictionaryBuildAnkiCacheProgress;
-                const rate = progress.current / (Date.now() - progress.buildTimestamp);
-                const eta = rate ? Math.ceil((progress.total - progress.current) / rate) : 0;
-                msg = `${progress.current.toLocaleString('en-US')} / ${t('settings.dictionaryBuildModifiedCards', { numCards: progress.total.toLocaleString('en-US') })} [ETA: ${localizedDate(Date.now() + eta)} (${humanReadableTime(eta)})]`;
                 break;
         }
     }

@@ -3,7 +3,7 @@ import { DictionaryTrack } from '@project/common/settings';
 import { AsyncSemaphore, fromBatches, HAS_LETTER_REGEX, isKanaOnly } from '@project/common/util';
 import { coerce, lt, gte } from 'semver';
 
-const YOMITAN_BATCH_SIZE = 100; // 1k can cause 1.5GB memory on Yomitan for subtitles, Anki cards may be larger too
+const YOMITAN_BATCH_SIZE = 10; // 1k can cause 1.5GB memory on Yomitan for subtitles, Anki cards may be larger too
 
 export interface TokenPart {
     text: string;
@@ -283,7 +283,7 @@ export class Yomitan {
         if (!semver || lt(semver, '25.12.16')) {
             throw new Error(`Minimum Yomitan version is 25.12.16.0, found ${version}`);
         }
-        if (gte(semver, '26.2.15')) this.supportsTokenizeFrequency = true; // TODO: Use actual version
+        if (gte(semver, '26.3.3')) this.supportsTokenizeFrequency = true; // TODO: Use actual version
         return version;
     }
 
