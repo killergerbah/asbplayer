@@ -96,11 +96,37 @@ export function getFullyKnownTokenStatus(): TokenStatus {
     return TokenStatus.MATURE; // If future statuses are optional, this logic may need to change
 }
 
-// Any future field added will likely need to be optional for app/extension version mismatch and added to dictionaryTrackComparators
+// Any future field added will likely need to be optional for app/extension version mismatch
 export interface TokenStatusConfig {
     readonly display: boolean;
     readonly color: string;
     readonly alpha: string;
+}
+
+const tokenStatusConfigComparators: {
+    [K in keyof TokenStatusConfig]: (a: TokenStatusConfig[K], b: TokenStatusConfig[K]) => boolean;
+} = {
+    display: (a, b) => a === b,
+    color: (a, b) => a === b,
+    alpha: (a, b) => a === b,
+};
+
+export function compareTokenStatusConfigField<K extends keyof TokenStatusConfig>(
+    key: K,
+    a: TokenStatusConfig,
+    b: TokenStatusConfig
+): boolean {
+    return tokenStatusConfigComparators[key](a[key], b[key]);
+}
+
+export function areTokenStatusConfigsEqual(a: TokenStatusConfig, b: TokenStatusConfig): boolean {
+    if (a === b) return true;
+    for (const key in tokenStatusConfigComparators) {
+        if (!compareTokenStatusConfigField(key as keyof TokenStatusConfig, a, b)) {
+            return false;
+        }
+    }
+    return true;
 }
 
 export enum TokenState {
@@ -196,8 +222,7 @@ const dictionaryTrackComparators: {
     dictionaryTokenStylingThickness: (a, b) => a === b,
     dictionaryColorizeFullyKnownTokens: (a, b) => a === b,
     dictionaryTokenStatusColors: (a, b) => arrayEquals(a, b),
-    dictionaryTokenStatusConfig: (a, b) =>
-        arrayEquals(a, b, (ac, bc) => ac.display === bc.display && ac.color === bc.color && ac.alpha === bc.alpha),
+    dictionaryTokenStatusConfig: (a, b) => arrayEquals(a, b, areTokenStatusConfigsEqual),
 };
 
 export function compareDTField<K extends keyof DictionaryTrack>(

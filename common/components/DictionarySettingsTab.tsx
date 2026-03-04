@@ -1347,13 +1347,7 @@ const DictionarySettingsTab: React.FC<Props> = ({
                                         const newConfigs = [...selectedDictionary.dictionaryTokenStatusConfig];
 
                                         newConfigs[fullyKnownStatus] = {
-                                            ...(newConfigs[fullyKnownStatus] ?? {
-                                                display: e.target.checked,
-                                                color:
-                                                    selectedDictionary.dictionaryTokenStatusColors[fullyKnownStatus] ??
-                                                    '#FFFFFF',
-                                                alpha: 'FF',
-                                            }),
+                                            ...newConfigs[fullyKnownStatus],
                                             display: e.target.checked,
                                         };
                                         const newTracks = [...dictionaryTracks];
@@ -1385,11 +1379,7 @@ const DictionarySettingsTab: React.FC<Props> = ({
                                         newColors[tokenStatusIndex] = e.target.value;
                                         const newConfigs = [...selectedDictionary.dictionaryTokenStatusConfig];
                                         newConfigs[tokenStatusIndex] = {
-                                            ...(newConfigs[tokenStatusIndex] ?? {
-                                                display: true,
-                                                color: e.target.value,
-                                                alpha: 'FF',
-                                            }),
+                                            ...newConfigs[tokenStatusIndex],
                                             color: e.target.value,
                                         };
 
