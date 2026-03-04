@@ -15,18 +15,18 @@ const defaultCaptureFrameRate = 24;
 const minWebmVideoBitsPerSecond = 1_000_000;
 const maxWebmVideoBitsPerSecond = 24_000_000;
 const minVp9WebmVideoBitsPerSecond = 2_000_000;
-const defaultFrameRateSamplingCount = 5;
+const defaultFrameRateSamplingCount = 8;
 const maxCaptureFrameRate = 120;
 const videoSeekTimeoutMs = 10_000;
 const frameRateSamplingTimeoutMs = 5_000;
 const frameRenderWatchdogTimeoutMs = 15_000;
+const frameRateSamplingPlaybackRate = 0.5;
 
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
 
 const durationFromInterval = (startTimestamp: number, endTimestamp: number) => {
     const duration = Math.abs(endTimestamp - startTimestamp);
-    const resolvedDuration = duration > 0 ? duration : minWebmMediaFragmentDurationMs;
-    return Math.max(minWebmMediaFragmentDurationMs, resolvedDuration);
+    return Math.max(minWebmMediaFragmentDurationMs, duration);
 };
 
 const normalizeDimension = (value: number) => {
@@ -64,6 +64,20 @@ const minBitsPerSecondForMimeType = (mimeType: string) => {
 const estimateVideoBitsPerSecond = (width: number, height: number, frameRate: number, mimeType: string) => {
     const estimated = Math.round(width * height * frameRate * targetBitsPerPixelForMimeType(mimeType));
     return clamp(estimated, minBitsPerSecondForMimeType(mimeType), maxWebmVideoBitsPerSecond);
+};
+
+const frameRateFromDeltas = (deltas: number[]) => {
+    const validDeltas = deltas.filter((delta) => Number.isFinite(delta) && delta > 0);
+    if (validDeltas.length <= 0) {
+        return defaultCaptureFrameRate;
+    }
+
+    const sortedDeltas = [...validDeltas].sort((a, b) => a - b);
+    // Use lower-third deltas so dropped/late frames have less influence.
+    const lowWindowSize = Math.max(2, Math.ceil(sortedDeltas.length / 3));
+    const lowWindow = sortedDeltas.slice(0, lowWindowSize);
+    const representativeDelta = lowWindow.reduce((sum, delta) => sum + delta, 0) / lowWindow.length;
+    return clamp(Math.round(1 / representativeDelta), 1, maxCaptureFrameRate);
 };
 
 const blobToDataUrl = async (blob: Blob): Promise<string> =>
@@ -119,6 +133,8 @@ type WebmCaptureSettings = {
     videoBitsPerSecond: number;
     renderWatchdogTimeoutMs: number;
 };
+
+type FrameSchedulerMode = 'video-frame-callback' | 'animation-frame' | 'timeout';
 
 export class WebmFileMediaFragmentData implements MediaFragmentData {
     private readonly _file: FileModel;
@@ -247,6 +263,9 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
             throw new Error('WebM capture is not supported in this browser');
         }
         console.info(`[MediaFragment] Using WebM codec: ${mimeType}`);
+        if (!mimeType.includes('av1')) {
+            console.info(`[MediaFragment] WebM codec fallback triggered: preferred AV1 unavailable, using ${mimeType}`);
+        }
 
         const video = await this._videoElement(this._file);
         const { width, height } = this._dimensions(video);
@@ -339,6 +358,8 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
             if (!blob || blob.size <= 0) {
                 throw new Error('Could not encode WebM from local video');
             }
+            mediaRecorder = undefined;
+            stopRecorder = undefined;
 
             return blob;
         } finally {
@@ -412,6 +433,10 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
                 captureTrack: manualCaptureTrack,
             };
         }
+
+        console.info(
+            `[MediaFragment] Capture-stream fallback triggered: requestFrame unavailable, using timed capture at ${captureFrameRate}fps`
+        );
 
         for (const track of manualCaptureStream?.getTracks() ?? []) {
             track.stop();
@@ -500,6 +525,16 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
             ctx.drawImage(video, 0, 0, width, height);
             captureTrack?.requestFrame();
         };
+        const frameSchedulerMode: FrameSchedulerMode =
+            typeof video.requestVideoFrameCallback === 'function'
+                ? 'video-frame-callback'
+                : typeof requestAnimationFrame === 'function'
+                  ? 'animation-frame'
+                  : 'timeout';
+        if (frameSchedulerMode !== 'video-frame-callback') {
+            const fallbackLabel = frameSchedulerMode === 'animation-frame' ? 'requestAnimationFrame' : 'setTimeout';
+            console.info(`[MediaFragment] Frame-scheduler fallback triggered: using ${fallbackLabel}`);
+        }
         const done = (mediaTimeSeconds?: number) => {
             const mediaTimeMs = (mediaTimeSeconds ?? video.currentTime) * 1000;
             // Fallback schedulers can observe a slightly stale currentTime, so bias the end threshold a bit earlier.
@@ -510,14 +545,14 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
             return mediaTimeMs >= thresholdMs;
         };
         const schedule = (onFrame: (mediaTimeSeconds?: number) => void) => {
-            if (typeof video.requestVideoFrameCallback === 'function') {
+            if (frameSchedulerMode === 'video-frame-callback') {
                 videoFrameCallbackHandle = video.requestVideoFrameCallback((_, metadata) =>
                     onFrame(metadata.mediaTime)
                 );
                 return;
             }
 
-            if (typeof requestAnimationFrame === 'function') {
+            if (frameSchedulerMode === 'animation-frame') {
                 animationFrameHandle = requestAnimationFrame(() => onFrame());
                 return;
             }
@@ -597,6 +632,10 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
     }
 
     private _dimensions(video: HTMLVideoElement) {
+        if (video.videoWidth <= 0 || video.videoHeight <= 0) {
+            throw new Error('Could not determine source video dimensions for WebM capture');
+        }
+
         const widthRatio = this._maxWidth <= 0 ? 1 : this._maxWidth / video.videoWidth;
         const heightRatio = this._maxHeight <= 0 ? 1 : this._maxHeight / video.videoHeight;
         const ratio = Math.min(1, Math.min(widthRatio, heightRatio));
@@ -613,6 +652,9 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
         sampleCount: number = defaultFrameRateSamplingCount
     ): Promise<number> {
         if (typeof video.requestVideoFrameCallback !== 'function') {
+            console.info(
+                `[MediaFragment] Frame-rate sampling fallback triggered: requestVideoFrameCallback unavailable, using ${defaultCaptureFrameRate}fps`
+            );
             return defaultCaptureFrameRate;
         }
 
@@ -630,7 +672,7 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
             await this._seekVideo(video, startTimestampSeconds);
             video.muted = true;
             video.volume = 0;
-            video.playbackRate = 1;
+            video.playbackRate = frameRateSamplingPlaybackRate;
 
             if (typeof originalPreservesPitch === 'boolean') {
                 videoWithPreservesPitch.preservesPitch = false;
@@ -642,14 +684,7 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
                 let timeout: ReturnType<typeof setTimeout> | undefined;
                 let settled = false;
                 const resolveSampledFrameRate = () => {
-                    if (deltas.length <= 0) {
-                        finish(defaultCaptureFrameRate);
-                        return;
-                    }
-
-                    const averageDelta = deltas.reduce((sum, delta) => sum + delta, 0) / deltas.length;
-                    const sampledFrameRate = Math.round(1 / averageDelta);
-                    finish(clamp(sampledFrameRate, 1, maxCaptureFrameRate));
+                    finish(frameRateFromDeltas(deltas));
                 };
 
                 const cleanup = () => {
@@ -712,6 +747,9 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
                 };
                 video.onended = () => {
                     if (deltas.length > 0) {
+                        console.info(
+                            `[MediaFragment] Frame-rate sampling fallback triggered: source ended early; resolving from ${deltas.length} sampled delta(s)`
+                        );
                         resolveSampledFrameRate();
                         return;
                     }
@@ -725,7 +763,11 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
             });
 
             return frameRate;
-        } catch (_) {
+        } catch (error) {
+            console.warn(
+                `[MediaFragment] Falling back to default capture frame rate (${defaultCaptureFrameRate}fps)`,
+                error
+            );
             return defaultCaptureFrameRate;
         } finally {
             if (videoFrameCallbackHandle !== undefined && typeof video.cancelVideoFrameCallback === 'function') {
