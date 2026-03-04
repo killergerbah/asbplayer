@@ -1,6 +1,7 @@
 import sanitize from 'sanitize-filename';
 import { Rgb, SubtitleModel, Tokenization, TokenReading } from '../src/model';
 import { TextSubtitleSettings } from '../settings/settings';
+import { Progress } from '..';
 
 export function arrayEquals<T>(a: T[], b: T[], equals = (lhs: T, rhs: T) => lhs === rhs): boolean {
     if (a.length !== b.length) {
@@ -15,6 +16,14 @@ export function arrayEquals<T>(a: T[], b: T[], equals = (lhs: T, rhs: T) => lhs 
 
     return true;
 }
+
+export const localizedDate = (timestamp: number) => {
+    return new Date(timestamp).toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+    });
+};
 
 export function humanReadableTime(timestamp: number, nearestTenth = false, fullyPadded = false): string {
     const totalSeconds = Math.floor(timestamp / 1000);
@@ -436,36 +445,56 @@ export function seekWithNudge(media: HTMLMediaElement, timestampSeconds: number)
 export async function inBatches<T>(
     items: T[],
     cb: (batch: T[]) => Promise<void>,
-    options = { batchSize: 5 }
+    options: { batchSize: number; statusUpdates?: (progress: Progress) => Promise<void> } = { batchSize: 5 }
 ): Promise<void> {
     const batchSize = options.batchSize > 0 ? options.batchSize : 1;
+    let current = 0;
+    const total = items.length;
+    const startedAt = Date.now();
     for (let i = 0; i < items.length; i += batchSize) {
-        await cb(items.slice(i, i + batchSize));
+        const batch = items.slice(i, i + batchSize);
+        await cb(batch);
+        if (options.statusUpdates) {
+            current += batch.length;
+            await options.statusUpdates({ current, total, startedAt });
+        }
     }
 }
 
 export async function fromBatches<T, R>(
     items: T[],
     cb: (batch: T[]) => Promise<R[]>,
-    options = { batchSize: 5 }
+    options: { batchSize: number; statusUpdates?: (progress: Progress) => Promise<void> } = { batchSize: 5 }
 ): Promise<R[]> {
     const batchSize = options.batchSize > 0 ? options.batchSize : 1;
     const results: R[] = [];
+    let current = 0;
+    const total = items.length;
+    const startedAt = Date.now();
     for (let i = 0; i < items.length; i += batchSize) {
-        const res = await cb(items.slice(i, i + batchSize));
+        const batch = items.slice(i, i + batchSize);
+        const res = await cb(batch);
         for (let j = 0; j < res.length; j++) results.push(res[j]);
+        if (options.statusUpdates) {
+            current += batch.length;
+            await options.statusUpdates({ current, total, startedAt });
+        }
     }
     return results;
 }
 
-export async function mapAsync<T, R>(arr: T[], cb: (e: T) => Promise<R>, options = { batchSize: 5 }): Promise<R[]> {
+export async function mapAsync<T, R>(
+    arr: T[],
+    cb: (e: T) => Promise<R>,
+    options: { batchSize: number; statusUpdates?: (progress: Progress) => Promise<void> } = { batchSize: 5 }
+): Promise<R[]> {
     return fromBatches(arr, (batch) => Promise.all(batch.map(cb)), options);
 }
 
 export async function filterAsync<T>(
     arr: T[],
     cb: (e: T) => Promise<boolean>,
-    options = { batchSize: 5 }
+    options: { batchSize: number; statusUpdates?: (progress: Progress) => Promise<void> } = { batchSize: 5 }
 ): Promise<T[]> {
     const results = await mapAsync(arr, cb, options);
     return arr.filter((_, index) => results[index]);

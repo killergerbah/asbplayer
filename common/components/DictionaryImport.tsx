@@ -25,7 +25,7 @@ import { Yomitan } from '../yomitan/yomitan';
 import SwitchLabelWithHoverEffect from './SwitchLabelWithHoverEffect';
 import SettingsTextField from './SettingsTextField';
 import { DictionaryLocalTokenInput, DictionaryProvider, DictionaryTokenRecord } from '../dictionary-db';
-import { ensureStoragePersisted, HAS_LETTER_REGEX } from '../util';
+import { ensureStoragePersisted, HAS_LETTER_REGEX, humanReadableTime, localizedDate } from '../util';
 import Typography from '@mui/material/Typography';
 
 interface ImportClipboardToken {
@@ -60,7 +60,8 @@ const DictionaryImport: React.FC<Props> = ({
     const [importClipboardPreview, setImportClipboardPreview] = useState<ImportClipboardToken[] | null>(null);
     const [importClipboardPreviewHasChanges, setImportClipboardPreviewHasChanges] = useState<boolean>();
     const [importClipboardLoading, setImportClipboardLoading] = useState(false);
-    const [importClipboardError, setImportClipboardError] = useState<string>();
+    const [importClipboardMessage, setImportClipboardMessage] = useState<string>();
+    const [importClipboardMessageSeverity, setImportClipboardMessageSeverity] = useState<'info' | 'error'>('info');
     const [importingFromFile, setImportingFromFile] = useState<boolean>();
     const [yomitanError, setYomitanError] = useState<string>('');
 
@@ -77,7 +78,7 @@ const DictionaryImport: React.FC<Props> = ({
 
     useEffect(() => {
         setImportClipboardPreview(null);
-        setImportClipboardError(undefined);
+        setImportClipboardMessage(undefined);
     }, [importClipboardTrack, importClipboardText]);
 
     useEffect(() => {
@@ -87,7 +88,7 @@ const DictionaryImport: React.FC<Props> = ({
         void ensureStoragePersisted();
         setImportClipboardText('');
         setImportClipboardPreview(null);
-        setImportClipboardError(undefined);
+        setImportClipboardMessage(undefined);
     }, [open]);
 
     const handleCloseImportClipboardDialog = useCallback(() => {
@@ -97,7 +98,7 @@ const DictionaryImport: React.FC<Props> = ({
         void ensureStoragePersisted();
         setImportClipboardText('');
         setImportClipboardPreview(null);
-        setImportClipboardError(undefined);
+        setImportClipboardMessage(undefined);
         setImportClipboardLoading(false);
         onClose();
     }, [onClose, importingFromFile, importClipboardLoading]);
@@ -105,14 +106,20 @@ const DictionaryImport: React.FC<Props> = ({
     const handlePreviewImportClipboard = useCallback(async () => {
         void ensureStoragePersisted();
         setImportClipboardLoading(true);
-        setImportClipboardError(undefined);
+        setImportClipboardMessage(undefined);
         setImportClipboardPreview(null);
         try {
             const dt = dictionaryTracks[importClipboardTrack];
             const yomitan = new Yomitan(dt);
 
             const tokenSet = new Set<string>();
-            for (const tokenParts of await yomitan.splitAndTokenizeBulk(importClipboardText)) {
+            for (const tokenParts of await yomitan.splitAndTokenizeBulk(importClipboardText, async (progress) => {
+                const rate = progress.current / (Date.now() - progress.startedAt);
+                const eta = rate ? Math.ceil((progress.total - progress.current) / rate) : 0;
+                const msg = `${progress.current.toLocaleString('en-US')} / ${progress.total.toLocaleString('en-US')} [ETA: ${localizedDate(Date.now() + eta)} (${humanReadableTime(eta)})]`;
+                setImportClipboardMessageSeverity('info');
+                setImportClipboardMessage(msg);
+            })) {
                 const token = tokenParts
                     .map((p) => p.text)
                     .join('')
@@ -126,12 +133,18 @@ const DictionaryImport: React.FC<Props> = ({
                 const lemmas = await yomitan.lemmatize(token);
                 entries.push({ token, lemmas });
             }
-            if (!entries.length) setImportClipboardError(t('settings.dictionaryImportClipboardNoTokens'));
+            if (entries.length) {
+                setImportClipboardMessage(undefined);
+            } else {
+                setImportClipboardMessageSeverity('error');
+                setImportClipboardMessage(t('settings.dictionaryImportClipboardNoTokens'));
+            }
             setImportClipboardPreview(entries);
             setImportClipboardPreviewHasChanges(false);
         } catch (e) {
             const message = e instanceof Error ? e.message : String(e);
-            setImportClipboardError(message);
+            setImportClipboardMessageSeverity('error');
+            setImportClipboardMessage(message);
             setImportClipboardPreview(null);
         } finally {
             setImportClipboardLoading(false);
@@ -153,9 +166,10 @@ const DictionaryImport: React.FC<Props> = ({
             onClose();
             setImportClipboardPreview(null);
             setImportClipboardText('');
-            setImportClipboardError(undefined);
+            setImportClipboardMessage(undefined);
         } catch (e) {
-            setImportClipboardError(e instanceof Error ? e.message : String(e));
+            setImportClipboardMessageSeverity('error');
+            setImportClipboardMessage(e instanceof Error ? e.message : String(e));
         } finally {
             setImportClipboardLoading(false);
         }
@@ -195,7 +209,8 @@ const DictionaryImport: React.FC<Props> = ({
                 text = await file.text();
             } catch (e) {
                 console.error(e);
-                setImportClipboardError(e instanceof Error ? e.message : String(e));
+                setImportClipboardMessageSeverity('error');
+                setImportClipboardMessage(e instanceof Error ? e.message : String(e));
                 return;
             }
 
@@ -220,7 +235,8 @@ const DictionaryImport: React.FC<Props> = ({
                 onClose();
             } catch (e) {
                 console.error(e);
-                setImportClipboardError(e instanceof Error ? e.message : String(e));
+                setImportClipboardMessageSeverity('error');
+                setImportClipboardMessage(e instanceof Error ? e.message : String(e));
             } finally {
                 setImportingFromFile(false);
             }
@@ -288,7 +304,9 @@ const DictionaryImport: React.FC<Props> = ({
                             }}
                             fullWidth
                         />
-                        {importClipboardError && <MuiAlert severity="error">{importClipboardError}</MuiAlert>}
+                        {importClipboardMessage && (
+                            <MuiAlert severity={importClipboardMessageSeverity}>{importClipboardMessage}</MuiAlert>
+                        )}
                         {(importClipboardPreview?.length || undefined) && (
                             <List dense sx={{ overflowY: 'scroll' }}>
                                 {importClipboardPreview!.map((entry) => (

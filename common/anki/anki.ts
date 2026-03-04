@@ -1,5 +1,5 @@
 import { AudioClip } from '@project/common/audio-clip';
-import { AnkiExportMode, CardModel, Image } from '@project/common';
+import { AnkiExportMode, CardModel, Image, Progress } from '@project/common';
 import { HttpFetcher, Fetcher } from '@project/common';
 import { AnkiSettings, AnkiSettingsFieldKey } from '@project/common/settings';
 import sanitize from 'sanitize-filename';
@@ -320,7 +320,11 @@ export class Anki {
         return response.result;
     }
 
-    async cardsInfo(allCards: number[], ankiConnectUrl?: string): Promise<CardInfo[]> {
+    async cardsInfo(
+        allCards: number[],
+        statusUpdates?: (progress: Progress) => Promise<void>,
+        ankiConnectUrl?: string
+    ): Promise<CardInfo[]> {
         if (!allCards.length) return [];
         return (
             await fromBatches(
@@ -335,7 +339,7 @@ export class Anki {
                     }
                     return cardsInfo;
                 },
-                { batchSize: ANKI_CARDS_INFO_BATCH_SIZE }
+                { batchSize: ANKI_CARDS_INFO_BATCH_SIZE, statusUpdates }
             )
         ).flat();
     }

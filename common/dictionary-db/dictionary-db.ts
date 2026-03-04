@@ -7,6 +7,7 @@ import {
     DictionaryBuildAnkiCacheStateType,
     DictionaryBuildAnkiCacheStats,
     DictionaryBuildAnkiCacheProgress,
+    Progress,
 } from '@project/common';
 import {
     ApplyStrategy,
@@ -157,12 +158,6 @@ export interface DictionaryDeleteProfileResult {
     deletedMetas: DictionaryMetaKey[];
     deletedTokens: DictionaryTokenKey[];
     deletedAnkiCards: DictionaryAnkiCardKey[];
-}
-
-interface BuildAnkiCacheProgress {
-    current: number;
-    total: number;
-    startedAt: number;
 }
 
 function hasDeck(dt: DictionaryTrack, cardDeck: string): boolean {
@@ -410,7 +405,7 @@ export class DictionaryDB {
             for (const localTokenInput of localTokenInputs) {
                 if (!HAS_LETTER_REGEX.test(localTokenInput.token)) {
                     console.error(`Cannot save local token with invalid token: "${localTokenInput.token}"`);
-                    return { savedTokens: [], deletedTokens: [] };
+                    continue;
                 }
                 const existingRecord = tokenRecordMap.get(localTokenInput.token);
                 if (existingRecord) {
@@ -451,7 +446,7 @@ export class DictionaryDB {
                 localTokenInput.lemmas = localTokenInput.lemmas.filter((lemma) => HAS_LETTER_REGEX.test(lemma));
                 if (!localTokenInput.lemmas.length) {
                     console.error(`Cannot save local token with no lemmas: "${localTokenInput.token}"`);
-                    return { savedTokens: [], deletedTokens: [] };
+                    continue;
                 }
                 if (localTokenInput.status === TokenStatus.UNCOLLECTED && !localTokenInput.states.length) {
                     if (existingRecord) {
@@ -461,7 +456,7 @@ export class DictionaryDB {
                         console.error(
                             `Cannot save local token with uncollected status and no states: "${localTokenInput.token}"`
                         );
-                        return { savedTokens: [], deletedTokens: [] };
+                        continue;
                     }
                 }
                 recordsToAdd.push({
@@ -918,7 +913,10 @@ export class DictionaryDB {
                     trackStates,
                     modifiedCards,
                     orphanedTrackCardIds,
-                    anki
+                    anki,
+                    buildId,
+                    activeTracks,
+                    statusUpdates
                 );
                 for (const [track, ts] of trackStates.entries()) {
                     await this._buildAnkiCardStatuses(track, ts, modifiedCards, anki);
@@ -993,6 +991,9 @@ export class DictionaryDB {
      * @param modifiedCards The map to populate with modified cards.
      * @param orphanedTrackCardIds The map to populate with orphaned card IDs.
      * @param anki The Anki instance.
+     * @param buildId The build ID.
+     * @param activeTracks The active tracks.
+     * @param statusUpdates The status update callback.
      * @returns The number of modified cards.
      */
     private async _syncTrackStatesWithAnki(
@@ -1000,7 +1001,10 @@ export class DictionaryDB {
         trackStates: TrackStatesForDB,
         modifiedCards: CardsForDB,
         orphanedTrackCardIds: Map<number, number[]>,
-        anki: Anki
+        anki: Anki,
+        buildId: string,
+        activeTracks: DictionaryMetaKey[],
+        statusUpdates: (state: DictionaryBuildAnkiCacheState) => void
     ): Promise<number> {
         const allDecksQuery = Array.from(trackStates.values()).some((ts) => !ts.dt.dictionaryAnkiDecks.length)
             ? ''
@@ -1072,7 +1076,9 @@ export class DictionaryDB {
         const modifiedCardsDeck: Map<number, string> = new Map();
         if (modifiedNotes.length) {
             const modifiedCardIds = Array.from(modifiedCardIdsSet);
-            for (const cardInfo of await anki.cardsInfo(modifiedCardIds)) {
+            for (const cardInfo of await anki.cardsInfo(modifiedCardIds, async (progress) => {
+                await this._updateBuildAnkiCacheProgress(buildId, activeTracks, progress, [], statusUpdates, true);
+            })) {
                 modifiedCardsDeck.set(cardInfo.cardId, cardInfo.deckName); // cardsInfo is much slower than notesInfo so we try to call it only if needed
             }
             const dts = Array.from(trackStates.values()).map((ts) => ts.dt);
@@ -1234,9 +1240,10 @@ export class DictionaryDB {
     private async _updateBuildAnkiCacheProgress(
         buildId: string,
         activeTracks: DictionaryMetaKey[],
-        progress: BuildAnkiCacheProgress,
+        progress: Progress,
         modifiedTokens: string[],
-        statusUpdates: (state: DictionaryBuildAnkiCacheState) => void
+        statusUpdates: (state: DictionaryBuildAnkiCacheState) => void,
+        forAnkiSync: boolean = false
     ): Promise<void> {
         const rate = progress.current / (Date.now() - progress.startedAt);
         const eta = rate ? Math.ceil((progress.total - progress.current) / rate) : 0;
@@ -1254,6 +1261,7 @@ export class DictionaryDB {
                 total: progress.total,
                 buildTimestamp: progress.startedAt,
                 modifiedTokens,
+                forAnkiSync,
             } as DictionaryBuildAnkiCacheProgress,
         });
     }
@@ -1273,7 +1281,7 @@ export class DictionaryDB {
         statusUpdates: (state: DictionaryBuildAnkiCacheState) => void
     ): Promise<void> {
         let error: any;
-        const progress: BuildAnkiCacheProgress = {
+        const progress: Progress = {
             current: 0,
             total: modifiedCards.size,
             startedAt: Date.now(),
@@ -1333,7 +1341,7 @@ export class DictionaryDB {
         modifiedCards: CardsForDB,
         buildId: string,
         activeTracks: DictionaryMetaKey[],
-        progress: BuildAnkiCacheProgress,
+        progress: Progress,
         statusUpdates: (state: DictionaryBuildAnkiCacheState) => void
     ): Promise<void> {
         if (!modifiedCards.size) return;

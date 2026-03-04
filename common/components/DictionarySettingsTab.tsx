@@ -52,16 +52,8 @@ import {
     DictionaryBuildAnkiCacheStats,
 } from '../src/message';
 import { DictionaryProvider } from '../dictionary-db';
-import { ensureStoragePersisted, humanReadableTime } from '../util';
+import { ensureStoragePersisted, humanReadableTime, localizedDate } from '../util';
 import DictionaryImport from './DictionaryImport';
-
-const localizedDate = (timestamp: number) => {
-    return new Date(timestamp).toLocaleTimeString([], {
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-    });
-};
 
 const useBuildAnkiCacheState: () => {
     severity: 'error' | 'info';
@@ -100,14 +92,13 @@ const useBuildAnkiCacheState: () => {
                 }
                 break;
             case DictionaryBuildAnkiCacheStateType.start:
-                const start = buildAnkiCacheState.body as DictionaryBuildAnkiCacheStart;
-                msg = `${localizedDate(start.buildTimestamp)}: ${t('settings.dictionaryBuildAnkiStarted')}`;
+                msg = t('settings.dictionaryBuildAnkiStarted');
                 break;
             case DictionaryBuildAnkiCacheStateType.progress:
                 const progress = buildAnkiCacheState.body as DictionaryBuildAnkiCacheProgress;
                 const rate = progress.current / (Date.now() - progress.buildTimestamp);
                 const eta = rate ? Math.ceil((progress.total - progress.current) / rate) : 0;
-                msg = `${progress.current.toLocaleString('en-US')} / ${t('settings.dictionaryBuildModifiedCards', { numCards: progress.total.toLocaleString('en-US') })} [ETA: ${localizedDate(Date.now() + eta)} (${humanReadableTime(eta)})]`;
+                msg = `${progress.forAnkiSync ? `${t('settings.dictionaryBuildAnkiStarted')}: ` : ''}${progress.current.toLocaleString('en-US')} / ${t('settings.dictionaryBuildModifiedCards', { numCards: progress.total.toLocaleString('en-US') })} [ETA: ${localizedDate(Date.now() + eta)} (${humanReadableTime(eta)})]`;
                 break;
             case DictionaryBuildAnkiCacheStateType.stats:
                 const stats = buildAnkiCacheState.body as DictionaryBuildAnkiCacheStats;
