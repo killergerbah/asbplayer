@@ -200,9 +200,8 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
             timestamp + this._durationMs,
             this._maxWidth,
             this._maxHeight,
-            this._video,
-            this._canvas,
-            this._ctx
+            undefined,
+            undefined
         );
     }
 
