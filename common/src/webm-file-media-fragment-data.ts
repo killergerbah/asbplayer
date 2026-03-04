@@ -17,9 +17,9 @@ const maxWebmVideoBitsPerSecond = 24_000_000;
 const minVp9WebmVideoBitsPerSecond = 2_000_000;
 const defaultFrameRateSamplingCount = 8;
 const maxCaptureFrameRate = 120;
-const videoSeekTimeoutMs = 10_000;
-const frameRateSamplingTimeoutMs = 5_000;
-const frameRenderWatchdogTimeoutMs = 15_000;
+const videoSeekTimeoutMs = 3_000;
+const frameRateSamplingTimeoutMs = 3_000;
+const frameRenderWatchdogTimeoutMs = 3_000;
 const frameRateSamplingPlaybackRate = 0.5;
 
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
@@ -279,8 +279,8 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
         const captureFrameRate = await this._sampleCaptureFrameRate(video, startTimestampMs / 1000);
         const fallbackFrameDelayMs = Math.max(1, Math.round(1000 / captureFrameRate));
         const videoBitsPerSecond = estimateVideoBitsPerSecond(width, height, captureFrameRate, mimeType);
-        // Give the watchdog headroom for decode jitter on slower devices/browsers.
-        const renderWatchdogTimeoutMs = Math.max(frameRenderWatchdogTimeoutMs, this._durationMs * 4);
+        // Per-frame stall watchdog (not a total render budget).
+        const renderWatchdogTimeoutMs = frameRenderWatchdogTimeoutMs;
 
         const chunks: BlobPart[] = [];
         let stream: MediaStream | undefined;
