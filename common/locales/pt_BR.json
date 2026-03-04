@@ -511,7 +511,7 @@
         "dictionaryTokenStatus2": "Aprendendo",
         "dictionaryTokenStatus1": "Desconhecido",
         "dictionaryTokenStatus0": "Uncollected",
-        "dictionaryBuildAnkiStarted": "Querying Anki for modified cards...",
+        "dictionaryBuildAnkiStarted": "Querying Anki for modified cards",
         "dictionaryTokenStatusAlpha": "Alpha",
         "dictionaryBuildAnkiTracks": "Anki track(s): {{tracks}}",
         "dictionaryBuildModifiedCards": "{{numCards}} modified card(s)",

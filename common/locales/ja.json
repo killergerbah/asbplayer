@@ -511,7 +511,7 @@
         "dictionaryTokenStatus2": "学習中",
         "dictionaryTokenStatus1": "新規",
         "dictionaryTokenStatus0": "未収集",
-        "dictionaryBuildAnkiStarted": "Querying Anki for modified cards...",
+        "dictionaryBuildAnkiStarted": "Querying Anki for modified cards",
         "dictionaryTokenStatusAlpha": "Alpha",
         "dictionaryBuildAnkiTracks": "Ankiのトラック：{{tracks}}",
         "dictionaryBuildModifiedCards": "{{numCards}}変更されたカード",

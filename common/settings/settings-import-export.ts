@@ -96,22 +96,22 @@ const dictionaryTrackSchema = {
         dictionaryColorizeFullyKnownTokens: {
             type: 'boolean',
         },
-        dictionaryTokenStatusDisplays: {
-            type: 'array',
-            items: {
-                type: 'boolean',
-            },
-        },
         dictionaryTokenStatusColors: {
             type: 'array',
             items: {
                 type: 'string',
             },
         },
-        dictionaryTokenStatusAlphas: {
+        dictionaryTokenStatusConfig: {
             type: 'array',
             items: {
-                type: 'string',
+                type: 'object',
+                properties: {
+                    display: { type: 'boolean' },
+                    color: { type: 'string' },
+                    alpha: { type: 'string' },
+                },
+                required: ['display', 'color', 'alpha'],
             },
         },
     },

@@ -96,6 +96,13 @@ export function getFullyKnownTokenStatus(): TokenStatus {
     return TokenStatus.MATURE; // If future statuses are optional, this logic may need to change
 }
 
+// Any future field added will likely need to be optional for app/extension version mismatch and added to dictionaryTrackComparators
+export interface TokenStatusConfig {
+    readonly display: boolean;
+    readonly color: string;
+    readonly alpha: string;
+}
+
 export enum TokenState {
     IGNORED = 0, // If ever adding more states, they should go last (if adding colors for states, use a separate array from dictionaryTokenStatusColors indexed by TokenState)
 }
@@ -157,10 +164,9 @@ export interface DictionaryTrack {
     readonly dictionaryAnkiTreatSuspended: TokenStatus | 'NORMAL';
     readonly dictionaryTokenStyling: TokenStyling;
     readonly dictionaryTokenStylingThickness: number;
-    readonly dictionaryColorizeFullyKnownTokens: boolean; // Deprecated in favor of dictionaryTokenStatusDisplays
-    readonly dictionaryTokenStatusDisplays: boolean[]; // Indexed by TokenStatus
-    readonly dictionaryTokenStatusColors: string[]; // Indexed by TokenStatus (if adding colors for states, use a separate array indexed by TokenState)
-    readonly dictionaryTokenStatusAlphas: string[]; // Indexed by TokenStatus (if adding alpha for states, use a separate array indexed by TokenState)
+    readonly dictionaryColorizeFullyKnownTokens: boolean; // Deprecated in favor of dictionaryTokenStatusConfig
+    readonly dictionaryTokenStatusColors: string[]; // Deprecated in favor of dictionaryTokenStatusConfig
+    readonly dictionaryTokenStatusConfig: TokenStatusConfig[]; // Indexed by TokenStatus (if adding config for states, use a separate array indexed by TokenState)
 }
 
 export interface DictionarySettings {
@@ -189,9 +195,9 @@ const dictionaryTrackComparators: {
     dictionaryTokenStyling: (a, b) => a === b,
     dictionaryTokenStylingThickness: (a, b) => a === b,
     dictionaryColorizeFullyKnownTokens: (a, b) => a === b,
-    dictionaryTokenStatusDisplays: (a, b) => arrayEquals(a, b),
     dictionaryTokenStatusColors: (a, b) => arrayEquals(a, b),
-    dictionaryTokenStatusAlphas: (a, b) => arrayEquals(a, b),
+    dictionaryTokenStatusConfig: (a, b) =>
+        arrayEquals(a, b, (ac, bc) => ac.display === bc.display && ac.color === bc.color && ac.alpha === bc.alpha),
 };
 
 export function compareDTField<K extends keyof DictionaryTrack>(

@@ -35,6 +35,7 @@ import {
     Profile,
     dictionaryStatusCollectionEnabled,
     TokenFrequencyAnnotation,
+    TokenStatusConfig,
 } from '@project/common/settings';
 import { Anki } from '../anki';
 import { Yomitan } from '../yomitan/yomitan';
@@ -1260,24 +1261,30 @@ const DictionarySettingsTab: React.FC<Props> = ({
                     <>
                         {[...Array(NUM_TOKEN_STATUSES).keys()].map((i) => {
                             const tokenStatusIndex = NUM_TOKEN_STATUSES - 1 - i;
-                            const display = selectedDictionary.dictionaryTokenStatusDisplays[tokenStatusIndex];
-                            const color = selectedDictionary.dictionaryTokenStatusColors[tokenStatusIndex];
-                            const alpha = selectedDictionary.dictionaryTokenStatusAlphas[tokenStatusIndex];
-
+                            const { display, color, alpha } =
+                                selectedDictionary.dictionaryTokenStatusConfig[tokenStatusIndex];
+                            const updateTokenStatusConfig = (newConfig: TokenStatusConfig) => {
+                                const newConfigs = [...selectedDictionary.dictionaryTokenStatusConfig];
+                                newConfigs[tokenStatusIndex] = newConfig;
+                                const newTracks = [...dictionaryTracks];
+                                newTracks[selectedDictionaryTrack] = {
+                                    ...newTracks[selectedDictionaryTrack],
+                                    dictionaryTokenStatusConfig: newConfigs,
+                                    dictionaryTokenStatusColors: newConfigs.map((config) => config.color),
+                                    dictionaryColorizeFullyKnownTokens: newConfigs[getFullyKnownTokenStatus()].display,
+                                };
+                                onSettingChanged('dictionaryTracks', newTracks);
+                            };
                             return (
                                 <Stack key={i} direction="row" spacing={1} alignItems="center">
                                     <Switch
                                         checked={display}
-                                        onChange={(e) => {
-                                            const newDisplays = [...selectedDictionary.dictionaryTokenStatusDisplays];
-                                            newDisplays[tokenStatusIndex] = e.target.checked;
-                                            const newTracks = [...dictionaryTracks];
-                                            newTracks[selectedDictionaryTrack] = {
-                                                ...newTracks[selectedDictionaryTrack],
-                                                dictionaryTokenStatusDisplays: newDisplays,
-                                            };
-                                            onSettingChanged('dictionaryTracks', newTracks);
-                                        }}
+                                        onChange={(e) =>
+                                            updateTokenStatusConfig({
+                                                ...selectedDictionary.dictionaryTokenStatusConfig[tokenStatusIndex],
+                                                display: e.target.checked,
+                                            })
+                                        }
                                     />
                                     <div style={{ flex: 1, opacity: display ? 1 : 0.5 }}>
                                         <SettingsTextField
@@ -1287,16 +1294,12 @@ const DictionarySettingsTab: React.FC<Props> = ({
                                             value={color}
                                             color="primary"
                                             disabled={!display}
-                                            onChange={(e) => {
-                                                const newColors = [...selectedDictionary.dictionaryTokenStatusColors];
-                                                newColors[tokenStatusIndex] = e.target.value;
-                                                const newTracks = [...dictionaryTracks];
-                                                newTracks[selectedDictionaryTrack] = {
-                                                    ...newTracks[selectedDictionaryTrack],
-                                                    dictionaryTokenStatusColors: newColors,
-                                                };
-                                                onSettingChanged('dictionaryTracks', newTracks);
-                                            }}
+                                            onChange={(e) =>
+                                                updateTokenStatusConfig({
+                                                    ...selectedDictionary.dictionaryTokenStatusConfig[tokenStatusIndex],
+                                                    color: e.target.value,
+                                                })
+                                            }
                                         />
                                     </div>
                                     <Stack
@@ -1316,15 +1319,10 @@ const DictionarySettingsTab: React.FC<Props> = ({
                                             onChange={(e) => {
                                                 const parsed = Number(e.target.value);
                                                 if (Number.isNaN(parsed)) return;
-                                                const clamped = Math.max(0, Math.min(100, parsed));
-                                                const newAlphas = [...selectedDictionary.dictionaryTokenStatusAlphas];
-                                                newAlphas[tokenStatusIndex] = percentToHex2(clamped / 100);
-                                                const newTracks = [...dictionaryTracks];
-                                                newTracks[selectedDictionaryTrack] = {
-                                                    ...newTracks[selectedDictionaryTrack],
-                                                    dictionaryTokenStatusAlphas: newAlphas,
-                                                };
-                                                onSettingChanged('dictionaryTracks', newTracks);
+                                                updateTokenStatusConfig({
+                                                    ...selectedDictionary.dictionaryTokenStatusConfig[tokenStatusIndex],
+                                                    alpha: percentToHex2(Math.max(0, Math.min(100, parsed)) / 100),
+                                                });
                                             }}
                                             slotProps={{
                                                 htmlInput: { min: 0, max: 100, step: 1 },
@@ -1345,10 +1343,24 @@ const DictionarySettingsTab: React.FC<Props> = ({
                                 <Switch
                                     checked={selectedDictionary.dictionaryColorizeFullyKnownTokens}
                                     onChange={(e) => {
+                                        const fullyKnownStatus = getFullyKnownTokenStatus();
+                                        const newConfigs = [...selectedDictionary.dictionaryTokenStatusConfig];
+
+                                        newConfigs[fullyKnownStatus] = {
+                                            ...(newConfigs[fullyKnownStatus] ?? {
+                                                display: e.target.checked,
+                                                color:
+                                                    selectedDictionary.dictionaryTokenStatusColors[fullyKnownStatus] ??
+                                                    '#FFFFFF',
+                                                alpha: 'FF',
+                                            }),
+                                            display: e.target.checked,
+                                        };
                                         const newTracks = [...dictionaryTracks];
                                         newTracks[selectedDictionaryTrack] = {
                                             ...newTracks[selectedDictionaryTrack],
                                             dictionaryColorizeFullyKnownTokens: e.target.checked,
+                                            dictionaryTokenStatusConfig: newConfigs,
                                         };
                                         onSettingChanged('dictionaryTracks', newTracks);
                                     }}
@@ -1371,10 +1383,21 @@ const DictionarySettingsTab: React.FC<Props> = ({
                                     onChange={(e) => {
                                         const newColors = [...selectedDictionary.dictionaryTokenStatusColors];
                                         newColors[tokenStatusIndex] = e.target.value;
+                                        const newConfigs = [...selectedDictionary.dictionaryTokenStatusConfig];
+                                        newConfigs[tokenStatusIndex] = {
+                                            ...(newConfigs[tokenStatusIndex] ?? {
+                                                display: true,
+                                                color: e.target.value,
+                                                alpha: 'FF',
+                                            }),
+                                            color: e.target.value,
+                                        };
+
                                         const newTracks = [...dictionaryTracks];
                                         newTracks[selectedDictionaryTrack] = {
                                             ...newTracks[selectedDictionaryTrack],
                                             dictionaryTokenStatusColors: newColors,
+                                            dictionaryTokenStatusConfig: newConfigs,
                                         };
                                         onSettingChanged('dictionaryTracks', newTracks);
                                     }}
