@@ -18,9 +18,14 @@ const minVp9WebmVideoBitsPerSecond = 2_000_000;
 const defaultFrameRateSamplingCount = 8;
 const maxCaptureFrameRate = 120;
 const videoSeekTimeoutMs = 3_000;
-const frameRateSamplingTimeoutMs = 3_000;
+const maxFrameRateSamplingTimeoutMs = 3_000;
+const baseFrameRateSamplingTimeoutMs = 1_500;
 const frameRenderWatchdogTimeoutMs = 3_000;
 const frameRateSamplingPlaybackRate = 0.5;
+const frameRateSamplingTimeoutMs = Math.min(
+    maxFrameRateSamplingTimeoutMs,
+    Math.ceil(baseFrameRateSamplingTimeoutMs / Math.max(0.01, frameRateSamplingPlaybackRate))
+);
 
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
 
@@ -682,6 +687,7 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
                 let lastMediaTime: number | undefined;
                 let timeout: ReturnType<typeof setTimeout> | undefined;
                 let settled = false;
+                const minPlausibleDeltaSeconds = 1 / maxCaptureFrameRate;
                 const resolveSampledFrameRate = () => {
                     finish(frameRateFromDeltas(deltas));
                 };
@@ -726,7 +732,7 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
                 const sample = (_: DOMHighResTimeStamp, metadata: VideoFrameCallbackMetadata) => {
                     if (lastMediaTime !== undefined) {
                         const delta = metadata.mediaTime - lastMediaTime;
-                        if (Number.isFinite(delta) && delta > 0) {
+                        if (Number.isFinite(delta) && delta >= minPlausibleDeltaSeconds) {
                             deltas.push(delta);
                         }
                     }
