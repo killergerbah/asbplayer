@@ -102,6 +102,18 @@ const dictionaryTrackSchema = {
                 type: 'string',
             },
         },
+        dictionaryTokenStatusConfig: {
+            type: 'array',
+            items: {
+                type: 'object',
+                properties: {
+                    display: { type: 'boolean' },
+                    color: { type: 'string' },
+                    alpha: { type: 'string' },
+                },
+                required: ['display', 'color', 'alpha'],
+            },
+        },
     },
 };
 const textSubtitleSettingsSchema = {

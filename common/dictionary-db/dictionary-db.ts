@@ -404,15 +404,12 @@ export class DictionaryDB {
             const tokensToDelete: string[] = [];
             for (const localTokenInput of localTokenInputs) {
                 if (!HAS_LETTER_REGEX.test(localTokenInput.token)) {
-                    console.error(`Cannot save local token with invalid token: "${localTokenInput.token}"`);
+                    console.error(`Cannot save local token with invalid token: ${JSON.stringify(localTokenInput)}`);
                     continue;
                 }
-                const existingRecord = tokenRecordMap.get(localTokenInput.token);
+                const existingRecord = tokenRecordMap.get(localTokenInput.token); // Ignore existing lemmas as they should be re-calculated
                 if (existingRecord) {
                     if (localTokenInput.status == null) localTokenInput.status = existingRecord.status;
-                    for (const existingLemma of existingRecord.lemmas) {
-                        if (!localTokenInput.lemmas.includes(existingLemma)) localTokenInput.lemmas.push(existingLemma);
-                    }
                     switch (applyStates) {
                         case ApplyStrategy.ADD:
                             for (const state of existingRecord.states) {
@@ -445,7 +442,7 @@ export class DictionaryDB {
                 }
                 localTokenInput.lemmas = localTokenInput.lemmas.filter((lemma) => HAS_LETTER_REGEX.test(lemma));
                 if (!localTokenInput.lemmas.length) {
-                    console.error(`Cannot save local token with no lemmas: "${localTokenInput.token}"`);
+                    console.error(`Cannot save local token with no lemmas: ${JSON.stringify(localTokenInput)}`);
                     continue;
                 }
                 if (localTokenInput.status === TokenStatus.UNCOLLECTED && !localTokenInput.states.length) {
@@ -454,7 +451,7 @@ export class DictionaryDB {
                         continue;
                     } else {
                         console.error(
-                            `Cannot save local token with uncollected status and no states: "${localTokenInput.token}"`
+                            `Cannot save local token with uncollected status and no states: ${JSON.stringify(localTokenInput)}`
                         );
                         continue;
                     }
@@ -548,9 +545,7 @@ export class DictionaryDB {
                 const existingToken = existingProfileTokens.get(item.profile)?.get(item.token);
                 if (existingToken) {
                     item.status = Math.max(item.status ?? TokenStatus.UNCOLLECTED, existingToken.status!); // Keep the highest for imports
-                    for (const existingLemma of existingToken.lemmas) {
-                        if (!item.lemmas.includes(existingLemma)) item.lemmas.push(existingLemma);
-                    }
+                    if (!item.lemmas.length) item.lemmas = existingToken.lemmas; // Use existing lemmas only if it wasn't re-calculated
                     item.states = existingToken.states; // Treat the existing states as authoritative, TODO: expose ApplyStrategy for imports?
                 }
                 item.lemmas = item.lemmas.filter((lemma) => HAS_LETTER_REGEX.test(lemma));
@@ -558,7 +553,7 @@ export class DictionaryDB {
                 let status = item.status;
                 if (item.status == null || item.status < TokenStatus.UNKNOWN) {
                     if (!item.states.length) continue; // Status cannot be uncollected unless there is a state
-                    if (status == null) status = TokenStatus.UNCOLLECTED;
+                    status = TokenStatus.UNCOLLECTED;
                 } else if (item.status > fullyKnownStatus) {
                     status = fullyKnownStatus;
                 }

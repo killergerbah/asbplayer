@@ -512,6 +512,7 @@
         "dictionaryTokenStatus1": "新規",
         "dictionaryTokenStatus0": "未収集",
         "dictionaryBuildAnkiStarted": "Querying Anki for modified cards",
+        "dictionaryTokenStatusAlpha": "Alpha",
         "dictionaryBuildAnkiTracks": "Ankiのトラック：{{tracks}}",
         "dictionaryBuildModifiedCards": "{{numCards}}変更されたカード",
         "dictionaryBuildOrphanedCards": "孤立されたトラック「{{tracks}}」から{{numCards}}の削除されたカード",

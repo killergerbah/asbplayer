@@ -426,6 +426,19 @@ export function hexToRgb(hex: string): Rgb {
     };
 }
 
+export function hex2ToPercent(hex: string): number {
+    const parsed = Number.parseInt(hex.replace('#', ''), 16);
+    if (!Number.isFinite(parsed)) return 1;
+    return Math.max(0, Math.min(255, parsed)) / 255;
+}
+
+export function percentToHex2(percent: number): string {
+    const hex = Math.round(Math.max(0, Math.min(1, percent)) * 255)
+        .toString(16)
+        .toUpperCase();
+    return hex.length === 1 ? `0${hex}` : hex;
+}
+
 export function sourceString(subtitleFileName: string, timestamp: number) {
     return timestamp === 0 ? subtitleFileName : `${subtitleFileName} (${humanReadableTime(timestamp, true, true)})`;
 }
