@@ -7,8 +7,10 @@ import { WebmFileMediaFragmentData } from './webm-file-media-fragment-data';
 const maxPrefixLength = 24;
 const videoReadyTimeoutMs = 5_000;
 const webmMimeTypeCandidates = [
-    // Best-to-worst quality/compression among broadly recognized WebM codec identifiers.
+    // Preferred codec order for short fragments: AV1, VP8, VP9, then generic WebM fallback.
     'video/webm;codecs=av1',
+    'video/webm;codecs=vp8',
+    'video/webm;codecs=vp9', // can cause artifacts
     'video/webm',
 ] as const;
 
@@ -256,20 +258,14 @@ export default class MediaFragment {
         mediaFragmentTrimEnd: number = 0
     ) {
         if (card.file && mediaFragmentFormat === 'webm' && isWebmMediaFragmentSupported()) {
-                const { startTimestamp, endTimestamp } = resolveWebmMediaFragmentRange(
-                    card.subtitle.start,
-                    card.subtitle.end,
-                    mediaFragmentTrimStart,
-                    mediaFragmentTrimEnd
-                );
+            const { startTimestamp, endTimestamp } = resolveWebmMediaFragmentRange(
+                card.subtitle.start,
+                card.subtitle.end,
+                mediaFragmentTrimStart,
+                mediaFragmentTrimEnd
+            );
 
-                return MediaFragment.fromWebmFile(
-                    card.file,
-                    startTimestamp,
-                    endTimestamp,
-                    maxWidth,
-                    maxHeight
-                );
+            return MediaFragment.fromWebmFile(card.file, startTimestamp, endTimestamp, maxWidth, maxHeight);
         }
 
         const serializedMediaFragment = card.mediaFragment ?? card.image;
