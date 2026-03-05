@@ -57,6 +57,7 @@ import { MiningContext } from '../services/mining-context';
 import { useSubtitleStyles } from '../hooks/use-subtitle-styles';
 import { useFullscreen } from '../hooks/use-fullscreen';
 import MobileVideoOverlay from '@project/common/components/MobileVideoOverlay';
+import BlurOverlay from './BlurOverlay';
 import { CachedLocalStorage } from '../services/cached-local-storage';
 import useLastScrollableControlType from '../../hooks/use-last-scrollable-control-type';
 import { type Theme } from '@mui/material/styles';
@@ -229,6 +230,7 @@ const CachedShowingSubtitle = React.memo(function CachedShowingSubtitle({
 const useSubtitleContainerStyles = makeStyles(() => ({
     subtitleContainer: {
         position: 'absolute',
+        zIndex: 6,
         paddingLeft: 20,
         paddingRight: 20,
         textAlign: 'center',
@@ -400,6 +402,8 @@ export default function VideoPlayer({
     const [trackCount, setTrackCount] = useState<number>(0);
     const [, forceRender] = useState<any>();
     const [mineIntervalStartTimestamp, setMineIntervalStartTimestamp] = useState<number>();
+    const [blurOverlayVisible, setBlurOverlayVisible] = useState<boolean>(false);
+    const handleBlurOverlayToggle = useCallback(() => setBlurOverlayVisible((v) => !v), []);
     const mobileOverlayRef = useRef<HTMLDivElement>(null);
     const bottomSubtitleContainerRef = useRef<HTMLDivElement>(null);
     const domCacheRef = useRef<OffscreenDomCache | undefined>(undefined);
@@ -409,6 +413,7 @@ export default function VideoPlayer({
         setSubtitleSettings(settings);
         setAnkiSettings(settings);
     }, [settings]);
+
 
     useEffect(() => {
         setSubtitleAlignments(allSubtitleAlignments(subtitleSettings));
@@ -1757,6 +1762,8 @@ export default function VideoPlayer({
                 src={videoFile}
                 onMouseOver={handleVideoMouseOver}
             />
+            {/* Optional blur mask overlay; constrained to the player container */}
+            {blurOverlayVisible && <BlurOverlay containerRef={containerRef} />}
             {topSubtitleElements.length > 0 && (
                 <SubtitleContainer alignment={'top'} subtitleSettings={subtitleSettings} baseOffset={0}>
                     {topSubtitleElements}
@@ -1819,6 +1826,8 @@ export default function VideoPlayer({
                 onSubtitleAlignment={handleSubtitleAlignment}
                 hideToolbar={isMobile}
                 onLoadFiles={popOut ? undefined : handleLoadFiles}
+                blurOverlayEnabled={blurOverlayVisible}
+                onBlurOverlayToggle={handleBlurOverlayToggle}
             />
         </div>
     );
