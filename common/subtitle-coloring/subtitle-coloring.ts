@@ -1299,7 +1299,7 @@ const computeRichText = (fullText: string, tokenization: Tokenization, dt?: Dict
 const ERROR_STYLE = `style="text-decoration: line-through red 3px;"`;
 const LOGIC_ERROR_STYLE = `style="text-decoration: line-through red 3px double;"`;
 
-const applyTokenStyle = (fullText: string, token: Token, dt?: DictionaryTrack) => {
+export const applyTokenStyle = (fullText: string, token: Token, dt?: DictionaryTrack) => {
     const tokenText = applyFrequencyAnnotation(applyReadingAnnotation(fullText, token, dt), token, dt);
     if (token.status === null) return `<span ${ERROR_STYLE}>${tokenText}</span>`;
     if (token.status === undefined && dt && dictionaryTrackEnabled(dt)) {
