@@ -47,7 +47,6 @@ import SettingsTextField from './SettingsTextField';
 import SettingsSection from './SettingsSection';
 import {
     DictionaryBuildAnkiCacheProgress,
-    DictionaryBuildAnkiCacheStart,
     DictionaryBuildAnkiCacheState,
     DictionaryBuildAnkiCacheStateError,
     DictionaryBuildAnkiCacheStateErrorBuildExpirationData,
@@ -66,7 +65,7 @@ import {
     percentToHex2,
 } from '../util';
 import DictionaryImport from './DictionaryImport';
-import { applyTokenStyle } from '../subtitle-coloring';
+import { applyTokenStyle, InternalToken } from '../subtitle-coloring';
 
 const useBuildAnkiCacheState: () => {
     severity: 'error' | 'info';
@@ -1128,28 +1127,26 @@ const DictionarySettingsTab: React.FC<Props> = ({
                             label={t('settings.dictionaryAnkiTreatSuspendedNormal')}
                         />
                         {[...Array(NUM_TOKEN_STATUSES).keys()].map((i) => {
-                            const tokenStatusIndex = NUM_TOKEN_STATUSES - 1 - i;
-                            if (tokenStatusIndex === 0) return null;
+                            const tokenStatus: TokenStatus = NUM_TOKEN_STATUSES - 1 - i;
+                            if (tokenStatus === TokenStatus.UNCOLLECTED) return null;
                             return (
                                 <LabelWithHoverEffect
                                     key={i}
                                     control={
                                         <Radio
-                                            checked={
-                                                selectedDictionary.dictionaryAnkiTreatSuspended === tokenStatusIndex
-                                            }
+                                            checked={selectedDictionary.dictionaryAnkiTreatSuspended === tokenStatus}
                                             onChange={(event) => {
                                                 if (!event.target.checked) return;
                                                 const newTracks = [...dictionaryTracks];
                                                 newTracks[selectedDictionaryTrack] = {
                                                     ...newTracks[selectedDictionaryTrack],
-                                                    dictionaryAnkiTreatSuspended: tokenStatusIndex,
+                                                    dictionaryAnkiTreatSuspended: tokenStatus,
                                                 };
                                                 onSettingChanged('dictionaryTracks', newTracks);
                                             }}
                                         />
                                     }
-                                    label={t(`settings.dictionaryTokenStatus${tokenStatusIndex}`)}
+                                    label={t(`settings.dictionaryTokenStatus${tokenStatus}`)}
                                 />
                             );
                         })}
@@ -1275,12 +1272,12 @@ const DictionarySettingsTab: React.FC<Props> = ({
                 {supportsDictionaryTokenStatusDisplayAlpha ? (
                     <Stack spacing={1}>
                         {[...Array(NUM_TOKEN_STATUSES).keys()].map((i) => {
-                            const tokenStatusIndex = NUM_TOKEN_STATUSES - 1 - i;
+                            const tokenStatus: TokenStatus = NUM_TOKEN_STATUSES - 1 - i;
                             const { display, color, alpha } =
-                                selectedDictionary.dictionaryTokenStatusConfig[tokenStatusIndex];
+                                selectedDictionary.dictionaryTokenStatusConfig[tokenStatus];
                             const updateTokenStatusConfig = (newConfig: TokenStatusConfig) => {
                                 const newConfigs = [...selectedDictionary.dictionaryTokenStatusConfig];
-                                newConfigs[tokenStatusIndex] = newConfig;
+                                newConfigs[tokenStatus] = newConfig;
                                 const newTracks = [...dictionaryTracks];
                                 newTracks[selectedDictionaryTrack] = {
                                     ...newTracks[selectedDictionaryTrack],
@@ -1290,7 +1287,20 @@ const DictionarySettingsTab: React.FC<Props> = ({
                                 };
                                 onSettingChanged('dictionaryTracks', newTracks);
                             };
-                            const localizedMaturity = t(`settings.dictionaryTokenStatus${tokenStatusIndex}`);
+                            const localizedMaturity = t(`settings.dictionaryTokenStatus${tokenStatus}`);
+                            const localizedReading = t(`settings.dictionaryTokenStatusReading${tokenStatus}`);
+                            const frequency =
+                                tokenStatus === TokenStatus.MATURE
+                                    ? 1
+                                    : tokenStatus === TokenStatus.YOUNG
+                                      ? 23
+                                      : tokenStatus === TokenStatus.GRADUATED
+                                        ? 456
+                                        : tokenStatus === TokenStatus.LEARNING
+                                          ? 7890
+                                          : tokenStatus === TokenStatus.UNKNOWN
+                                            ? 12345
+                                            : 678901;
                             const displayingDictionaryTrack: DictionaryTrack = {
                                 ...selectedDictionary,
                                 dictionaryColorizeSubtitles: true,
@@ -1301,7 +1311,26 @@ const DictionarySettingsTab: React.FC<Props> = ({
                                     direction="row"
                                     sx={{ margin: 0, padding: 0, opacity: display ? 1 : 0.5 }}
                                 >
-                                    <Stack sx={{ width: '100%' }} spacing={1}>
+                                    <Stack
+                                        sx={{
+                                            width: '100%',
+                                            '& .asb-reading': {
+                                                'ruby-position': 'over',
+                                            },
+                                            '& .asb-reading rt': {
+                                                fontSize: '0.5em',
+                                                lineHeight: 1,
+                                            },
+                                            '& .asb-frequency': {
+                                                'ruby-position': 'under',
+                                            },
+                                            '& .asb-frequency rt': {
+                                                fontSize: '0.5em',
+                                                lineHeight: 1,
+                                            },
+                                        }}
+                                        spacing={1}
+                                    >
                                         <div
                                             style={{
                                                 ...subtitleStyles,
@@ -1323,10 +1352,18 @@ const DictionarySettingsTab: React.FC<Props> = ({
                                                         localizedMaturity,
                                                         {
                                                             pos: [0, localizedMaturity.length],
-                                                            status: tokenStatusIndex as TokenStatus,
+                                                            status: tokenStatus,
                                                             states: [],
-                                                            readings: [],
-                                                        },
+                                                            readings: [
+                                                                {
+                                                                    pos: [0, localizedMaturity.length],
+                                                                    reading: localizedReading,
+                                                                },
+                                                            ],
+                                                            frequency,
+                                                            __internal: true,
+                                                        } as InternalToken,
+                                                        true,
                                                         displayingDictionaryTrack
                                                     ),
                                                 }}
@@ -1336,9 +1373,7 @@ const DictionarySettingsTab: React.FC<Props> = ({
                                                 checked={display}
                                                 onChange={(e) =>
                                                     updateTokenStatusConfig({
-                                                        ...selectedDictionary.dictionaryTokenStatusConfig[
-                                                            tokenStatusIndex
-                                                        ],
+                                                        ...selectedDictionary.dictionaryTokenStatusConfig[tokenStatus],
                                                         display: e.target.checked,
                                                     })
                                                 }
@@ -1353,9 +1388,7 @@ const DictionarySettingsTab: React.FC<Props> = ({
                                                 disabled={!display}
                                                 onChange={(e) =>
                                                     updateTokenStatusConfig({
-                                                        ...selectedDictionary.dictionaryTokenStatusConfig[
-                                                            tokenStatusIndex
-                                                        ],
+                                                        ...selectedDictionary.dictionaryTokenStatusConfig[tokenStatus],
                                                         color: e.target.value,
                                                     })
                                                 }
@@ -1370,9 +1403,7 @@ const DictionarySettingsTab: React.FC<Props> = ({
                                                     const parsed = Number(e.target.value);
                                                     if (Number.isNaN(parsed)) return;
                                                     updateTokenStatusConfig({
-                                                        ...selectedDictionary.dictionaryTokenStatusConfig[
-                                                            tokenStatusIndex
-                                                        ],
+                                                        ...selectedDictionary.dictionaryTokenStatusConfig[tokenStatus],
                                                         alpha: percentToHex2(Math.max(0, Math.min(100, parsed)) / 100),
                                                     });
                                                 }}
@@ -1417,22 +1448,22 @@ const DictionarySettingsTab: React.FC<Props> = ({
                             labelPlacement="start"
                         />
                         {[...Array(NUM_TOKEN_STATUSES).keys()].map((i) => {
-                            const tokenStatusIndex = NUM_TOKEN_STATUSES - 1 - i;
-                            if (tokenStatusIndex === tokenStylingToHide) return null;
+                            const tokenStatus: TokenStatus = NUM_TOKEN_STATUSES - 1 - i;
+                            if (tokenStatus === tokenStylingToHide) return null;
                             return (
                                 <SettingsTextField
                                     key={i}
                                     type="color"
-                                    label={t(`settings.dictionaryTokenStatus${tokenStatusIndex}`)}
+                                    label={t(`settings.dictionaryTokenStatus${tokenStatus}`)}
                                     fullWidth
-                                    value={selectedDictionary.dictionaryTokenStatusColors[tokenStatusIndex]}
+                                    value={selectedDictionary.dictionaryTokenStatusColors[tokenStatus]}
                                     color="primary"
                                     onChange={(e) => {
                                         const newColors = [...selectedDictionary.dictionaryTokenStatusColors];
-                                        newColors[tokenStatusIndex] = e.target.value;
+                                        newColors[tokenStatus] = e.target.value;
                                         const newConfigs = [...selectedDictionary.dictionaryTokenStatusConfig];
-                                        newConfigs[tokenStatusIndex] = {
-                                            ...newConfigs[tokenStatusIndex],
+                                        newConfigs[tokenStatus] = {
+                                            ...newConfigs[tokenStatus],
                                             color: e.target.value,
                                         };
 

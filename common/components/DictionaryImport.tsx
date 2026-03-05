@@ -344,10 +344,10 @@ const DictionaryImport: React.FC<Props> = ({
                                 onChange={(e) => setImportClipboardStatus(Number(e.target.value) as TokenStatus)}
                             >
                                 {[...Array(NUM_TOKEN_STATUSES).keys()].map((i) => {
-                                    const tokenStatusIndex = NUM_TOKEN_STATUSES - 1 - i;
+                                    const tokenStatus: TokenStatus = NUM_TOKEN_STATUSES - 1 - i;
                                     return (
-                                        <MenuItem key={tokenStatusIndex} value={tokenStatusIndex}>
-                                            {t(`settings.dictionaryTokenStatus${tokenStatusIndex}`)}
+                                        <MenuItem key={tokenStatus} value={tokenStatus}>
+                                            {t(`settings.dictionaryTokenStatus${tokenStatus}`)}
                                         </MenuItem>
                                     );
                                 })}
