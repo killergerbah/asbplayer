@@ -2,25 +2,24 @@ import React, { useCallback, useState, useEffect, useMemo, useRef } from 'react'
 import { Trans, useTranslation } from 'react-i18next';
 import LabelWithHoverEffect from './LabelWithHoverEffect';
 import RefreshIcon from '@mui/icons-material/Refresh';
-import {
-    Autocomplete,
-    Button,
-    Checkbox,
-    FormControl,
-    FormLabel,
-    IconButton,
-    InputAdornment,
-    Link,
-    MenuItem,
-    ListItemIcon,
-    ListItemText,
-    Radio,
-    RadioGroup,
-    Stack,
-    Switch,
-    TextField,
-    Typography,
-} from '@mui/material';
+import Autocomplete from '@mui/material/Autocomplete';
+import Button from '@mui/material/Button';
+import Checkbox from '@mui/material/Checkbox';
+import FormControl from '@mui/material/FormControl';
+import FormLabel from '@mui/material/FormLabel';
+import IconButton from '@mui/material/IconButton';
+import InputAdornment from '@mui/material/InputAdornment';
+import Link from '@mui/material/Link';
+import MenuItem from '@mui/material/MenuItem';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
+import Radio from '@mui/material/Radio';
+import RadioGroup from '@mui/material/RadioGroup';
+import Stack from '@mui/material/Stack';
+import Switch from '@mui/material/Switch';
+import TextField from '@mui/material/TextField';
+import Typography from '@mui/material/Typography';
+import { useTheme } from '@mui/material/styles';
 import MuiAlert, { type AlertProps } from '@mui/material/Alert';
 import {
     AsbplayerSettings,
@@ -36,6 +35,10 @@ import {
     dictionaryStatusCollectionEnabled,
     TokenFrequencyAnnotation,
     TokenStatusConfig,
+    textSubtitleSettingsForTrack,
+    TextSubtitleSettings,
+    TokenStatus,
+    DictionaryTrack,
 } from '@project/common/settings';
 import { Anki } from '../anki';
 import { Yomitan } from '../yomitan/yomitan';
@@ -44,7 +47,6 @@ import SettingsTextField from './SettingsTextField';
 import SettingsSection from './SettingsSection';
 import {
     DictionaryBuildAnkiCacheProgress,
-    DictionaryBuildAnkiCacheStart,
     DictionaryBuildAnkiCacheState,
     DictionaryBuildAnkiCacheStateError,
     DictionaryBuildAnkiCacheStateErrorBuildExpirationData,
@@ -54,8 +56,16 @@ import {
     DictionaryBuildAnkiCacheStats,
 } from '../src/message';
 import { DictionaryProvider } from '../dictionary-db';
-import { ensureStoragePersisted, hex2ToPercent, humanReadableTime, localizedDate, percentToHex2 } from '../util';
+import {
+    computeStyles,
+    ensureStoragePersisted,
+    hex2ToPercent,
+    humanReadableTime,
+    localizedDate,
+    percentToHex2,
+} from '../util';
 import DictionaryImport from './DictionaryImport';
+import { applyTokenStyle, InternalToken } from '../subtitle-coloring';
 
 const useBuildAnkiCacheState: () => {
     severity: 'error' | 'info';
@@ -318,6 +328,11 @@ const DictionarySettingsTab: React.FC<Props> = ({
     const [dictionaryImportOpen, setDictionaryImportOpen] = useState<boolean>(false);
     const ankiSectionRef = useRef<HTMLDivElement | null>(null);
     const handleAnkiHelperTextClicked = () => ankiSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const subtitleStyles = useMemo(
+        () => computeStyles(textSubtitleSettingsForTrack(settings, selectedDictionaryTrack) as TextSubtitleSettings),
+        [settings, selectedDictionaryTrack]
+    );
+    const theme = useTheme();
     return (
         <>
             <DictionaryImport
@@ -1112,28 +1127,26 @@ const DictionarySettingsTab: React.FC<Props> = ({
                             label={t('settings.dictionaryAnkiTreatSuspendedNormal')}
                         />
                         {[...Array(NUM_TOKEN_STATUSES).keys()].map((i) => {
-                            const tokenStatusIndex = NUM_TOKEN_STATUSES - 1 - i;
-                            if (tokenStatusIndex === 0) return null;
+                            const tokenStatus: TokenStatus = NUM_TOKEN_STATUSES - 1 - i;
+                            if (tokenStatus === TokenStatus.UNCOLLECTED) return null;
                             return (
                                 <LabelWithHoverEffect
                                     key={i}
                                     control={
                                         <Radio
-                                            checked={
-                                                selectedDictionary.dictionaryAnkiTreatSuspended === tokenStatusIndex
-                                            }
+                                            checked={selectedDictionary.dictionaryAnkiTreatSuspended === tokenStatus}
                                             onChange={(event) => {
                                                 if (!event.target.checked) return;
                                                 const newTracks = [...dictionaryTracks];
                                                 newTracks[selectedDictionaryTrack] = {
                                                     ...newTracks[selectedDictionaryTrack],
-                                                    dictionaryAnkiTreatSuspended: tokenStatusIndex,
+                                                    dictionaryAnkiTreatSuspended: tokenStatus,
                                                 };
                                                 onSettingChanged('dictionaryTracks', newTracks);
                                             }}
                                         />
                                     }
-                                    label={t(`settings.dictionaryTokenStatus${tokenStatusIndex}`)}
+                                    label={t(`settings.dictionaryTokenStatus${tokenStatus}`)}
                                 />
                             );
                         })}
@@ -1256,16 +1269,15 @@ const DictionarySettingsTab: React.FC<Props> = ({
                         }}
                     />
                 )}
-                <SettingsSection>{t('settings.colors')}</SettingsSection>
                 {supportsDictionaryTokenStatusDisplayAlpha ? (
-                    <>
+                    <Stack spacing={1}>
                         {[...Array(NUM_TOKEN_STATUSES).keys()].map((i) => {
-                            const tokenStatusIndex = NUM_TOKEN_STATUSES - 1 - i;
+                            const tokenStatus: TokenStatus = NUM_TOKEN_STATUSES - 1 - i;
                             const { display, color, alpha } =
-                                selectedDictionary.dictionaryTokenStatusConfig[tokenStatusIndex];
+                                selectedDictionary.dictionaryTokenStatusConfig[tokenStatus];
                             const updateTokenStatusConfig = (newConfig: TokenStatusConfig) => {
                                 const newConfigs = [...selectedDictionary.dictionaryTokenStatusConfig];
-                                newConfigs[tokenStatusIndex] = newConfig;
+                                newConfigs[tokenStatus] = newConfig;
                                 const newTracks = [...dictionaryTracks];
                                 newTracks[selectedDictionaryTrack] = {
                                     ...newTracks[selectedDictionaryTrack],
@@ -1275,67 +1287,139 @@ const DictionarySettingsTab: React.FC<Props> = ({
                                 };
                                 onSettingChanged('dictionaryTracks', newTracks);
                             };
+                            const localizedMaturity = t(`settings.dictionaryTokenStatus${tokenStatus}`);
+                            const localizedReading = t(`settings.dictionaryTokenStatusReading${tokenStatus}`);
+                            const frequency =
+                                tokenStatus === TokenStatus.MATURE
+                                    ? 1
+                                    : tokenStatus === TokenStatus.YOUNG
+                                      ? 23
+                                      : tokenStatus === TokenStatus.GRADUATED
+                                        ? 456
+                                        : tokenStatus === TokenStatus.LEARNING
+                                          ? 7890
+                                          : tokenStatus === TokenStatus.UNKNOWN
+                                            ? 12345
+                                            : 678901;
+                            const displayingDictionaryTrack: DictionaryTrack = {
+                                ...selectedDictionary,
+                                dictionaryColorizeSubtitles: true,
+                            };
                             return (
-                                <Stack key={i} direction="row" spacing={1} alignItems="center">
-                                    <Switch
-                                        checked={display}
-                                        onChange={(e) =>
-                                            updateTokenStatusConfig({
-                                                ...selectedDictionary.dictionaryTokenStatusConfig[tokenStatusIndex],
-                                                display: e.target.checked,
-                                            })
-                                        }
-                                    />
-                                    <div style={{ flex: 1, opacity: display ? 1 : 0.5 }}>
-                                        <SettingsTextField
-                                            type="color"
-                                            label={t(`settings.dictionaryTokenStatus${tokenStatusIndex}`)}
-                                            fullWidth
-                                            value={color}
-                                            color="primary"
-                                            disabled={!display}
-                                            onChange={(e) =>
-                                                updateTokenStatusConfig({
-                                                    ...selectedDictionary.dictionaryTokenStatusConfig[tokenStatusIndex],
-                                                    color: e.target.value,
-                                                })
-                                            }
-                                        />
-                                    </div>
+                                <Stack
+                                    key={i}
+                                    direction="row"
+                                    sx={{ margin: 0, padding: 0, opacity: display ? 1 : 0.5 }}
+                                >
                                     <Stack
-                                        direction="row"
+                                        sx={{
+                                            width: '100%',
+                                            '& .asb-reading': {
+                                                'ruby-position': 'over',
+                                            },
+                                            '& .asb-reading rt': {
+                                                fontSize: '0.5em',
+                                                lineHeight: 1,
+                                            },
+                                            '& .asb-frequency': {
+                                                'ruby-position': 'under',
+                                            },
+                                            '& .asb-frequency rt': {
+                                                fontSize: '0.5em',
+                                                lineHeight: 1,
+                                            },
+                                        }}
                                         spacing={1}
-                                        alignItems="center"
-                                        sx={{ whiteSpace: 'nowrap', opacity: display ? 1 : 0.5 }}
                                     >
-                                        <Typography variant="body2" color={display ? 'textSecondary' : 'textDisabled'}>
-                                            {t('settings.dictionaryTokenStatusAlpha')}:
-                                        </Typography>
-                                        <TextField
-                                            type="number"
-                                            size="small"
-                                            value={Math.round(hex2ToPercent(alpha) * 100)}
-                                            disabled={!display}
-                                            onChange={(e) => {
-                                                const parsed = Number(e.target.value);
-                                                if (Number.isNaN(parsed)) return;
-                                                updateTokenStatusConfig({
-                                                    ...selectedDictionary.dictionaryTokenStatusConfig[tokenStatusIndex],
-                                                    alpha: percentToHex2(Math.max(0, Math.min(100, parsed)) / 100),
-                                                });
+                                        <div
+                                            style={{
+                                                ...subtitleStyles,
+                                                fontSize: 24,
+                                                width: '100%',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'space-between',
+                                                flexShrink: 0,
+                                                backgroundImage: `linear-gradient(45deg, ${theme.palette.action.disabledBackground} 25%, transparent 25%), linear-gradient(-45deg, ${theme.palette.action.disabledBackground} 25%, transparent 25%), linear-gradient(45deg, transparent 75%, ${theme.palette.action.disabledBackground} 75%), linear-gradient(-45deg, transparent 75%,${theme.palette.action.disabledBackground} 75%)`,
+                                                backgroundSize: '20px 20px',
+                                                backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0px',
                                             }}
-                                            slotProps={{
-                                                htmlInput: { min: 0, max: 100, step: 1 },
-                                                input: {
-                                                    endAdornment: <InputAdornment position="end">%</InputAdornment>,
-                                                },
-                                            }}
-                                        />
+                                        >
+                                            <div
+                                                style={{ padding: theme.spacing(1) }}
+                                                dangerouslySetInnerHTML={{
+                                                    __html: applyTokenStyle(
+                                                        localizedMaturity,
+                                                        {
+                                                            pos: [0, localizedMaturity.length],
+                                                            status: tokenStatus,
+                                                            states: [],
+                                                            readings: [
+                                                                {
+                                                                    pos: [0, localizedMaturity.length],
+                                                                    reading: localizedReading,
+                                                                },
+                                                            ],
+                                                            frequency,
+                                                            __internal: true,
+                                                        } as InternalToken,
+                                                        true,
+                                                        displayingDictionaryTrack
+                                                    ),
+                                                }}
+                                            />
+                                            <Switch
+                                                sx={{ position: 'relative', left: 0 }}
+                                                checked={display}
+                                                onChange={(e) =>
+                                                    updateTokenStatusConfig({
+                                                        ...selectedDictionary.dictionaryTokenStatusConfig[tokenStatus],
+                                                        display: e.target.checked,
+                                                    })
+                                                }
+                                            />
+                                        </div>
+                                        <Stack direction="row" spacing={1} sx={{ flexGrow: 1, alignItems: 'center' }}>
+                                            <TextField
+                                                type="color"
+                                                sx={{ width: '50%' }}
+                                                value={color}
+                                                color="primary"
+                                                disabled={!display}
+                                                onChange={(e) =>
+                                                    updateTokenStatusConfig({
+                                                        ...selectedDictionary.dictionaryTokenStatusConfig[tokenStatus],
+                                                        color: e.target.value,
+                                                    })
+                                                }
+                                            />
+                                            <TextField
+                                                type="number"
+                                                label={t('settings.dictionaryTokenStatusAlpha')}
+                                                sx={{ flexGrow: 1 }}
+                                                value={Math.round(hex2ToPercent(alpha) * 100)}
+                                                disabled={!display}
+                                                onChange={(e) => {
+                                                    const parsed = Number(e.target.value);
+                                                    if (Number.isNaN(parsed)) return;
+                                                    updateTokenStatusConfig({
+                                                        ...selectedDictionary.dictionaryTokenStatusConfig[tokenStatus],
+                                                        alpha: percentToHex2(Math.max(0, Math.min(100, parsed)) / 100),
+                                                    });
+                                                }}
+                                                slotProps={{
+                                                    htmlInput: { min: 0, max: 100, step: 1 },
+                                                    input: {
+                                                        endAdornment: <InputAdornment position="end">%</InputAdornment>,
+                                                    },
+                                                }}
+                                            />
+                                        </Stack>
                                     </Stack>
                                 </Stack>
                             );
                         })}
-                    </>
+                    </Stack>
                 ) : (
                     <>
                         <SwitchLabelWithHoverEffect
@@ -1364,22 +1448,22 @@ const DictionarySettingsTab: React.FC<Props> = ({
                             labelPlacement="start"
                         />
                         {[...Array(NUM_TOKEN_STATUSES).keys()].map((i) => {
-                            const tokenStatusIndex = NUM_TOKEN_STATUSES - 1 - i;
-                            if (tokenStatusIndex === tokenStylingToHide) return null;
+                            const tokenStatus: TokenStatus = NUM_TOKEN_STATUSES - 1 - i;
+                            if (tokenStatus === tokenStylingToHide) return null;
                             return (
                                 <SettingsTextField
                                     key={i}
                                     type="color"
-                                    label={t(`settings.dictionaryTokenStatus${tokenStatusIndex}`)}
+                                    label={t(`settings.dictionaryTokenStatus${tokenStatus}`)}
                                     fullWidth
-                                    value={selectedDictionary.dictionaryTokenStatusColors[tokenStatusIndex]}
+                                    value={selectedDictionary.dictionaryTokenStatusColors[tokenStatus]}
                                     color="primary"
                                     onChange={(e) => {
                                         const newColors = [...selectedDictionary.dictionaryTokenStatusColors];
-                                        newColors[tokenStatusIndex] = e.target.value;
+                                        newColors[tokenStatus] = e.target.value;
                                         const newConfigs = [...selectedDictionary.dictionaryTokenStatusConfig];
-                                        newConfigs[tokenStatusIndex] = {
-                                            ...newConfigs[tokenStatusIndex],
+                                        newConfigs[tokenStatus] = {
+                                            ...newConfigs[tokenStatus],
                                             color: e.target.value,
                                         };
 
