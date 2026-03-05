@@ -6,6 +6,10 @@ import { VitePWA } from 'vite-plugin-pwa';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
 
 export default defineConfig(({ mode }) => {
+    const crossOriginHeaders = {
+        'Cross-Origin-Opener-Policy': 'same-origin',
+        'Cross-Origin-Embedder-Policy': 'require-corp',
+    };
     const env = loadEnv(mode, process.cwd());
     const domain = env.VITE_APP_DOMAIN || 'killergerbah.github.io';
     const base = env.VITE_APP_BASE_PATH || '/asbplayer';
@@ -75,6 +79,7 @@ export default defineConfig(({ mode }) => {
         server: {
             open: true,
             port: 3000,
+           //  headers: crossOriginHeaders,
         },
     };
 });

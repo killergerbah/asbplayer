@@ -37,6 +37,7 @@ import {
     surroundingSubtitlesAroundInterval,
     ensureStoragePersisted,
 } from '@project/common/util';
+import MemoryTester from '@project/common/components/MemoryTester';
 import { SubtitleCollection } from '@project/common/subtitle-collection';
 import { HoveredToken } from '@project/common/subtitle-coloring';
 import Clock from '../services/clock';
@@ -240,16 +241,16 @@ const useSubtitleContainerStyles = makeStyles(() => ({
 interface SubtitleContainerProps {
     subtitleSettings: SubtitleSettings;
     alignment: SubtitleAlignment;
+    subtitleZIndex: boolean;
     baseOffset: number;
     children: React.ReactNode;
 }
 
 const SubtitleContainer = React.forwardRef<HTMLDivElement, SubtitleContainerProps>(function SubtitleContainer(
-    { subtitleSettings, alignment, baseOffset, children }: SubtitleContainerProps,
+    { subtitleSettings, alignment, baseOffset, children, subtitleZIndex }: SubtitleContainerProps,
     ref
 ) {
     const classes = useSubtitleContainerStyles();
-
     return (
         <div
             ref={ref}
@@ -259,6 +260,7 @@ const SubtitleContainer = React.forwardRef<HTMLDivElement, SubtitleContainerProp
                     ? { bottom: subtitleSettings.subtitlePositionOffset + baseOffset }
                     : { top: subtitleSettings.topSubtitlePositionOffset + baseOffset }),
                 ...(subtitleSettings.subtitlesWidth === -1 ? {} : { width: `${subtitleSettings.subtitlesWidth}%` }),
+                zIndex: subtitleZIndex ? 12 : 0,
             }}
         >
             {children}
@@ -345,6 +347,7 @@ export default function VideoPlayer({
     const { t } = useTranslation();
     const poppingInRef = useRef<boolean>(undefined);
     const videoRef = useRef<ExperimentalHTMLVideoElement>(undefined);
+    const hiddenVideoRef = useRef<HTMLVideoElement>(null); // seek preview thumbnail
     const [windowWidth, windowHeight] = useWindowSize(true);
     if (videoRef.current) {
         videoRef.current.width = windowWidth;
@@ -356,6 +359,8 @@ export default function VideoPlayer({
     const playing = () => !videoRef.current?.paused || false;
     const [length, setLength] = useState<number>(0);
     const [videoFileName, setVideoFileName] = useState<string>();
+    const [videoWidth, setVideoWidth] = useState<number>(); // width and height are original width and height from metadata
+    const [videoHeight, setVideoHeight] = useState<number>();
     const [offset, setOffset] = useState<number>(0);
     const [audioTracks, setAudioTracks] = useState<AudioTrackModel[]>();
     const [selectedAudioTrack, setSelectedAudioTrack] = useState<string>();
@@ -403,12 +408,28 @@ export default function VideoPlayer({
     const mobileOverlayRef = useRef<HTMLDivElement>(null);
     const bottomSubtitleContainerRef = useRef<HTMLDivElement>(null);
     const domCacheRef = useRef<OffscreenDomCache | undefined>(undefined);
+    const thumbnailsRef = useRef<Map<number, string>>(new Map()); // cache thumbnails, in intervals of 4s
+    const isGeneratingRef = useRef(false); // avoid subsequent calls to generate thumbnail while generating one
 
     useEffect(() => {
         setMiscSettings(settings);
         setSubtitleSettings(settings);
         setAnkiSettings(settings);
     }, [settings]);
+
+    useEffect(() => {
+        const probeMemoryUsage = async () => {
+            try {
+                if (crossOriginIsolated && 'measureUserAgentSpecificMemory' in performance) {
+                    const memSample = await (performance as any).measureUserAgentSpecificMemory();
+                    console.log(memSample);
+                }
+            } catch (exception) {
+                console.error(exception);
+            }
+        };
+        probeMemoryUsage();
+    }, []);
 
     useEffect(() => {
         setSubtitleAlignments(allSubtitleAlignments(subtitleSettings));
@@ -478,9 +499,14 @@ export default function VideoPlayer({
 
                 if (videoElement.readyState === 4) {
                     notifyReady(videoElement, playerChannel, setAudioTracks, setSelectedAudioTrack);
+                    setVideoWidth(videoElement.videoWidth);
+                    setVideoHeight(videoElement.videoHeight);
                 } else {
-                    videoElement.onloadeddata = () =>
+                    videoElement.onloadeddata = () => {
                         notifyReady(videoElement, playerChannel, setAudioTracks, setSelectedAudioTrack);
+                        setVideoWidth(videoElement.videoWidth);
+                        setVideoHeight(videoElement.videoHeight);
+                    }
                     videoElement.ondurationchange = () =>
                         notifyReady(videoElement, playerChannel, setAudioTracks, setSelectedAudioTrack);
                 }
@@ -506,7 +532,7 @@ export default function VideoPlayer({
                 }
             }
         },
-        [clock, playerChannel, updatePlayerState]
+        [clock, playerChannel, updatePlayerState, videoWidth, videoHeight]
     );
 
     function selectAudioTrack(id: string) {
@@ -708,9 +734,54 @@ export default function VideoPlayer({
             }
 
             const time = progress * length;
+            // get a screenshot of this time when hovered
             playerChannel.currentTime(time / 1000);
         },
         [length, clock, playerChannel]
+    );
+
+    const handleSeekPreview = useCallback(
+        (progress: number): string | undefined => {
+            if (!Number.isFinite(length)) {
+                return;
+            }
+
+            if (!hiddenVideoRef.current) {
+                return;
+            }
+
+            const time = progress * length;
+            const video = hiddenVideoRef.current;
+
+            const thumbnailKey = Math.floor(((time / 1000) / 4));
+
+            // cached url found, return url
+            if (thumbnailsRef.current.has(thumbnailKey)) {
+                return (thumbnailsRef.current.get(thumbnailKey));
+            }
+
+            if (isGeneratingRef.current) return;
+            // if not in cache, generate new one in the background
+            isGeneratingRef.current = true;
+
+            const onSeeked = () => {                
+                const canvas = document.createElement('canvas');
+                canvas.width = video.videoWidth * 0.7;
+                canvas.height = video.videoHeight * 0.7;
+                const ctx = canvas.getContext('2d');
+                ctx?.drawImage(video, 0, 0, canvas.width, canvas.height);
+                
+                const thumbnailUrl = canvas.toDataURL('image/jpeg', 0.7);
+                thumbnailsRef.current.set(thumbnailKey, thumbnailUrl);
+                isGeneratingRef.current = false;
+            };
+            
+            video.addEventListener('seeked', onSeeked, { once: true });
+            video.currentTime = time / 1000;
+            
+            return;
+        },
+        [length, clock]
     );
 
     const handleSeekByTimestamp = useCallback(
@@ -1757,8 +1828,23 @@ export default function VideoPlayer({
                 src={videoFile}
                 onMouseOver={handleVideoMouseOver}
             />
+            {/* <MemoryTester /> */}
+            {/* this video is for getting the seek preview below */}
+            <video
+                src={videoFile}
+                muted
+                preload="auto"
+                autoPlay={false}
+                style={{position: "absolute", left: "-9999px"}}
+                ref={hiddenVideoRef}
+            />
             {topSubtitleElements.length > 0 && (
-                <SubtitleContainer alignment={'top'} subtitleSettings={subtitleSettings} baseOffset={0}>
+                <SubtitleContainer 
+                    alignment={'top'} 
+                    subtitleSettings={subtitleSettings}
+                    baseOffset={0}
+                    subtitleZIndex={settings.subtitleAboveThumbnail}
+                >
                     {topSubtitleElements}
                 </SubtitleContainer>
             )}
@@ -1768,11 +1854,14 @@ export default function VideoPlayer({
                     alignment={'bottom'}
                     subtitleSettings={subtitleSettings}
                     baseOffset={baseBottomSubtitleOffset}
+                    subtitleZIndex={settings.subtitleAboveThumbnail}
                 >
                     {bottomSubtitleElements}
                 </SubtitleContainer>
             )}
             <Controls
+                videoWidth={videoWidth}
+                videoHeight={videoHeight}
                 mousePositionRef={mousePositionRef}
                 clock={clock}
                 length={length}
@@ -1799,6 +1888,7 @@ export default function VideoPlayer({
                 onPlay={handlePlay}
                 onPause={handlePause}
                 onSeek={handleSeek}
+                onSeekPreview={handleSeekPreview}
                 onAudioTrackSelected={handleAudioTrackSelected}
                 onSubtitlesToggle={handleSubtitlesToggle}
                 onFullscreenToggle={handleFullscreenToggle}
