@@ -599,7 +599,10 @@ export class Anki {
         // Sanitize unsafe URL characters for AnkiWeb compatibility.
         name = this._sanitizeUnsafeURLChars(name);
         // Sanitize for file system compatibility on various operating systems.
-        return sanitize(name, { replacement: replacement });
+        name = sanitize(name, { replacement: replacement });
+        // Prefix to allow filtering by asbplayer created files,
+        // and to prevent Anki from skipping cleanup of files that start with an underscore.
+        return 'asbp_' + name;
     }
 
     private async _storeMediaFile(name: string, base64: string, ankiConnectUrl?: string) {
