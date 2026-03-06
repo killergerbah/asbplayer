@@ -1,5 +1,5 @@
 import { AudioClip } from '@project/common/audio-clip';
-import { AnkiExportMode, CardModel, MediaFragment } from '@project/common';
+import { AnkiExportMode, CardModel, MediaFragment, Progress } from '@project/common';
 import { HttpFetcher, Fetcher } from '@project/common';
 import { AnkiSettings, AnkiSettingsFieldKey } from '@project/common/settings';
 import sanitize from 'sanitize-filename';
@@ -338,7 +338,11 @@ export class Anki {
         return response.result;
     }
 
-    async cardsInfo(allCards: number[], ankiConnectUrl?: string): Promise<CardInfo[]> {
+    async cardsInfo(
+        allCards: number[],
+        statusUpdates?: (progress: Progress) => Promise<void>,
+        ankiConnectUrl?: string
+    ): Promise<CardInfo[]> {
         if (!allCards.length) return [];
         return (
             await fromBatches(
@@ -353,7 +357,7 @@ export class Anki {
                     }
                     return cardsInfo;
                 },
-                { batchSize: ANKI_CARDS_INFO_BATCH_SIZE }
+                { batchSize: ANKI_CARDS_INFO_BATCH_SIZE, statusUpdates }
             )
         ).flat();
     }
@@ -647,7 +651,10 @@ export class Anki {
         // Sanitize unsafe URL characters for AnkiWeb compatibility.
         name = this._sanitizeUnsafeURLChars(name);
         // Sanitize for file system compatibility on various operating systems.
-        return sanitize(name, { replacement: replacement });
+        name = sanitize(name, { replacement: replacement });
+        // Prefix to allow filtering by asbplayer created files,
+        // and to prevent Anki from skipping cleanup of files that start with an underscore.
+        return 'asbp_' + name;
     }
 
     private async _storeMediaFile(name: string, base64: string, ankiConnectUrl?: string) {

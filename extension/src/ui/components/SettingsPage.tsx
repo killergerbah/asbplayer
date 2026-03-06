@@ -123,6 +123,7 @@ const SettingsPage = ({
                         extensionSupportsExportCardBind
                         extensionSupportsPageSettings
                         extensionSupportsDictionary
+                        extensionSupportsDictionaryTokenStatusDisplayAlpha
                         chromeKeyBinds={commands}
                         onOpenChromeExtensionShortcuts={handleOpenExtensionShortcuts}
                         onSettingsChanged={onSettingsChanged}
