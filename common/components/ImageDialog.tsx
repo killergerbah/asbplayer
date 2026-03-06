@@ -117,10 +117,9 @@ export default function ImageDialog({ open, image, interval, onClose, onTimestam
                             value={image.timestamp}
                             min={interval[0]}
                             max={interval[1]}
-                            onChange={(_: unknown, newValue: number | number[]) => {
-                                const duration = interval[1] - interval[0];
-                                onTimestampChange(((newValue as number) / duration) * duration);
-                            }}
+                            onChange={(_: unknown, newValue: number | number[]) =>
+                                onTimestampChange(newValue as number)
+                            }
                             valueLabelFormat={(v) => humanReadableTime(v, true)}
                             valueLabelDisplay="on"
                             track={false}

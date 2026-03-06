@@ -267,6 +267,16 @@ export default class MediaFragment {
         mediaFragmentTrimStart: number = 0,
         mediaFragmentTrimEnd: number = 0
     ) {
+        if (card.mediaFragment) {
+            return MediaFragment.fromBase64(
+                card.subtitleFileName,
+                card.subtitle.start,
+                card.mediaFragment.base64,
+                card.mediaFragment.extension,
+                card.mediaFragment.error
+            );
+        }
+
         if (card.file && mediaFragmentFormat === 'webm' && isWebmMediaFragmentSupported()) {
             const { startTimestamp, endTimestamp } = resolveWebmMediaFragmentRange(
                 card.subtitle.start,
@@ -278,15 +288,13 @@ export default class MediaFragment {
             return MediaFragment.fromWebmFile(card.file, startTimestamp, endTimestamp, maxWidth, maxHeight);
         }
 
-        const serializedMediaFragment = card.mediaFragment ?? card.image;
-
-        if (serializedMediaFragment) {
+        if (card.image) {
             return MediaFragment.fromBase64(
                 card.subtitleFileName,
                 card.subtitle.start,
-                serializedMediaFragment.base64,
-                serializedMediaFragment.extension,
-                serializedMediaFragment.error
+                card.image.base64,
+                card.image.extension,
+                card.image.error
             );
         }
 
@@ -320,7 +328,9 @@ export default class MediaFragment {
         maxWidth: number,
         maxHeight: number
     ) {
-        return new MediaFragment(new WebmFileMediaFragmentData(file, startTimestamp, endTimestamp, maxWidth, maxHeight));
+        return new MediaFragment(
+            new WebmFileMediaFragmentData(file, startTimestamp, endTimestamp, maxWidth, maxHeight)
+        );
     }
 
     get name() {

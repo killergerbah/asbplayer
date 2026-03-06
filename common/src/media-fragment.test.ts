@@ -1,9 +1,11 @@
 import {
+    default as MediaFragment,
     isWebmMediaFragmentSupported,
     minWebmMediaFragmentDurationMs,
     preferredWebmMediaFragmentMimeType,
     resolveWebmMediaFragmentRange,
 } from './media-fragment';
+import { CardModel } from './model';
 
 const originalMediaRecorder = (globalThis as any).MediaRecorder;
 const originalCaptureStream = (HTMLCanvasElement.prototype as any).captureStream;
@@ -11,6 +13,21 @@ const originalCaptureStream = (HTMLCanvasElement.prototype as any).captureStream
 afterEach(() => {
     (globalThis as any).MediaRecorder = originalMediaRecorder;
     (HTMLCanvasElement.prototype as any).captureStream = originalCaptureStream;
+});
+
+const makeCard = (overrides: Partial<CardModel>): CardModel => ({
+    subtitle: {
+        text: 'text',
+        start: 1_000,
+        end: 2_000,
+        originalStart: 1_000,
+        originalEnd: 2_000,
+        track: 0,
+    },
+    surroundingSubtitles: [],
+    subtitleFileName: 'sample.ass',
+    mediaTimestamp: 1_000,
+    ...overrides,
 });
 
 it('resolves WebM range with minimum duration when trims collapse the interval', () => {
@@ -68,4 +85,59 @@ it('returns true for WebM support when MediaRecorder and captureStream are avail
     (HTMLCanvasElement.prototype as any).captureStream = () => undefined;
 
     expect(isWebmMediaFragmentSupported()).toEqual(true);
+});
+
+it('prefers a saved media fragment over regenerating a WebM clip', async () => {
+    const mediaRecorder: any = function () {};
+    mediaRecorder.isTypeSupported = (mimeType: string) => mimeType === 'video/webm';
+
+    (globalThis as any).MediaRecorder = mediaRecorder;
+    (HTMLCanvasElement.prototype as any).captureStream = () => undefined;
+
+    const mediaFragment = MediaFragment.fromCard(
+        makeCard({
+            file: {
+                name: 'sample.mp4',
+                blobUrl: 'blob:sample',
+            },
+            mediaFragment: {
+                base64: 'dGVzdA==',
+                extension: 'jpeg',
+            },
+        }),
+        0,
+        0,
+        'webm'
+    );
+
+    expect(mediaFragment?.extension).toEqual('jpeg');
+    expect(mediaFragment?.canChangeTimestamp).toEqual(false);
+    await expect(mediaFragment?.base64()).resolves.toEqual('dGVzdA==');
+});
+
+it('still upgrades legacy screenshots to WebM when a source file is available', () => {
+    const mediaRecorder: any = function () {};
+    mediaRecorder.isTypeSupported = (mimeType: string) => mimeType === 'video/webm';
+
+    (globalThis as any).MediaRecorder = mediaRecorder;
+    (HTMLCanvasElement.prototype as any).captureStream = () => undefined;
+
+    const mediaFragment = MediaFragment.fromCard(
+        makeCard({
+            file: {
+                name: 'sample.mp4',
+                blobUrl: 'blob:sample',
+            },
+            image: {
+                base64: 'dGVzdA==',
+                extension: 'jpeg',
+            },
+        }),
+        0,
+        0,
+        'webm'
+    );
+
+    expect(mediaFragment?.extension).toEqual('webm');
+    expect(mediaFragment?.canChangeTimestamp).toEqual(true);
 });

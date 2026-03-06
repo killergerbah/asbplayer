@@ -16,7 +16,7 @@ const minWebmVideoBitsPerSecond = 1_000_000;
 const maxWebmVideoBitsPerSecond = 24_000_000;
 const minVp9WebmVideoBitsPerSecond = 2_000_000;
 const videoSeekTimeoutMs = 3_000;
-const frameRenderWatchdogTimeoutMs = 3_000;
+const frameRenderWatchdogTimeoutMs = 10_000;
 
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
 
@@ -113,6 +113,8 @@ type FrameLoopSetup = {
     targetEndTimestampMs: number;
     fallbackFrameDelayMs: number;
     renderWatchdogTimeoutMs: number;
+    pauseCapture?: () => void;
+    resumeCapture?: () => void;
     abortSignal: AbortSignal;
 };
 
@@ -393,6 +395,8 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
                 targetEndTimestampMs: settings.endTimestampMs,
                 fallbackFrameDelayMs: settings.fallbackFrameDelayMs,
                 renderWatchdogTimeoutMs: settings.renderWatchdogTimeoutMs,
+                pauseCapture: () => this._pauseRecorder(mediaRecorder),
+                resumeCapture: () => this._resumeRecorder(mediaRecorder),
                 abortSignal,
             });
 
@@ -537,6 +541,8 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
         targetEndTimestampMs,
         fallbackFrameDelayMs,
         renderWatchdogTimeoutMs,
+        pauseCapture,
+        resumeCapture,
         abortSignal,
     }: FrameLoopSetup): Promise<void> {
         throwIfAborted(abortSignal);
@@ -544,6 +550,7 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
         let videoFrameCallbackHandle: number | undefined;
         let animationFrameHandle: number | undefined;
         let fallbackTimer: ReturnType<typeof setTimeout> | undefined;
+        const pageVisible = () => typeof document === 'undefined' || document.visibilityState === 'visible';
 
         const clearScheduledFrame = () => {
             if (videoFrameCallbackHandle !== undefined && typeof video.cancelVideoFrameCallback === 'function') {
@@ -609,6 +616,7 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
             await new Promise<void>((resolve, reject) => {
                 let settled = false;
                 let watchdogTimer: ReturnType<typeof setTimeout> | undefined;
+                let waitingForVisibleTab = false;
                 function onVideoError() {
                     fail(new Error(video.error?.message ?? 'Could not play video to capture WebM'));
                 }
@@ -630,12 +638,65 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
                     video.removeEventListener('error', onVideoError);
                     video.removeEventListener('ended', onVideoEnded);
                     abortSignal.removeEventListener('abort', onAbort);
+                    if (typeof document !== 'undefined') {
+                        document.removeEventListener('visibilitychange', onVisibilityChange);
+                    }
                 }
                 function armWatchdog() {
                     clearWatchdog();
                     watchdogTimer = setTimeout(() => {
                         fail(new Error(`WebM rendering timed out after ${renderWatchdogTimeoutMs}ms`));
                     }, renderWatchdogTimeoutMs);
+                }
+                function pauseForHiddenTab() {
+                    if (settled || waitingForVisibleTab) {
+                        return;
+                    }
+
+                    waitingForVisibleTab = true;
+                    clearWatchdog();
+                    clearScheduledFrame();
+                    pauseCapture?.();
+                    video.pause();
+                    console.info('[MediaFragment] Pausing WebM render while tab is hidden');
+                }
+                function resumeAfterHiddenTab() {
+                    if (settled || !waitingForVisibleTab || !pageVisible()) {
+                        return;
+                    }
+
+                    waitingForVisibleTab = false;
+                    console.info('[MediaFragment] Resuming WebM render after tab became visible');
+                    resumeCapture?.();
+                    Promise.resolve(video.paused && !video.ended ? video.play() : undefined)
+                        .then(() => {
+                            if (settled) {
+                                return;
+                            }
+
+                            if (abortSignal.aborted) {
+                                fail(errorFromAbortSignal(abortSignal));
+                                return;
+                            }
+
+                            if (done()) {
+                                finish();
+                                return;
+                            }
+
+                            armWatchdog();
+                            schedule(onFrame);
+                        })
+                        .catch((error) => {
+                            fail(error instanceof Error ? error : new Error(String(error)));
+                        });
+                }
+                function onVisibilityChange() {
+                    if (pageVisible()) {
+                        resumeAfterHiddenTab();
+                    } else {
+                        pauseForHiddenTab();
+                    }
                 }
                 function finish() {
                     if (settled) {
@@ -663,6 +724,11 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
                             return;
                         }
 
+                        if (!pageVisible()) {
+                            pauseForHiddenTab();
+                            return;
+                        }
+
                         if (done(mediaTimeSeconds)) {
                             finish();
                             return;
@@ -685,8 +751,16 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
                 video.addEventListener('error', onVideoError);
                 video.addEventListener('ended', onVideoEnded);
                 abortSignal.addEventListener('abort', onAbort, { once: true });
+                if (typeof document !== 'undefined') {
+                    document.addEventListener('visibilitychange', onVisibilityChange);
+                }
                 if (abortSignal.aborted) {
                     onAbort();
+                    return;
+                }
+
+                if (!pageVisible()) {
+                    pauseForHiddenTab();
                     return;
                 }
 
@@ -738,6 +812,22 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
         }
 
         return await stopRecorder;
+    }
+
+    private _pauseRecorder(recorder: MediaRecorder | undefined) {
+        if (!recorder || recorder.state !== 'recording') {
+            return;
+        }
+
+        recorder.pause();
+    }
+
+    private _resumeRecorder(recorder: MediaRecorder | undefined) {
+        if (!recorder || recorder.state !== 'paused') {
+            return;
+        }
+
+        recorder.resume();
     }
 
     private _logWebmCaptureSettings(settings: WebmCaptureLogSettings) {

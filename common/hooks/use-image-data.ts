@@ -1,6 +1,38 @@
 import { CancelledMediaFragmentDataRenderingError, MediaFragment } from '@project/common';
 import { useEffect, useState } from 'react';
 
+const mediaFragmentDimensionsLoader = (
+    image: MediaFragment,
+    dataUrl: string,
+    onLoad: (width: number, height: number) => void
+) => {
+    if (image.extension === 'webm') {
+        const video = document.createElement('video');
+        video.preload = 'metadata';
+        video.onloadedmetadata = () => {
+            onLoad(video.videoWidth, video.videoHeight);
+        };
+        video.src = dataUrl;
+
+        return () => {
+            video.onloadedmetadata = null;
+            video.removeAttribute('src');
+            video.load();
+        };
+    }
+
+    const img = new Image();
+    img.onload = () => {
+        onLoad(img.width, img.height);
+    };
+    img.src = dataUrl;
+
+    return () => {
+        img.onload = null;
+        img.src = '';
+    };
+};
+
 export const useImageData = ({ image, smoothTransition }: { image?: MediaFragment; smoothTransition: boolean }) => {
     const [dataUrl, setDataUrl] = useState<string>('');
     const [width, setWidth] = useState<number>(0);
@@ -17,70 +49,35 @@ export const useImageData = ({ image, smoothTransition }: { image?: MediaFragmen
             return;
         }
 
-        let img: HTMLImageElement | undefined;
-        let video: HTMLVideoElement | undefined;
+        let cancelled = false;
+        let cleanupLoadedMedia: (() => void) | undefined;
 
-        function fetchImage() {
-            if (!image) {
-                return;
-            }
+        image
+            .dataUrl()
+            .then((nextDataUrl) => {
+                if (cancelled) {
+                    return;
+                }
 
-            if (image.extension === 'webm') {
-                image
-                    .dataUrl()
-                    .then((nextDataUrl) => {
-                        video = document.createElement('video');
-                        video.onloadedmetadata = () => {
-                            if (!video) {
-                                return;
-                            }
-
-                            setWidth(video.videoWidth);
-                            setHeight(video.videoHeight);
-                            setDataUrl(nextDataUrl);
-                        };
-                        video.src = nextDataUrl;
-                    })
-                    .catch((e) => {
-                        if (!(e instanceof CancelledMediaFragmentDataRenderingError)) {
-                            throw e;
-                        }
-                    });
-                return;
-            }
-
-            image
-                .dataUrl()
-                .then((nextDataUrl) => {
-                    img = new Image();
-                    img.onload = () => {
-                        if (!img) {
-                            return;
-                        }
-
-                        setWidth(img.width);
-                        setHeight(img.height);
-                        setDataUrl(nextDataUrl);
-                    };
-                    img.src = nextDataUrl;
-                })
-                .catch((e) => {
-                    if (!(e instanceof CancelledMediaFragmentDataRenderingError)) {
-                        throw e;
+                cleanupLoadedMedia = mediaFragmentDimensionsLoader(image, nextDataUrl, (nextWidth, nextHeight) => {
+                    if (cancelled) {
+                        return;
                     }
-                });
-        }
 
-        fetchImage();
+                    setWidth(nextWidth);
+                    setHeight(nextHeight);
+                    setDataUrl(nextDataUrl);
+                });
+            })
+            .catch((e) => {
+                if (!(e instanceof CancelledMediaFragmentDataRenderingError)) {
+                    throw e;
+                }
+            });
 
         return () => {
-            if (img) {
-                img.onload = null;
-            }
-
-            if (video) {
-                video.onloadedmetadata = null;
-            }
+            cancelled = true;
+            cleanupLoadedMedia?.();
         };
     }, [image, smoothTransition]);
 
