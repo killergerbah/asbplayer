@@ -18,11 +18,12 @@ import SettingsSection from './SettingsSection';
 interface Props {
     settings: AsbplayerSettings;
     onSettingChanged: <K extends keyof AsbplayerSettings>(key: K, value: AsbplayerSettings[K]) => Promise<void>;
+    showWebmMediaFragmentSettings?: boolean;
 }
 
-const MiningSettingsTab: React.FC<Props> = ({ settings, onSettingChanged }) => {
+const MiningSettingsTab: React.FC<Props> = ({ settings, onSettingChanged, showWebmMediaFragmentSettings = true }) => {
     const { t } = useTranslation();
-    const webmCaptureSupported = isWebmMediaFragmentSupported();
+    const webmCaptureSupported = showWebmMediaFragmentSettings && isWebmMediaFragmentSupported();
     const {
         audioPaddingStart,
         audioPaddingEnd,
@@ -210,23 +211,25 @@ const MiningSettingsTab: React.FC<Props> = ({ settings, onSettingChanged }) => {
                 }}
             />
             <SettingsSection>{t('settings.screenshots')}</SettingsSection>
-            <TextField
-                select
-                fullWidth
-                label="Capture format"
-                value={mediaFragmentFormat}
-                onChange={(event) =>
-                    onSettingChanged(
-                        'mediaFragmentFormat',
-                        event.target.value as AsbplayerSettings['mediaFragmentFormat']
-                    )
-                }
-            >
-                <MenuItem value="jpeg">JPEG screenshot</MenuItem>
-                <MenuItem value="webm" disabled={!webmCaptureSupported}>
-                    {webmCaptureSupported ? 'WebM clip' : 'WebM clip (unsupported)'}
-                </MenuItem>
-            </TextField>
+            {showWebmMediaFragmentSettings && (
+                <TextField
+                    select
+                    fullWidth
+                    label="Capture format"
+                    value={mediaFragmentFormat}
+                    onChange={(event) =>
+                        onSettingChanged(
+                            'mediaFragmentFormat',
+                            event.target.value as AsbplayerSettings['mediaFragmentFormat']
+                        )
+                    }
+                >
+                    <MenuItem value="jpeg">JPEG screenshot</MenuItem>
+                    <MenuItem value="webm" disabled={!webmCaptureSupported}>
+                        {webmCaptureSupported ? 'WebM clip' : 'WebM clip (unsupported)'}
+                    </MenuItem>
+                </TextField>
+            )}
             <TextField
                 type="number"
                 label={t('settings.maxImageWidth')}
@@ -255,7 +258,7 @@ const MiningSettingsTab: React.FC<Props> = ({ settings, onSettingChanged }) => {
                     },
                 }}
             />
-            {mediaFragmentFormat === 'webm' && webmCaptureSupported && (
+            {showWebmMediaFragmentSettings && mediaFragmentFormat === 'webm' && webmCaptureSupported && (
                 <>
                     <TextField
                         type="number"
