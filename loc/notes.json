@@ -151,7 +151,7 @@
         "extension.settings.playback": "Section heading for playback-related settings.",
         "extension.settings.playbackKeyboardShortcuts": "Section heading for keyboard shortcuts related to playback.",
         "extension.settings.recordAudio": "When this setting is enabled, audio is recorded when mining a subtitle.",
-        "extension.settings.screenshotCaptureDelay": "How long asbplayer waits after a mining command is issued to take a screenshot.",
+        "extension.settings.screenshotCaptureDelay": "How long asbplayer waits after a mining command is issued to take a screenshot. If negative, asbplayer will count delay from the end of the subtitle instead of the beginning.",
         "extension.settings.subtitlePositionOffset": "Setting for subtitles' distance from the bottom OR top of a video element.",
         "extension.settings.subtitles": "Section heading for subtitles-related settings such as subtitle display and position. ",
         "extension.settings.syncing": "Section heading for settings related to syncing asbplayer with streaming video.",

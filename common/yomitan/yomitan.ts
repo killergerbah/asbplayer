@@ -1,4 +1,4 @@
-import { Fetcher, HttpFetcher } from '@project/common';
+import { Fetcher, HttpFetcher, Progress } from '@project/common';
 import { DictionaryTrack } from '@project/common/settings';
 import { AsyncSemaphore, fromBatches, HAS_LETTER_REGEX, isKanaOnly } from '@project/common/util';
 import { coerce, lt, gte } from 'semver';
@@ -48,8 +48,19 @@ export class Yomitan {
         this.lastCancelledAt = Date.now();
     }
 
-    async splitAndTokenizeBulk(text: string, yomitanUrl?: string): Promise<TokenPart[][]> {
-        return this.tokenizeBulk(text.split(/(?:\p{STerm}|\r?\n)+/u), yomitanUrl);
+    async splitAndTokenizeBulk(
+        text: string,
+        statusUpdates?: (progress: Progress) => Promise<void>,
+        yomitanUrl?: string
+    ): Promise<TokenPart[][]> {
+        return this.tokenizeBulk(
+            text
+                .split(/(?:\p{STerm}|\r?\n)+/u)
+                .map((p) => p.trim())
+                .filter((p) => HAS_LETTER_REGEX.test(p)),
+            statusUpdates,
+            yomitanUrl
+        );
     }
 
     async tokenize(text: string, yomitanUrl?: string): Promise<TokenPart[][]> {
@@ -79,7 +90,11 @@ export class Yomitan {
         return tokens;
     }
 
-    async tokenizeBulk(allTexts: string[], yomitanUrl?: string): Promise<TokenPart[][]> {
+    async tokenizeBulk(
+        allTexts: string[],
+        statusUpdates?: (progress: Progress) => Promise<void>,
+        yomitanUrl?: string
+    ): Promise<TokenPart[][]> {
         return fromBatches(
             allTexts,
             async (texts) => {
@@ -118,7 +133,7 @@ export class Yomitan {
                 }
                 return tokens;
             },
-            { batchSize: YOMITAN_BATCH_SIZE }
+            { batchSize: YOMITAN_BATCH_SIZE, statusUpdates }
         );
     }
 
@@ -283,7 +298,7 @@ export class Yomitan {
         if (!semver || lt(semver, '25.12.16')) {
             throw new Error(`Minimum Yomitan version is 25.12.16.0, found ${version}`);
         }
-        if (gte(semver, '26.2.15')) this.supportsTokenizeFrequency = true; // TODO: Use actual version
+        if (gte(semver, '26.3.3')) this.supportsTokenizeFrequency = true; // TODO: Use actual version
         return version;
     }
 

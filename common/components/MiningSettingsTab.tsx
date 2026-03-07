@@ -1,5 +1,5 @@
 import TextField from './SettingsTextField';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import FormLabel from '@mui/material/FormLabel';
 import InputAdornment from '@mui/material/InputAdornment';
@@ -19,6 +19,8 @@ interface Props {
     onSettingChanged: <K extends keyof AsbplayerSettings>(key: K, value: AsbplayerSettings[K]) => Promise<void>;
 }
 
+const integerValueRegex = /^-?\d+$/;
+
 const MiningSettingsTab: React.FC<Props> = ({ settings, onSettingChanged }) => {
     const { t } = useTranslation();
     const {
@@ -26,6 +28,7 @@ const MiningSettingsTab: React.FC<Props> = ({ settings, onSettingChanged }) => {
         audioPaddingEnd,
         maxImageWidth,
         maxImageHeight,
+        streamingScreenshotDelay,
         surroundingSubtitlesCountRadius,
         surroundingSubtitlesTimeRadius,
         clickToMineDefaultAction,
@@ -34,6 +37,12 @@ const MiningSettingsTab: React.FC<Props> = ({ settings, onSettingChanged }) => {
         preferMp3,
         copyToClipboardOnMine,
     } = settings;
+    const [screenshotDelayInput, setScreenshotDelayInput] = useState(String(streamingScreenshotDelay));
+
+    useEffect(() => {
+        setScreenshotDelayInput(String(streamingScreenshotDelay));
+    }, [streamingScreenshotDelay]);
+
     return (
         <Stack spacing={1}>
             <FormControl>
@@ -230,6 +239,34 @@ const MiningSettingsTab: React.FC<Props> = ({ settings, onSettingChanged }) => {
                     htmlInput: {
                         min: 0,
                         step: 1,
+                    },
+                }}
+            />
+            <TextField
+                type="number"
+                label={t('extension.settings.screenshotCaptureDelay')}
+                fullWidth
+                value={screenshotDelayInput}
+                color="primary"
+                onChange={(event) => {
+                    const value = event.target.value;
+                    setScreenshotDelayInput(value);
+
+                    if (integerValueRegex.test(value)) {
+                        onSettingChanged('streamingScreenshotDelay', Number(value));
+                    }
+                }}
+                onBlur={() => {
+                    if (!integerValueRegex.test(screenshotDelayInput)) {
+                        setScreenshotDelayInput(String(streamingScreenshotDelay));
+                    }
+                }}
+                slotProps={{
+                    htmlInput: {
+                        step: 100,
+                    },
+                    input: {
+                        endAdornment: <InputAdornment position="end">ms</InputAdornment>,
                     },
                 }}
             />

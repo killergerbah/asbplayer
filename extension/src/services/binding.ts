@@ -59,7 +59,13 @@ import {
 } from '@project/common/settings';
 import { SubtitleSlice } from '@project/common/subtitle-collection';
 import { SubtitleReader } from '@project/common/subtitle-reader';
-import { extractText, seekWithNudge, sourceString, surroundingSubtitlesAroundInterval } from '@project/common/util';
+import {
+    extractText,
+    seekWithNudge,
+    sourceString,
+    subtitleTimestampWithDelay,
+    surroundingSubtitlesAroundInterval,
+} from '@project/common/util';
 import AnkiUiController from '../controllers/anki-ui-controller';
 import ControlsController from '../controllers/controls-controller';
 import DragController from '../controllers/drag-controller';
@@ -182,6 +188,8 @@ export default class Binding {
     // In the case of firefox, we need to avoid capturing the audio stream more than once,
     // so we keep a reference to the first one we capture here.
     private audioStream?: MediaStream;
+    private audioContext?: AudioContext;
+    private audioVolumeChangeListener?: () => void;
     private currentAudioRecordingRequestId?: string;
 
     private readonly frameId?: string;
@@ -1059,6 +1067,14 @@ export default class Binding {
             this.heartbeatInterval = undefined;
         }
 
+        if (this.audioVolumeChangeListener) {
+            this.video.removeEventListener('volumechange', this.audioVolumeChangeListener);
+            this.audioVolumeChangeListener = undefined;
+        }
+
+        this.audioContext?.close();
+        this.audioContext = undefined;
+
         if (this.listener) {
             browser.runtime.onMessage.removeListener(this.listener);
             this.listener = undefined;
@@ -1129,6 +1145,8 @@ export default class Binding {
             navigator.clipboard.writeText(subtitle.text);
         }
 
+        const mediaTimestamp = subtitleTimestampWithDelay(subtitle, this.imageDelay);
+
         if (this.takeScreenshot) {
             await this._prepareScreenshot();
         }
@@ -1148,6 +1166,8 @@ export default class Binding {
             text = extractText(subtitle, surroundingSubtitles);
         }
 
+        const imageDelay = Math.max(0, mediaTimestamp - this.video.currentTime * 1000);
+
         const command: VideoToExtensionCommand<RecordMediaAndForwardSubtitleMessage> = {
             sender: 'asbplayer-video',
             message: {
@@ -1157,12 +1177,12 @@ export default class Binding {
                 record: this.recordMedia,
                 screenshot: this.takeScreenshot,
                 url: this.url(subtitle.start, subtitle.end),
-                mediaTimestamp: this.video.currentTime * 1000,
+                mediaTimestamp,
                 subtitleFileName: this.subtitleFileName(subtitle.track),
                 postMineAction: postMineAction,
                 audioPaddingStart: this.audioPaddingStart,
                 audioPaddingEnd: this.audioPaddingEnd,
-                imageDelay: this.imageDelay,
+                imageDelay,
                 playbackRate: this.video.playbackRate,
                 text,
                 definition,
@@ -1534,12 +1554,14 @@ export default class Binding {
             try {
                 let stream: MediaStream | undefined;
 
-                if (typeof (this.video as any).captureStream === 'function') {
-                    stream = (this.video as any).captureStream();
-                }
+                let usedMozCapture = false;
 
-                if (typeof (this.video as any).mozCaptureStreamUntilEnded === 'function') {
+                if (typeof (this.video as any).captureStream === 'function') {
+                    // Introduced in Firefox 149
+                    stream = (this.video as any).captureStream();
+                } else if (typeof (this.video as any).mozCaptureStreamUntilEnded === 'function') {
                     stream = (this.video as any).mozCaptureStreamUntilEnded();
+                    usedMozCapture = true;
                 }
 
                 if (stream === undefined) {
@@ -1559,13 +1581,37 @@ export default class Binding {
                     }
                 }
 
-                // Ensure audio keeps playing through computer speakers
-                const output = new AudioContext();
-                const source = output.createMediaStreamSource(audioStream);
-                source.connect(output.destination);
+                let recordingStream = audioStream;
 
-                this.audioStream = audioStream;
-                resolve(audioStream);
+                if (usedMozCapture) {
+                    // mozCaptureStreamUntilEnded diverts audio away from speakers,
+                    // so route it back via AudioContext to keep audio audible
+                    const audioContext = new AudioContext();
+                    const source = audioContext.createMediaStreamSource(audioStream);
+                    source.connect(audioContext.destination);
+                    this.audioContext = audioContext;
+                } else {
+                    // captureStream() captures at raw volume, independent of video.volume.
+                    // Apply video.volume via a GainNode so the recording level matches what the user hears.
+                    const audioContext = new AudioContext();
+                    const source = audioContext.createMediaStreamSource(audioStream);
+                    const gainNode = audioContext.createGain();
+                    gainNode.gain.value = this.video.muted ? 0 : this.video.volume;
+                    const destination = audioContext.createMediaStreamDestination();
+                    source.connect(gainNode);
+                    gainNode.connect(destination);
+
+                    const volumeChangeListener = () => {
+                        gainNode.gain.value = this.video.muted ? 0 : this.video.volume;
+                    };
+                    this.video.addEventListener('volumechange', volumeChangeListener);
+                    this.audioContext = audioContext;
+                    this.audioVolumeChangeListener = volumeChangeListener;
+                    recordingStream = destination.stream;
+                }
+
+                this.audioStream = recordingStream;
+                resolve(recordingStream);
             } catch (e) {
                 reject(e);
             }
