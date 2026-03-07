@@ -253,6 +253,13 @@ function withinBoundaryAroundInterval(
     return false;
 }
 
+export function subtitleTimestampWithDelay(subtitle: Pick<SubtitleModel, 'start' | 'end'>, delay: number): number {
+    const start = Math.min(subtitle.start, subtitle.end);
+    const end = Math.max(subtitle.start, subtitle.end);
+
+    return Math.max(start, Math.min(end, delay >= 0 ? start + delay : end + delay));
+}
+
 export function subtitleIntersectsTimeInterval(subtitle: SubtitleModel, interval: number[]) {
     const length = Math.max(0, subtitle.end - subtitle.start);
 
