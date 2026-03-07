@@ -1,7 +1,13 @@
 import React, { MutableRefObject, useCallback, useState, useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import makeStyles from '@mui/styles/makeStyles';
-import { MediaFragment, SubtitleModel, CardModel, AnkiExportMode, resolveWebmMediaFragmentRange } from '@project/common';
+import {
+    MediaFragment,
+    SubtitleModel,
+    CardModel,
+    AnkiExportMode,
+    resolveWebmMediaFragmentRange,
+} from '@project/common';
 import { AnkiSettings, Profile, sortedAnkiFieldModels } from '@project/common/settings';
 import {
     humanReadableTime,
@@ -539,14 +545,7 @@ const AnkiDialog = ({
                 );
             });
         },
-        [
-            card.file,
-            settings.maxImageWidth,
-            settings.maxImageHeight,
-            settings.mediaFragmentFormat,
-            settings.mediaFragmentTrimEnd,
-            settings.mediaFragmentTrimStart,
-        ]
+        [card.file, settings.maxImageWidth, settings.maxImageHeight, settings.mediaFragmentFormat]
     );
 
     const applyTimestampIntervalToTrack = useCallback(
