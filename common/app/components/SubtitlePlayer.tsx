@@ -489,7 +489,7 @@ export default function SubtitlePlayer({
             const currentSubtitleIndexes: { [index: number]: boolean } = {};
             const timestamp = clock.time(lengthRef.current);
 
-            let slice = subtitleCollectionRef.current.subtitlesAt(timestamp);
+            let slice = subtitleCollectionRef.current.subtitlesAt(timestamp, settings.seekableTracks);
             const showing = slice.showing.length === 0 ? (slice.lastShown ?? []) : slice.showing;
             let smallestIndex: number | undefined;
 
@@ -538,7 +538,7 @@ export default function SubtitlePlayer({
                 cancelAnimationFrame(requestAnimationRef.current);
             }
         };
-    }, []);
+    }, [settings]);
 
     const scrollToCurrentSubtitle = useCallback(() => {
         const highlightedSubtitleIndexes = highlightedSubtitleIndexesRef.current;
@@ -648,7 +648,8 @@ export default function SubtitlePlayer({
             },
             () => disableKeyEvents,
             () => clock.time(length),
-            () => subtitles
+            () => subtitles,
+            () => settingsRef.current.seekableTracks
         );
     }, [keyBinder, onSeek, subtitles, disableKeyEvents, clock, length]);
 
@@ -661,7 +662,8 @@ export default function SubtitlePlayer({
             },
             () => disableKeyEvents,
             () => clock.time(length),
-            () => subtitles
+            () => subtitles,
+            () => settingsRef.current.seekableTracks
         );
     }, [keyBinder, onSeek, subtitles, disableKeyEvents, clock, length, settings.alwaysPlayOnSubtitleRepeat]);
 
