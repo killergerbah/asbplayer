@@ -59,7 +59,13 @@ import {
 } from '@project/common/settings';
 import { SubtitleSlice } from '@project/common/subtitle-collection';
 import { SubtitleReader } from '@project/common/subtitle-reader';
-import { extractText, seekWithNudge, sourceString, surroundingSubtitlesAroundInterval } from '@project/common/util';
+import {
+    extractText,
+    seekWithNudge,
+    sourceString,
+    subtitleTimestampWithDelay,
+    surroundingSubtitlesAroundInterval,
+} from '@project/common/util';
 import AnkiUiController from '../controllers/anki-ui-controller';
 import ControlsController from '../controllers/controls-controller';
 import DragController from '../controllers/drag-controller';
@@ -1139,6 +1145,8 @@ export default class Binding {
             navigator.clipboard.writeText(subtitle.text);
         }
 
+        const mediaTimestamp = subtitleTimestampWithDelay(subtitle, this.imageDelay);
+
         if (this.takeScreenshot) {
             await this._prepareScreenshot();
         }
@@ -1158,6 +1166,8 @@ export default class Binding {
             text = extractText(subtitle, surroundingSubtitles);
         }
 
+        const imageDelay = Math.max(0, mediaTimestamp - this.video.currentTime * 1000);
+
         const command: VideoToExtensionCommand<RecordMediaAndForwardSubtitleMessage> = {
             sender: 'asbplayer-video',
             message: {
@@ -1167,12 +1177,12 @@ export default class Binding {
                 record: this.recordMedia,
                 screenshot: this.takeScreenshot,
                 url: this.url(subtitle.start, subtitle.end),
-                mediaTimestamp: this.video.currentTime * 1000,
+                mediaTimestamp,
                 subtitleFileName: this.subtitleFileName(subtitle.track),
                 postMineAction: postMineAction,
                 audioPaddingStart: this.audioPaddingStart,
                 audioPaddingEnd: this.audioPaddingEnd,
-                imageDelay: this.imageDelay,
+                imageDelay,
                 playbackRate: this.video.playbackRate,
                 text,
                 definition,

@@ -36,6 +36,7 @@ import {
     seekWithNudge,
     surroundingSubtitlesAroundInterval,
     ensureStoragePersisted,
+    subtitleTimestampWithDelay,
 } from '@project/common/util';
 import { SubtitleCollection } from '@project/common/subtitle-collection';
 import { HoveredToken } from '@project/common/subtitle-coloring';
@@ -1130,8 +1131,6 @@ export default function VideoPlayer({
                 return;
             }
 
-            let mediaTimestamp: number;
-
             if (subtitle === undefined || surroundingSubtitles === undefined) {
                 const extracted = extractSubtitles();
 
@@ -1141,10 +1140,9 @@ export default function VideoPlayer({
 
                 subtitle = extracted.currentSubtitle;
                 surroundingSubtitles = extracted.surroundingSubtitles;
-                mediaTimestamp = clock.time(length);
-            } else {
-                mediaTimestamp = subtitle.start;
             }
+
+            const mediaTimestamp = subtitleTimestampWithDelay(subtitle, settings.streamingScreenshotDelay);
 
             mineSubtitle(
                 postMineAction,
@@ -1158,7 +1156,14 @@ export default function VideoPlayer({
                 mediaTimestamp
             );
         },
-        [mineSubtitle, extractSubtitles, clock, length, selectedAudioTrack, videoFile, videoFileName]
+        [
+            mineSubtitle,
+            extractSubtitles,
+            settings.streamingScreenshotDelay,
+            selectedAudioTrack,
+            videoFile,
+            videoFileName,
+        ]
     );
 
     const toggleSelectMiningInterval = useCallback(
