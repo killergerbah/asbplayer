@@ -44,8 +44,10 @@ interface Props {
     open: boolean;
     image?: MediaFragment;
     interval?: number[];
+    timestampInterval?: number[];
     onClose: () => void;
     onTimestampChange: (timestamp: number) => void;
+    onTimestampIntervalChange?: (timestampInterval: number[]) => void;
 }
 
 interface ValueLabelComponentProps {
@@ -62,7 +64,15 @@ const ValueLabelComponent = ({ children, open, value }: ValueLabelComponentProps
     );
 };
 
-export default function ImageDialog({ open, image, interval, onClose, onTimestampChange }: Props) {
+export default function ImageDialog({
+    open,
+    image,
+    interval,
+    timestampInterval,
+    onClose,
+    onTimestampChange,
+    onTimestampIntervalChange,
+}: Props) {
     const { width, height, dataUrl } = useImageData({ image, smoothTransition: true });
     const [windowWidth, windowHeight] = useWindowSize();
 
@@ -110,7 +120,7 @@ export default function ImageDialog({ open, image, interval, onClose, onTimestam
                             <CardMedia className={classes.image} image={dataUrl} title={image.name} style={{}} />
                         )}
                     </Card>
-                    {interval && image.canChangeTimestamp && (
+                    {interval && image.canChangeTimestamp && !webm && (
                         <Slider
                             slots={{ valueLabel: ValueLabelComponent }}
                             color="primary"
@@ -123,6 +133,20 @@ export default function ImageDialog({ open, image, interval, onClose, onTimestam
                             valueLabelFormat={(v) => humanReadableTime(v, true)}
                             valueLabelDisplay="on"
                             track={false}
+                        />
+                    )}
+                    {webm && interval && timestampInterval && onTimestampIntervalChange && (
+                        <Slider
+                            slots={{ valueLabel: ValueLabelComponent }}
+                            color="primary"
+                            value={timestampInterval}
+                            min={interval[0]}
+                            max={interval[1]}
+                            onChange={(_: unknown, newValue: number | number[]) =>
+                                onTimestampIntervalChange(newValue as number[])
+                            }
+                            valueLabelFormat={(v) => humanReadableTime(v, true)}
+                            valueLabelDisplay="on"
                         />
                     )}
                 </div>
