@@ -1032,6 +1032,15 @@ export default function SubtitlePlayer({
         appliedInitialWidthKeyRef.current = initialWidthKey;
     }, [resizable, initialWidth, initialWidthKey, maxResizeWidth, setWidth]);
 
+    // Scroll to selected subtitle when layout changes
+    useEffect(() => {
+        // Small delay to allow layout to settle
+        const timer = setTimeout(() => {
+            scrollToCurrentSubtitle();
+        }, 50);
+        return () => clearTimeout(timer);
+    }, [width, scrollToCurrentSubtitle]);
+
     useEffect(() => {
         lastKnownWidth = width;
     }, [width, maxResizeWidth]);
