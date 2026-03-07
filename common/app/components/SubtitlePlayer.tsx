@@ -1016,7 +1016,7 @@ export default function SubtitlePlayer({
         onResizeEnd,
     });
 
-    const appliedInitialWidthKeyRef = useRef<string | undefined>();
+    const appliedInitialWidthKeyRef = useRef<string | undefined>(undefined);
     useEffect(() => {
         if (!resizable || initialWidth === undefined || maxResizeWidth < minSubtitlePlayerWidth) {
             return;
