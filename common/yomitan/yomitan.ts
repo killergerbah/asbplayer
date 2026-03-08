@@ -17,6 +17,7 @@ export class Yomitan {
     private readonly tokenizeCache: Map<string, TokenPart[][]>;
     private readonly lemmatizeCache: Map<string, string[]>;
     private readonly frequencyCache: Map<string, number | null>;
+    private readonly lemmaTokenFallback: boolean; // Allow collecting ungrouped segments (no dictionary entry)
     private readonly tokensWereModified?: (token: string) => void;
     private supportsTokenizeFrequency: boolean;
     private lastCancelledAt: number;
@@ -24,7 +25,7 @@ export class Yomitan {
     constructor(
         dictionaryTrack: DictionaryTrack,
         fetcher = new HttpFetcher(),
-        tokensWereModified?: (token: string) => void
+        options?: { lemmaTokenFallback: boolean; tokensWereModified: (token: string) => void }
     ) {
         this.dt = dictionaryTrack;
         this.fetcher = fetcher;
@@ -32,7 +33,8 @@ export class Yomitan {
         this.tokenizeCache = new Map();
         this.lemmatizeCache = new Map();
         this.frequencyCache = new Map();
-        this.tokensWereModified = tokensWereModified;
+        this.lemmaTokenFallback = options?.lemmaTokenFallback ?? false;
+        this.tokensWereModified = options?.tokensWereModified;
         this.supportsTokenizeFrequency = false;
         this.lastCancelledAt = 0;
     }
@@ -205,6 +207,7 @@ export class Yomitan {
                 }
             }
         }
+        if (!lemmas.length && this.lemmaTokenFallback) lemmas.push(token);
         this.lemmatizeCache.set(token, lemmas);
         return lemmas;
     }
