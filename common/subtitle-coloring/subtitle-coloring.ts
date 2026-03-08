@@ -647,9 +647,6 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                 if (!dictionaryStatusCollectionEnabled(ts.dt)) continue; // Still want to bulk tokenize if TokenReadingAnnotation.ALWAYS but no coloring
                 if (this.shouldCancelBuild) return;
 
-                const shouldQueryExactForm =
-                    shouldUseExactForm(ts.dt.dictionaryTokenMatchStrategy) ||
-                    shouldUseExactForm(ts.dt.dictionaryAnkiSentenceTokenMatchStrategy);
                 const shouldQueryLemmaForm =
                     shouldUseLemmaForm(ts.dt.dictionaryTokenMatchStrategy) ||
                     shouldUseLemmaForm(ts.dt.dictionaryAnkiSentenceTokenMatchStrategy);
@@ -672,12 +669,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                         .map((p) => p.text)
                         .join('')
                         .trim();
-                    if (
-                        (shouldQueryExactForm || this.tokensForRefresh.has(token)) &&
-                        !ts.collectedExactForm.has(token)
-                    ) {
-                        forExactFormQuery.add(token);
-                    }
+                    if (!ts.collectedExactForm.has(token)) forExactFormQuery.add(token); // Always query as we may need to fallback to exact form
                     if (shouldQueryLemmaForm) {
                         for (const lemma of await ts.yt.lemmatize(token)) {
                             if (!ts.collectedLemmaForm.has(lemma)) forLemmaFormQuery.add(lemma);
