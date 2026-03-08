@@ -163,6 +163,8 @@ export default function AnkiUi({ bridge }: Props) {
         });
     }, [bridge, image]);
 
+    useEffect(() => bridge.serverIsReady(), [bridge]);
+
     const handleProceed = useCallback(
         async (params: ExportParams) => {
             setDisabled(true);

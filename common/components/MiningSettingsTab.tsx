@@ -11,7 +11,7 @@ import { AsbplayerSettings } from '@project/common/settings';
 import Switch from '@mui/material/Switch';
 import RadioGroup from '@mui/material/RadioGroup';
 import Stack from '@mui/material/Stack';
-import { FormControl } from '@mui/material';
+import FormControl from '@mui/material/FormControl';
 import SettingsSection from './SettingsSection';
 
 interface Props {

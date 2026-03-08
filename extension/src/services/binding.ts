@@ -86,7 +86,7 @@ import { bufferToBase64 } from '@project/common/base64';
 import { pgsParserWorkerFactory } from './pgs-parser-worker-factory';
 import { DictionaryProvider } from '@project/common/dictionary-db/dictionary-provider';
 import { ExtensionDictionaryStorage } from './extension-dictionary-storage';
-import { HoveredToken, SubtitleColoring } from '@project/common/subtitle-coloring';
+import { HoveredToken } from '@project/common/subtitle-coloring';
 
 let netflix = false;
 document.addEventListener('asbplayer-netflix-enabled', (e) => {

@@ -159,6 +159,8 @@ export default function VideoDataSyncUi({ bridge }: Props) {
         });
     }, [bridge, t]);
 
+    useEffect(() => bridge.serverIsReady(), [bridge]);
+
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleFileInputChange = useCallback(async () => {
