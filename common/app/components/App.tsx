@@ -175,7 +175,7 @@ interface RenderVideoProps {
     onSettingsChanged: (settings: Partial<AsbplayerSettings>) => void;
     onAnkiDialogRewind: () => void;
     onError: (error: string) => void;
-    onPlayModeChangedViaBind: (oldPlayMode: PlayMode, newPlayMode: PlayMode) => void;
+    onPlayModeChangedViaBind: (playModes: Set<PlayMode>, targetMode: PlayMode) => void;
 }
 
 function RenderVideo({ searchParams, ...props }: RenderVideoProps) {
@@ -1015,36 +1015,34 @@ function App({
         });
     }, [extension, inVideoPlayer, handleDownloadAudio]);
 
-    const handleAutoPauseModeChangedViaBind = useCallback(
-        (oldPlayMode: PlayMode, newPlayMode: PlayMode) => {
-            switch (newPlayMode) {
-                case PlayMode.autoPause:
-                    setAlert(t('info.enabledAutoPause')!);
-                    break;
-                case PlayMode.condensed:
-                    setAlert(t('info.enabledCondensedPlayback')!);
-                    break;
-                case PlayMode.fastForward:
-                    setAlert(t('info.enabledFastForwardPlayback')!);
-                    break;
-                case PlayMode.repeat:
-                    setAlert(t('info.enabledRepeatPlayback')!);
-                    break;
-                case PlayMode.normal:
-                    if (oldPlayMode === PlayMode.autoPause) {
-                        setAlert(t('info.disabledAutoPause')!);
-                    } else if (oldPlayMode === PlayMode.condensed) {
-                        setAlert(t('info.disabledCondensedPlayback')!);
-                    } else if (oldPlayMode === PlayMode.fastForward) {
-                        setAlert(t('info.disabledFastForwardPlayback')!);
-                    } else if (oldPlayMode === PlayMode.repeat) {
-                        setAlert(t('info.disabledRepeatPlayback')!);
-                    }
-                    break;
-            }
+    const handlePlayModeChangedViaBind = useCallback(
+        (playModes: Set<PlayMode>, targetMode: PlayMode) => {
+            if (targetMode === PlayMode.normal) {
+                if (playModes.size === 1 && playModes.has(PlayMode.normal)) {
+                    return;
+                }
 
-            setAlertSeverity('info');
-            setAlertOpen(true);
+                setAlert(t('info.disabledAllPlayModes')!);
+            } else {
+                const enabling = !playModes.has(targetMode);
+                switch (targetMode) {
+                    case PlayMode.autoPause:
+                        setAlert(t(enabling ? 'info.enabledAutoPause' : 'info.disabledAutoPause')!);
+                        break;
+                    case PlayMode.condensed:
+                        setAlert(t(enabling ? 'info.enabledCondensedPlayback' : 'info.disabledCondensedPlayback')!);
+                        break;
+                    case PlayMode.fastForward:
+                        setAlert(t(enabling ? 'info.enabledFastForwardPlayback' : 'info.disabledFastForwardPlayback')!);
+                        break;
+                    case PlayMode.repeat:
+                        setAlert(t(enabling ? 'info.enabledRepeatPlayback' : 'info.disabledRepeatPlayback')!);
+                        break;
+                }
+
+                setAlertSeverity('info');
+                setAlertOpen(true);
+            }
         },
         [t]
     );
@@ -1304,7 +1302,7 @@ function App({
                                 onAnkiDialogRequest={handleAnkiDialogRequestFromVideoPlayer}
                                 onAnkiDialogRewind={handleAnkiDialogRewindFromVideoPlayer}
                                 onError={handleError}
-                                onPlayModeChangedViaBind={handleAutoPauseModeChangedViaBind}
+                                onPlayModeChangedViaBind={handlePlayModeChangedViaBind}
                             />
                             {ankiDialogCard && (
                                 <AnkiDialog
@@ -1434,7 +1432,7 @@ function App({
                                     onAppBarToggle={handleAppBarToggle}
                                     onHideSubtitlePlayer={handleHideSubtitlePlayer}
                                     onVideoPopOut={handleVideoPopOut}
-                                    onPlayModeChangedViaBind={handleAutoPauseModeChangedViaBind}
+                                    onPlayModeChangedViaBind={handlePlayModeChangedViaBind}
                                     onSubtitles={
                                         setSubtitles as React.Dispatch<
                                             React.SetStateAction<DisplaySubtitleModel[] | undefined>
