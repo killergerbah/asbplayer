@@ -408,7 +408,7 @@ export default function VideoPlayer({
     const mobileOverlayRef = useRef<HTMLDivElement>(null);
     const bottomSubtitleContainerRef = useRef<HTMLDivElement>(null);
     const domCacheRef = useRef<OffscreenDomCache | undefined>(undefined);
-    const thumbnailsRef = useRef<Map<number, string>>(new Map()); // cache thumbnails, in intervals of 4s
+    const thumbnailsRef = useRef<Map<number, string>>(new Map()); // cache thumbnails, in intervals of 5s
     const isGeneratingRef = useRef(false); // avoid subsequent calls to generate thumbnail while generating one
 
     useEffect(() => {
@@ -416,20 +416,6 @@ export default function VideoPlayer({
         setSubtitleSettings(settings);
         setAnkiSettings(settings);
     }, [settings]);
-
-    useEffect(() => {
-        const probeMemoryUsage = async () => {
-            try {
-                if (crossOriginIsolated && 'measureUserAgentSpecificMemory' in performance) {
-                    const memSample = await (performance as any).measureUserAgentSpecificMemory();
-                    console.log(memSample);
-                }
-            } catch (exception) {
-                console.error(exception);
-            }
-        };
-        probeMemoryUsage();
-    }, []);
 
     useEffect(() => {
         setSubtitleAlignments(allSubtitleAlignments(subtitleSettings));
@@ -753,7 +739,7 @@ export default function VideoPlayer({
             const time = progress * length;
             const video = hiddenVideoRef.current;
 
-            const thumbnailKey = Math.floor(((time / 1000) / 4));
+            const thumbnailKey = Math.floor(((time / 1000) / 5));
 
             // cached url found, return url
             if (thumbnailsRef.current.has(thumbnailKey)) {
