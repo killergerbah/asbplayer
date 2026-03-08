@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-    Image,
-    ImageModel,
+    MediaFragmentModel,
     AudioModel,
     SubtitleModel,
     AnkiUiState,
@@ -62,8 +61,7 @@ export default function AnkiUi({ bridge }: Props) {
     const [surroundingSubtitles, setSurroundingSubtitles] = useState<SubtitleModel[]>();
     const [text, setText] = useState<string>();
     const [serializedAudio, setSerializedAudio] = useState<AudioModel>();
-    const [image, setImage] = useState<Image>();
-    const [serializedImage, setSerializedImage] = useState<ImageModel>();
+    const [serializedImage, setSerializedImage] = useState<MediaFragmentModel>();
     const [file, setFile] = useState<FileModel>();
     const [source, setSource] = useState<string>('');
     const [url, setUrl] = useState<string>('');
@@ -100,6 +98,7 @@ export default function AnkiUi({ bridge }: Props) {
             surroundingSubtitles: dialogState.surroundingSubtitles,
             definition: dialogState.definition,
             image: serializedImage,
+            mediaFragment: serializedImage,
             audio: serializedAudio,
             file,
             word: dialogState.word,
@@ -150,18 +149,17 @@ export default function AnkiUi({ bridge }: Props) {
             setUrl(s.url ?? '');
             setDialogRequestedTimestamp(s.dialogRequestedTimestamp);
             setSerializedAudio(s.audio);
-            setSerializedImage(s.image);
+            setSerializedImage(s.mediaFragment ?? s.image);
             setFile(s.file);
             setDisabled(false);
             setSettings(s.settings);
             setActiveProfile(s.activeProfile);
             setProfiles(s.profiles);
-            setImage(image);
             setOpen(s.open);
             setFtueHasSeenAnkiDialogQuickSelect(s.ftueHasSeenAnkiDialogQuickSelect);
             setInTutorial(s.inTutorial);
         });
-    }, [bridge, image]);
+    }, [bridge]);
 
     useEffect(() => bridge.serverIsReady(), [bridge]);
 
@@ -309,6 +307,7 @@ export default function AnkiUi({ bridge }: Props) {
             subtitle,
             surroundingSubtitles,
             url,
+            mediaFragment: serializedImage,
             audio: serializedAudio,
             image: serializedImage,
             file,

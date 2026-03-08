@@ -3,10 +3,11 @@ import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import FormLabel from '@mui/material/FormLabel';
 import InputAdornment from '@mui/material/InputAdornment';
+import MenuItem from '@mui/material/MenuItem';
 import LabelWithHoverEffect from './LabelWithHoverEffect';
 import SwitchLabelWithHoverEffect from './SwitchLabelWithHoverEffect';
 import Radio from '@mui/material/Radio';
-import { PostMineAction, PostMinePlayback } from '@project/common';
+import { isWebmMediaFragmentSupported, PostMineAction, PostMinePlayback } from '@project/common';
 import { AsbplayerSettings } from '@project/common/settings';
 import Switch from '@mui/material/Switch';
 import RadioGroup from '@mui/material/RadioGroup';
@@ -17,17 +18,22 @@ import SettingsSection from './SettingsSection';
 interface Props {
     settings: AsbplayerSettings;
     onSettingChanged: <K extends keyof AsbplayerSettings>(key: K, value: AsbplayerSettings[K]) => Promise<void>;
+    showWebmMediaFragmentSettings?: boolean;
 }
 
 const integerValueRegex = /^-?\d+$/;
 
-const MiningSettingsTab: React.FC<Props> = ({ settings, onSettingChanged }) => {
+const MiningSettingsTab: React.FC<Props> = ({ settings, onSettingChanged, showWebmMediaFragmentSettings = true }) => {
     const { t } = useTranslation();
+    const webmCaptureSupported = showWebmMediaFragmentSettings && isWebmMediaFragmentSupported();
     const {
         audioPaddingStart,
         audioPaddingEnd,
         maxImageWidth,
         maxImageHeight,
+        mediaFragmentFormat,
+        mediaFragmentTrimStart,
+        mediaFragmentTrimEnd,
         streamingScreenshotDelay,
         surroundingSubtitlesCountRadius,
         surroundingSubtitlesTimeRadius,
@@ -214,6 +220,25 @@ const MiningSettingsTab: React.FC<Props> = ({ settings, onSettingChanged }) => {
                 }}
             />
             <SettingsSection>{t('settings.screenshots')}</SettingsSection>
+            {showWebmMediaFragmentSettings && (
+                <TextField
+                    select
+                    fullWidth
+                    label="Capture format"
+                    value={mediaFragmentFormat}
+                    onChange={(event) =>
+                        onSettingChanged(
+                            'mediaFragmentFormat',
+                            event.target.value as AsbplayerSettings['mediaFragmentFormat']
+                        )
+                    }
+                >
+                    <MenuItem value="jpeg">JPEG screenshot</MenuItem>
+                    <MenuItem value="webm" disabled={!webmCaptureSupported}>
+                        {webmCaptureSupported ? 'WebM clip' : 'WebM clip (unsupported)'}
+                    </MenuItem>
+                </TextField>
+            )}
             <TextField
                 type="number"
                 label={t('settings.maxImageWidth')}
@@ -242,34 +267,72 @@ const MiningSettingsTab: React.FC<Props> = ({ settings, onSettingChanged }) => {
                     },
                 }}
             />
-            <TextField
-                type="number"
-                label={t('extension.settings.screenshotCaptureDelay')}
-                fullWidth
-                value={screenshotDelayInput}
-                color="primary"
-                onChange={(event) => {
-                    const value = event.target.value;
-                    setScreenshotDelayInput(value);
+            {showWebmMediaFragmentSettings && mediaFragmentFormat === 'webm' && webmCaptureSupported && (
+                <>
+                    <TextField
+                        type="number"
+                        label="Clip trim start"
+                        fullWidth
+                        value={mediaFragmentTrimStart}
+                        color="primary"
+                        onChange={(event) => onSettingChanged('mediaFragmentTrimStart', Number(event.target.value))}
+                        slotProps={{
+                            htmlInput: {
+                                step: 100,
+                            },
+                            input: {
+                                endAdornment: <InputAdornment position="end">ms</InputAdornment>,
+                            },
+                        }}
+                    />
+                    <TextField
+                        type="number"
+                        label="Clip trim end"
+                        fullWidth
+                        value={mediaFragmentTrimEnd}
+                        color="primary"
+                        onChange={(event) => onSettingChanged('mediaFragmentTrimEnd', Number(event.target.value))}
+                        slotProps={{
+                            htmlInput: {
+                                step: 100,
+                            },
+                            input: {
+                                endAdornment: <InputAdornment position="end">ms</InputAdornment>,
+                            },
+                        }}
+                    />
+                </>
+            )}
+            {(!showWebmMediaFragmentSettings || mediaFragmentFormat === 'jpeg') && (
+                <TextField
+                    type="number"
+                    label={t('extension.settings.screenshotCaptureDelay')}
+                    fullWidth
+                    value={screenshotDelayInput}
+                    color="primary"
+                    onChange={(event) => {
+                        const value = event.target.value;
+                        setScreenshotDelayInput(value);
 
-                    if (integerValueRegex.test(value)) {
-                        onSettingChanged('streamingScreenshotDelay', Number(value));
-                    }
-                }}
-                onBlur={() => {
-                    if (!integerValueRegex.test(screenshotDelayInput)) {
-                        setScreenshotDelayInput(String(streamingScreenshotDelay));
-                    }
-                }}
-                slotProps={{
-                    htmlInput: {
-                        step: 100,
-                    },
-                    input: {
-                        endAdornment: <InputAdornment position="end">ms</InputAdornment>,
-                    },
-                }}
-            />
+                        if (integerValueRegex.test(value)) {
+                            onSettingChanged('streamingScreenshotDelay', Number(value));
+                        }
+                    }}
+                    onBlur={() => {
+                        if (!integerValueRegex.test(screenshotDelayInput)) {
+                            setScreenshotDelayInput(String(streamingScreenshotDelay));
+                        }
+                    }}
+                    slotProps={{
+                        htmlInput: {
+                            step: 100,
+                        },
+                        input: {
+                            endAdornment: <InputAdornment position="end">ms</InputAdornment>,
+                        },
+                    }}
+                />
+            )}
             <SettingsSection>{t('settings.exportDialog')}</SettingsSection>
             <TextField
                 type="number"

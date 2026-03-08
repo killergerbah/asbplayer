@@ -1,7 +1,13 @@
 import React, { MutableRefObject, useCallback, useState, useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import makeStyles from '@mui/styles/makeStyles';
-import { Image, SubtitleModel, CardModel, AnkiExportMode } from '@project/common';
+import {
+    MediaFragment,
+    SubtitleModel,
+    CardModel,
+    AnkiExportMode,
+    resolveWebmMediaFragmentRange,
+} from '@project/common';
 import { AnkiSettings, Profile, sortedAnkiFieldModels } from '@project/common/settings';
 import {
     humanReadableTime,
@@ -259,7 +265,8 @@ const AnkiDialog = ({
     const [audioClip, setAudioClip] = useState<AudioClip>();
     const [ankiIsAvailable, setAnkiIsAvailable] = useState<boolean>(true);
     const [imageDialogOpen, setImageDialogOpen] = useState<boolean>(false);
-    const [image, setImage] = useState<Image>();
+    const [image, setImage] = useState<MediaFragment>();
+    const [imageTimestampInterval, setImageTimestampInterval] = useState<number[]>();
     const dialogRef = useRef<HTMLDivElement>(undefined);
     const dialogRefCallback = useCallback((element: HTMLDivElement) => {
         dialogRef.current = element;
@@ -444,8 +451,46 @@ const AnkiDialog = ({
             return;
         }
 
-        setImage(Image.fromCard(card, settings.maxImageWidth, settings.maxImageHeight));
-    }, [card, open, settings.maxImageWidth, settings.maxImageHeight]);
+        setImage((previousImage) => {
+            previousImage?.dispose();
+
+            if (settings.mediaFragmentFormat === 'webm' && card.file) {
+                const { startTimestamp, endTimestamp } = resolveWebmMediaFragmentRange(
+                    card.subtitle.start,
+                    card.subtitle.end,
+                    settings.mediaFragmentTrimStart,
+                    settings.mediaFragmentTrimEnd
+                );
+                setImageTimestampInterval([startTimestamp, endTimestamp]);
+
+                return MediaFragment.fromWebmFile(
+                    card.file,
+                    startTimestamp,
+                    endTimestamp,
+                    settings.maxImageWidth,
+                    settings.maxImageHeight
+                );
+            }
+
+            setImageTimestampInterval(undefined);
+            return MediaFragment.fromCard(
+                card,
+                settings.maxImageWidth,
+                settings.maxImageHeight,
+                settings.mediaFragmentFormat,
+                settings.mediaFragmentTrimStart,
+                settings.mediaFragmentTrimEnd
+            );
+        });
+    }, [
+        card,
+        open,
+        settings.maxImageWidth,
+        settings.maxImageHeight,
+        settings.mediaFragmentFormat,
+        settings.mediaFragmentTrimStart,
+        settings.mediaFragmentTrimEnd,
+    ]);
 
     useEffect(() => {
         if (!open && image) {
@@ -478,6 +523,30 @@ const AnkiDialog = ({
             return image.atTimestamp(timestamp);
         });
     }, []);
+
+    const handleImageTimestampIntervalChange = useCallback(
+        (newTimestampInterval: number[]) => {
+            const file = card.file;
+
+            if (settings.mediaFragmentFormat !== 'webm' || !file) {
+                return;
+            }
+
+            setImageTimestampInterval(newTimestampInterval);
+
+            setImage((previousImage) => {
+                previousImage?.dispose();
+                return MediaFragment.fromWebmFile(
+                    file,
+                    newTimestampInterval[0],
+                    newTimestampInterval[1],
+                    settings.maxImageWidth,
+                    settings.maxImageHeight
+                );
+            });
+        },
+        [card.file, settings.maxImageWidth, settings.maxImageHeight, settings.mediaFragmentFormat]
+    );
 
     const applyTimestampIntervalToTrack = useCallback(
         (
@@ -602,6 +671,10 @@ const AnkiDialog = ({
             e.stopPropagation();
 
             if (!image) {
+                return;
+            }
+
+            if (image.extension === 'webm') {
                 return;
             }
 
@@ -1032,8 +1105,10 @@ const AnkiDialog = ({
                 open={open && imageDialogOpen}
                 image={image}
                 interval={timestampBoundaryInterval}
+                timestampInterval={imageTimestampInterval}
                 onClose={handleCloseImageDialog}
                 onTimestampChange={handleImageTimestampChange}
+                onTimestampIntervalChange={handleImageTimestampIntervalChange}
             />
         </>
     );
