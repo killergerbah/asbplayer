@@ -327,6 +327,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
         if (!ts || !dictionaryTrackEnabled(ts.dt) || !ts.yt) return;
 
         const lemmas = await ts.yt.lemmatize(token);
+        if (!lemmas.length) lemmas.push(token); // Allow collecting ungrouped segments (no dictionary entry)
         await this.dictionaryProvider.saveRecordLocalBulk(profile, [{ token, status, lemmas, states }], applyStates);
         this.tokensForRefresh.add(token);
         for (const lemma of lemmas) this.tokensForRefresh.add(lemma);
@@ -671,7 +672,12 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                         .map((p) => p.text)
                         .join('')
                         .trim();
-                    if (shouldQueryExactForm && !ts.collectedExactForm.has(token)) forExactFormQuery.add(token);
+                    if (
+                        (shouldQueryExactForm || this.tokensForRefresh.has(token)) &&
+                        !ts.collectedExactForm.has(token)
+                    ) {
+                        forExactFormQuery.add(token);
+                    }
                     if (shouldQueryLemmaForm) {
                         for (const lemma of await ts.yt.lemmatize(token)) {
                             if (!ts.collectedLemmaForm.has(lemma)) forLemmaFormQuery.add(lemma);
@@ -965,14 +971,14 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
     }
 
     private async _handlePriorityExact(trimmedToken: string, ts: TrackState): Promise<TokenStatus | null> {
-        if (shouldUseExactForm(ts.dt.dictionaryTokenMatchStrategy)) {
+        const lemmas = await ts.yt!.lemmatize(trimmedToken);
+        if (shouldUseExactForm(ts.dt.dictionaryTokenMatchStrategy) || !lemmas.length) {
             const tokenStatusResult = ts.collectedExactForm.get(trimmedToken);
             if (tokenStatusResult && tokenStatusResult.source !== DictionaryTokenSource.ANKI_SENTENCE) {
                 return tokenStatusResult.status;
             }
         }
         if (shouldUseLemmaForm(ts.dt.dictionaryTokenMatchStrategy)) {
-            const lemmas = await ts.yt!.lemmatize(trimmedToken);
             if (this.shouldCancelBuild) return null;
             const lemmaStatusResults: TokenStatusResult[] = [];
             for (const lemma of lemmas) {
@@ -984,7 +990,6 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
             if (lemmaStatusResults.length) return Math.max(...lemmaStatusResults.map((r) => r.status));
         }
         if (shouldUseAnyForm(ts.dt.dictionaryTokenMatchStrategy)) {
-            const lemmas = await ts.yt!.lemmatize(trimmedToken);
             if (this.shouldCancelBuild) return null;
             const anyFormStatusResults: TokenStatusResult[] = [];
             for (const lemma of lemmas) {
@@ -1004,12 +1009,11 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                 return Math.max(...anyFormStatusResults.map((r) => r.status));
             }
         }
-        if (shouldUseExactForm(ts.dt.dictionaryAnkiSentenceTokenMatchStrategy)) {
+        if (shouldUseExactForm(ts.dt.dictionaryAnkiSentenceTokenMatchStrategy) || !lemmas.length) {
             const tokenStatusResult = ts.collectedExactForm.get(trimmedToken);
             if (tokenStatusResult?.source === DictionaryTokenSource.ANKI_SENTENCE) return tokenStatusResult.status;
         }
         if (shouldUseLemmaForm(ts.dt.dictionaryAnkiSentenceTokenMatchStrategy)) {
-            const lemmas = await ts.yt!.lemmatize(trimmedToken);
             if (this.shouldCancelBuild) return null;
             const lemmaStatusResults: TokenStatusResult[] = [];
             for (const lemma of lemmas) {
@@ -1021,7 +1025,6 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
             if (lemmaStatusResults.length) return Math.max(...lemmaStatusResults.map((r) => r.status));
         }
         if (shouldUseAnyForm(ts.dt.dictionaryAnkiSentenceTokenMatchStrategy)) {
-            const lemmas = await ts.yt!.lemmatize(trimmedToken);
             if (this.shouldCancelBuild) return null;
             const anyFormStatusResults: TokenStatusResult[] = [];
             for (const lemma of lemmas) {
@@ -1045,8 +1048,8 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
     }
 
     private async _handlePriorityLemma(trimmedToken: string, ts: TrackState): Promise<TokenStatus | null> {
+        const lemmas = await ts.yt!.lemmatize(trimmedToken);
         if (shouldUseLemmaForm(ts.dt.dictionaryTokenMatchStrategy)) {
-            const lemmas = await ts.yt!.lemmatize(trimmedToken);
             if (this.shouldCancelBuild) return null;
             const lemmaStatusResults: TokenStatusResult[] = [];
             for (const lemma of lemmas) {
@@ -1057,14 +1060,13 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
             }
             if (lemmaStatusResults.length) return Math.max(...lemmaStatusResults.map((r) => r.status));
         }
-        if (shouldUseExactForm(ts.dt.dictionaryTokenMatchStrategy)) {
+        if (shouldUseExactForm(ts.dt.dictionaryTokenMatchStrategy) || !lemmas.length) {
             const tokenStatusResult = ts.collectedExactForm.get(trimmedToken);
             if (tokenStatusResult && tokenStatusResult.source !== DictionaryTokenSource.ANKI_SENTENCE) {
                 return tokenStatusResult.status;
             }
         }
         if (shouldUseAnyForm(ts.dt.dictionaryTokenMatchStrategy)) {
-            const lemmas = await ts.yt!.lemmatize(trimmedToken);
             if (this.shouldCancelBuild) return null;
             const anyFormStatusResults: TokenStatusResult[] = [];
             for (const lemma of lemmas) {
@@ -1085,7 +1087,6 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
             }
         }
         if (shouldUseLemmaForm(ts.dt.dictionaryAnkiSentenceTokenMatchStrategy)) {
-            const lemmas = await ts.yt!.lemmatize(trimmedToken);
             if (this.shouldCancelBuild) return null;
             const lemmaStatusResults: TokenStatusResult[] = [];
             for (const lemma of lemmas) {
@@ -1096,12 +1097,11 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
             }
             if (lemmaStatusResults.length) return Math.max(...lemmaStatusResults.map((r) => r.status));
         }
-        if (shouldUseExactForm(ts.dt.dictionaryAnkiSentenceTokenMatchStrategy)) {
+        if (shouldUseExactForm(ts.dt.dictionaryAnkiSentenceTokenMatchStrategy) || !lemmas.length) {
             const tokenStatusResult = ts.collectedExactForm.get(trimmedToken);
             if (tokenStatusResult?.source === DictionaryTokenSource.ANKI_SENTENCE) return tokenStatusResult.status;
         }
         if (shouldUseAnyForm(ts.dt.dictionaryAnkiSentenceTokenMatchStrategy)) {
-            const lemmas = await ts.yt!.lemmatize(trimmedToken);
             if (this.shouldCancelBuild) return null;
             const anyFormStatusResults: TokenStatusResult[] = [];
             for (const lemma of lemmas) {
@@ -1130,15 +1130,15 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
         cmp: (tokenStatuses: TokenStatus[]) => TokenStatus
     ): Promise<TokenStatus | null> {
         const tokenStatuses: TokenStatus[] = [];
+        const lemmas = await ts.yt!.lemmatize(trimmedToken);
 
-        if (shouldUseExactForm(ts.dt.dictionaryTokenMatchStrategy)) {
+        if (shouldUseExactForm(ts.dt.dictionaryTokenMatchStrategy) || !lemmas.length) {
             const tokenStatusResult = ts.collectedExactForm.get(trimmedToken);
             if (tokenStatusResult && tokenStatusResult.source !== DictionaryTokenSource.ANKI_SENTENCE) {
                 tokenStatuses.push(tokenStatusResult.status);
             }
         }
         if (shouldUseLemmaForm(ts.dt.dictionaryTokenMatchStrategy)) {
-            const lemmas = await ts.yt!.lemmatize(trimmedToken);
             if (this.shouldCancelBuild) return null;
             for (const lemma of lemmas) {
                 const lemmaStatusResult = ts.collectedLemmaForm.get(lemma);
@@ -1148,7 +1148,6 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
             }
         }
         if (shouldUseAnyForm(ts.dt.dictionaryTokenMatchStrategy)) {
-            const lemmas = await ts.yt!.lemmatize(trimmedToken);
             if (this.shouldCancelBuild) return null;
             for (const lemma of lemmas) {
                 const statusResults = ts.collectedAnyForm.get(lemma);
@@ -1162,14 +1161,13 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
         }
         if (tokenStatuses.length) return cmp(tokenStatuses);
 
-        if (shouldUseExactForm(ts.dt.dictionaryAnkiSentenceTokenMatchStrategy)) {
+        if (shouldUseExactForm(ts.dt.dictionaryAnkiSentenceTokenMatchStrategy) || !lemmas.length) {
             const tokenStatusResult = ts.collectedExactForm.get(trimmedToken);
             if (tokenStatusResult?.source === DictionaryTokenSource.ANKI_SENTENCE) {
                 tokenStatuses.push(tokenStatusResult.status);
             }
         }
         if (shouldUseLemmaForm(ts.dt.dictionaryAnkiSentenceTokenMatchStrategy)) {
-            const lemmas = await ts.yt!.lemmatize(trimmedToken);
             if (this.shouldCancelBuild) return null;
             for (const lemma of lemmas) {
                 const lemmaStatusResult = ts.collectedLemmaForm.get(lemma);
@@ -1179,7 +1177,6 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
             }
         }
         if (shouldUseAnyForm(ts.dt.dictionaryAnkiSentenceTokenMatchStrategy)) {
-            const lemmas = await ts.yt!.lemmatize(trimmedToken);
             if (this.shouldCancelBuild) return null;
             for (const lemma of lemmas) {
                 const anyFormStatusResult = ts.collectedAnyForm.get(lemma);
