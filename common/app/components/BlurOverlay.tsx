@@ -83,13 +83,16 @@ export default function BlurOverlay({ containerRef }: BlurOverlayProps) {
         if (autoHideTimeoutRef.current) {
             clearTimeout(autoHideTimeoutRef.current);
         }
-        autoHideTimeoutRef.current = setTimeout(() => {
-            // Hide handles and border after 2 seconds of inactivity
-            const now = Date.now();
-            if (now - lastActivityTimestamp.current >= 2000) {
-                setShowHandles(false);
-            }
-        }, 2000);
+        // Only set auto-hide timer if not currently dragging or resizing
+        if (!dragging.current && !resizing.current) {
+            autoHideTimeoutRef.current = setTimeout(() => {
+                // Hide handles and border after 2 seconds of inactivity
+                const now = Date.now();
+                if (now - lastActivityTimestamp.current >= 2000 && !dragging.current && !resizing.current) {
+                    setShowHandles(false);
+                }
+            }, 2000);
+        }
     }, []);
 
     const containerBounds = useCallback((): DOMRect | null => {
@@ -175,15 +178,36 @@ export default function BlurOverlay({ containerRef }: BlurOverlayProps) {
         };
 
         const onMouseUp = () => {
+            const wasDragging = dragging.current;
+            const wasResizing = resizing.current;
             dragging.current = false;
             resizing.current = null;
+
+            // Restart auto-hide timer if we just finished dragging or resizing
+            if (wasDragging || wasResizing) {
+                resetAutoHideTimer();
+            }
+        };
+
+        const onGlobalClick = (e: MouseEvent) => {
+            // Hide handles if clicking outside the overlay
+            const target = e.target as Element;
+            const overlayElement = document.querySelector('[data-blur-overlay="true"]');
+            if (overlayElement && !overlayElement.contains(target)) {
+                setShowHandles(false);
+                if (autoHideTimeoutRef.current) {
+                    clearTimeout(autoHideTimeoutRef.current);
+                }
+            }
         };
 
         window.addEventListener('mousemove', onMouseMove);
         window.addEventListener('mouseup', onMouseUp);
+        window.addEventListener('click', onGlobalClick);
         return () => {
             window.removeEventListener('mousemove', onMouseMove);
             window.removeEventListener('mouseup', onMouseUp);
+            window.removeEventListener('click', onGlobalClick);
             if (autoHideTimeoutRef.current) {
                 clearTimeout(autoHideTimeoutRef.current);
             }
@@ -198,6 +222,7 @@ export default function BlurOverlay({ containerRef }: BlurOverlayProps) {
 
     return (
         <div
+            data-blur-overlay="true"
             className={classes.overlay}
             style={{
                 left: pos.x,
@@ -210,14 +235,24 @@ export default function BlurOverlay({ containerRef }: BlurOverlayProps) {
             onMouseDown={onMouseDownDrag}
             onClick={handleMouseClick}
         >
-            {showHandles && resizeHandles.map(({ dir, style }) => (
-                <div
-                    key={dir}
-                    className={classes.handle}
-                    style={style} // Position each handle on its edge/corner
-                    onMouseDown={onMouseDownResize(dir)}
-                />
-            ))}
+            {showHandles && resizeHandles.map(({ dir, style }) => {
+                // Calculate handle dimensions based on overlay size
+                const handleWidth = dir === 'n' || dir === 's' ? Math.min(size.width * 0.5, 120) : HANDLE_SIZE;
+                const handleHeight = dir === 'e' || dir === 'w' ? Math.min(size.height * 0.5, 120) : HANDLE_SIZE;
+
+                return (
+                    <div
+                        key={dir}
+                        className={classes.handle}
+                        style={{
+                            ...style,
+                            width: handleWidth,
+                            height: handleHeight,
+                        }}
+                        onMouseDown={onMouseDownResize(dir)}
+                    />
+                );
+            })}
         </div>
     );
 }
