@@ -10,6 +10,20 @@ export interface TokenPart {
     reading: string;
 }
 
+interface TokenPartResult extends TokenPart {
+    lemma?: string;
+    lemmaReading?: string;
+    headwords?: any[];
+}
+
+interface TokenizeResult {
+    id: string;
+    source: string;
+    dictionary: string;
+    index: number;
+    content: TokenPartResult[][];
+}
+
 export class Yomitan {
     private readonly dt: DictionaryTrack;
     private readonly fetcher: Fetcher;
@@ -19,6 +33,7 @@ export class Yomitan {
     private readonly frequencyCache: Map<string, number | null>;
     private readonly lemmaTokenFallback: boolean; // Allow collecting ungrouped segments (no dictionary entry)
     private readonly tokensWereModified?: (token: string) => void;
+    private supportsMecab: boolean;
     private supportsTokenizeFrequency: boolean;
     private lastCancelledAt: number;
 
@@ -35,8 +50,13 @@ export class Yomitan {
         this.frequencyCache = new Map();
         this.lemmaTokenFallback = options?.lemmaTokenFallback ?? false;
         this.tokensWereModified = options?.tokensWereModified;
+        this.supportsMecab = false;
         this.supportsTokenizeFrequency = false;
         this.lastCancelledAt = 0;
+    }
+
+    getSupportsMecab(): boolean {
+        return this.supportsMecab;
     }
 
     getSupportsTokenizeFrequency(): boolean {
@@ -69,20 +89,32 @@ export class Yomitan {
         let tokens = this.tokenizeCache.get(text);
         if (tokens) return tokens;
         tokens = [];
-        const response = await this._executeAction(
-            'tokenize',
-            { text, scanLength: this.dt.dictionaryYomitanScanLength },
-            yomitanUrl
+
+        if (this.dt.dictionaryYomitanParser === 'mecab' && !this.getSupportsMecab()) {
+            throw new Error('Yomitan is not configured to support MeCab');
+        }
+        const tokenizeResults = this.filterDictionaries(
+            await this._executeAction(
+                'tokenize',
+                { text, scanLength: this.dt.dictionaryYomitanScanLength, parser: this.dt.dictionaryYomitanParser },
+                yomitanUrl
+            )
         );
-        for (const res of response) {
+
+        for (const res of tokenizeResults) {
             for (const tokenParts of res.content) {
                 tokens.push(tokenParts);
-                const headwords = tokenParts[0]?.headwords;
+                const tokenPart = tokenParts[0];
+                if (!tokenPart) continue;
+                const token = tokenParts
+                    .map((p: any) => p.text)
+                    .join('')
+                    .trim();
+
+                if (!this.lemmatizeCache.has(token)) this.extractLemmaFromMecab(token, tokenPart);
+
+                const headwords = tokenPart.headwords;
                 if (headwords) {
-                    const token = tokenParts
-                        .map((p: any) => p.text)
-                        .join('')
-                        .trim();
                     if (!this.lemmatizeCache.has(token)) this.extractLemmas(token, headwords);
                     if (!this.frequencyCache.has(token)) this.extractFrequencyFromTokenize(token, headwords);
                 }
@@ -111,21 +143,37 @@ export class Yomitan {
                     tokensToFetch.push(text);
                 }
                 if (!tokensToFetch.length) return tokens;
-                const response = await this._executeAction(
-                    'tokenize',
-                    { text: tokensToFetch, scanLength: this.dt.dictionaryYomitanScanLength },
-                    yomitanUrl
+
+                if (this.dt.dictionaryYomitanParser === 'mecab' && !this.getSupportsMecab()) {
+                    throw new Error('Yomitan is not configured to support MeCab');
+                }
+                const tokenizeResults = this.filterDictionaries(
+                    await this._executeAction(
+                        'tokenize',
+                        {
+                            text: tokensToFetch,
+                            scanLength: this.dt.dictionaryYomitanScanLength,
+                            parser: this.dt.dictionaryYomitanParser,
+                        },
+                        yomitanUrl
+                    )
                 );
-                for (const res of response) {
+
+                for (const res of tokenizeResults) {
                     const tokensForText: TokenPart[][] = [];
                     for (const tokenParts of res.content) {
                         tokensForText.push(tokenParts);
-                        const headwords = tokenParts[0]?.headwords;
+                        const tokenPart = tokenParts[0];
+                        if (!tokenPart) continue;
+                        const token = tokenParts
+                            .map((p: any) => p.text)
+                            .join('')
+                            .trim();
+
+                        if (!this.lemmatizeCache.has(token)) this.extractLemmaFromMecab(token, tokenPart);
+
+                        const headwords = tokenPart.headwords;
                         if (headwords) {
-                            const token = tokenParts
-                                .map((p: any) => p.text)
-                                .join('')
-                                .trim();
                             if (!this.lemmatizeCache.has(token)) this.extractLemmas(token, headwords);
                             if (!this.frequencyCache.has(token)) this.extractFrequencyFromTokenize(token, headwords);
                         }
@@ -137,6 +185,33 @@ export class Yomitan {
             },
             { batchSize: YOMITAN_BATCH_SIZE, statusUpdates }
         );
+    }
+
+    private filterDictionaries(tokenizeRes: TokenizeResult[]): TokenizeResult[] {
+        if (this.dt.dictionaryYomitanParser !== 'mecab') return tokenizeRes;
+
+        // Mecab can return multiple dictionaries, prefer unidic or the first one if unidic is not present
+        const results: TokenizeResult[] = [];
+        const indexCompleteSet = new Set<number>();
+        for (const res of tokenizeRes) {
+            if (indexCompleteSet.has(res.index)) continue;
+            if (res.dictionary.toLowerCase().includes('unidic')) {
+                results[res.index] = res;
+                indexCompleteSet.add(res.index);
+                continue;
+            }
+            if (!results[res.index]) results[res.index] = res;
+        }
+        return results;
+    }
+
+    private extractLemmaFromMecab(token: string, tokenPart: TokenPartResult): void {
+        const lemmas: string[] = [];
+        if (tokenPart.lemma?.length) lemmas.push(tokenPart.lemma);
+        if (tokenPart.lemmaReading?.length && !lemmas.includes(tokenPart.lemmaReading)) {
+            lemmas.push(tokenPart.lemmaReading);
+        }
+        if (lemmas.length) this.lemmatizeCache.set(token, lemmas);
     }
 
     /**
@@ -294,15 +369,34 @@ export class Yomitan {
     async version(yomitanUrl?: string) {
         const version: string = (await this._executeAction('yomitanVersion', {}, yomitanUrl)).version;
         if (version === '0.0.0.0') {
-            this.supportsTokenizeFrequency = true;
+            if (this.dt.dictionaryYomitanParser === 'mecab') await this.verifyMecabSupport(yomitanUrl);
+            // this.supportsTokenizeFrequency = true;
             return version;
         }
         const semver = coerce(version)?.version;
         if (!semver || lt(semver, '25.12.16')) {
             throw new Error(`Minimum Yomitan version is 25.12.16.0, found ${version}`);
         }
-        if (gte(semver, '26.3.3')) this.supportsTokenizeFrequency = true; // TODO: Use actual version
+        if (this.dt.dictionaryYomitanParser === 'mecab' && gte(semver, '26.3.9')) {
+            await this.verifyMecabSupport(yomitanUrl);
+        }
+        // if (gte(semver, '26.3.10')) this.supportsTokenizeFrequency = true; // TODO: Use actual version
         return version;
+    }
+
+    private async verifyMecabSupport(yomitanUrl?: string) {
+        try {
+            const tokenizeRes = await this._executeAction(
+                'tokenize',
+                {
+                    text: 'この世界の片隅に',
+                    scanLength: this.dt.dictionaryYomitanScanLength,
+                    parser: 'mecab',
+                },
+                yomitanUrl
+            );
+            if (tokenizeRes[0].source === 'mecab') this.supportsMecab = true;
+        } catch {}
     }
 
     private async _executeAction(path: string, body: object, yomitanUrl?: string) {

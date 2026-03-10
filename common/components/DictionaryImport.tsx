@@ -109,11 +109,12 @@ const DictionaryImport: React.FC<Props> = ({
         setImportClipboardMessage(undefined);
         setImportClipboardPreview(null);
         try {
-            const dt = dictionaryTracks[importClipboardTrack];
-            const yomitan = new Yomitan(dt);
+            const yomitan = new Yomitan(dictionaryTracks[importClipboardTrack]);
+            await yomitan.version();
 
             const tokenSet = new Set<string>();
             for (const tokenParts of await yomitan.splitAndTokenizeBulk(importClipboardText, async (progress) => {
+                yomitan.resetCache();
                 const rate = progress.current / (Date.now() - progress.startedAt);
                 const eta = rate ? Math.ceil((progress.total - progress.current) / rate) : 0;
                 const msg = `${progress.current.toLocaleString('en-US')} / ${progress.total.toLocaleString('en-US')} [ETA: ${localizedDate(Date.now() + eta)} (${humanReadableTime(eta)})]`;
@@ -184,9 +185,9 @@ const DictionaryImport: React.FC<Props> = ({
 
     const lemmatizeRecords = useCallback(
         async (records: Partial<DictionaryTokenRecord>[]) => {
-            const dt = dictionaryTracks[importClipboardTrack];
+            const yomitan = new Yomitan(dictionaryTracks[importClipboardTrack]);
+            await yomitan.version();
             const lemmatizedRecords: Partial<DictionaryTokenRecord>[] = [];
-            const yomitan = new Yomitan(dt);
             for (const record of records) {
                 if (!record.token) {
                     continue;

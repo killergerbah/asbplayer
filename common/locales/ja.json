@@ -476,6 +476,10 @@
         "dictionaryTokenMatchStrategyPriorityLeastKnown": "成熟度が低いカード",
         "dictionaryYomitanSection": "Yomitan",
         "dictionaryYomitanUrl": "Yomitan APIのURL",
+        "dictionaryYomitanParser": "Yomitan parser",
+        "dictionaryYomitanScanningParser": "Scanning Parser (All languages)",
+        "dictionaryYomitanMecabParser": "Mecab (Japanese)",
+        "dictionaryYomitanMecabNotSupportedError": "Could not connect to Yomitan with Mecab parser",
         "dictionaryYomitanScanLength": "単語の最大文字数",
         "dictionaryTokenReadingAnnotation": "単語の読み方を表示",
         "dictionaryTokenReadingAnnotationAlways": "いつも",
@@ -531,7 +535,8 @@
         "dictionaryImportedMaturity": "インポートされた単語を次のように扱います",
         "ui": "UI",
         "webSocketInterface": "WebSocketインターフェース",
-        "yomitanHelperText": "YomitanのAPIのセットアップは<0>こちら<0>をご参考にしてください。"
+        "yomitanHelperText": "YomitanのAPIのセットアップは<0>こちら<0>をご参考にしてください。",
+        "yomitanMecabHelperText": "Instructions to setup Mecab parser are <0>here<0>."
     },
     "subtitlePlayer": {
         "multiSubtitleSelectHelp": "複数の字幕をマイニングするには、クリックし、押し続け、ドラッグしてください"

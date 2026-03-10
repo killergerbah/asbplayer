@@ -476,6 +476,10 @@
         "dictionaryTokenMatchStrategyPriorityLeastKnown": "Least known card",
         "dictionaryYomitanSection": "Yomitan",
         "dictionaryYomitanUrl": "URL da API do Yomitan",
+        "dictionaryYomitanParser": "Yomitan parser",
+        "dictionaryYomitanScanningParser": "Scanning Parser (All languages)",
+        "dictionaryYomitanMecabParser": "Mecab (Japanese)",
+        "dictionaryYomitanMecabNotSupportedError": "Could not connect to Yomitan with Mecab parser",
         "dictionaryYomitanScanLength": "Comprimento máximo da palavra",
         "dictionaryTokenReadingAnnotation": "Annotation for word readings",
         "dictionaryTokenReadingAnnotationAlways": "Always",
@@ -531,7 +535,8 @@
         "dictionaryImportedMaturity": "Treat imported words as",
         "ui": "UI",
         "webSocketInterface": "WebSocket interface",
-        "yomitanHelperText": "As instruções para configurar a API do Yomitan estão <0>aqui<0>."
+        "yomitanHelperText": "As instruções para configurar a API do Yomitan estão <0>aqui<0>.",
+        "yomitanMecabHelperText": "Instructions to setup Mecab parser are <0>here<0>."
     },
     "subtitlePlayer": {
         "multiSubtitleSelectHelp": "Clique, segure e arraste para minerar múltiplas legendas"

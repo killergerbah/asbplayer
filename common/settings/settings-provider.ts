@@ -45,6 +45,7 @@ const defaultDictionaryTrackSettings: DictionaryTrack = {
     dictionaryTokenMatchStrategy: TokenMatchStrategy.ANY_FORM_COLLECTED,
     dictionaryTokenMatchStrategyPriority: TokenMatchStrategyPriority.EXACT,
     dictionaryYomitanUrl: 'http://127.0.0.1:19633',
+    dictionaryYomitanParser: 'scanning-parser',
     dictionaryYomitanScanLength: 16,
     dictionaryTokenReadingAnnotation: TokenReadingAnnotation.NEVER,
     dictionaryDisplayIgnoredTokenReadings: false,
@@ -483,6 +484,9 @@ const ensureDictionaryTracksConsistency = ({ dictionaryTracks }: Partial<Asbplay
                 display: dt.dictionaryColorizeFullyKnownTokens,
             };
         }
+
+        // Default for Yomitan parser
+        if (!dt.dictionaryYomitanParser) (dt as any).dictionaryYomitanParser = 'scanning-parser';
     }
     while (dictionaryTracks.length < NUM_DICTIONARY_TRACKS) {
         dictionaryTracks.push(defaultTrack);
