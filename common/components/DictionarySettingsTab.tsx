@@ -200,7 +200,7 @@ const DictionarySettingsTab: React.FC<Props> = ({
     const selectedDictionary = dictionaryTracks[selectedDictionaryTrack];
 
     const getHelperTextForAnkiCacheSettingsDependencies = useCallback(
-        (fieldName: string, key: keyof typeof selectedDictionary, error?: string) => {
+        (fieldName: string, key: keyof typeof selectedDictionary, error?: React.ReactNode) => {
             if (error) return error;
             const initialTrack = initialDictionaryTracksRef.current[selectedDictionaryTrack];
             if (compareDTField(key, initialTrack, selectedDictionary)) return;
@@ -228,10 +228,7 @@ const DictionarySettingsTab: React.FC<Props> = ({
     }, [selectedDictionary.dictionaryColorizeFullyKnownTokens]);
 
     const [dictionaryYomitanUrlError, setDictionaryYomitanUrlError] = useState<string>();
-    const [dictionaryYomitanMecabError, setDictionaryYomitanMecabError] = useState<string>();
-    const [dictionaryYomitanMecabInstructionsKey, setDictionaryYomitanMecabInstructionsKey] = useState<string>(
-        'settings.yomitanMecabHelperText'
-    );
+    const [dictionaryYomitanMecabError, setDictionaryYomitanMecabError] = useState<React.ReactNode>();
     const dictionaryRequestYomitan = useCallback(async () => {
         try {
             const yomitan = new Yomitan(selectedDictionary);
@@ -246,19 +243,20 @@ const DictionarySettingsTab: React.FC<Props> = ({
                 return;
             }
             if (yomitan.getSupportsMecab()) {
-                const str = t('settings.dictionaryYomitanMecabLemmaNotSupportedError').replace(
-                    /<0>.*?<\/0>/g,
-                    yomitanMecabInstallerUrl
+                setDictionaryYomitanMecabError(
+                    <Trans
+                        i18nKey="settings.dictionaryYomitanMecabLemmaNotSupportedError"
+                        components={[<Link key={0} target="_blank" href={yomitanMecabInstallerUrl} />]}
+                    />
                 );
-                console.error(str);
-                setDictionaryYomitanMecabError(str);
-                setDictionaryYomitanMecabInstructionsKey('settings.dictionaryYomitanMecabLemmaNotSupportedError');
                 return;
             }
-            const str = t('settings.dictionaryYomitanMecabNotSupportedError');
-            console.error(str);
-            setDictionaryYomitanMecabError(str);
-            setDictionaryYomitanMecabInstructionsKey('settings.yomitanMecabHelperText');
+            setDictionaryYomitanMecabError(
+                <Trans
+                    i18nKey="settings.dictionaryYomitanMecabNotSupportedError"
+                    components={[<Link key={0} target="_blank" href={yomitanMecabInstallerUrl} />]}
+                />
+            );
         } catch (e) {
             console.error(e);
             if (e instanceof Error) {
@@ -269,7 +267,7 @@ const DictionarySettingsTab: React.FC<Props> = ({
                 setDictionaryYomitanUrlError(String(e));
             }
         }
-    }, [selectedDictionary, t]);
+    }, [selectedDictionary, supportsDictionaryYomitanMecab]);
 
     useEffect(() => {
         let canceled = false;
@@ -980,14 +978,7 @@ const DictionarySettingsTab: React.FC<Props> = ({
                         },
                     }}
                 />
-                {dictionaryYomitanMecabError && (
-                    <Alert severity="info">
-                        <Trans
-                            i18nKey={t(dictionaryYomitanMecabInstructionsKey)}
-                            components={[<Link key={0} target="_blank" href={yomitanMecabInstallerUrl} />]}
-                        />
-                    </Alert>
-                )}
+                {dictionaryYomitanMecabError && <Alert severity="info">{dictionaryYomitanMecabError}</Alert>}
                 {supportsDictionaryYomitanMecab && (
                     <SettingsTextField
                         select

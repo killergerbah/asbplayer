@@ -811,7 +811,7 @@ export class DictionaryDB {
                     return await this.db.meta.where('[profile+track]').equals(key).first();
                 });
                 if (existingBuild !== undefined) {
-                    console.warn(`Build already in progress - expires at ${existingBuild.lastBuildExpiresAt}`);
+                    console.error(`Build already in progress - expires at ${existingBuild.lastBuildExpiresAt}`);
                     statusUpdates({
                         type: DictionaryBuildAnkiCacheStateType.error,
                         body: {

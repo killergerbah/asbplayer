@@ -479,7 +479,7 @@
         "dictionaryYomitanParser": "Yomitan parser",
         "dictionaryYomitanScanningParser": "Scanning Parser (All languages)",
         "dictionaryYomitanMecabParser": "MeCab (Japanese)",
-        "dictionaryYomitanMecabNotSupportedError": "Failed to parse with MeCab",
+        "dictionaryYomitanMecabNotSupportedError": "Failed to parse with MeCab, instructions to setup are <0>here</0>. Install UniDic for the best results.",
         "dictionaryYomitanMecabLemmaNotSupportedError": "Update to the latest MeCab installer <0>here</0> and install UniDic for the best results.",
         "dictionaryYomitanScanLength": "Comprimento máximo da palavra",
         "dictionaryTokenReadingAnnotation": "Annotation for word readings",
@@ -536,8 +536,7 @@
         "dictionaryImportedMaturity": "Treat imported words as",
         "ui": "UI",
         "webSocketInterface": "WebSocket interface",
-        "yomitanHelperText": "As instruções para configurar a API do Yomitan estão <0>aqui<0>.",
-        "yomitanMecabHelperText": "Instructions to setup MeCab parser are <0>here<0>. Install UniDic for the best results."
+        "yomitanHelperText": "As instruções para configurar a API do Yomitan estão <0>aqui<0>."
     },
     "subtitlePlayer": {
         "multiSubtitleSelectHelp": "Clique, segure e arraste para minerar múltiplas legendas"

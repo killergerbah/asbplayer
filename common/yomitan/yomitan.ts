@@ -146,12 +146,7 @@ export class Yomitan {
             this.dt.dictionaryYomitanParser
         );
 
-        for (const res of tokenizeResults) {
-            for (const tokenParts of res.content) {
-                tokens.push(tokenParts);
-                this.cacheFromTokenize(tokenParts);
-            }
-        }
+        for (const tokenizeResult of tokenizeResults) this.cacheFromTokenize(tokenizeResult, tokens); // Requires this.filterDictionaries to ensure one tokenizeResult per index
         this.tokenizeCache.set(text, tokens);
         return tokens;
     }
@@ -192,13 +187,11 @@ export class Yomitan {
                     this.dt.dictionaryYomitanParser
                 );
 
-                for (const res of tokenizeResults) {
+                // Requires this.filterDictionaries to ensure one tokenizeResult per index
+                for (const tokenizeResult of tokenizeResults) {
                     const tokensForText: TokenPart[][] = [];
-                    for (const tokenParts of res.content) {
-                        tokensForText.push(tokenParts);
-                        this.cacheFromTokenize(tokenParts);
-                    }
-                    this.tokenizeCache.set(tokensToFetch[res.index], tokensForText);
+                    this.cacheFromTokenize(tokenizeResult, tokensForText);
+                    this.tokenizeCache.set(tokensToFetch[tokenizeResult.index], tokensForText);
                     for (const tokenParts of tokensForText) tokens.push(tokenParts);
                 }
                 return tokens;
@@ -207,29 +200,38 @@ export class Yomitan {
         );
     }
 
+    /**
+     * Filter MeCab tokenize results to prefer the newest UniDic dictionary when multiple dictionaries are returned.
+     * Ensures one TokenizeResult per text index.
+     * @param tokenizeRes The array of TokenizeResult from Yomitan's tokenize API.
+     * @param parser The parser used (only 'mecab' requires filtering).
+     * @returns The filtered array of TokenizeResult.
+     */
     private filterDictionaries(
         tokenizeRes: TokenizeResult[],
         parser: typeof this.dt.dictionaryYomitanParser
     ): TokenizeResult[] {
         if (parser !== 'mecab') return tokenizeRes;
 
-        // MeCab can return multiple dictionaries for the same text index.
-        // Prefer newest UniDic (YYYYMM) when available, then other UniDic variants (e.g. unidic-mecab-translate),
-        // then non-UniDic. Among non-UniDic, avoid ipadic-neologd when another option exists.
-        const indexDictMap = new Map<number, { res: TokenizeResult; year: number; month: number }>();
-
+        const preferenceMap = new Map<string, { year: number; month: number }>();
         const preference = (dictionary: string): { year: number; month: number } => {
             const lower = dictionary.toLowerCase();
+            if (preferenceMap.has(lower)) return preferenceMap.get(lower)!;
+            let year = 1;
+            let month = 0;
             if (lower.includes('unidic')) {
                 const match = dictionary.match(YEAR_MONTH_REGEX);
-                const year = match?.groups?.year ? parseInt(match.groups.year) : 2;
-                const month = match?.groups?.month ? parseInt(match.groups.month) : 0;
-                return { year, month };
+                year = match?.groups?.year ? parseInt(match.groups.year) : 2;
+                month = match?.groups?.month ? parseInt(match.groups.month) : 0;
+            } else if (lower === 'ipadic-neologd') {
+                year = 0;
+                month = 0;
             }
-            if (lower === 'ipadic-neologd') return { year: 0, month: 0 };
-            return { year: 1, month: 0 };
+            preferenceMap.set(lower, { year, month });
+            return preferenceMap.get(lower)!;
         };
 
+        const indexDictMap = new Map<number, { res: TokenizeResult; year: number; month: number }>();
         for (const res of tokenizeRes) {
             const curr = indexDictMap.get(res.index);
             const pref = preference(res.dictionary);
@@ -242,20 +244,23 @@ export class Yomitan {
         return results;
     }
 
-    private cacheFromTokenize(tokenParts: TokenPartResult[]): void {
-        const tokenPart = tokenParts[0];
-        if (!tokenPart) return;
-        const token = tokenParts
-            .map((p) => p.text)
-            .join('')
-            .trim();
+    private cacheFromTokenize(tokenizeResult: TokenizeResult, tokensForText: TokenPartResult[][]): void {
+        for (const tokenParts of tokenizeResult.content) {
+            tokensForText.push(tokenParts);
+            const tokenPart = tokenParts[0];
+            if (!tokenPart) return;
+            const token = tokenParts
+                .map((p) => p.text)
+                .join('')
+                .trim();
 
-        if (!this.lemmatizeCache.has(token)) this.extractLemmaFromMecab(token, tokenPart);
+            if (!this.lemmatizeCache.has(token)) this.extractLemmaFromMecab(token, tokenPart);
 
-        const headwords = tokenPart.headwords;
-        if (headwords) {
-            if (!this.lemmatizeCache.has(token)) this.extractLemmas(token, headwords);
-            if (!this.frequencyCache.has(token)) this.extractFrequencyFromTokenize(token, headwords);
+            const headwords = tokenPart.headwords;
+            if (headwords) {
+                if (!this.lemmatizeCache.has(token)) this.extractLemmas(token, headwords);
+                if (!this.frequencyCache.has(token)) this.extractFrequencyFromTokenize(token, headwords);
+            }
         }
     }
 
@@ -468,7 +473,7 @@ export class Yomitan {
                 'mecab'
             );
             if (tokenizeResults[0].source !== 'mecab') {
-                console.warn(
+                console.error(
                     `Yomitan did not return MeCab results as expected for '${text}': ${JSON.stringify(tokenizeResults)}`
                 );
                 this.supportsMecab = false;
@@ -477,20 +482,22 @@ export class Yomitan {
             }
             const tokenParts = tokenizeResults[0].content[0];
             if (tokenParts.map((p) => p.text).join('') !== '思い出せなく') {
-                console.warn(`Yomitan MeCab tokenization unexpected for '${text}': ${JSON.stringify(tokenizeResults)}`);
+                console.error(
+                    `Yomitan MeCab tokenization unexpected for '${text}': ${JSON.stringify(tokenizeResults)}`
+                );
                 this.supportsMecab = false;
                 this.supportsMecabLemma = false;
                 return;
             }
             this.supportsMecab = true;
             if (tokenParts[0].lemma !== '思い出す' || tokenParts[0].lemmaReading !== 'おもいだす') {
-                console.warn(`Yomitan MeCab lemma unexpected for '${text}': ${JSON.stringify(tokenizeResults)}`);
+                console.error(`Yomitan MeCab lemma unexpected for '${text}': ${JSON.stringify(tokenizeResults)}`);
                 this.supportsMecabLemma = false;
                 return;
             }
             this.supportsMecabLemma = true;
         } catch (e) {
-            console.warn(`Yomitan MeCab support check failed for '${text}':`, e);
+            console.error(`Yomitan MeCab support check failed for '${text}':`, e);
             this.supportsMecab = false;
             this.supportsMecabLemma = false;
         }

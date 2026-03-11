@@ -479,7 +479,7 @@
         "dictionaryYomitanParser": "Yomitan parser",
         "dictionaryYomitanScanningParser": "Scanning Parser (All languages)",
         "dictionaryYomitanMecabParser": "MeCab (Japanese)",
-        "dictionaryYomitanMecabNotSupportedError": "Failed to parse with MeCab",
+        "dictionaryYomitanMecabNotSupportedError": "Failed to parse with MeCab, instructions to setup are <0>here</0>. Install UniDic for the best results.",
         "dictionaryYomitanMecabLemmaNotSupportedError": "Update to the latest MeCab installer <0>here</0> and install UniDic for the best results.",
         "dictionaryYomitanScanLength": "単語の最大文字数",
         "dictionaryTokenReadingAnnotation": "単語の読み方を表示",
@@ -536,8 +536,7 @@
         "dictionaryImportedMaturity": "インポートされた単語を次のように扱います",
         "ui": "UI",
         "webSocketInterface": "WebSocketインターフェース",
-        "yomitanHelperText": "YomitanのAPIのセットアップは<0>こちら<0>をご参考にしてください。",
-        "yomitanMecabHelperText": "Instructions to setup MeCab parser are <0>here<0>. Install UniDic for the best results."
+        "yomitanHelperText": "YomitanのAPIのセットアップは<0>こちら<0>をご参考にしてください。"
     },
     "subtitlePlayer": {
         "multiSubtitleSelectHelp": "複数の字幕をマイニングするには、クリックし、押し続け、ドラッグしてください"

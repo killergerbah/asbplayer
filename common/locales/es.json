@@ -479,7 +479,7 @@
         "dictionaryYomitanParser": "Yomitan parser",
         "dictionaryYomitanScanningParser": "Scanning Parser (All languages)",
         "dictionaryYomitanMecabParser": "MeCab (Japanese)",
-        "dictionaryYomitanMecabNotSupportedError": "Failed to parse with MeCab",
+        "dictionaryYomitanMecabNotSupportedError": "Failed to parse with MeCab, instructions to setup are <0>here</0>. Install UniDic for the best results.",
         "dictionaryYomitanMecabLemmaNotSupportedError": "Update to the latest MeCab installer <0>here</0> and install UniDic for the best results.",
         "dictionaryYomitanScanLength": "Max word length",
         "dictionaryTokenReadingAnnotation": "Annotation for word readings",
@@ -536,8 +536,7 @@
         "dictionaryImportedMaturity": "Treat imported words as",
         "ui": "UI",
         "webSocketInterface": "WebSocket interface",
-        "yomitanHelperText": "Instructions to setup Yomitan API are <0>here<0>.",
-        "yomitanMecabHelperText": "Instructions to setup MeCab parser are <0>here<0>. Install UniDic for the best results."
+        "yomitanHelperText": "Instructions to setup Yomitan API are <0>here<0>."
     },
     "subtitlePlayer": {
         "multiSubtitleSelectHelp": "Haz click, mantén y arrastra para minar múltiples subtítulos"
