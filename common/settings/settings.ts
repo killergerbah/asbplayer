@@ -178,6 +178,7 @@ export interface DictionaryTrack {
     readonly dictionaryTokenMatchStrategy: TokenMatchStrategy;
     readonly dictionaryTokenMatchStrategyPriority: TokenMatchStrategyPriority;
     readonly dictionaryYomitanUrl: string;
+    readonly dictionaryYomitanParser: 'scanning-parser' | 'mecab';
     readonly dictionaryYomitanScanLength: number;
     readonly dictionaryTokenReadingAnnotation: TokenReadingAnnotation;
     readonly dictionaryDisplayIgnoredTokenReadings: boolean;
@@ -208,6 +209,7 @@ const dictionaryTrackComparators: {
     dictionaryTokenMatchStrategy: (a, b) => a === b,
     dictionaryTokenMatchStrategyPriority: (a, b) => a === b,
     dictionaryYomitanUrl: (a, b) => a === b,
+    dictionaryYomitanParser: (a, b) => a === b,
     dictionaryYomitanScanLength: (a, b) => a === b,
     dictionaryTokenReadingAnnotation: (a, b) => a === b,
     dictionaryDisplayIgnoredTokenReadings: (a, b) => a === b,

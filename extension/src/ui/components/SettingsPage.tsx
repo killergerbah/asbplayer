@@ -124,6 +124,7 @@ const SettingsPage = ({
                         extensionSupportsPageSettings
                         extensionSupportsDictionary
                         extensionSupportsDictionaryTokenStatusDisplayAlpha
+                        extensionSupportsDictionaryYomitanMecab
                         chromeKeyBinds={commands}
                         onOpenChromeExtensionShortcuts={handleOpenExtensionShortcuts}
                         onSettingsChanged={onSettingsChanged}
