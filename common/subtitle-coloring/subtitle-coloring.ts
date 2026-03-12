@@ -389,7 +389,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
             this.tokensWereModified(state.body?.modifiedTokens ?? []);
             if (state.type === DictionaryBuildAnkiCacheStateType.error) {
                 const body = state.body as DictionaryBuildAnkiCacheStateError;
-                console.warn(`Dictionary Anki cache build error: ${body.msg}`);
+                console.error(`Dictionary Anki cache build error: ${body.msg}`);
                 this.ankiRecentlyModifiedCardIds.clear();
                 this.ankiRecentlyModifiedFirstCheck = false;
             }
@@ -512,7 +512,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                     await yt.version();
                     ts.yt = yt;
                 } catch (e) {
-                    console.warn(`YomitanTrack${ts.track + 1} version request failed:`, e);
+                    console.error(`YomitanTrack${ts.track + 1} version request failed:`, e);
                 }
             }
 

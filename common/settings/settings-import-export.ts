@@ -48,6 +48,9 @@ const dictionaryTrackSchema = {
         dictionaryYomitanUrl: {
             type: 'string',
         },
+        dictionaryYomitanParser: {
+            type: 'string',
+        },
         dictionaryYomitanScanLength: {
             type: 'number',
         },

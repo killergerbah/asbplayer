@@ -39,6 +39,7 @@ const LOCAL_TOKEN_TRACK = -1; // null cannot be used in Dexie indexes
 export interface AnkiCacheSettingsDependencies {
     ankiConnectUrl: string;
     dictionaryYomitanUrl: string;
+    dictionaryYomitanParser: string;
     dictionaryYomitanScanLength: number;
     dictionaryAnkiDecks: string[];
     dictionaryAnkiWordFields: string[];
@@ -810,7 +811,7 @@ export class DictionaryDB {
                     return await this.db.meta.where('[profile+track]').equals(key).first();
                 });
                 if (existingBuild !== undefined) {
-                    console.warn(`Build already in progress - expires at ${existingBuild.lastBuildExpiresAt}`);
+                    console.error(`Build already in progress - expires at ${existingBuild.lastBuildExpiresAt}`);
                     statusUpdates({
                         type: DictionaryBuildAnkiCacheStateType.error,
                         body: {
@@ -851,6 +852,7 @@ export class DictionaryDB {
                 const currSettings: AnkiCacheSettingsDependencies = {
                     ankiConnectUrl: settings.ankiConnectUrl,
                     dictionaryYomitanUrl: dt.dictionaryYomitanUrl,
+                    dictionaryYomitanParser: dt.dictionaryYomitanParser,
                     dictionaryYomitanScanLength: dt.dictionaryYomitanScanLength,
                     dictionaryAnkiDecks: dt.dictionaryAnkiDecks,
                     dictionaryAnkiWordFields: dt.dictionaryAnkiWordFields,
