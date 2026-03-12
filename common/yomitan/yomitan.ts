@@ -159,17 +159,19 @@ export class Yomitan {
         return fromBatches(
             allTexts,
             async (texts) => {
-                const tokens: TokenPart[][] = [];
-                const tokensToFetch = [];
-                for (const text of texts) {
+                const tokensByText: TokenPart[][][] = [];
+                const tokensToFetch: string[] = [];
+                const fetchedTextIndices: number[] = [];
+                for (const [index, text] of texts.entries()) {
                     const tokensForText = this.tokenizeCache.get(text);
                     if (tokensForText) {
-                        for (const tokenParts of tokensForText) tokens.push(tokenParts);
+                        tokensByText[index] = tokensForText;
                         continue;
                     }
                     tokensToFetch.push(text);
+                    fetchedTextIndices.push(index);
                 }
-                if (!tokensToFetch.length) return tokens;
+                if (!tokensToFetch.length) return tokensByText.flat();
 
                 if (this.dt.dictionaryYomitanParser === 'mecab' && !this.getSupportsMecab()) {
                     throw new Error('Yomitan is not configured to support MeCab');
@@ -192,9 +194,9 @@ export class Yomitan {
                     const tokensForText: TokenPart[][] = [];
                     this.cacheFromTokenize(tokenizeResult, tokensForText);
                     this.tokenizeCache.set(tokensToFetch[tokenizeResult.index], tokensForText);
-                    for (const tokenParts of tokensForText) tokens.push(tokenParts);
+                    tokensByText[fetchedTextIndices[tokenizeResult.index]] = tokensForText;
                 }
-                return tokens;
+                return tokensByText.flat();
             },
             { batchSize: YOMITAN_BATCH_SIZE, statusUpdates }
         );
