@@ -383,6 +383,8 @@ interface SubtitlePlayerProps {
     settings: AsbplayerSettings;
     keyBinder: KeyBinder;
     maxResizeWidth: number;
+    initialWidth?: number;
+    initialWidthKey?: string;
     webSocketClient?: WebSocketClient;
 }
 
@@ -418,6 +420,8 @@ export default function SubtitlePlayer({
     settings,
     keyBinder,
     maxResizeWidth,
+    initialWidth,
+    initialWidthKey,
     webSocketClient,
 }: SubtitlePlayerProps) {
     const { t } = useTranslation();
@@ -1011,6 +1015,31 @@ export default function SubtitlePlayer({
         onResizeStart,
         onResizeEnd,
     });
+
+    const appliedInitialWidthKeyRef = useRef<string | undefined>(undefined);
+    useEffect(() => {
+        if (!resizable || initialWidth === undefined || maxResizeWidth < minSubtitlePlayerWidth) {
+            return;
+        }
+
+        if (initialWidthKey && appliedInitialWidthKeyRef.current === initialWidthKey) {
+            return;
+        }
+
+        const clampedInitialWidth = Math.min(maxResizeWidth, Math.max(minSubtitlePlayerWidth, initialWidth));
+        setWidth(clampedInitialWidth);
+        lastKnownWidth = clampedInitialWidth;
+        appliedInitialWidthKeyRef.current = initialWidthKey;
+    }, [resizable, initialWidth, initialWidthKey, maxResizeWidth, setWidth]);
+
+    // Scroll to selected subtitle when layout changes
+    useEffect(() => {
+        // Small delay to allow layout to settle
+        const timer = setTimeout(() => {
+            scrollToCurrentSubtitle();
+        }, 50);
+        return () => clearTimeout(timer);
+    }, [width, scrollToCurrentSubtitle]);
 
     useEffect(() => {
         lastKnownWidth = width;

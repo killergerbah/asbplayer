@@ -184,6 +184,7 @@ const Player = React.memo(function Player({
     const flattenSubtitleFiles = sources?.flattenSubtitleFiles;
     const videoFile = sources?.videoFile;
     const videoFileUrl = sources?.videoFileUrl;
+    const [videoAspectRatio, setVideoAspectRatio] = useState<number>();
     const playModeEnabled = subtitles && subtitles.length > 0 && Boolean(videoFileUrl);
     const [subtitlePlayerResizing, setSubtitlePlayerResizing] = useState<boolean>(false);
     const [loadingSubtitles, setLoadingSubtitles] = useState<boolean>(false);
@@ -216,6 +217,29 @@ const Player = React.memo(function Player({
     const appBarHeight = useAppBarHeight();
     const classes = useStyles({ appBarHidden, appBarHeight });
     const calculateLength = () => trackLength(channelRef.current, subtitlesRef.current);
+
+    useEffect(() => {
+        setVideoAspectRatio(undefined);
+
+        if (!videoFileUrl) {
+            return;
+        }
+
+        const video = document.createElement('video');
+        video.preload = 'metadata';
+        video.onloadedmetadata = () => {
+            if (video.videoWidth > 0 && video.videoHeight > 0) {
+                setVideoAspectRatio(video.videoWidth / video.videoHeight);
+            }
+        };
+        video.src = videoFileUrl;
+
+        return () => {
+            video.onloadedmetadata = null;
+            video.removeAttribute('src');
+            video.load();
+        };
+    }, [videoFileUrl]);
 
     const seek = useCallback(
         async (time: number, clock: Clock, forwardToMedia: boolean) => {
@@ -1177,10 +1201,17 @@ const Player = React.memo(function Player({
         };
     }, [webSocketClient, extension, seek, clock]);
 
-    const [windowWidth] = useWindowSize(true);
+    const [windowWidth, windowHeight] = useWindowSize(true);
 
     const loaded = videoFileUrl || subtitles;
     const videoInWindow = Boolean(loaded && videoFileUrl && !videoPopOut);
+    const playerHeight = appBarHidden ? windowHeight : Math.max(0, windowHeight - appBarHeight);
+    const aspectFitVideoWidth =
+        videoAspectRatio && videoAspectRatio > 0
+            ? Math.max(minVideoPlayerWidth, Math.round(playerHeight * videoAspectRatio))
+            : undefined;
+    const subtitlePlayerInitialWidth =
+        videoInWindow && aspectFitVideoWidth !== undefined ? Math.max(0, windowWidth - aspectFitVideoWidth) : undefined;
     const subtitlePlayerMaxResizeWidth = Math.max(0, windowWidth - minVideoPlayerWidth);
     const notEnoughSpaceForSubtitlePlayer = subtitlePlayerMaxResizeWidth < minSubtitlePlayerWidth;
     const actuallyHideSubtitlePlayer =
@@ -1216,6 +1247,7 @@ const Player = React.memo(function Player({
                     hidden={actuallyHideSubtitlePlayer}
                     style={{
                         flexGrow: videoInWindow ? 0 : 1,
+                        flexShrink: 0,
                         width: 'auto',
                     }}
                 >
@@ -1283,6 +1315,12 @@ const Player = React.memo(function Player({
                         settings={settings}
                         keyBinder={keyBinder}
                         webSocketClient={webSocketClient}
+                        initialWidth={subtitlePlayerInitialWidth}
+                        initialWidthKey={
+                            videoInWindow && videoFileUrl
+                                ? `${videoFileUrl}|${appBarHidden}|${appBarHeight}`
+                                : undefined
+                        }
                     />
                 </Grid>
             </Grid>
