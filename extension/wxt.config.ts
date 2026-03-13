@@ -39,6 +39,12 @@ export default defineConfig({
                     server.watcher.add(path.resolve(__dirname, '../common'));
                 },
             },
+            {
+                name: 'url-browser-polyfill',
+                resolveId(id) {
+                    if (id === 'url') return path.resolve(__dirname, 'src/url-shim.ts');
+                },
+            },
         ],
     }),
     zip: {
