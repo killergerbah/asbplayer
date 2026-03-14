@@ -22,7 +22,7 @@ import Typography from '@mui/material/Typography';
 import { type Theme } from '@mui/material';
 import { CopyHistoryItem } from '../..';
 import { AudioClip } from '../../audio-clip';
-import { Image } from '../..';
+import { MediaFragment } from '../..';
 
 interface CopyHistoryListProps {
     open: boolean;
@@ -107,7 +107,7 @@ const useImageAvailability = (item: CopyHistoryItem) => {
     const [isImageAvailable, setIsImageAvailable] = useState<boolean>();
 
     useEffect(() => {
-        const image = Image.fromCard(item, 0, 0);
+        const image = MediaFragment.fromCard(item, 0, 0);
 
         if (image) {
             setIsImageAvailable(image.error === undefined);

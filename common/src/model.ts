@@ -78,6 +78,7 @@ export interface CardModel extends CardTextFieldValues {
     readonly subtitleFileName: string;
     readonly url?: string;
     readonly image?: ImageModel;
+    readonly mediaFragment?: MediaFragmentModel;
     readonly audio?: AudioModel;
     readonly file?: FileModel;
     readonly mediaTimestamp: number;
@@ -95,16 +96,21 @@ export interface CopyHistoryItem extends CardModel {
     readonly timestamp: number;
 }
 
-export enum ImageErrorCode {
+export enum MediaFragmentErrorCode {
     captureFailed = 1,
     fileLinkLost = 2,
 }
 
-export interface ImageModel {
+export interface MediaFragmentModel {
     readonly base64: string;
-    readonly extension: 'jpeg';
-    readonly error?: ImageErrorCode;
+    readonly extension: 'jpeg' | 'webm';
+    readonly error?: MediaFragmentErrorCode;
 }
+
+// Backward-compatible aliases while callers migrate from image to mediaFragment naming.
+export const ImageErrorCode = MediaFragmentErrorCode;
+export type ImageErrorCode = MediaFragmentErrorCode;
+export type ImageModel = MediaFragmentModel;
 
 export enum AudioErrorCode {
     drmProtected = 1,
@@ -142,6 +148,7 @@ export interface AnkiUiState extends CardTextFieldValues {
     readonly url?: string;
     readonly source: string;
     readonly image?: ImageModel;
+    readonly mediaFragment?: MediaFragmentModel;
     readonly audio?: AudioModel;
     readonly file?: FileModel;
     readonly dialogRequestedTimestamp: number;
@@ -171,6 +178,7 @@ export interface AnkiUiSavedState {
     text: string;
     definition: string;
     image?: ImageModel;
+    mediaFragment?: MediaFragmentModel;
     audio?: AudioModel;
     file?: FileModel;
     word: string;
