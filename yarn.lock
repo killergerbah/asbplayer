@@ -3699,7 +3699,7 @@ __metadata:
     i18next-resources-to-backend: ^1.2.1
     jest: ^29.7.0
     jest-environment-jsdom: ^29.7.0
-    jsonschema: ^1.4.1
+    jsonschema: ^1.5.0
     lamejs: 1.2.0
     pgs-parser: 0.1.0
     sanitize-filename: ^1.6.3
@@ -3707,7 +3707,7 @@ __metadata:
     ts-jest: ^29.2.5
     typescript: ~5.7.2
     uuid: 8.3.2
-    vtt.js: 0.13.0
+    videojs-vtt.js: 0.15.5
   languageName: unknown
   linkType: soft
 
@@ -8452,7 +8452,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"global@npm:^4.4.0":
+"global@npm:^4.3.1, global@npm:^4.4.0":
   version: 4.4.0
   resolution: "global@npm:4.4.0"
   dependencies:
@@ -10840,10 +10840,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jsonschema@npm:^1.4.1":
-  version: 1.4.1
-  resolution: "jsonschema@npm:1.4.1"
-  checksum: 1ef02a6cd9bc32241ec86bbf1300bdbc3b5f2d8df6eb795517cf7d1cd9909e7beba1e54fdf73990fd66be98a182bda9add9607296b0cb00b1348212988e424b2
+"jsonschema@npm:^1.5.0":
+  version: 1.5.0
+  resolution: "jsonschema@npm:1.5.0"
+  checksum: 170b9c375967bc135f4d029fedc31f5686f2c3bb07e7472cebddbb907b5369bf75a1a50287d6af9c31f61c76fe0b7786e78044c188aaddd329b77d856475e6db
   languageName: node
   linkType: hard
 
@@ -15218,6 +15218,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"videojs-vtt.js@npm:0.15.5":
+  version: 0.15.5
+  resolution: "videojs-vtt.js@npm:0.15.5"
+  dependencies:
+    global: ^4.3.1
+  checksum: 2658de26830e412f7539f2674019348374d36f05fcdae548be001d596798f50c0d2e026163afdeff34286919de7aae08cb97af612925164167204b301d246241
+  languageName: node
+  linkType: hard
+
 "vite-node@npm:^3.2.4 || ^5.0.0":
   version: 5.3.0
   resolution: "vite-node@npm:5.3.0"
@@ -15369,13 +15378,6 @@ __metadata:
   version: 3.1.0
   resolution: "void-elements@npm:3.1.0"
   checksum: 0390f818107fa8fce55bb0a5c3f661056001c1d5a2a48c28d582d4d847347c2ab5b7f8272314cac58acf62345126b6b09bea623a185935f6b1c3bbce0dfd7f7f
-  languageName: node
-  linkType: hard
-
-"vtt.js@npm:0.13.0":
-  version: 0.13.0
-  resolution: "vtt.js@npm:0.13.0"
-  checksum: a3c49704b7db5c769243529a452aab2927d0d4c76f8b5b6c4af2ef22016136296f369d67416b7b529aced3d909e3ad0a52bdfe2db6e16f0b8404e3a9ebe1d371
   languageName: node
   linkType: hard
 
