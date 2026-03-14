@@ -388,7 +388,7 @@ export default function VideoPlayer({
     const [, setTopSubtitlePositionOffset] = useState<number>(subtitleSettings.topSubtitlePositionOffset);
     const showSubtitlesRef = useRef<RichSubtitleModel[]>([]);
     showSubtitlesRef.current = showSubtitles;
-    const playModeRef = useRef(playMode);
+    const playModesRef = useRef(playModes);
     const clock = useMemo<Clock>(() => new Clock(), []);
     const mousePositionRef = useRef<Point | undefined>(undefined);
     const [showCursor, setShowCursor] = useState<boolean>(isMobile);
@@ -553,14 +553,14 @@ export default function VideoPlayer({
         );
     }, []);
 
-    playModeRef.current = playMode;
+    playModesRef.current = playModes;
 
     const updatePlaybackRate = useCallback(
         (playbackRate: number, forwardToPlayer: boolean) => {
             if (videoRef.current) {
                 videoRef.current.playbackRate = playbackRate;
                 clock.rate = playbackRate;
-                if (playModeRef.current !== PlayMode.fastForward) {
+                if (!playModesRef.current.has(PlayMode.fastForward)) {
                     setAlertSeverity('info');
                     const text = i18n.t('info.playbackRate', { rate: playbackRate.toFixed(1) });
                     setAlertMessage(text);
