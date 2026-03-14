@@ -105,6 +105,7 @@ export default defineConfig({
                         'hbo-max-page.js',
                         'cijapanese-page.js',
                         'svt-play-page.js',
+                        'ur-play-page.js',
                         'anki-ui.js',
                         'mp3-encoder-worker.js',
                         'pgs-parser-worker.js',

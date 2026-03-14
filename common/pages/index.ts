@@ -28,4 +28,5 @@ export const pageMetadata: { [K in keyof PageSettings]: PageMetadata } = {
     cijapanese: { title: 'Comprehensible Japanese', disableCspRuleId: 20 },
     iwanttfc: { title: 'iWantTFC', disableCspRuleId: 21 },
     svtplay: { title: 'SVT Play', disableCspRuleId: 22 },
+    urplay: { title: 'UR Play', disableCspRuleId: 23 },
 };
