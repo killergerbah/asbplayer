@@ -534,6 +534,7 @@ export interface PageSettings {
     stremio: Page;
     cijapanese: Page;
     iwanttfc: Page;
+    svtplay: Page;
 }
 
 export interface StreamingVideoSettings {

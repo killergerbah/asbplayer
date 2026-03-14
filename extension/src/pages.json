@@ -196,6 +196,15 @@
             "autoSync": {
                 "enabled": true
             }
+        },
+        {
+            "key": "svtplay",
+            "host": "www\\.svtplay\\.se",
+            "pageScript": "svt-play-page.js",
+            "syncAllowedAtPath": "video",
+            "autoSync": {
+                "enabled": true
+            }
         }
     ]
 }

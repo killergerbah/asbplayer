@@ -104,6 +104,7 @@ export default defineConfig({
                         'areena-yle-page.js',
                         'hbo-max-page.js',
                         'cijapanese-page.js',
+                        'svt-play-page.js',
                         'anki-ui.js',
                         'mp3-encoder-worker.js',
                         'pgs-parser-worker.js',
