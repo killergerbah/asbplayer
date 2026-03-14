@@ -3,14 +3,22 @@
 // "Global state" exists for other kinds of key/value pairs that should
 // not be affected by settings profiles. For example: FTUE state.
 
+export enum AnnotationTutorialState {
+    hasNotSeen = 0,
+    shouldSee = 1,
+    hasSeen = 2,
+}
+
 export const initialGlobalState: GlobalState = {
     ftueHasSeenAnkiDialogQuickSelectV2: false,
     ftueHasSeenSubtitleTrackSelector: false,
+    ftueAnnotation: AnnotationTutorialState.hasNotSeen,
 };
 
 export interface GlobalState {
     ftueHasSeenAnkiDialogQuickSelectV2: boolean;
     ftueHasSeenSubtitleTrackSelector: boolean;
+    ftueAnnotation: AnnotationTutorialState;
 }
 
 export interface GlobalStateProvider {

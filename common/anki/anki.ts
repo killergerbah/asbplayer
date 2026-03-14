@@ -1,13 +1,13 @@
 import { AudioClip } from '@project/common/audio-clip';
-import { AnkiExportMode, CardModel, Image } from '@project/common';
+import { AnkiExportMode, CardModel, Image, Progress } from '@project/common';
 import { HttpFetcher, Fetcher } from '@project/common';
 import { AnkiSettings, AnkiSettingsFieldKey } from '@project/common/settings';
 import sanitize from 'sanitize-filename';
 import { extractText, fromBatches, sourceString } from '@project/common/util';
 
-// No Anki memory impacts, increasing offers negligible speedup
-const ANKI_INFO_BATCH_SIZE = 10000;
-const ANKI_MOD_BATCH_SIZE = 100000;
+const ANKI_CARDS_INFO_BATCH_SIZE = 10;
+const ANKI_NOTES_INFO_BATCH_SIZE = 100;
+const ANKI_MOD_BATCH_SIZE = 10000;
 
 const ankiQuerySpecialCharacters = ['"', '*', '_', '\\', ':'];
 const ankiQueryDeckSpecialCharacters = ['"', '*', '_', '\\'];
@@ -73,6 +73,7 @@ const makeUniqueFileName = (fileName: string) => {
 };
 
 const htmlTagRegexString = '<([^/ >])*[^>]*>(.*?)</\\1>';
+const anyHtmlTagRegex = /<[^>]+>/;
 
 // Given <a><b>content</b></a> return ['<a><b>content</b></a>', '<b>content</b>', 'content']
 const tagContent = (html: string) => {
@@ -93,6 +94,8 @@ const tagContent = (html: string) => {
 
     return contents;
 };
+
+const containsHtmlTag = (value: string) => anyHtmlTagRegex.test(value);
 
 export const inheritHtmlMarkup = (original: string, markedUp: string) => {
     const htmlTagRegex = new RegExp(htmlTagRegexString, 'ig');
@@ -203,16 +206,18 @@ export class DuplicateNoteError extends Error {
     }
 }
 
+// Optional fields are unused thus deleted to save memory
 export interface CardInfo {
-    answer: string;
-    question: string;
+    answer?: string;
+    question?: string;
     deckName: string;
     modelName: string;
     fieldOrder: number;
     fields: { [fieldName: string]: { value: string; order: number } };
-    css: string;
+    css?: string;
     cardId: number;
     interval: number;
+    factor: number;
     note: number;
     ord: number;
     type: number;
@@ -222,6 +227,8 @@ export interface CardInfo {
     lapses: number;
     left: number;
     mod: number;
+    nextReviews: [string, string, string, string];
+    flags: number;
 }
 
 export interface NoteInfo {
@@ -313,15 +320,26 @@ export class Anki {
         return response.result;
     }
 
-    async cardsInfo(allCards: number[], ankiConnectUrl?: string): Promise<CardInfo[]> {
+    async cardsInfo(
+        allCards: number[],
+        statusUpdates?: (progress: Progress) => Promise<void>,
+        ankiConnectUrl?: string
+    ): Promise<CardInfo[]> {
         if (!allCards.length) return [];
         return (
             await fromBatches(
                 allCards,
                 async (cards) => {
-                    return (await this._executeAction('cardsInfo', { cards }, ankiConnectUrl)).result as CardInfo[];
+                    const cardsInfo: CardInfo[] = (await this._executeAction('cardsInfo', { cards }, ankiConnectUrl))
+                        .result;
+                    for (const cardInfo of cardsInfo) {
+                        delete cardInfo.answer;
+                        delete cardInfo.question;
+                        delete cardInfo.css;
+                    }
+                    return cardsInfo;
                 },
-                { batchSize: ANKI_INFO_BATCH_SIZE }
+                { batchSize: ANKI_CARDS_INFO_BATCH_SIZE, statusUpdates }
             )
         ).flat();
     }
@@ -360,7 +378,7 @@ export class Anki {
                 async (notes) => {
                     return (await this._executeAction('notesInfo', { notes }, ankiConnectUrl)).result as NoteInfo[];
                 },
-                { batchSize: ANKI_INFO_BATCH_SIZE }
+                { batchSize: ANKI_NOTES_INFO_BATCH_SIZE }
             )
         ).flat();
     }
@@ -556,7 +574,10 @@ export class Anki {
             return;
         }
 
-        let newValue = multiline ? value.split('\n').join('<br>') : value;
+        let newValue = value;
+        if (multiline && !containsHtmlTag(value)) {
+            newValue = value.split('\n').join('<br>');
+        }
         const existingValue = fields[fieldName];
 
         if (existingValue) {
@@ -578,7 +599,10 @@ export class Anki {
         // Sanitize unsafe URL characters for AnkiWeb compatibility.
         name = this._sanitizeUnsafeURLChars(name);
         // Sanitize for file system compatibility on various operating systems.
-        return sanitize(name, { replacement: replacement });
+        name = sanitize(name, { replacement: replacement });
+        // Prefix to allow filtering by asbplayer created files,
+        // and to prevent Anki from skipping cleanup of files that start with an underscore.
+        return 'asbp_' + name;
     }
 
     private async _storeMediaFile(name: string, base64: string, ankiConnectUrl?: string) {

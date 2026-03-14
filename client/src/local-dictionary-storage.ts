@@ -6,8 +6,13 @@ import {
     DictionaryDBCommand,
     ExtensionToAsbPlayerCommand,
 } from '@project/common';
-import { DictionaryDB, DictionaryLocalTokenInput, DictionaryStorage } from '@project/common/dictionary-db';
-import { AsbplayerSettings } from '@project/common/settings';
+import {
+    DictionaryDB,
+    DictionaryLocalTokenInput,
+    DictionaryStorage,
+    DictionaryTokenRecord,
+} from '@project/common/dictionary-db';
+import { ApplyStrategy, AsbplayerSettings } from '@project/common/settings';
 
 export class LocalDictionaryStorage implements DictionaryStorage {
     private readonly dictionaryDB: DictionaryDB;
@@ -30,8 +35,12 @@ export class LocalDictionaryStorage implements DictionaryStorage {
         return this.dictionaryDB.getByLemmaBulk(profile, track, lemmas);
     }
 
-    saveRecordLocalBulk(profile: string | undefined, localTokenInputs: DictionaryLocalTokenInput[]) {
-        return this.dictionaryDB.saveRecordLocalBulk(profile, localTokenInputs);
+    saveRecordLocalBulk(
+        profile: string | undefined,
+        localTokenInputs: DictionaryLocalTokenInput[],
+        applyStates: ApplyStrategy
+    ) {
+        return this.dictionaryDB.saveRecordLocalBulk(profile, localTokenInputs, applyStates);
     }
 
     deleteRecordLocalBulk(profile: string | undefined, tokens: string[]) {
@@ -40,6 +49,14 @@ export class LocalDictionaryStorage implements DictionaryStorage {
 
     deleteProfile(profile: string) {
         return this.dictionaryDB.deleteProfile(profile);
+    }
+
+    exportRecordLocalBulk() {
+        return this.dictionaryDB.exportRecordLocalBulk();
+    }
+
+    importRecordLocalBulk(records: Partial<DictionaryTokenRecord>[], profiles: string[]) {
+        return this.dictionaryDB.importRecordLocalBulk(records, profiles);
     }
 
     buildAnkiCache(profile: string | undefined, settings: AsbplayerSettings) {

@@ -41,6 +41,7 @@ import { MineSubtitleParams } from '../hooks/use-app-web-socket-client';
 import { isMobile } from 'react-device-detect';
 import ChromeExtension, { ExtensionMessage } from '../services/chrome-extension';
 import { MineSubtitleCommand, WebSocketClient } from '../../web-socket-client';
+import './subtitles.css';
 
 let lastKnownWidth: number | undefined;
 export const minSubtitlePlayerWidth = 200;
@@ -162,12 +163,11 @@ const useSubtitleRowStyles = makeStyles<Theme>((theme) => ({
         width: '100%',
         overflowWrap: 'anywhere',
         whiteSpace: 'pre-wrap',
-        '& ruby': {
-            rubyPosition: 'over',
-        },
-        '& rt': {
+        '& .asb-frequency rt': {
             fontSize: '0.5em',
-            lineHeight: 1,
+        },
+        '& .asb-frequency-hover rt': {
+            fontSize: '0.5em',
         },
     },
     compressedSubtitle: {
@@ -176,12 +176,11 @@ const useSubtitleRowStyles = makeStyles<Theme>((theme) => ({
         width: '100%',
         overflowWrap: 'anywhere',
         whiteSpace: 'pre-wrap',
-        '& ruby': {
-            rubyPosition: 'over',
-        },
-        '& rt': {
+        '& .asb-frequency rt': {
             fontSize: '0.5em',
-            lineHeight: 1,
+        },
+        '& .asb-frequency-hover rt': {
+            fontSize: '0.5em',
         },
     },
     disabledSubtitle: {
@@ -225,6 +224,8 @@ interface SubtitleRowProps extends TableRowProps {
     subtitleRef: RefObject<HTMLTableRowElement | null>;
     onClickSubtitle: (index: number) => void;
     onCopySubtitle: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>, index: number) => void;
+    onMouseOver: (e: React.MouseEvent) => void;
+    onMouseOut: (e: React.MouseEvent) => void;
     subtitleHtml: SubtitleHtml;
 }
 
@@ -234,6 +235,8 @@ const SubtitleRow = React.memo(function SubtitleRow({
     subtitleRef,
     onClickSubtitle,
     onCopySubtitle,
+    onMouseOver,
+    onMouseOut,
     compressed,
     disabled,
     subtitle,
@@ -265,6 +268,9 @@ const SubtitleRow = React.memo(function SubtitleRow({
             ref={textRef}
             className={disabledClassName}
             dangerouslySetInnerHTML={{ __html: subtitle.richText ?? subtitle.text }}
+            data-track={subtitle.track}
+            onMouseOver={onMouseOver}
+            onMouseOut={onMouseOut}
         />
     );
 
@@ -353,6 +359,8 @@ interface SubtitlePlayerProps {
     onOffsetChange: (offset: number) => void;
     onToggleSubtitleTrack: (track: number) => void;
     onSubtitlesHighlighted: (subtitles: SubtitleModel[]) => void;
+    onMouseOver: (e: React.MouseEvent) => void;
+    onMouseOut: (e: React.MouseEvent) => void;
     onResizeStart?: () => void;
     onResizeEnd?: () => void;
     autoPauseContext: AutoPauseContext;
@@ -386,6 +394,8 @@ export default function SubtitlePlayer({
     onOffsetChange,
     onToggleSubtitleTrack,
     onSubtitlesHighlighted,
+    onMouseOver,
+    onMouseOut,
     onResizeStart,
     onResizeEnd,
     autoPauseContext,
@@ -661,14 +671,14 @@ export default function SubtitlePlayer({
                 event.stopPropagation();
                 event.preventDefault();
                 if (forward) {
-                    onSeek(Math.min(length, clock.time(length) + 10000), clock.running);
+                    onSeek(Math.min(length, clock.time(length) + settings.seekDuration * 1000), clock.running);
                 } else {
-                    onSeek(Math.max(0, clock.time(length) - 10000), clock.running);
+                    onSeek(Math.max(0, clock.time(length) - settings.seekDuration * 1000), clock.running);
                 }
             },
             () => disableKeyEvents
         );
-    }, [keyBinder, clock, length, disableKeyEvents, onSeek]);
+    }, [keyBinder, clock, length, disableKeyEvents, settings.seekDuration, onSeek]);
 
     useEffect(() => {
         function handleScroll() {
@@ -682,27 +692,24 @@ export default function SubtitlePlayer({
     }, [containerRef, lastScrollTimestampRef]);
 
     useEffect(() => {
-        if (hidden) {
-            return;
-        }
-
         if (!jumpToSubtitle || !subtitles) {
             return;
         }
 
         let jumpToIndex = -1;
         let i = 0;
-
-        for (let s of subtitles) {
+        for (const s of subtitles) {
             if (s.originalStart === jumpToSubtitle.originalStart && jumpToSubtitle.text.includes(s.text)) {
                 jumpToIndex = i;
                 break;
             }
-
             ++i;
         }
 
-        if (jumpToIndex !== -1) {
+        const target = jumpToIndex !== -1 ? subtitles[jumpToIndex] : jumpToSubtitle;
+        onSeek(target.start, clock.running);
+
+        if (!hiddenRef.current && jumpToIndex !== -1) {
             subtitleRefs[jumpToIndex]?.current?.scrollIntoView({
                 block: 'center',
                 inline: 'nearest',
@@ -711,7 +718,7 @@ export default function SubtitlePlayer({
             setHighlightedJumpToSubtitleIndex(jumpToIndex);
             setTimeout(() => setHighlightedJumpToSubtitleIndex(undefined), 1000);
         }
-    }, [hidden, jumpToSubtitle, subtitles, subtitleRefs]);
+    }, [jumpToSubtitle, subtitles, subtitleRefs, onSeek, clock]);
 
     const currentMockSubtitle = useCallback(() => {
         const timestamp = clock.time(length);
@@ -1148,6 +1155,8 @@ export default function SubtitlePlayer({
                                     subtitleRef={subtitleRefs[index]}
                                     onClickSubtitle={handleClick}
                                     onCopySubtitle={handleCopy}
+                                    onMouseOver={onMouseOver}
+                                    onMouseOut={onMouseOut}
                                     subtitleHtml={settings.subtitleHtml}
                                 />
                             );
@@ -1159,7 +1168,13 @@ export default function SubtitlePlayer({
     }
 
     return (
-        <Paper square ref={containerRef} className={classes.container} style={{ width: resizable ? width : 'auto' }}>
+        <Paper
+            square
+            ref={containerRef}
+            className={`${classes.container} asbplayer-token-container`}
+            tabIndex={-1}
+            style={{ width: resizable ? width : 'auto' }}
+        >
             {subtitleTable}
             {resizable && (
                 <ResizeHandle

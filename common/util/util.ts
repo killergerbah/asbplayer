@@ -1,6 +1,7 @@
 import sanitize from 'sanitize-filename';
-import { Rgb, SubtitleModel } from '../src/model';
+import { Rgb, SubtitleModel, Tokenization, TokenReading } from '../src/model';
 import { TextSubtitleSettings } from '../settings/settings';
+import { Progress } from '..';
 
 export function arrayEquals<T>(a: T[], b: T[], equals = (lhs: T, rhs: T) => lhs === rhs): boolean {
     if (a.length !== b.length) {
@@ -15,6 +16,14 @@ export function arrayEquals<T>(a: T[], b: T[], equals = (lhs: T, rhs: T) => lhs 
 
     return true;
 }
+
+export const localizedDate = (timestamp: number) => {
+    return new Date(timestamp).toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+    });
+};
 
 export function humanReadableTime(timestamp: number, nearestTenth = false, fullyPadded = false): string {
     const totalSeconds = Math.floor(timestamp / 1000);
@@ -48,6 +57,11 @@ export function humanReadableTime(timestamp: number, nearestTenth = false, fully
 
         return minutes + 'm' + String(seconds).padStart(2, '0') + 's';
     }
+}
+
+export function getCurrentTimeString(): string {
+    const now = new Date();
+    return `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}-${now.getHours()}-${now.getMinutes()}-${now.getSeconds()}`;
 }
 
 export function surroundingSubtitles(
@@ -239,6 +253,13 @@ function withinBoundaryAroundInterval(
     return false;
 }
 
+export function subtitleTimestampWithDelay(subtitle: Pick<SubtitleModel, 'start' | 'end'>, delay: number): number {
+    const start = Math.min(subtitle.start, subtitle.end);
+    const end = Math.max(subtitle.start, subtitle.end);
+
+    return Math.max(start, Math.min(end, delay >= 0 ? start + delay : end + delay));
+}
+
 export function subtitleIntersectsTimeInterval(subtitle: SubtitleModel, interval: number[]) {
     const length = Math.max(0, subtitle.end - subtitle.start);
 
@@ -412,6 +433,19 @@ export function hexToRgb(hex: string): Rgb {
     };
 }
 
+export function hex2ToPercent(hex: string): number {
+    const parsed = Number.parseInt(hex.replace('#', ''), 16);
+    if (!Number.isFinite(parsed)) return 1;
+    return Math.max(0, Math.min(255, parsed)) / 255;
+}
+
+export function percentToHex2(percent: number): string {
+    const hex = Math.round(Math.max(0, Math.min(1, percent)) * 255)
+        .toString(16)
+        .toUpperCase();
+    return hex.length === 1 ? `0${hex}` : hex;
+}
+
 export function sourceString(subtitleFileName: string, timestamp: number) {
     return timestamp === 0 ? subtitleFileName : `${subtitleFileName} (${humanReadableTime(timestamp, true, true)})`;
 }
@@ -431,37 +465,193 @@ export function seekWithNudge(media: HTMLMediaElement, timestampSeconds: number)
 export async function inBatches<T>(
     items: T[],
     cb: (batch: T[]) => Promise<void>,
-    options = { batchSize: 5 }
+    options: { batchSize: number; statusUpdates?: (progress: Progress) => Promise<void> } = { batchSize: 5 }
 ): Promise<void> {
     const batchSize = options.batchSize > 0 ? options.batchSize : 1;
+    let current = 0;
+    const total = items.length;
+    const startedAt = Date.now();
     for (let i = 0; i < items.length; i += batchSize) {
-        await cb(items.slice(i, i + batchSize));
+        const batch = items.slice(i, i + batchSize);
+        await cb(batch);
+        if (options.statusUpdates) {
+            current += batch.length;
+            await options.statusUpdates({ current, total, startedAt });
+        }
     }
 }
 
 export async function fromBatches<T, R>(
     items: T[],
     cb: (batch: T[]) => Promise<R[]>,
-    options = { batchSize: 5 }
+    options: { batchSize: number; statusUpdates?: (progress: Progress) => Promise<void> } = { batchSize: 5 }
 ): Promise<R[]> {
     const batchSize = options.batchSize > 0 ? options.batchSize : 1;
     const results: R[] = [];
+    let current = 0;
+    const total = items.length;
+    const startedAt = Date.now();
     for (let i = 0; i < items.length; i += batchSize) {
-        const res = await cb(items.slice(i, i + batchSize));
+        const batch = items.slice(i, i + batchSize);
+        const res = await cb(batch);
         for (let j = 0; j < res.length; j++) results.push(res[j]);
+        if (options.statusUpdates) {
+            current += batch.length;
+            await options.statusUpdates({ current, total, startedAt });
+        }
     }
     return results;
 }
 
-export async function mapAsync<T, R>(arr: T[], cb: (e: T) => Promise<R>, options = { batchSize: 5 }): Promise<R[]> {
+export async function mapAsync<T, R>(
+    arr: T[],
+    cb: (e: T) => Promise<R>,
+    options: { batchSize: number; statusUpdates?: (progress: Progress) => Promise<void> } = { batchSize: 5 }
+): Promise<R[]> {
     return fromBatches(arr, (batch) => Promise.all(batch.map(cb)), options);
 }
 
 export async function filterAsync<T>(
     arr: T[],
     cb: (e: T) => Promise<boolean>,
-    options = { batchSize: 5 }
+    options: { batchSize: number; statusUpdates?: (progress: Progress) => Promise<void> } = { batchSize: 5 }
 ): Promise<T[]> {
     const results = await mapAsync(arr, cb, options);
     return arr.filter((_, index) => results[index]);
+}
+
+export async function ensureStoragePersisted(): Promise<void> {
+    if (!navigator.storage?.persist) return;
+    if (await navigator.storage.persisted()) return;
+    const persisted = await navigator.storage.persist();
+    if (!persisted) console.warn('Storage could not be persisted, data may be cleared by the browser');
+}
+
+type Block = {
+    pos: number[];
+};
+
+/**
+ * Iterates over a string in "blocks" where a "block" represents a collection of substrings of the passed-in string.
+ * @param str The string to iterate over.
+ * @param block Function respresenting the substrings to iterate over.
+ * @param callback Called when iterating over each block, and also gaps between blocks. When iterating over a gap,
+ * the optional block argument is undefined.
+ */
+export function iterateOverStringInBlocks<T, B extends Block>(
+    str: string,
+    block: (str: string, blockIndex: number) => B | undefined,
+    callback: (left: number, right: number, block?: B) => void
+) {
+    let left = 0;
+    let right = 0;
+    let currBlock = block(str, 0);
+
+    if (currBlock === undefined) {
+        callback(0, str.length);
+        return;
+    }
+
+    for (let blockIndex = 0; right < str.length; ) {
+        if (currBlock !== undefined && right === currBlock.pos[0]) {
+            if (right > left) {
+                callback(left, right);
+            }
+            callback(currBlock.pos[0], currBlock.pos[1], currBlock);
+            blockIndex++;
+            left = currBlock.pos[1];
+            currBlock = block(str, blockIndex);
+        }
+        right = currBlock?.pos?.[0] ?? str.length;
+    }
+
+    if (left < right) {
+        callback(left, right);
+    }
+}
+
+export const areTokenizationsEqual = (a: Tokenization | undefined, b: Tokenization | undefined) => {
+    if (a === b) return true;
+    if (!a || !b) return false;
+
+    if (a.error !== b.error) return false;
+    return arrayEquals(a.tokens, b.tokens, areTokensEqual);
+};
+
+const areTokensEqual = (aToken: any, bToken: any) => {
+    if (!arrayEquals(aToken.pos, bToken.pos)) return false;
+    if (aToken.status !== bToken.status) return false;
+    if (!arrayEquals(aToken.states, bToken.states)) return false;
+    if (!arrayEquals(aToken.readings, bToken.readings, areTokenReadingsEqual)) return false;
+    if (aToken.frequency !== bToken.frequency) return false;
+    return true;
+};
+
+const areTokenReadingsEqual = (a: TokenReading, b: TokenReading) =>
+    arrayEquals(a.pos, b.pos) && a.reading === b.reading;
+
+/**
+ * An async safe semaphore implementation that preserves FIFO order.
+ * It uses an id for release to allow multiple releases (e.g try/finally with early releases).
+ * @param options.permits The number of concurrent permits.
+ * @param options.lifetimeMs Maximum lifetime of an acquire before automatic release (prevents deadlocks if callers don't call this.release()).
+ */
+export class AsyncSemaphore {
+    private permits: number;
+    private lifetimeMs?: number;
+    private acquired: Set<number> = new Set();
+    private timers: Map<number, ReturnType<typeof setTimeout>> = new Map();
+    private waiting: ((id: number) => void)[] = [];
+    private counter: number = 0;
+    private getNextId = () => {
+        if (this.counter === Number.MAX_SAFE_INTEGER) this.counter = 0;
+        return ++this.counter;
+    };
+
+    constructor(options: { permits: number; lifetimeMs?: number }) {
+        this.permits = Math.floor(options.permits);
+        if (this.permits <= 0) {
+            throw new Error('Permits count must be positive');
+        }
+        this.lifetimeMs = options.lifetimeMs;
+        if (this.lifetimeMs && this.lifetimeMs <= 0) {
+            throw new Error('Lifetime must be positive');
+        }
+    }
+
+    private _acquire(): number {
+        const id = this.getNextId();
+        this.acquired.add(id);
+        if (this.lifetimeMs) {
+            this.timers.set(
+                id,
+                setTimeout(() => this.release(id), this.lifetimeMs)
+            );
+        }
+        return id;
+    }
+
+    acquire(): Promise<number> {
+        return new Promise<number>((resolve) => {
+            if (this.permits > 0) {
+                this.permits--;
+                resolve(this._acquire());
+            } else {
+                this.waiting.push(resolve);
+            }
+        });
+    }
+
+    release(id: number): void {
+        if (!this.acquired.has(id)) return;
+        this.acquired.delete(id);
+        clearTimeout(this.timers.get(id)!);
+        this.timers.delete(id);
+
+        if (this.waiting.length > 0) {
+            this.waiting.shift()!(this._acquire());
+        } else {
+            this.permits++;
+        }
+    }
 }

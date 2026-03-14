@@ -188,6 +188,13 @@ const dependencies: Dependency[] = [
         purpose: 'Subtitle detection',
         extension: true,
     },
+    {
+        name: 'DOMPurify',
+        projectLink: 'https://github.com/cure53/DOMPurify',
+        license: 'Apache 2.0',
+        licenseLink: 'https://github.com/cure53/DOMPurify/blob/main/LICENSE',
+        purpose: 'HTML sanitization',
+    },
 ];
 
 const dependencyPurposeCounts: { [key: string]: number } = {};
@@ -238,7 +245,7 @@ const About = ({ appVersion, extensionVersion }: Props) => {
                     MIT License
                     <br />
                     <br />
-                    Copyright (c) 2020-2025 asbplayer authors
+                    Copyright (c) 2020-2026 asbplayer authors
                     <br />
                     <br />
                     Permission is hereby granted, free of charge, to any person obtaining a copy of this software and

@@ -6,8 +6,6 @@
 
 [![GitHub Workflow Status (with event)](https://img.shields.io/github/actions/workflow/status/killergerbah/asbplayer/verify.yml)](https://github.com/killergerbah/asbplayer/actions/workflows/verify.yml)
 [![Github All Releases](https://img.shields.io/github/downloads/killergerbah/asbplayer/total.svg)](https://github.com/killergerbah/asbplayer/releases)
-[![GitHub Sponsors](https://img.shields.io/github/sponsors/killergerbah)](https://github.com/sponsors/killergerbah)
-[![Static Badge](https://img.shields.io/badge/donate-ko--fi-ed6760?label=donate)](https://ko-fi.com/killergerbah)
 [![GitHub License](https://img.shields.io/github/license/killergerbah/asbplayer)](https://github.com/killergerbah/asbplayer?tab=MIT-1-ov-file)
 [![Discord](https://img.shields.io/discord/962412001810849814?color=%237785cc)](https://discord.gg/ad7VAQru7m)
 
@@ -18,18 +16,26 @@
 **asbplayer** is a browser-based media player and Chrome extension developed for language learners who learn their target language through subtitled media. With asbplayer, you can:
 
 - **Easily create high-quality, multimedia flashcards** out of subtitled videos.
-- **Load text-selectable subtitles onto most video sources**, including streaming sources.
-- **Extract subtitles from popular streaming services** like Netflix and YouTube.
+- **Load text-selectable subtitles onto most video sources**, including streaming sources. You can use **auto-detected subtitles** on popular streaming services like Netflix and YouTube, or your own **subtitle files**.
 - **Seek through subtitles** using a **navigable subtitle list**.
-- **Optimize language-learning efficiency** using subtitled videos with **playback modes** like:
-    - **Condensed playback**: Only play subtitled sections of a video.
-    - **Fast-forward playback**: Fast-forward through unsubtitled sections of video.
-    - **Auto-pause**: Automatically pause at the beginning or end of every subtitle.
+- **Optimize language acquisition** with **playback modes** like:
+  - **Condensed playback**: Skip unsubtitled sections of video.
+  - **Fast-forward playback**: Fast-forward through unsubtitled sections of video.
+  - **Auto-pause**: Automatically pause at the beginning or end of every subtitle.
 - **Use customizable keyboard shortcuts** to access most of asbplayer's features.
+- **Annotate subtitles** with the help of tools such as [Yomitan](https://yomitan.wiki/)
+  - **Word styling** (color/underline/outline, etc.) based on a word's status (uncollected/unknown/learning, etc.) synced from Anki and/or tracked locally in asbplayer.
+  - **Reading annotation** for pronunciation displayed above each word or based on status.
+  - **Frequency annotation** for rank-based frequency displayed below each word or based on status.
+  - Many more features for future releases! Some planned features include:
+    - **Statistics and Comprehension** on your known words for the current video and across videos.
+    - **Word browser** to manage local and Anki-synced words.
+    - **Auto pause**, **Condensed playback**, and **Auto mining** on uncollected/unknown/learning words.
+    - **Accent annotation** such as pitch accent, tones, gender, etc.
 
 ## Thanks
 
-Thank you to all of my sponsors:
+Thank you to everyone who has sponsored the project:
 
 [@vivekchoksi](https://www.github.com/vivekchoksi),
 [@nzarbayezid](https://www.github.com/nzarbayezid),
@@ -111,7 +117,11 @@ Thank you to all those who have contributed to asbplayer:
 [@agloo](https://github.com/agloo),
 [@Bennycopter](https://github.com/Bennycopter),
 [@extremq](https://github.com/extremq),
-[@iamllama](https://github.com/iamllama)
+[@iamllama](https://github.com/iamllama),
+[@danthemango](https://github.com/danthemango),
+[@L-M-Sherlock](https://github.com/L-M-Sherlock),
+[@Hit2Skill](https://github.com/Hit2Skill),
+[@khajiitvaper2017](https://github.com/khajiitvaper2017)
 
 Thank you to all those who have translated asbplayer:
 
@@ -157,10 +167,6 @@ asbplayer's complete user guide is [here](https://docs.asbplayer.dev/docs/intro)
 
 Submit bugs or feature requests from the [issues page](https://github.com/killergerbah/asbplayer/issues). Join the [Discord](https://discord.gg/ad7VAQru7m) server to talk with me and other language learners.
 
-## Donations
-
-If you've benefited from asbplayer, please consider supporting my work via [Github Sponsors](https://github.com/sponsors/killergerbah?frequency=one-time) or [Ko-fi](https://ko-fi.com/killergerbah).
-
 ## Notes for AMO source code reviewers
 
 ### Environment
@@ -176,9 +182,9 @@ yarn 3.2.0
 # Install dependencies
 yarn
 
-# Builds Firefox extension to extension/.output/projectextension-<version>-firefox.zip
+# Builds Firefox extension to extension/.output/asbplayer-<version>-firefox.zip
 yarn workspace @project/extension run wxt zip -b firefox
 
-# Builds Firefox for Android extension to extension/.output/projectextension-<version>-firefox-android.zip
+# Builds Firefox for Android extension to extension/.output/asbplayer-<version>-firefox-android.zip
 yarn workspace @project/extension run wxt zip -b firefox-android --mv2
 ```

@@ -68,7 +68,7 @@ import { useServiceWorker } from '../hooks/use-service-worker';
 import NeedRefreshDialog from './NeedRefreshDialog';
 import { DictionaryProvider } from '../../dictionary-db';
 
-const latestExtensionVersion = '1.12.0';
+const latestExtensionVersion = '1.14.0';
 const extensionUrl =
     'https://chromewebstore.google.com/detail/asbplayer-language-learni/hkledmpjpaehamkiehglnbelcpdflcab';
 
@@ -674,7 +674,7 @@ function App({
                 return;
             }
 
-            setJumpToSubtitle(subtitle);
+            setJumpToSubtitle({ ...subtitle });
         },
         [subtitleFiles, handleError, t]
     );
@@ -775,6 +775,10 @@ function App({
         ({ files, flattenSubtitleFiles }: { files: FileList | File[]; flattenSubtitleFiles?: boolean }) => {
             try {
                 let { subtitleFiles, videoFile } = extractSources(files);
+
+                if (videoFile || subtitleFiles.length > 0) {
+                    setJumpToSubtitle(undefined);
+                }
 
                 setSources((previous) => {
                     let videoFileUrl: string | undefined = undefined;

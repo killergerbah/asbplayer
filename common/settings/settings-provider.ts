@@ -14,6 +14,8 @@ import {
     TokenStyling,
     DictionaryTrack,
     TokenReadingAnnotation,
+    TokenFrequencyAnnotation,
+    getFullyKnownTokenStatus,
 } from '.';
 import { AutoPausePreference, PostMineAction, PostMinePlayback, SubtitleHtml } from '..';
 
@@ -39,21 +41,33 @@ const defaultSubtitleTextSettings = {
 const defaultDictionaryTrackSettings: DictionaryTrack = {
     dictionaryColorizeSubtitles: false,
     dictionaryColorizeOnHoverOnly: false,
+    dictionaryHighlightOnHover: true,
     dictionaryTokenMatchStrategy: TokenMatchStrategy.ANY_FORM_COLLECTED,
     dictionaryTokenMatchStrategyPriority: TokenMatchStrategyPriority.EXACT,
     dictionaryYomitanUrl: 'http://127.0.0.1:19633',
+    dictionaryYomitanParser: 'scanning-parser',
     dictionaryYomitanScanLength: 16,
     dictionaryTokenReadingAnnotation: TokenReadingAnnotation.NEVER,
+    dictionaryDisplayIgnoredTokenReadings: false,
+    dictionaryTokenFrequencyAnnotation: TokenFrequencyAnnotation.NEVER,
     dictionaryAnkiDecks: [],
     dictionaryAnkiWordFields: [],
     dictionaryAnkiSentenceFields: [],
     dictionaryAnkiSentenceTokenMatchStrategy: TokenMatchStrategy.EXACT_FORM_COLLECTED,
     dictionaryAnkiMatureCutoff: 21,
     dictionaryAnkiTreatSuspended: 'NORMAL',
-    tokenStyling: TokenStyling.UNDERLINE,
-    tokenStylingThickness: 3,
-    colorizeFullyKnownTokens: false,
-    tokenStatusColors: ['#FF0000', '#FFA500', '#FFFF00', '#00FF00', '#0000FF', '#FFFFFF'],
+    dictionaryTokenStyling: TokenStyling.UNDERLINE,
+    dictionaryTokenStylingThickness: 3,
+    dictionaryColorizeFullyKnownTokens: false,
+    dictionaryTokenStatusColors: ['#FF0000', '#FFA500', '#FFFF00', '#00FF00', '#0000FF', '#FFFFFF'],
+    dictionaryTokenStatusConfig: [
+        { display: true, color: '#FF0000', alpha: 'FF' },
+        { display: true, color: '#FFA500', alpha: 'FF' },
+        { display: true, color: '#FFFF00', alpha: 'FF' },
+        { display: true, color: '#00FF00', alpha: 'FF' },
+        { display: true, color: '#0000FF', alpha: 'FF' },
+        { display: false, color: '#FFFFFF', alpha: 'FF' },
+    ],
 };
 
 export const defaultSettings: AsbplayerSettings = {
@@ -139,6 +153,13 @@ export const defaultSettings: AsbplayerSettings = {
         moveBottomSubtitlesDown: { keys: '' },
         moveTopSubtitlesUp: { keys: '' },
         moveTopSubtitlesDown: { keys: '' },
+        markHoveredToken5: { keys: 'Q+5' },
+        markHoveredToken4: { keys: 'Q+4' },
+        markHoveredToken3: { keys: 'Q+3' },
+        markHoveredToken2: { keys: 'Q+2' },
+        markHoveredToken1: { keys: 'Q+1' },
+        markHoveredToken0: { keys: 'Q+0' },
+        toggleHoveredTokenIgnored: { keys: 'Q+I' },
     },
     recordWithAudioPlayback: true,
     preferMp3: true,
@@ -194,6 +215,7 @@ export const defaultSettings: AsbplayerSettings = {
         hboMax: {},
         stremio: {},
         cijapanese: {},
+        iwanttfc: {},
     },
     webSocketClientEnabled: false,
     webSocketServerUrl: 'ws://127.0.0.1:8766/ws',
@@ -203,7 +225,7 @@ export const defaultSettings: AsbplayerSettings = {
 };
 
 export const NUM_DICTIONARY_TRACKS = defaultSettings.dictionaryTracks.length;
-export const NUM_TOKEN_STATUSES = defaultDictionaryTrackSettings.tokenStatusColors.length;
+export const NUM_TOKEN_STATUSES = defaultDictionaryTrackSettings.dictionaryTokenStatusColors.length;
 
 export interface AnkiFieldUiModel {
     key: string;
@@ -421,7 +443,62 @@ const deepEquals = (a: any, b: any) => {
     return true;
 };
 
+const ensureDictionaryTracksConsistency = ({ dictionaryTracks }: Partial<AsbplayerSettings>) => {
+    if (!dictionaryTracks) return;
+    const defaultTrack = defaultSettings.dictionaryTracks[0];
+    const fullyKnownStatus = getFullyKnownTokenStatus();
+    for (const dt of dictionaryTracks) {
+        if (!dt.dictionaryTokenStatusColors) (dt as any).dictionaryTokenStatusColors = [];
+        while (dt.dictionaryTokenStatusColors.length < NUM_TOKEN_STATUSES) {
+            const color = defaultTrack.dictionaryTokenStatusColors[dt.dictionaryTokenStatusColors.length];
+            dt.dictionaryTokenStatusColors.push(color);
+        }
+        while (dt.dictionaryTokenStatusColors.length > NUM_TOKEN_STATUSES) {
+            dt.dictionaryTokenStatusColors.pop();
+        }
+
+        if (!dt.dictionaryTokenStatusConfig) (dt as any).dictionaryTokenStatusConfig = [];
+        while (dt.dictionaryTokenStatusConfig.length < NUM_TOKEN_STATUSES) {
+            const config = {
+                ...defaultTrack.dictionaryTokenStatusConfig[dt.dictionaryTokenStatusConfig.length],
+                color: dt.dictionaryTokenStatusColors[dt.dictionaryTokenStatusConfig.length],
+            };
+            dt.dictionaryTokenStatusConfig.push(config);
+        }
+        while (dt.dictionaryTokenStatusConfig.length > NUM_TOKEN_STATUSES) {
+            dt.dictionaryTokenStatusConfig.pop();
+        }
+
+        // Migrate to config, both are updated on settings change
+        for (let i = 0; i < NUM_TOKEN_STATUSES; ++i) {
+            if (dt.dictionaryTokenStatusConfig[i].color !== dt.dictionaryTokenStatusColors[i]) {
+                dt.dictionaryTokenStatusConfig[i] = {
+                    ...dt.dictionaryTokenStatusConfig[i],
+                    color: dt.dictionaryTokenStatusColors[i],
+                };
+            }
+        }
+        if (dt.dictionaryTokenStatusConfig[fullyKnownStatus].display !== dt.dictionaryColorizeFullyKnownTokens) {
+            dt.dictionaryTokenStatusConfig[fullyKnownStatus] = {
+                ...dt.dictionaryTokenStatusConfig[fullyKnownStatus],
+                display: dt.dictionaryColorizeFullyKnownTokens,
+            };
+        }
+
+        // Default for Yomitan parser
+        if (!dt.dictionaryYomitanParser) (dt as any).dictionaryYomitanParser = 'scanning-parser';
+    }
+    while (dictionaryTracks.length < NUM_DICTIONARY_TRACKS) {
+        dictionaryTracks.push(defaultTrack);
+    }
+    while (dictionaryTracks.length > NUM_DICTIONARY_TRACKS) {
+        dictionaryTracks.pop();
+    }
+};
+
 export const ensureConsistencyOnRead = (settings: Partial<AsbplayerSettings>) => {
+    ensureDictionaryTracksConsistency(settings);
+
     let keyBindSetModified = false;
     let newKeyBindSet: any = {};
     let ankiFieldSettingsModified = false;
@@ -525,22 +602,7 @@ export class SettingsProvider {
     }
 
     private async _ensureConsistencyOnWrite(settings: Partial<AsbplayerSettings>) {
-        if (settings.dictionaryTracks !== undefined) {
-            const defaultTrack = defaultSettings.dictionaryTracks[0];
-            for (const dt of settings.dictionaryTracks) {
-                while (dt.tokenStatusColors.length < NUM_TOKEN_STATUSES) {
-                    const currLength = dt.tokenStatusColors.length;
-                    const color = defaultTrack.tokenStatusColors[currLength];
-                    dt.tokenStatusColors.push(color);
-                }
-            }
-            while (settings.dictionaryTracks.length < NUM_DICTIONARY_TRACKS) {
-                settings.dictionaryTracks.push(defaultTrack);
-            }
-            while (settings.dictionaryTracks.length > NUM_DICTIONARY_TRACKS) {
-                settings.dictionaryTracks.pop();
-            }
-        }
+        ensureDictionaryTracksConsistency(settings);
 
         if (settings.customAnkiFields === undefined) {
             return settings;

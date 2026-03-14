@@ -2,7 +2,8 @@ import { compile as parseAss } from 'ass-compiler';
 import SrtParser from '@qgustavor/srt-parser';
 import { WebVTT } from 'vtt.js';
 import { XMLParser } from 'fast-xml-parser';
-import { SubtitleHtml, SubtitleTextImage } from '@project/common';
+import { SubtitleHtml, SubtitleTextImage, Token, Tokenization } from '@project/common';
+import DOMPurify from 'dompurify';
 
 const vttClassRegex = /<(\/)?c(\.[^>]*)?>/g;
 const assNewLineRegex = RegExp(/\\[nN]/, 'ig');
@@ -15,6 +16,7 @@ interface SubtitleNode {
     text: string;
     textImage?: SubtitleTextImage;
     track: number;
+    tokenization?: Tokenization;
 }
 
 export interface TextFilter {
@@ -104,6 +106,12 @@ export default class SubtitleReader {
 
         if (flatten) {
             return this._deduplicate(allNodes);
+        }
+
+        if (this._convertNetflixRuby) {
+            for (const node of allNodes) {
+                this._convertNetflixRubyToHtml(node);
+            }
         }
 
         return allNodes;
@@ -373,7 +381,7 @@ export default class SubtitleReader {
         if (file.name.endsWith('.bbjson')) {
             const body = JSON.parse(await file.text()).body;
             return body.map((s: any) => ({
-                text: s.content,
+                text: this._filterText(s.content),
                 start: s.from * 1000,
                 end: s.to * 1000,
                 track,
@@ -501,10 +509,26 @@ export default class SubtitleReader {
         return helperElement.textContent ?? helperElement.innerText;
     }
 
-    private _convertNetflixRubyToHtml(text: string, enabled: boolean): string {
-        if (!enabled) return text;
+    private _convertNetflixRubyToHtml(node: SubtitleNode) {
+        if (!node.text) {
+            return;
+        }
 
-        return text.replace(netflixRubyRegex, (_match, base, ruby) => `<ruby><rb>${base}</rb><rt>${ruby}</rt></ruby>`);
+        const tokens: Token[] = [];
+        let currentLengthChangeDueToStringReplacement = 0;
+        node.text = node.text.replace(netflixRubyRegex, (_match, base, reading, offset) => {
+            const adjustedOffset = offset + currentLengthChangeDueToStringReplacement;
+            tokens.push({
+                pos: [adjustedOffset, adjustedOffset + base.length],
+                readings: [{ pos: [0, base.length], reading }],
+                states: [],
+            });
+            currentLengthChangeDueToStringReplacement += base.length - _match.length;
+            return base;
+        });
+        if (tokens.length > 0) {
+            node.tokenization = { tokens };
+        }
     }
 
     private _xmlParser() {
@@ -512,6 +536,8 @@ export default class SubtitleReader {
             this.xmlParser = new XMLParser({
                 ignoreAttributes: false,
                 trimValues: false,
+                parseTagValue: false,
+                parseAttributeValue: false,
             });
         }
 
@@ -519,12 +545,11 @@ export default class SubtitleReader {
     }
 
     private _filterText(text: string): string {
+        text = DOMPurify.sanitize(text);
         text =
             this._textFilter === undefined
                 ? text
                 : text.replace(this._textFilter.regex, this._textFilter.replacement).trim();
-
-        text = this._convertNetflixRubyToHtml(text, this._convertNetflixRuby);
 
         if (this._removeXml) {
             text = this._decodeHTML(text);

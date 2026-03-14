@@ -37,7 +37,7 @@ const lastControlTypeKey = 'lastScrollableControlType';
 
 const fetchLastControlType = async (): Promise<ControlType | undefined> => {
     const result = await browser.storage.local.get(lastControlTypeKey);
-    return result ? result[lastControlTypeKey] : undefined;
+    return result ? (result[lastControlTypeKey] as ControlType) : undefined;
 };
 
 const saveLastControlType = async (controlType: ControlType): Promise<void> => {
