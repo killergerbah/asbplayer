@@ -62,6 +62,7 @@ const MiscSettingTab: React.FC<Props> = ({
         pauseOnHoverMode,
         webSocketClientEnabled,
         webSocketServerUrl,
+        subtitleAboveThumbnail,
     } = settings;
     const validRegex = useMemo(() => regexIsValid(subtitleRegexFilter), [subtitleRegexFilter]);
     const [webSocketConnectionSucceeded, setWebSocketConnectionSucceeded] = useState<boolean>();
@@ -180,6 +181,18 @@ const MiscSettingTab: React.FC<Props> = ({
                     label={t('settings.autoCopy')}
                     labelPlacement="start"
                 />
+                {insideApp && 
+                    <SwitchLabelWithHoverEffect
+                        control={
+                            <Switch
+                                checked={subtitleAboveThumbnail}
+                                onChange={(event) => onSettingChanged('subtitleAboveThumbnail', !subtitleAboveThumbnail)}
+                            />
+                        }
+                        label={t('settings.subtitleAboveThumbnail')}
+                        labelPlacement="start"
+                    />
+                }  
                 <SettingsTextField
                     label={t('settings.subtitleRegexFilter')}
                     fullWidth
