@@ -39,34 +39,7 @@ export default defineConfig({
                     server.watcher.add(path.resolve(__dirname, '../common'));
                 },
             },
-            // {
-            //     name: 'vtt-js-esm-fix',
-            //     transform(code, id) {
-            //         if (/[/\\]vtt\.js[/\\]lib[/\\]/.test(id)) {
-            //             return { code: code.replace(/\}\(this\)\)/g, '}(globalThis))'), map: null };
-            //         }
-            //     },
-            // },
         ],
-        // resolve: {
-        //     alias: {
-        //         url: path.resolve(__dirname, 'src/url-shim.ts'),
-        //     },
-        // },
-        // optimizeDeps: {
-        //     rolldownOptions: {
-        //         plugins: [
-        //             {
-        //                 name: 'vtt-js-esm-fix',
-        //                 transform(code: string, id: string) {
-        //                     if (/[/\\]vtt\.js[/\\]lib[/\\]/.test(id)) {
-        //                         return { code: code.replace(/\}\(this\)\)/g, '}(globalThis))'), map: null };
-        //                     }
-        //                 },
-        //             },
-        //         ],
-        //     },
-        // },
     }),
     zip: {
         sourcesRoot: '..',
