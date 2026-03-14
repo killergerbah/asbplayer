@@ -2,13 +2,13 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import Checkbox from '@mui/material/Checkbox';
 import List from '@mui/material/List';
-import MuiListItem, { ListItemProps } from '@mui/material/ListItem';
-import MuiListItemButton, { ListItemButtonProps } from '@mui/material/ListItemButton';
-import MuiListItemIcon, { ListItemIconProps } from '@mui/material/ListItemIcon';
+import MuiListItem, { type ListItemProps } from '@mui/material/ListItem';
+import MuiListItemButton, { type ListItemButtonProps } from '@mui/material/ListItemButton';
+import MuiListItemIcon, { type ListItemIconProps } from '@mui/material/ListItemIcon';
 import Popover from '@mui/material/Popover';
 import type { PopoverProps } from '@mui/material/Popover';
 import { PlayMode } from '@project/common';
-import ListItemText from '@mui/material/ListItemText';
+import MuiListItemText, { type ListItemTextProps } from '@mui/material/ListItemText';
 
 interface Props extends PopoverProps {
     open: boolean;
@@ -37,9 +37,17 @@ const ListItemButton = ({ children, ...props }: ListItemButtonProps) => {
 
 const ListItemIcon = ({ children, ...props }: ListItemIconProps) => {
     return (
-        <MuiListItemIcon style={{ minWidth: 'auto' }} {...props}>
+        <MuiListItemIcon sx={{ minWidth: 'auto' }} {...props}>
             {children}
         </MuiListItemIcon>
+    );
+};
+
+const ListItemText = ({ children, ...props }: ListItemTextProps) => {
+    return (
+        <MuiListItemText sx={{ whiteSpace: 'nowrap' }} {...props}>
+            {children}
+        </MuiListItemText>
     );
 };
 
@@ -69,7 +77,7 @@ export default function PlayModeSelector({
             }}
             {...restOfPopoverProps}
         >
-            <List disablePadding dense style={listStyle}>
+            <List disablePadding dense sx={listStyle}>
                 <ListItem onClick={() => onPlayMode(PlayMode.normal)}>
                     <ListItemButton>
                         <ListItemIcon>
