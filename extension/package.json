@@ -45,10 +45,10 @@
     },
     "devDependencies": {
         "@types/jest": "^30.0.0",
-        "@wxt-dev/module-react": "^1.2.1",
+        "@wxt-dev/module-react": "^1.2.2",
         "jest": "^30.0.5",
         "ts-jest": "^29.4.0",
-        "wxt": "^0.20.18",
+        "wxt": "^0.20.19",
         "yarn-upgrade-all": "^0.7.5"
     }
 }
