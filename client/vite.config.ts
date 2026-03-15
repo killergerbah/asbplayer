@@ -1,6 +1,5 @@
-import { defineConfig, loadEnv, normalizePath } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
-import viteTsconfigPaths from 'vite-tsconfig-paths';
 import { createHtmlPlugin } from 'vite-plugin-html';
 import { VitePWA } from 'vite-plugin-pwa';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
@@ -11,9 +10,11 @@ export default defineConfig(({ mode }) => {
     const base = env.VITE_APP_BASE_PATH || '/asbplayer';
     return {
         base,
+        resolve: {
+            tsconfigPaths: true,
+        },
         plugins: [
             react(),
-            viteTsconfigPaths(),
             createHtmlPlugin({
                 inject: {
                     data: {
