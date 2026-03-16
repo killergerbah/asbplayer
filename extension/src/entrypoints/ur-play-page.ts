@@ -2,6 +2,7 @@ import { inferTracks } from '@/pages/util';
 
 export default defineUnlistedScript(() => {
     const originalFetch = window.fetch.bind(window);
+    let latestBuildId: string | undefined;
     let latestProductData: any = undefined;
     let latestProductDataPath: string = '';
     let latestProductDataSlug: string = '';
@@ -19,11 +20,12 @@ export default defineUnlistedScript(() => {
                     ? input.href
                     : '';
 
-        const nextDataMatch = url.match(/\/_next\/data\/[^/]+\/program\/([^/]+)\.json/);
+        const nextDataMatch = url.match(/\/_next\/data\/([^/]+)\/program\/([^/]+)\.json/);
         if (nextDataMatch) {
-            // Capture pathname now, since window.location may change before the promise resolves.
+            // Capture buildId and pathname now, since window.location may change before the promise resolves.
+            latestBuildId = nextDataMatch[1];
             const requestPathname = window.location.pathname;
-            const slug = nextDataMatch[1];
+            const slug = nextDataMatch[2];
             const promise = originalFetch(...args);
             promise.then(async (response) => {
                 try {
@@ -73,10 +75,11 @@ export default defineUnlistedScript(() => {
     const getProductData = async (): Promise<any> => {
         try {
             const el = document.getElementById('__NEXT_DATA__');
-            if (!el) return undefined;
+            const nextData = el ? JSON.parse(el.textContent || '') : null;
 
-            const nextData = JSON.parse(el.textContent || '');
-            const buildId = nextData?.buildId;
+            // Prefer buildId from __NEXT_DATA__, but fall back to one captured from
+            // an intercepted /_next/data/ fetch when __NEXT_DATA__ is absent.
+            const buildId = nextData?.buildId ?? latestBuildId;
             if (!buildId) return undefined;
 
             const pathname = window.location.pathname;
