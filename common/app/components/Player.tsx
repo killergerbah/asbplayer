@@ -19,7 +19,7 @@ import {
 import { ApplyStrategy, AsbplayerSettings, SettingsProvider, TokenState } from '@project/common/settings';
 import { DictionaryProvider } from '@project/common/dictionary-db';
 import { SubtitleCollection } from '@project/common/subtitle-collection';
-import { renderRichTextOntoSubtitles, HoveredToken, SubtitleColoring } from '@project/common/subtitle-coloring';
+import { renderRichTextOntoSubtitles, HoveredToken, SubtitleAnnotations } from '@project/common/subtitle-annotations';
 import { SubtitleReader } from '@project/common/subtitle-reader';
 import { KeyBinder } from '@project/common/key-binder';
 import { timeDurationDisplay } from '../services/util';
@@ -188,9 +188,9 @@ const Player = React.memo(function Player({
     const subtitlesRef = useRef<DisplaySubtitleModel[]>(undefined);
     subtitlesRef.current = subtitles;
     const [subtitleCollection, setSubtitleCollection] = useState<
-        SubtitleColoring | SubtitleCollection<DisplaySubtitleModel>
+        SubtitleAnnotations | SubtitleCollection<DisplaySubtitleModel>
     >(SubtitleCollection.empty<DisplaySubtitleModel>());
-    const subtitleCollectionRef = useRef<SubtitleColoring | SubtitleCollection<DisplaySubtitleModel>>(
+    const subtitleCollectionRef = useRef<SubtitleAnnotations | SubtitleCollection<DisplaySubtitleModel>>(
         subtitleCollection
     );
     subtitleCollectionRef.current = subtitleCollection;
@@ -489,7 +489,7 @@ const Player = React.memo(function Player({
             return; // Handled by extension
         }
 
-        const subtitleColoring = new SubtitleColoring(
+        const subtitleAnnotations = new SubtitleAnnotations(
             dictionaryProvider,
             settingsProvider,
             options,
@@ -512,12 +512,12 @@ const Player = React.memo(function Player({
             },
             () => clockRef.current.time(calculateLength())
         );
-        if (subtitlesRef.current) subtitleColoring.setSubtitles(subtitlesRef.current);
-        subtitleColoring.bind();
-        setSubtitleCollection(subtitleColoring);
-        subtitleCollectionRef.current = subtitleColoring;
+        if (subtitlesRef.current) subtitleAnnotations.setSubtitles(subtitlesRef.current);
+        subtitleAnnotations.bind();
+        setSubtitleCollection(subtitleAnnotations);
+        subtitleCollectionRef.current = subtitleAnnotations;
         return () => {
-            if (!(subtitleCollectionRef.current instanceof SubtitleColoring)) return;
+            if (!(subtitleCollectionRef.current instanceof SubtitleAnnotations)) return;
             subtitleCollectionRef.current.unbind();
         };
     }, [channel, dictionaryProvider, settingsProvider, tab, onSubtitles]);
@@ -528,7 +528,7 @@ const Player = React.memo(function Player({
     }, [subtitles]);
 
     useEffect(() => {
-        if (!(subtitleCollectionRef.current instanceof SubtitleColoring)) return;
+        if (!(subtitleCollectionRef.current instanceof SubtitleAnnotations)) return;
         subtitleCollectionRef.current.settingsUpdated(settings);
     }, [settings]);
 
@@ -625,7 +625,7 @@ const Player = React.memo(function Player({
                 event.preventDefault();
                 event.stopImmediatePropagation();
                 const applyStates = ApplyStrategy.ADD;
-                if (subtitleCollectionRef.current instanceof SubtitleColoring) {
+                if (subtitleCollectionRef.current instanceof SubtitleAnnotations) {
                     void subtitleCollectionRef.current.saveTokenLocal(
                         res.track,
                         res.token,
@@ -652,7 +652,7 @@ const Player = React.memo(function Player({
                 event.stopImmediatePropagation();
                 const states = [TokenState.IGNORED];
                 const applyStates = ApplyStrategy.TOGGLE;
-                if (subtitleCollectionRef.current instanceof SubtitleColoring) {
+                if (subtitleCollectionRef.current instanceof SubtitleAnnotations) {
                     void subtitleCollectionRef.current.saveTokenLocal(res.track, res.token, null, states, applyStates);
                     return;
                 }
@@ -665,7 +665,7 @@ const Player = React.memo(function Player({
 
     useEffect(() => {
         return channel?.onSaveTokenLocal((track, token, status, states, applyStates) => {
-            if (!(subtitleCollectionRef.current instanceof SubtitleColoring)) return;
+            if (!(subtitleCollectionRef.current instanceof SubtitleAnnotations)) return;
             subtitleCollectionRef.current.saveTokenLocal(track, token, status, states, applyStates);
         });
     }, [channel]);

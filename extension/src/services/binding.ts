@@ -87,7 +87,7 @@ import { bufferToBase64 } from '@project/common/base64';
 import { pgsParserWorkerFactory } from './pgs-parser-worker-factory';
 import { DictionaryProvider } from '@project/common/dictionary-db/dictionary-provider';
 import { ExtensionDictionaryStorage } from './extension-dictionary-storage';
-import { HoveredToken } from '@project/common/subtitle-coloring';
+import { HoveredToken } from '@project/common/subtitle-annotations';
 
 let netflix = false;
 document.addEventListener('asbplayer-netflix-enabled', (e) => {
@@ -783,11 +783,11 @@ export default class Binding {
                         switch (cardMessage.command) {
                             case 'card-updated':
                                 locKey = 'info.updatedCard';
-                                this.subtitleController.subtitleColoring.ankiCardWasModified();
+                                this.subtitleController.subtitleAnnotations.ankiCardWasModified();
                                 break;
                             case 'card-exported':
                                 locKey = 'info.exportedCard';
-                                this.subtitleController.subtitleColoring.ankiCardWasModified();
+                                this.subtitleController.subtitleAnnotations.ankiCardWasModified();
                                 break;
                             case 'card-saved':
                                 locKey = 'info.copiedSubtitle2';
@@ -812,11 +812,11 @@ export default class Binding {
                         break;
                     case 'card-updated-dialog':
                     case 'card-exported-dialog':
-                        this.subtitleController.subtitleColoring.ankiCardWasModified();
+                        this.subtitleController.subtitleAnnotations.ankiCardWasModified();
                         break;
                     case 'save-token-local':
                         const { track, token, status, states, applyStates } = request.message as SaveTokenLocalMessage;
-                        this.subtitleController.subtitleColoring.saveTokenLocal(
+                        this.subtitleController.subtitleAnnotations.saveTokenLocal(
                             track,
                             token,
                             status,
@@ -1038,7 +1038,7 @@ export default class Binding {
         const subtitleHtmlChanged = this.subtitleController.subtitleHtml !== currentSettings.subtitleHtml;
         this.subtitleController.subtitleHtml = currentSettings.subtitleHtml;
 
-        this.subtitleController.subtitleColoring.settingsUpdated(currentSettings);
+        this.subtitleController.subtitleAnnotations.settingsUpdated(currentSettings);
         this.subtitleController.setSubtitleSettings(currentSettings);
 
         if (convertNetflixRubyChanged || subtitleHtmlChanged) {

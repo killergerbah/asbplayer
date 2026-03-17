@@ -65,7 +65,7 @@ import {
     percentToHex2,
 } from '../util';
 import DictionaryImport from './DictionaryImport';
-import { applyTokenStyle, InternalToken } from '../subtitle-coloring';
+import { applyTokenStyle, InternalToken } from '../subtitle-annotations';
 
 const yomitanInstallerUrl = 'https://github.com/yomidevs/yomitan-api';
 const yomitanMecabInstallerUrl = 'https://github.com/yomidevs/yomitan-mecab-installer';

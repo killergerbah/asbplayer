@@ -50,7 +50,7 @@ const ASB_TOKEN_CLASS = 'asb-token';
 const ASB_TOKEN_HIGHLIGHT_CLASS = 'asb-token-highlight';
 const ASB_READING_CLASS = 'asb-reading';
 const ASB_FREQUENCY_CLASS = 'asb-frequency';
-const ASB_FREQUENCY_HOVER_CLASS = 'asb-frequency-hover';
+// const ASB_FREQUENCY_HOVER_CLASS = 'asb-frequency-hover';
 
 interface TokenStatusResult {
     status: TokenStatus;
@@ -126,7 +126,7 @@ function resetYomitan(ts: TrackState) {
     ts.yt = undefined;
 }
 
-export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
+export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
     private _subtitles: InternalSubtitleModel[];
     private readonly dictionaryProvider: DictionaryProvider;
     private readonly settingsProvider: SettingsProvider;
@@ -150,13 +150,13 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
     private ankiLastRecentlyModifiedCheck: number;
     private ankiRecentlyModifiedTrigger: boolean;
     private ankiRecentlyModifiedFirstCheck: boolean;
-    private colorCacheLastRefresh: number;
-    private colorCacheBuilding: boolean;
-    private colorCacheBuildingCurrentIndexes: Set<number>;
-    private shouldCancelBuild: boolean; // Set to true to stop current color cache build, checked after each async call
+    private annotationsLastRefresh: number;
+    private annotationsBuilding: boolean;
+    private annotationsBuildingCurrentIndexes: Set<number>;
+    private shouldCancelBuild: boolean; // Set to true to stop current build, checked after each async calls
     private tokenRequestFailedForTracks: Set<number>;
 
-    private readonly subtitleColorsUpdated: (updatedSubtitles: RichSubtitleModel[], dt: DictionaryTrack[]) => void;
+    private readonly subtitleAnnotationsUpdated: (updatedSubtitles: RichSubtitleModel[], dt: DictionaryTrack[]) => void;
     private readonly getMediaTimeMs?: () => number;
 
     private removeBuildAnkiCacheStateChangeCB?: () => void;
@@ -166,21 +166,21 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
         dictionaryProvider: DictionaryProvider,
         settingsProvider: SettingsProvider,
         options: SubtitleCollectionOptions,
-        subtitleColorsUpdated: (updatedSubtitles: RichSubtitleModel[], dt: DictionaryTrack[]) => void,
+        subtitleAnnotationsUpdated: (updatedSubtitles: RichSubtitleModel[], dt: DictionaryTrack[]) => void,
         getMediaTimeMs?: () => number,
         fetcher?: Fetcher
     ) {
         super({ ...options, returnNextToShow: true });
         this._subtitles = [];
+        this.dictionaryProvider = dictionaryProvider;
+        this.settingsProvider = settingsProvider;
         this.buildLowerThreshold = 0;
         this.buildUpperThreshold = 0;
         this.initialized = false;
-        this.dictionaryProvider = dictionaryProvider;
-        this.settingsProvider = settingsProvider;
         this.profile = null;
         this.fetcher = fetcher;
         this.trackStates = [];
-        this.subtitleColorsUpdated = subtitleColorsUpdated;
+        this.subtitleAnnotationsUpdated = subtitleAnnotationsUpdated;
         this.getMediaTimeMs = getMediaTimeMs;
         this.showingNeedsRefreshCount = 0;
         this.refreshCache = new Set();
@@ -192,9 +192,9 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
         this.ankiLastRecentlyModifiedCheck = Date.now();
         this.ankiRecentlyModifiedTrigger = false;
         this.ankiRecentlyModifiedFirstCheck = true;
-        this.colorCacheLastRefresh = Date.now();
-        this.colorCacheBuilding = false;
-        this.colorCacheBuildingCurrentIndexes = new Set();
+        this.annotationsLastRefresh = Date.now();
+        this.annotationsBuilding = false;
+        this.annotationsBuildingCurrentIndexes = new Set();
         this.shouldCancelBuild = false;
         this.tokenRequestFailedForTracks = new Set();
     }
@@ -249,13 +249,13 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                     externalReadings.set(subtitle.track, token.readings);
                 }
             }
-            const { colorBufferStartIndex, colorBufferEndIndex } = this._getColorBufferIndexes(true);
-            void this._buildColorCache(colorBufferStartIndex, colorBufferEndIndex, true);
+            const { annotationsStartIndex, annotationsEndIndex } = this._getAnnotationsIndexes(true);
+            void this._buildAnnotations(annotationsStartIndex, annotationsEndIndex, true);
         }
     }
 
     private _resetCache() {
-        if (this.colorCacheBuilding) this.shouldCancelBuild = true;
+        if (this.annotationsBuilding) this.shouldCancelBuild = true;
         this.profile = null;
         this.anki = undefined;
         this.trackStates.forEach(resetYomitan);
@@ -297,7 +297,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
             for (const s of subtitlesToReset) {
                 untokenize(s);
             }
-            this.subtitleColorsUpdated(subtitlesToReset, settings.dictionaryTracks);
+            this.subtitleAnnotationsUpdated(subtitlesToReset, settings.dictionaryTracks);
         }
         this._resetCache();
     }
@@ -409,34 +409,36 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                     this.showingSubtitles = slice.showing;
                     this.showingNeedsRefreshCount++;
                     if (
+                        this.annotationsBuilding &&
+                        this.initialized &&
                         slice.showing.some(
                             (s) =>
                                 !this._subtitles[s.index].__tokenized &&
-                                !this.colorCacheBuildingCurrentIndexes.has(s.index)
+                                !this.annotationsBuildingCurrentIndexes.has(s.index)
                         )
                     ) {
-                        if (this.colorCacheBuilding && this.initialized) this.shouldCancelBuild = true;
+                        this.shouldCancelBuild = true;
                     }
                 }
                 if (this.showingNeedsRefreshCount) {
-                    const { colorBufferStartIndex, colorBufferEndIndex } = this._getColorBufferIndexes(
+                    const { annotationsStartIndex, annotationsEndIndex } = this._getAnnotationsIndexes(
                         false,
                         slice.showing
                     );
-                    void this._buildColorCache(colorBufferStartIndex, colorBufferEndIndex).then((res) => {
+                    void this._buildAnnotations(annotationsStartIndex, annotationsEndIndex).then((res) => {
                         if (res) this.showingNeedsRefreshCount = Math.max(0, this.showingNeedsRefreshCount - 1);
                     });
-                    this.colorCacheLastRefresh = Date.now();
+                    this.annotationsLastRefresh = Date.now();
                     return;
                 }
             }
             if (
                 this.tokensForRefresh.size || // Don't force a build for this.refreshCache.size as it may update too frequently for token.frequency
-                Date.now() - this.colorCacheLastRefresh >= TOKEN_CACHE_ERROR_REFRESH_INTERVAL
+                Date.now() - this.annotationsLastRefresh >= TOKEN_CACHE_ERROR_REFRESH_INTERVAL
             ) {
-                const { colorBufferStartIndex, colorBufferEndIndex } = this._getColorBufferIndexes();
-                void this._buildColorCache(colorBufferStartIndex, colorBufferEndIndex);
-                this.colorCacheLastRefresh = Date.now();
+                const { annotationsStartIndex, annotationsEndIndex } = this._getAnnotationsIndexes();
+                void this._buildAnnotations(annotationsStartIndex, annotationsEndIndex);
+                this.annotationsLastRefresh = Date.now();
             }
             if (
                 this.ankiRecentlyModifiedTrigger ||
@@ -449,36 +451,34 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
         }, 100);
     }
 
-    private _getColorBufferIndexes(init?: boolean, subtitles?: RichSubtitleModel[]) {
+    private _getAnnotationsIndexes(init?: boolean, subtitles?: RichSubtitleModel[]) {
         if (!subtitles?.length) {
             if (this.getMediaTimeMs) {
                 const slice = this.subtitlesAt(this.getMediaTimeMs());
                 subtitles = slice.showing;
                 if (!subtitles.length) subtitles = slice.nextToShow ?? [];
             } else {
-                return { colorBufferStartIndex: 0, colorBufferEndIndex: this._subtitles.length };
+                return { annotationsStartIndex: 0, annotationsEndIndex: this._subtitles.length };
             }
         }
         const tokenCacheBuildAhead = init ? TOKEN_CACHE_BUILD_AHEAD_INIT : TOKEN_CACHE_BUILD_AHEAD;
-        if (!subtitles.length) return { colorBufferStartIndex: 0, colorBufferEndIndex: tokenCacheBuildAhead };
-        const colorBufferStartIndex = Math.min(...subtitles.map((s) => s.index));
-        const colorBufferEndIndex = Math.max(...subtitles.map((s) => s.index)) + 1 + tokenCacheBuildAhead;
-        return { colorBufferStartIndex, colorBufferEndIndex };
+        if (!subtitles.length) return { annotationsStartIndex: 0, annotationsEndIndex: tokenCacheBuildAhead };
+        const annotationsStartIndex = Math.min(...subtitles.map((s) => s.index));
+        const annotationsEndIndex = Math.max(...subtitles.map((s) => s.index)) + 1 + tokenCacheBuildAhead;
+        return { annotationsStartIndex, annotationsEndIndex };
     }
 
-    private async _buildColorCache(
-        colorBufferStartIndex: number,
-        colorBufferEndIndex: number,
+    private async _buildAnnotations(
+        annotationsStartIndex: number,
+        annotationsEndIndex: number,
         init?: boolean
     ): Promise<boolean> {
-        if (this.colorCacheBuilding) return false;
+        if (this.annotationsBuilding) return false;
         let tokensRefreshed: string[] = [];
         let buildWasCancelled = false;
         let updateThresholds = false;
         try {
-            this.colorCacheBuilding = true;
-            const subtitles = this._subtitles.slice(colorBufferStartIndex, colorBufferEndIndex);
-            if (!subtitles.length) return true;
+            this.annotationsBuilding = true;
             if (this.profile === null) {
                 const profile = (await this.settingsProvider.activeProfile())?.name;
                 if (this.profile === null) {
@@ -499,6 +499,10 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                 }));
             }
             if (this.trackStates.every((t) => !dictionaryTrackEnabled(t.dt))) return true;
+            if (this.shouldCancelBuild) return false;
+
+            const subtitles = this._subtitles.slice(annotationsStartIndex, annotationsEndIndex);
+            if (!subtitles.length) return true;
 
             for (const ts of this.trackStates) {
                 if (!dictionaryTrackEnabled(ts.dt) || ts.yt) continue;
@@ -529,8 +533,8 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                 }
             } else if (!subtitles.some((s) => this.erroredCache.has(s.index))) {
                 if (
-                    colorBufferStartIndex >= this.buildLowerThreshold &&
-                    colorBufferStartIndex < this.buildUpperThreshold
+                    annotationsStartIndex >= this.buildLowerThreshold &&
+                    annotationsStartIndex < this.buildUpperThreshold
                 ) {
                     return true;
                 }
@@ -538,10 +542,10 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
             }
 
             try {
-                for (const subtitle of subtitles) this.colorCacheBuildingCurrentIndexes.add(subtitle.index);
+                for (const subtitle of subtitles) this.annotationsBuildingCurrentIndexes.add(subtitle.index);
                 await this._buildTokenAndLemmaMap(profile, subtitles);
             } finally {
-                this.colorCacheBuildingCurrentIndexes.clear();
+                this.annotationsBuildingCurrentIndexes.clear();
             }
 
             await inBatches(
@@ -558,7 +562,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                             const deletedFromRefreshCache = this.refreshCache.delete(index);
                             const deletedFromErroredCache = this.erroredCache.delete(index);
                             try {
-                                this.colorCacheBuildingCurrentIndexes.add(index);
+                                this.annotationsBuildingCurrentIndexes.add(index);
                                 const existingTokenization = this._subtitles[index].tokenization;
                                 const tokenizationModel = !existingTokenization
                                     ? await this._tokenizationModel(text, index, ts)
@@ -583,12 +587,12 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                                     subtitle.__tokenized = true;
                                     updatedSubtitles.push(subtitle);
                                 }
-                                this.subtitleColorsUpdated(
+                                this.subtitleAnnotationsUpdated(
                                     updatedSubtitles,
                                     this.trackStates.map((ts) => ts.dt)
                                 );
                             } catch (e) {
-                                console.error(`Error building color cache for subtitle index ${index}:`, e);
+                                console.error(`Error building annotations for subtitle index ${index}:`, e);
                                 if (deletedFromRefreshCache) this.refreshCache.add(index);
                                 else this.erroredCache.add(index);
                             } finally {
@@ -596,7 +600,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                                     if (deletedFromRefreshCache) this.refreshCache.add(index);
                                     else if (deletedFromErroredCache) this.erroredCache.add(index);
                                 }
-                                this.colorCacheBuildingCurrentIndexes.delete(index);
+                                this.annotationsBuildingCurrentIndexes.delete(index);
                             }
                         })
                     );
@@ -618,8 +622,8 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                 this.initialized = true;
             }
             if (updateThresholds && !init) {
-                this.buildUpperThreshold = colorBufferEndIndex - TOKEN_CACHE_BUILD_AHEAD_THRESHOLD;
-                this.buildLowerThreshold = colorBufferStartIndex; // Build whenever the user seeks backwards
+                this.buildUpperThreshold = annotationsEndIndex - TOKEN_CACHE_BUILD_AHEAD_THRESHOLD;
+                this.buildLowerThreshold = annotationsStartIndex; // Build whenever the user seeks backwards
             }
             if (
                 tokensRefreshed.length === this.tokensForRefresh.size &&
@@ -628,7 +632,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
                 this.tokensForRefresh.clear();
             }
             this.shouldCancelBuild = false;
-            this.colorCacheBuilding = false;
+            this.annotationsBuilding = false;
         }
         return !buildWasCancelled;
     }
@@ -929,7 +933,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
             return { reconstructedText: reconstructedTextParts.join(''), tokenization: { tokens } };
         } catch (error) {
             this.tokenRequestFailedForTracks.add(ts.track);
-            console.error(`Error colorizing subtitle text for Track${ts.track + 1}:`, error);
+            console.error(`Error annotating subtitle text for Track${ts.track + 1}:`, error);
             this.erroredCache.add(index);
             return { reconstructedText: fullText, tokenization: { tokens: [], error: true } };
         }

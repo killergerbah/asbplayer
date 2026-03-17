@@ -206,7 +206,7 @@ export default class KeyBindings {
                 void ensureStoragePersisted();
                 event.preventDefault();
                 event.stopImmediatePropagation();
-                void context.subtitleController.subtitleColoring.saveTokenLocal(
+                void context.subtitleController.subtitleAnnotations.saveTokenLocal(
                     res.track,
                     res.token,
                     tokenStatus,
@@ -225,7 +225,7 @@ export default class KeyBindings {
                 void ensureStoragePersisted();
                 event.preventDefault();
                 event.stopImmediatePropagation();
-                void context.subtitleController.subtitleColoring.saveTokenLocal(
+                void context.subtitleController.subtitleAnnotations.saveTokenLocal(
                     res.track,
                     res.token,
                     null,
