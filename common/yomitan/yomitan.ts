@@ -3,7 +3,8 @@ import { DictionaryTrack } from '@project/common/settings';
 import { AsyncSemaphore, fromBatches, HAS_LETTER_REGEX, isKanaOnly } from '@project/common/util';
 import { coerce, lt, gte } from 'semver';
 
-const YOMITAN_BATCH_SIZE = 100; // 1k can cause 1.5GB memory on Yomitan for subtitles, Anki cards may be larger too
+const TOKENIZE_BATCH_SIZE = 100; // 1k can cause 1.5GB memory on Yomitan for subtitles, Anki cards may be larger too
+const TERM_ENTRIES_DEBOUNCE_MS = 10; // Prevents using too much resources
 
 const YEAR_MONTH_REGEX = /(?<year>20\d{2})(?<month>[01]\d)/;
 
@@ -198,7 +199,7 @@ export class Yomitan {
                 }
                 return tokensByText.flat();
             },
-            { batchSize: YOMITAN_BATCH_SIZE, statusUpdates }
+            { batchSize: TOKENIZE_BATCH_SIZE, statusUpdates }
         );
     }
 
@@ -283,9 +284,9 @@ export class Yomitan {
         token: string,
         tokenizeHeadwords: TermHeadword[][],
         preferTermSource = true
-    ): number | undefined {
+    ): void {
         if (!this.supportsTokenizeFrequency) return;
-        let minFrequency: number | undefined;
+        let minFrequency: number | null = null;
         for (const headwords of tokenizeHeadwords) {
             for (const headword of headwords) {
                 for (const source of headword.sources) {
@@ -297,17 +298,16 @@ export class Yomitan {
                     for (const f of headword.frequencies) {
                         if (!Number.isFinite(f.frequency) || f.frequency <= 0) continue;
                         if (f.frequencyMode !== 'rank-based') continue;
-                        minFrequency = minFrequency === undefined ? f.frequency : Math.min(minFrequency, f.frequency);
+                        minFrequency = minFrequency === null ? f.frequency : Math.min(minFrequency, f.frequency);
                     }
                     break;
                 }
             }
         }
-        if (minFrequency === undefined && preferTermSource) {
+        if (minFrequency === null && preferTermSource) {
             return this.extractFrequencyFromTokenize(token, tokenizeHeadwords, false);
         }
-        this.frequencyCache.set(token, minFrequency ?? null);
-        return minFrequency;
+        this.frequencyCache.set(token, minFrequency);
     }
 
     /**
@@ -346,67 +346,97 @@ export class Yomitan {
         return lemmas;
     }
 
-    async lemmatize(token: string, yomitanUrl?: string): Promise<string[]> {
-        const lemmas = this.lemmatizeCache.get(token);
+    async lemmatize(token: string, yomitanUrl?: string): Promise<string[] | undefined> {
+        let lemmas = this.lemmatizeCache.get(token);
         if (lemmas) return lemmas;
         if (!HAS_LETTER_REGEX.test(token)) {
             this.lemmatizeCache.set(token, []);
             return [];
         }
-        const entries: TermDictionaryEntry[] = (await this._executeAction('termEntries', { term: token }, yomitanUrl))
-            .dictionaryEntries;
-        return this.extractLemmas(
-            token,
-            entries.map((entry) => entry.headwords)
-        );
+        const now = Date.now();
+        const semaphoreId = await this.asyncSemaphore.acquire(true);
+        try {
+            lemmas = this.lemmatizeCache.get(token);
+            if (lemmas) return lemmas;
+            if (now <= this.lastCancelledAt) return;
+            const entries: TermDictionaryEntry[] = (
+                await this._executeAction('termEntries', { term: token }, yomitanUrl)
+            ).dictionaryEntries;
+            if (!this.frequencyCache.has(token)) this.extractFrequency(token, entries);
+            return this.extractLemmas(
+                token,
+                entries.map((entry) => entry.headwords)
+            );
+        } finally {
+            setTimeout(() => this.asyncSemaphore.release(semaphoreId), TERM_ENTRIES_DEBOUNCE_MS);
+        }
     }
 
     /**
      * Get the minimum frequency for a token in a rank-based frequency dictionary using Yomitan's API.
      * This function will return undefined immediately and asynchronously update the cache if tokensWereModified is provided and the token is not in the cache.
      */
-    async frequency(token: string, yomitanUrl?: string): Promise<number | undefined> {
+    async frequency(token: string, yomitanUrl?: string): Promise<number | undefined | null> {
         const minFrequency = this.frequencyCache.get(token);
-        if (minFrequency !== undefined) return minFrequency ?? undefined;
+        if (minFrequency !== undefined) return minFrequency;
         if (!HAS_LETTER_REGEX.test(token)) {
             this.frequencyCache.set(token, null);
-            return;
+            return null;
         }
         if (this.tokensWereModified) {
             void (async () => {
                 const now = Date.now();
                 const semaphoreId = await this.asyncSemaphore.acquire();
                 try {
+                    if (this.frequencyCache.has(token)) return;
                     if (now <= this.lastCancelledAt) {
                         this.tokensWereModified!(token); // May need to reprocess with the new Yomitan instance
                         return;
                     }
-                    if (this.frequencyCache.has(token)) return;
                     const entries: TermDictionaryEntry[] = (
                         await this._executeAction('termEntries', { term: token }, yomitanUrl)
                     ).dictionaryEntries;
                     this.extractFrequency(token, entries);
+                    if (!this.lemmatizeCache.has(token)) {
+                        this.extractLemmas(
+                            token,
+                            entries.map((entry) => entry.headwords)
+                        );
+                    }
                     this.tokensWereModified!(token);
                 } finally {
-                    this.asyncSemaphore.release(semaphoreId);
+                    setTimeout(() => this.asyncSemaphore.release(semaphoreId), TERM_ENTRIES_DEBOUNCE_MS);
                 }
             })();
-            return;
+            return; // undefined means the caller should call again later
         }
-        const entries: TermDictionaryEntry[] = (await this._executeAction('termEntries', { term: token }, yomitanUrl))
-            .dictionaryEntries;
-        return this.extractFrequency(token, entries);
+
+        const now = Date.now();
+        const semaphoreId = await this.asyncSemaphore.acquire();
+        try {
+            const freq = this.frequencyCache.get(token);
+            if (freq !== undefined) return freq;
+            if (now <= this.lastCancelledAt) return;
+            const entries: TermDictionaryEntry[] = (
+                await this._executeAction('termEntries', { term: token }, yomitanUrl)
+            ).dictionaryEntries;
+            if (!this.lemmatizeCache.has(token)) {
+                this.extractLemmas(
+                    token,
+                    entries.map((entry) => entry.headwords)
+                );
+            }
+            return this.extractFrequency(token, entries);
+        } finally {
+            setTimeout(() => this.asyncSemaphore.release(semaphoreId), TERM_ENTRIES_DEBOUNCE_MS);
+        }
     }
 
     /**
      * Extract the minimum frequency for a token in a rank-based frequency dictionary using Yomitan's termEntries API.
      */
-    private extractFrequency(
-        token: string,
-        entries: TermDictionaryEntry[],
-        preferTermSource = true
-    ): number | undefined {
-        let minFrequency: number | undefined;
+    private extractFrequency(token: string, entries: TermDictionaryEntry[], preferTermSource = true): number | null {
+        let minFrequency: number | null = null;
         for (const entry of entries) {
             const matchingHeadwordIndices = new Set<number>();
             for (const [i, headword] of entry.headwords.entries()) {
@@ -424,11 +454,11 @@ export class Yomitan {
                 if (!matchingHeadwordIndices.has(f.headwordIndex)) continue;
                 if (!Number.isFinite(f.frequency) || f.frequency <= 0) continue;
                 if (f.frequencyMode !== 'rank-based' && this.supportsTokenizeFrequency) continue; // Exposed with this.supportsTokenizeFrequency
-                minFrequency = minFrequency === undefined ? f.frequency : Math.min(minFrequency, f.frequency);
+                minFrequency = minFrequency === null ? f.frequency : Math.min(minFrequency, f.frequency);
             }
         }
-        if (minFrequency === undefined && preferTermSource) return this.extractFrequency(token, entries, false);
-        this.frequencyCache.set(token, minFrequency ?? null);
+        if (minFrequency === null && preferTermSource) return this.extractFrequency(token, entries, false);
+        this.frequencyCache.set(token, minFrequency);
         return minFrequency;
     }
 

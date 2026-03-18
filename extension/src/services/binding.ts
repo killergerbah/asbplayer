@@ -54,9 +54,11 @@ import { adjacentSubtitle } from '@project/common/key-binder';
 import PlayModeManager from '@project/common/app/services/play-mode-manager';
 import {
     extractAnkiSettings,
+    ApplyStrategy,
     PauseOnHoverMode,
     SettingsProvider,
     SubtitleListPreference,
+    TokenStatus,
 } from '@project/common/settings';
 import { SubtitleSlice } from '@project/common/subtitle-collection';
 import { SubtitleReader } from '@project/common/subtitle-reader';
@@ -162,6 +164,7 @@ export default class Binding {
     readonly bulkExportController: BulkExportController;
 
     private copyToClipboardOnMine: boolean;
+    private clickToMineDefaultAction: PostMineAction;
     private takeScreenshot: boolean;
     private cleanScreenshot: boolean;
     private audioPaddingStart: number;
@@ -197,6 +200,8 @@ export default class Binding {
     private audioContext?: AudioContext;
     private audioVolumeChangeListener?: () => void;
     private currentAudioRecordingRequestId?: string;
+    private unsubscribeStatisticsSeek?: () => void;
+    private unsubscribeStatisticsSubtitleMine?: () => void;
 
     private readonly frameId?: string;
 
@@ -220,6 +225,7 @@ export default class Binding {
         this.recordMedia = true;
         this.takeScreenshot = true;
         this.cleanScreenshot = true;
+        this.clickToMineDefaultAction = PostMineAction.showAnkiDialog;
         this.audioPaddingStart = 0;
         this.audioPaddingEnd = 500;
         this.maxImageWidth = 0;
@@ -1000,6 +1006,23 @@ export default class Binding {
         };
 
         browser.runtime.onMessage.addListener(this.listener);
+        this.unsubscribeStatisticsSeek = this.dictionary.onRequestStatisticsSeek((timestamp) => {
+            this.seek(timestamp / 1000);
+        });
+        this.unsubscribeStatisticsSubtitleMine = this.dictionary.onRequestStatisticsMineSentences(
+            (_mediaId, indexes) => {
+                const index = indexes[0];
+                if (index === undefined) return;
+                const [resolvedSubtitle, resolvedSurroundingSubtitles] = this.subtitleController.subtitleAtIndex(index);
+                if (resolvedSubtitle === null || resolvedSurroundingSubtitles === null) return;
+                void this._copySubtitle({
+                    command: 'copy-subtitle',
+                    postMineAction: this.clickToMineDefaultAction,
+                    subtitle: resolvedSubtitle,
+                    surroundingSubtitles: resolvedSurroundingSubtitles,
+                });
+            }
+        );
         this.subscribed = true;
     }
 
@@ -1015,6 +1038,7 @@ export default class Binding {
         this.imageDelay = currentSettings.streamingScreenshotDelay;
         this.audioPaddingStart = currentSettings.audioPaddingStart;
         this.audioPaddingEnd = currentSettings.audioPaddingEnd;
+        this.clickToMineDefaultAction = currentSettings.clickToMineDefaultAction;
         this.maxImageWidth = currentSettings.maxImageWidth;
         this.maxImageHeight = currentSettings.maxImageHeight;
         this.copyToClipboardOnMine = currentSettings.copyToClipboardOnMine;
@@ -1130,6 +1154,11 @@ export default class Binding {
             browser.runtime.onMessage.removeListener(this.listener);
             this.listener = undefined;
         }
+
+        this.unsubscribeStatisticsSeek?.();
+        this.unsubscribeStatisticsSeek = undefined;
+        this.unsubscribeStatisticsSubtitleMine?.();
+        this.unsubscribeStatisticsSubtitleMine = undefined;
 
         this.subtitleController.unbind();
         this.dragController.unbind();

@@ -181,7 +181,7 @@ export default defineBackground(() => {
         new OpenAsbplayerSettingsHandler(),
         new CopyToClipboardHandler(),
         new EncodeMp3Handler(),
-        new DictionaryHandler(dictionaryDB),
+        new DictionaryHandler(dictionaryDB, tabRegistry),
         new VideoDisappearedHandler(tabRegistry),
         new RequestingActiveTabPermissionHandler(),
         new CopySubtitleHandler(tabRegistry),

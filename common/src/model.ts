@@ -30,7 +30,7 @@ export interface Token {
     states: TokenState[];
     status?: TokenStatus | null; // null means "error"
     readings: TokenReading[];
-    frequency?: number;
+    frequency?: number | null; // null means no frequency data
 }
 
 export interface Tokenization {

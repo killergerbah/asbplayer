@@ -491,6 +491,23 @@ const DictionarySettingsTab: React.FC<Props> = ({
                     label={t('settings.dictionaryColorizeSubtitles')}
                     labelPlacement="start"
                 />
+                <SwitchLabelWithHoverEffect
+                    control={
+                        <Switch
+                            checked={selectedDictionary.dictionaryAutoGenerateStatistics}
+                            onChange={(e) => {
+                                const newTracks = [...dictionaryTracks];
+                                newTracks[selectedDictionaryTrack] = {
+                                    ...newTracks[selectedDictionaryTrack],
+                                    dictionaryAutoGenerateStatistics: e.target.checked,
+                                };
+                                onSettingChanged('dictionaryTracks', newTracks);
+                            }}
+                        />
+                    }
+                    label={t('settings.dictionaryAutoGenerateStatistics')}
+                    labelPlacement="start"
+                />
                 <FormControl>
                     <FormLabel component="legend">{t('settings.dictionaryTokenReadingAnnotation')}</FormLabel>
                     <RadioGroup row={false}>

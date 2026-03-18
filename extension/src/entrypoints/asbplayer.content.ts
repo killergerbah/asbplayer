@@ -1,13 +1,19 @@
 import type {
     AddProfileMessage,
     DictionaryBuildAnkiCacheMessage,
+    DictionaryCountKnownTokensMessage,
     DictionaryDeleteProfileMessage,
     DictionaryDeleteRecordLocalBulkMessage,
     DictionaryGetBulkMessage,
     DictionaryGetByLemmaBulkMessage,
+    DictionaryRequestStatisticsGenerationMessage,
+    DictionaryRequestStatisticsSnapshotMessage,
+    DictionaryRequestStatisticsMineSentencesMessage,
+    DictionaryRequestStatisticsSeekMessage,
     DictionarySaveRecordLocalBulkMessage,
     DictionaryExportRecordLocalBulkMessage,
     DictionaryImportRecordLocalBulkMessage,
+    DictionaryStatisticsMessage,
     GetGlobalStateMessage,
     GetSettingsMessage,
     RemoveProfileMessage,
@@ -168,7 +174,55 @@ export default defineContentScript({
                     case 'dictionary-build-anki-cache': {
                         const { profile, settings } = command.message as DictionaryBuildAnkiCacheMessage;
                         sendMessageToPlayer({
-                            response: await dictionaryStorage.buildAnkiCache(profile, settings, { useOriginTab: true }), // App with extension doesn't have full extension context
+                            response: await dictionaryStorage.buildAnkiCache(profile, settings),
+                            messageId: command.message.messageId,
+                        });
+                        break;
+                    }
+                    case 'dictionary-count-known-tokens': {
+                        const { profile, track, settings } = command.message as DictionaryCountKnownTokensMessage;
+                        sendMessageToPlayer({
+                            response: await dictionaryStorage.countKnownTokens(profile, track, settings),
+                            messageId: command.message.messageId,
+                        });
+                        break;
+                    }
+                    case 'dictionary-statistics': {
+                        const { mediaId, snapshot } = command.message as DictionaryStatisticsMessage;
+                        await dictionaryStorage.publishStatisticsSnapshot(mediaId, snapshot);
+                        sendMessageToPlayer({
+                            messageId: command.message.messageId,
+                        });
+                        break;
+                    }
+                    case 'dictionary-request-statistics-snapshot': {
+                        const { mediaId } = command.message as DictionaryRequestStatisticsSnapshotMessage;
+                        await dictionaryStorage.requestStatisticsSnapshot(mediaId);
+                        sendMessageToPlayer({
+                            messageId: command.message.messageId,
+                        });
+                        break;
+                    }
+                    case 'dictionary-request-statistics-generation': {
+                        const { mediaId } = command.message as DictionaryRequestStatisticsGenerationMessage;
+                        await dictionaryStorage.requestStatisticsGeneration(mediaId);
+                        sendMessageToPlayer({
+                            messageId: command.message.messageId,
+                        });
+                        break;
+                    }
+                    case 'dictionary-request-statistics-seek': {
+                        const { mediaId, timestamp } = command.message as DictionaryRequestStatisticsSeekMessage;
+                        await dictionaryStorage.requestStatisticsSeek(mediaId, timestamp);
+                        sendMessageToPlayer({
+                            messageId: command.message.messageId,
+                        });
+                        break;
+                    }
+                    case 'dictionary-request-statistics-mine-sentences': {
+                        const { mediaId, indexes } = command.message as DictionaryRequestStatisticsMineSentencesMessage;
+                        await dictionaryStorage.requestStatisticsMineSentences(mediaId, indexes);
+                        sendMessageToPlayer({
                             messageId: command.message.messageId,
                         });
                         break;

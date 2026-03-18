@@ -20,11 +20,12 @@ import {
     DownloadAudioMessage,
     CardTextFieldValues,
     ImageErrorCode,
+    OpenAsbplayerSettingsMessage,
     RequestSubtitlesResponse,
 } from '@project/common';
 import { createTheme } from '@project/common/theme';
 import { AsbplayerSettings, Profile, SettingsProvider } from '@project/common/settings';
-import { humanReadableTime, download, extractText } from '@project/common/util';
+import { humanReadableTime, download, extractText, timeDurationDisplay } from '@project/common/util';
 import { AudioClip, Mp3Encoder } from '@project/common/audio-clip';
 import { ExportParams } from '@project/common/anki';
 import { SubtitleReader } from '@project/common/subtitle-reader';
@@ -53,7 +54,6 @@ import { useAppKeyBinder } from '../hooks/use-app-key-binder';
 import { useAnki } from '../hooks/use-anki';
 import { usePlaybackPreferences } from '../hooks/use-playback-preferences';
 import { MiningContext } from '../services/mining-context';
-import { timeDurationDisplay } from '../services/util';
 import { useAppWebSocketClient } from '../hooks/use-app-web-socket-client';
 import { LoadSubtitlesCommand } from '../../web-socket-client';
 import { ExtensionBridgedCopyHistoryRepository } from '../services/extension-bridged-copy-history-repository';
@@ -257,6 +257,7 @@ function App({
         settings.convertNetflixRuby,
     ]);
     const webSocketClient = useAppWebSocketClient({ settings });
+    const supportsDictionaryStatistics = !extension.installed || extension.supportsDictionaryStatistics;
     const [subtitles, setSubtitles] = useState<DisplaySubtitleModel[]>([]);
     const playbackPreferences = usePlaybackPreferences(settings, extension);
     const theme = useMemo<Theme>(() => createTheme(settings.themeType), [settings.themeType]);
@@ -570,8 +571,9 @@ function App({
     }, []);
     const handleOpenSettings = useCallback(() => {
         setDisableKeyEvents(true);
+        setSettingsDialogScrollToId(subtitles.length && supportsDictionaryStatistics ? 'statistics' : undefined);
         setSettingsDialogOpen(true);
-    }, []);
+    }, [subtitles.length, supportsDictionaryStatistics]);
     const handleAlertClosed = useCallback(() => setAlertOpen(false), []);
     const handleCloseSettings = useCallback(() => {
         setSettingsDialogOpen(false);
@@ -964,6 +966,10 @@ function App({
                 setSettingsDialogOpen(true);
                 setSettingsDialogScrollToId('keyboard-shortcuts');
             } else if (message.data.command === 'open-asbplayer-settings') {
+                const scrollToId = (message.data as OpenAsbplayerSettingsMessage).scrollToId;
+                setSettingsDialogScrollToId(
+                    scrollToId ?? (subtitles.length && supportsDictionaryStatistics ? 'statistics' : undefined)
+                );
                 setSettingsDialogOpen(true);
             } else if (message.data.command === 'show-anki-ui') {
                 handleAnki(message.data as ShowAnkiUiMessage);
@@ -976,7 +982,17 @@ function App({
         extension.syncedVideoElement = tab;
         extension.startHeartbeat();
         return unsubscribe;
-    }, [extension, subtitles, inVideoPlayer, sources.videoFileUrl, tab, handleFiles, handleAnki, handleUnloadVideo]);
+    }, [
+        extension,
+        subtitles,
+        supportsDictionaryStatistics,
+        inVideoPlayer,
+        sources.videoFileUrl,
+        tab,
+        handleFiles,
+        handleAnki,
+        handleUnloadVideo,
+    ]);
 
     useEffect(() => {
         if (inVideoPlayer) {
@@ -1230,6 +1246,20 @@ function App({
         );
     }, [extension, keyBinder, handleOpenCopyHistory, ankiDialogOpen]);
 
+    useEffect(() => {
+        return keyBinder?.bindOpenStatistics(
+            (event) => {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                setDisableKeyEvents(true);
+                setSettingsDialogScrollToId('statistics');
+                setSettingsDialogOpen(true);
+            },
+            () => ankiDialogOpen || !supportsDictionaryStatistics,
+            false
+        );
+    }, [keyBinder, ankiDialogOpen, supportsDictionaryStatistics]);
+
     const mp3Encoder = useCallback(async (blob: Blob, extension: string) => {
         return await Mp3Encoder.encode(blob, () => new mp3WorkerFactory());
     }, []);
@@ -1418,6 +1448,7 @@ function App({
                                     origin={origin}
                                     subtitleReader={subtitleReader}
                                     subtitles={subtitles}
+                                    mediaId={extension.id}
                                     settings={settings}
                                     dictionaryProvider={dictionaryProvider}
                                     settingsProvider={settingsProvider}

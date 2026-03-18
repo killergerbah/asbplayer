@@ -59,6 +59,39 @@ export function humanReadableTime(timestamp: number, nearestTenth = false, fully
     }
 }
 
+export function timeDurationDisplay(
+    milliseconds: number,
+    totalMilliseconds: number,
+    includeMilliseconds = true
+): string {
+    if (milliseconds < 0) {
+        return timeDurationDisplay(0, totalMilliseconds, includeMilliseconds);
+    }
+
+    milliseconds = Math.round(milliseconds);
+    const remainingMilliseconds = milliseconds % 1000;
+    milliseconds = (milliseconds - remainingMilliseconds) / 1000;
+    const seconds = milliseconds % 60;
+    milliseconds = (milliseconds - seconds) / 60;
+    const minutes = milliseconds % 60;
+
+    if (totalMilliseconds >= 3600000) {
+        const hours = (milliseconds - minutes) / 60;
+
+        if (includeMilliseconds) {
+            return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(remainingMilliseconds).padStart(3, '0')}`;
+        }
+
+        return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    }
+
+    if (includeMilliseconds) {
+        return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(remainingMilliseconds).padStart(3, '0')}`;
+    }
+
+    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+}
+
 export function getCurrentTimeString(): string {
     const now = new Date();
     return `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}-${now.getHours()}-${now.getMinutes()}-${now.getSeconds()}`;
@@ -591,7 +624,7 @@ const areTokenReadingsEqual = (a: TokenReading, b: TokenReading) =>
     arrayEquals(a.pos, b.pos) && a.reading === b.reading;
 
 /**
- * An async safe semaphore implementation that preserves FIFO order.
+ * An async safe semaphore implementation that preserves FIFO order (within a priority group).
  * It uses an id for release to allow multiple releases (e.g try/finally with early releases).
  * @param options.permits The number of concurrent permits.
  * @param options.lifetimeMs Maximum lifetime of an acquire before automatic release (prevents deadlocks if callers don't call this.release()).
@@ -602,6 +635,7 @@ export class AsyncSemaphore {
     private acquired: Set<number> = new Set();
     private timers: Map<number, ReturnType<typeof setTimeout>> = new Map();
     private waiting: ((id: number) => void)[] = [];
+    private waitingPriority: ((id: number) => void)[] = [];
     private counter: number = 0;
     private getNextId = () => {
         if (this.counter === Number.MAX_SAFE_INTEGER) this.counter = 0;
@@ -631,11 +665,13 @@ export class AsyncSemaphore {
         return id;
     }
 
-    acquire(): Promise<number> {
+    acquire(prioritize?: boolean): Promise<number> {
         return new Promise<number>((resolve) => {
             if (this.permits > 0) {
                 this.permits--;
                 resolve(this._acquire());
+            } else if (prioritize) {
+                this.waitingPriority.push(resolve);
             } else {
                 this.waiting.push(resolve);
             }
@@ -648,7 +684,9 @@ export class AsyncSemaphore {
         clearTimeout(this.timers.get(id)!);
         this.timers.delete(id);
 
-        if (this.waiting.length > 0) {
+        if (this.waitingPriority.length > 0) {
+            this.waitingPriority.shift()!(this._acquire());
+        } else if (this.waiting.length > 0) {
             this.waiting.shift()!(this._acquire());
         } else {
             this.permits++;

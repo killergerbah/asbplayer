@@ -16,9 +16,11 @@ import {
     DictionaryTokenSource,
     DictionaryTrack,
     getFullyKnownTokenStatus,
+    isTokenStatusKnown,
     TokenState,
     TokenStatus,
 } from '@project/common/settings';
+import { getCardTokenStatus } from '@project/common/subtitle-annotations';
 import { HAS_LETTER_REGEX, inBatches, mapAsync } from '@project/common/util';
 import { Yomitan } from '@project/common/yomitan/yomitan';
 import Dexie from 'dexie';
@@ -383,6 +385,72 @@ export class DictionaryDB {
                     }
                     return lemmaResults;
                 });
+        });
+    }
+
+    async countKnownTokens(
+        inputProfile: string | undefined,
+        track: number,
+        settings: AsbplayerSettings
+    ): Promise<number> {
+        const dt = settings.dictionaryTracks[track];
+        if (!dt) return 0;
+        const profile = this._getProfile(inputProfile);
+        return this.db.transaction('r', this.db.tokens, this.db.ankiCards, async () => {
+            const records = await this.db.tokens
+                .where('[profile+token]')
+                .between([profile, Dexie.minKey], [profile, Dexie.maxKey])
+                .filter((r) => r.track === track || r.track === LOCAL_TOKEN_TRACK)
+                .toArray();
+            if (!records.length) return 0;
+
+            const prioritizedTokenRecords = new Map<string, DictionaryTokenRecord>();
+            for (const record of records) {
+                const existingRecord = prioritizedTokenRecords.get(record.token);
+                if (
+                    !existingRecord ||
+                    record.source === DictionaryTokenSource.LOCAL ||
+                    (record.source === DictionaryTokenSource.ANKI_WORD &&
+                        existingRecord.source === DictionaryTokenSource.ANKI_SENTENCE)
+                ) {
+                    prioritizedTokenRecords.set(record.token, record);
+                }
+            }
+
+            let count = 0;
+            const ankiRecords: DictionaryTokenRecord[] = [];
+            const cardIds = new Set<number>();
+            for (const record of prioritizedTokenRecords.values()) {
+                if (record.states.includes(TokenState.IGNORED)) continue;
+                if (record.source === DictionaryTokenSource.LOCAL) {
+                    if (isTokenStatusKnown(record.status!)) count += 1;
+                    continue;
+                }
+                ankiRecords.push(record);
+                for (const cardId of record.cardIds) cardIds.add(cardId);
+            }
+            if (!cardIds.size) return count;
+
+            const cardStatusMap = await this.db.ankiCards
+                .where('[cardId+track+profile]')
+                .anyOf(Array.from(cardIds, (cardId) => [cardId, track, profile]))
+                .toArray()
+                .then((ankiCards) => {
+                    const statusMap = new Map<number, CardStatus>();
+                    for (const ankiCard of ankiCards) {
+                        statusMap.set(ankiCard.cardId, { status: ankiCard.status, suspended: ankiCard.suspended });
+                    }
+                    return statusMap;
+                });
+            for (const record of ankiRecords) {
+                const status = getCardTokenStatus(
+                    record.cardIds.map((cardId) => cardStatusMap.get(cardId)!),
+                    dt.dictionaryAnkiTreatSuspended
+                );
+                if (isTokenStatusKnown(status)) count += 1;
+            }
+
+            return count;
         });
     }
 
@@ -1406,7 +1474,7 @@ export class DictionaryDB {
                                     let val = tokenCardsMap.get(trimmedToken);
                                     if (!val) {
                                         const lemmas = await ts.yomitan.lemmatize(trimmedToken);
-                                        if (!lemmas.length) continue; // Not a valid dictionary entry
+                                        if (!lemmas?.length) continue; // Not a valid dictionary entry
                                         val = { lemmas, cardIds: new Set<number>() };
                                         tokenCardsMap.set(trimmedToken, val);
                                     }

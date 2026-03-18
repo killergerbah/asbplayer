@@ -28,6 +28,7 @@ import {
     TokenStyling,
 } from '@project/common/settings';
 import { CardStatus, DictionaryProvider, LemmaResults, TokenResults } from '@project/common/dictionary-db';
+import { DictionaryStatistics } from '@project/common/dictionary-statistics';
 import { SubtitleCollection, SubtitleCollectionOptions } from '@project/common/subtitle-collection';
 import {
     arrayEquals,
@@ -43,7 +44,9 @@ const TOKEN_CACHE_BUILD_AHEAD_INIT = 10;
 const TOKEN_CACHE_BUILD_AHEAD = 100;
 const TOKEN_CACHE_BUILD_AHEAD_THRESHOLD = 10; // Only build ahead with only this many rich subtitles left
 const TOKEN_CACHE_BATCH_SIZE = 1; // Processing more than 1 at a time is slower
-const TOKEN_CACHE_ERROR_REFRESH_INTERVAL = 10000;
+const TOKEN_CACHE_DEFAULT_REFRESH_INTERVAL = 10000;
+const TOKEN_CACHE_STATISTICS_REFRESH_INTERVAL = 1000;
+let tokenCacheRefreshInterval = TOKEN_CACHE_DEFAULT_REFRESH_INTERVAL;
 const ANKI_RECENTLY_MODIFIED_INTERVAL = 10000;
 
 const ASB_TOKEN_CLASS = 'asb-token';
@@ -78,6 +81,22 @@ function shouldUseLemmaForm(s: TokenMatchStrategy): boolean {
 
 function shouldUseAnyForm(s: TokenMatchStrategy): boolean {
     return s === TokenMatchStrategy.ANY_FORM_COLLECTED;
+}
+
+export function getCardTokenStatus(
+    statuses: CardStatus[],
+    dictionaryAnkiTreatSuspended: TokenStatus | 'NORMAL'
+): TokenStatus {
+    if (statuses.length && dictionaryAnkiTreatSuspended !== 'NORMAL') {
+        const unsuspended = statuses.filter((status) => !status.suspended);
+        if (!unsuspended.length) return dictionaryAnkiTreatSuspended;
+        statuses = unsuspended;
+    }
+    if (statuses.some((c) => c.status === TokenStatus.MATURE)) return TokenStatus.MATURE;
+    if (statuses.some((c) => c.status === TokenStatus.YOUNG)) return TokenStatus.YOUNG;
+    if (statuses.some((c) => c.status === TokenStatus.GRADUATED)) return TokenStatus.GRADUATED;
+    if (statuses.some((c) => c.status === TokenStatus.LEARNING)) return TokenStatus.LEARNING;
+    return TokenStatus.UNKNOWN;
 }
 
 export interface InternalToken extends Token {
@@ -128,8 +147,14 @@ function resetYomitan(ts: TrackState) {
 
 export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
     private _subtitles: InternalSubtitleModel[];
+    private totalSubtitlesPerTrack: Map<number, number>;
     private readonly dictionaryProvider: DictionaryProvider;
     private readonly settingsProvider: SettingsProvider;
+    private readonly dictionaryStatistics: DictionaryStatistics;
+    private statisticsBatchProcessedIndex: number;
+    private statisticsProcessedSubtitleIndexesByTrack: Map<number, Set<number>>;
+    private generateStatistics?: boolean; // A manual trigger will keep this a true for the remainder of this class's lifetime, unless auto is toggled off.
+    private generateStatisticsRequested: boolean; // Prevent premature cancellation during statistics generation
     private subtitlesInterval?: ReturnType<typeof setInterval>;
     private showingSubtitles?: RichSubtitleModel[];
     private showingNeedsRefreshCount: number;
@@ -161,19 +186,27 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
 
     private removeBuildAnkiCacheStateChangeCB?: () => void;
     private removeAnkiCardModifiedCB?: () => void;
+    private removeRequestStatisticsSnapshotCB?: () => void;
+    private removeRequestStatisticsGenerationCB?: () => void;
 
     constructor(
         dictionaryProvider: DictionaryProvider,
         settingsProvider: SettingsProvider,
         options: SubtitleCollectionOptions,
+        mediaId: string,
         subtitleAnnotationsUpdated: (updatedSubtitles: RichSubtitleModel[], dt: DictionaryTrack[]) => void,
         getMediaTimeMs?: () => number,
         fetcher?: Fetcher
     ) {
         super({ ...options, returnNextToShow: true });
         this._subtitles = [];
+        this.totalSubtitlesPerTrack = new Map();
         this.dictionaryProvider = dictionaryProvider;
         this.settingsProvider = settingsProvider;
+        this.dictionaryStatistics = new DictionaryStatistics(settingsProvider, dictionaryProvider, mediaId);
+        this.statisticsBatchProcessedIndex = 0;
+        this.statisticsProcessedSubtitleIndexesByTrack = new Map();
+        this.generateStatisticsRequested = false;
         this.buildLowerThreshold = 0;
         this.buildUpperThreshold = 0;
         this.initialized = false;
@@ -227,6 +260,10 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
             }
         }
         this._subtitles = subtitles.map((s) => ({ ...s })); // Separate internals from react state changes
+        this.totalSubtitlesPerTrack.clear();
+        for (const s of this._subtitles) {
+            this.totalSubtitlesPerTrack.set(s.track, (this.totalSubtitlesPerTrack.get(s.track) ?? 0) + 1);
+        }
         super.setSubtitles(this._subtitles);
         if (needsReset) {
             this._resetCache();
@@ -260,6 +297,10 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
         this.anki = undefined;
         this.trackStates.forEach(resetYomitan);
         this.trackStates = [];
+        this.dictionaryStatistics.reset();
+        this.statisticsBatchProcessedIndex = 0;
+        this.statisticsProcessedSubtitleIndexesByTrack.clear();
+        this.generateStatisticsRequested = false;
         this.ankiRecentlyModifiedCardIds.clear();
         this.ankiRecentlyModifiedTrigger = false;
         this.ankiRecentlyModifiedFirstCheck = true;
@@ -284,6 +325,11 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
             break;
         }
         if (settingsAreEqual) return;
+
+        this._updateGenerateStatistics(
+            this.trackStates.map((ts) => ts.dt),
+            settings.dictionaryTracks
+        );
 
         const subtitlesToReset: InternalSubtitleModel[] = []; // Tracks that went from enabled to disabled need all subscribers to purge their richText
         for (const ts of this.trackStates) {
@@ -327,9 +373,14 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
         if (!ts || !dictionaryTrackEnabled(ts.dt) || !ts.yt) return;
 
         const lemmas = await ts.yt.lemmatize(token);
+        if (!lemmas) return;
         await this.dictionaryProvider.saveRecordLocalBulk(profile, [{ token, status, lemmas, states }], applyStates);
         this.tokensForRefresh.add(token);
         for (const lemma of lemmas) this.tokensForRefresh.add(lemma);
+    }
+
+    requestStatisticsGeneration() {
+        this.generateStatistics = true;
     }
 
     private async _checkAnkiRecentlyModifiedCards() {
@@ -346,13 +397,12 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
         if (!allFieldsSet.size) return;
         const allFields = Array.from(allFieldsSet);
 
-        const options = { useOriginTab: true }; // We don't have the full extension context if in a page script
         if (!this.anki) {
             try {
                 this.anki = new Anki(await this.settingsProvider.getAll(), this.fetcher);
                 const permission = (await this.anki.requestPermission()).permission;
                 if (permission !== 'granted') throw new Error(`permission ${permission}`);
-                await this.dictionaryProvider.buildAnkiCache(profile, await this.settingsProvider.getAll(), options); // Keep cache updated without user action
+                await this.dictionaryProvider.buildAnkiCache(profile, await this.settingsProvider.getAll()); // Keep cache updated without user action
             } catch (e) {
                 console.warn('Anki permission request failed:', e);
                 this.anki = undefined;
@@ -374,13 +424,24 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
                 this.ankiRecentlyModifiedFirstCheck = false;
                 return;
             }
-            await this.dictionaryProvider.buildAnkiCache(profile, await this.settingsProvider.getAll(), options);
+            await this.dictionaryProvider.buildAnkiCache(profile, await this.settingsProvider.getAll());
         } catch (e) {
             console.error(`Error checking Anki recently modified cards:`, e);
             this.anki = undefined;
             this.ankiRecentlyModifiedCardIds.clear();
             this.ankiRecentlyModifiedFirstCheck = false;
         }
+    }
+
+    private _shouldAutoGenerateStatistics(dictionaryTracks: DictionaryTrack[]) {
+        return dictionaryTracks.some((dt) => dictionaryTrackEnabled(dt) && dt.dictionaryAutoGenerateStatistics);
+    }
+
+    private _updateGenerateStatistics(oldTracks: DictionaryTrack[], newTracks: DictionaryTrack[]) {
+        const wasEnabled = this._shouldAutoGenerateStatistics(oldTracks);
+        const nowEnabled = this._shouldAutoGenerateStatistics(newTracks);
+        if (wasEnabled && !nowEnabled) this.generateStatistics = false;
+        else this.generateStatistics = this.generateStatistics || nowEnabled;
     }
 
     bind() {
@@ -396,9 +457,29 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
         });
         if (this.removeAnkiCardModifiedCB) this.removeAnkiCardModifiedCB();
         this.removeAnkiCardModifiedCB = this.dictionaryProvider.onAnkiCardModified(() => this.ankiCardWasModified());
+        if (this.removeRequestStatisticsSnapshotCB) this.removeRequestStatisticsSnapshotCB();
+        this.removeRequestStatisticsSnapshotCB = this.dictionaryProvider.onRequestStatisticsSnapshot(() => {
+            this.dictionaryStatistics.publishSnapshot();
+        });
+        if (this.removeRequestStatisticsGenerationCB) this.removeRequestStatisticsGenerationCB();
+        this.removeRequestStatisticsGenerationCB = this.dictionaryProvider.onRequestStatisticsGeneration(() => {
+            this.requestStatisticsGeneration();
+        });
 
         this.subtitlesInterval = setInterval(() => {
             if (!this._subtitles.length) return;
+
+            if (
+                this.generateStatistics === true &&
+                this.statisticsBatchProcessedIndex < this._subtitles.length &&
+                this.initialized
+            ) {
+                if (this.annotationsBuilding && !this.generateStatisticsRequested) this.shouldCancelBuild = true;
+                this.generateStatisticsRequested = true;
+                const { annotationsStartIndex, annotationsEndIndex } = this._getAnnotationsIndexes();
+                void this._buildAnnotations(annotationsStartIndex, annotationsEndIndex);
+                this.annotationsLastRefresh = Date.now();
+            }
 
             if (this.getMediaTimeMs) {
                 const slice = this.subtitlesAt(this.getMediaTimeMs());
@@ -410,6 +491,7 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
                     this.showingNeedsRefreshCount++;
                     if (
                         this.annotationsBuilding &&
+                        !this.generateStatisticsRequested &&
                         this.initialized &&
                         slice.showing.some(
                             (s) =>
@@ -434,7 +516,7 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
             }
             if (
                 this.tokensForRefresh.size || // Don't force a build for this.refreshCache.size as it may update too frequently for token.frequency
-                Date.now() - this.annotationsLastRefresh >= TOKEN_CACHE_ERROR_REFRESH_INTERVAL
+                Date.now() - this.annotationsLastRefresh >= tokenCacheRefreshInterval
             ) {
                 const { annotationsStartIndex, annotationsEndIndex } = this._getAnnotationsIndexes();
                 void this._buildAnnotations(annotationsStartIndex, annotationsEndIndex);
@@ -473,10 +555,12 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
         annotationsEndIndex: number,
         init?: boolean
     ): Promise<boolean> {
+        if (!this._subtitles.length) return true;
         if (this.annotationsBuilding) return false;
         let tokensRefreshed: string[] = [];
         let buildWasCancelled = false;
         let updateThresholds = false;
+        let statisticsBatching = false;
         try {
             this.annotationsBuilding = true;
             if (this.profile === null) {
@@ -497,12 +581,12 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
                     collectedAnyForm: new Map(),
                     tokenStates: new Map(),
                 }));
+                if (this.generateStatistics === undefined) {
+                    this.generateStatistics = this._shouldAutoGenerateStatistics(this.trackStates.map((ts) => ts.dt));
+                }
             }
             if (this.trackStates.every((t) => !dictionaryTrackEnabled(t.dt))) return true;
             if (this.shouldCancelBuild) return false;
-
-            const subtitles = this._subtitles.slice(annotationsStartIndex, annotationsEndIndex);
-            if (!subtitles.length) return true;
 
             for (const ts of this.trackStates) {
                 if (!dictionaryTrackEnabled(ts.dt) || ts.yt) continue;
@@ -519,6 +603,31 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
                     console.error(`YomitanTrack${ts.track + 1} version request failed:`, e);
                 }
             }
+
+            const generatingStatistics = this.generateStatistics === true && this.initialized;
+            if (generatingStatistics) {
+                statisticsBatching = this.statisticsBatchProcessedIndex < this._subtitles.length;
+                if (statisticsBatching) {
+                    annotationsStartIndex = this.statisticsBatchProcessedIndex;
+                    annotationsEndIndex = Math.min(
+                        this._subtitles.length,
+                        annotationsStartIndex + TOKEN_CACHE_BUILD_AHEAD
+                    );
+                    for (let i = annotationsStartIndex; i < annotationsEndIndex; i++) this.refreshCache.add(i);
+                }
+                if (!this.dictionaryStatistics.hasStatistics()) {
+                    this.generateStatisticsRequested = true;
+                    for (const ts of this.trackStates) {
+                        if (!dictionaryTrackEnabled(ts.dt)) continue;
+                        this.dictionaryStatistics.init(ts.track, this.totalSubtitlesPerTrack.get(ts.track) ?? 0);
+                        this.statisticsProcessedSubtitleIndexesByTrack.set(ts.track, new Set());
+                    }
+                    void this.dictionaryStatistics.refreshDictionaryKnownTokens(profile); // Init with just known words
+                    tokenCacheRefreshInterval = TOKEN_CACHE_STATISTICS_REFRESH_INTERVAL;
+                }
+            }
+            const subtitles = this._subtitles.slice(annotationsStartIndex, annotationsEndIndex);
+            if (!subtitles.length) return true;
 
             if (this.refreshCache.size || this.tokensForRefresh.size) {
                 const existingIndexes = new Set(subtitles.map((s) => s.index));
@@ -548,6 +657,7 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
                 this.annotationsBuildingCurrentIndexes.clear();
             }
 
+            const statisticsTracksToUpdate = new Set<number>();
             await inBatches(
                 subtitles,
                 async (batch) => {
@@ -573,7 +683,10 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
                                           ts
                                       );
                                 if (this.shouldCancelBuild) return;
-                                if (areTokenizationsEqual(tokenizationModel?.tokenization, existingTokenization)) {
+                                if (
+                                    areTokenizationsEqual(tokenizationModel?.tokenization, existingTokenization) &&
+                                    !this.generateStatisticsRequested
+                                ) {
                                     return;
                                 }
                                 const updatedSubtitles: RichSubtitleModel[] = [];
@@ -586,6 +699,28 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
                                     subtitle.text = reconstructedText;
                                     subtitle.__tokenized = true;
                                     updatedSubtitles.push(subtitle);
+                                    if (generatingStatistics) {
+                                        const sentence = { ...subtitle };
+                                        renderRichTextOntoSubtitles(
+                                            [sentence],
+                                            this.trackStates.map((ts) => ts.dt)
+                                        );
+                                        const tokens = tokenization.tokens;
+                                        await this.dictionaryStatistics.ingest(track, tokens, sentence, ts.yt!); // Treat the entire source entry as a single sentence
+                                        if (
+                                            tokens.every(
+                                                (t) =>
+                                                    t.frequency !== undefined ||
+                                                    t.states.includes(TokenState.IGNORED) ||
+                                                    !HAS_LETTER_REGEX.test(
+                                                        reconstructedText.substring(t.pos[0], t.pos[1])
+                                                    )
+                                            )
+                                        ) {
+                                            this.statisticsProcessedSubtitleIndexesByTrack.get(track)!.add(index);
+                                            statisticsTracksToUpdate.add(track);
+                                        }
+                                    }
                                 }
                                 this.subtitleAnnotationsUpdated(
                                     updatedSubtitles,
@@ -607,6 +742,17 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
                 },
                 { batchSize: TOKEN_CACHE_BATCH_SIZE }
             );
+
+            for (const track of statisticsTracksToUpdate) {
+                const indexes = this.statisticsProcessedSubtitleIndexesByTrack.get(track)!;
+                if (this.dictionaryStatistics.updateProgress(track, indexes.size)) {
+                    tokenCacheRefreshInterval = TOKEN_CACHE_DEFAULT_REFRESH_INTERVAL; // Reset after the first track finishes
+                }
+            }
+            if (tokensRefreshed.length && generatingStatistics) {
+                void this.dictionaryStatistics.refreshDictionaryKnownTokens(profile);
+            }
+
             if (this.shouldCancelBuild) {
                 buildWasCancelled = true;
                 tokensRefreshed = [];
@@ -620,6 +766,10 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
                 this.tokenRequestFailedForTracks.clear();
             } else if (!this.shouldCancelBuild) {
                 this.initialized = true;
+                if (statisticsBatching) {
+                    this.statisticsBatchProcessedIndex = annotationsEndIndex;
+                    if (annotationsEndIndex >= this._subtitles.length) this.generateStatisticsRequested = false;
+                }
             }
             if (updateThresholds && !init) {
                 this.buildUpperThreshold = annotationsEndIndex - TOKEN_CACHE_BUILD_AHEAD_THRESHOLD;
@@ -680,12 +830,12 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
                         .trim();
                     if (shouldQueryExactForm && !ts.collectedExactForm.has(token)) forExactFormQuery.add(token);
                     if (shouldQueryLemmaForm) {
-                        for (const lemma of await ts.yt.lemmatize(token)) {
+                        for (const lemma of (await ts.yt.lemmatize(token)) ?? []) {
                             if (!ts.collectedLemmaForm.has(lemma)) forLemmaFormQuery.add(lemma);
                         }
                     }
                     if (shouldQueryAnyForm) {
-                        for (const lemma of await ts.yt.lemmatize(token)) {
+                        for (const lemma of (await ts.yt.lemmatize(token)) ?? []) {
                             if (!ts.collectedAnyForm.has(lemma)) forAnyFormQuery.add(lemma);
                         }
                     }
@@ -706,12 +856,12 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
                 if (this.shouldCancelBuild) return;
 
                 for (const [token, { states, statuses, source }] of Object.entries(exactFormResultMap)) {
-                    const status = this._getTokenStatus(statuses, ts);
+                    const status = getCardTokenStatus(statuses, ts.dt.dictionaryAnkiTreatSuspended);
                     ts.collectedExactForm.set(token, { status, source });
                     if (states.length) ts.tokenStates.set(token, states);
                 }
                 for (const [lemma, { states, statuses, source }] of Object.entries(lemmaFormResultMap)) {
-                    const status = this._getTokenStatus(statuses, ts);
+                    const status = getCardTokenStatus(statuses, ts.dt.dictionaryAnkiTreatSuspended);
                     ts.collectedLemmaForm.set(lemma, { status, source });
                     if (!states.length) continue;
                     const tokenStates = ts.tokenStates.get(lemma);
@@ -725,7 +875,7 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
                 }
                 for (const [lemma, lemmaResults] of Object.entries(anyFormResultsMap)) {
                     for (const { states, statuses, source, token } of lemmaResults) {
-                        const status = this._getTokenStatus(statuses, ts);
+                        const status = getCardTokenStatus(statuses, ts.dt.dictionaryAnkiTreatSuspended);
                         const lemmaCollected = ts.collectedAnyForm.get(lemma);
                         if (lemmaCollected) lemmaCollected.push({ status, source, token });
                         else ts.collectedAnyForm.set(lemma, [{ status, source, token }]);
@@ -745,19 +895,6 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
                 resetYomitan(ts);
             }
         }
-    }
-
-    private _getTokenStatus(statuses: CardStatus[], ts: TrackState): TokenStatus {
-        if (statuses.length && ts.dt.dictionaryAnkiTreatSuspended !== 'NORMAL') {
-            const unsuspended = statuses.filter((status) => !status.suspended);
-            if (!unsuspended.length) return ts.dt.dictionaryAnkiTreatSuspended;
-            statuses = unsuspended;
-        }
-        if (statuses.some((c) => c.status === TokenStatus.MATURE)) return TokenStatus.MATURE;
-        if (statuses.some((c) => c.status === TokenStatus.YOUNG)) return TokenStatus.YOUNG;
-        if (statuses.some((c) => c.status === TokenStatus.GRADUATED)) return TokenStatus.GRADUATED;
-        if (statuses.some((c) => c.status === TokenStatus.LEARNING)) return TokenStatus.LEARNING;
-        return TokenStatus.UNKNOWN;
     }
 
     /**
@@ -821,6 +958,11 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
                         else this.tokenToIndexesCache.set(trimmedToken, new Set([index]));
                         const lemmas = await ts.yt!.lemmatize(trimmedToken);
                         if (this.shouldCancelBuild) return;
+                        if (!lemmas) {
+                            error = true;
+                            this.erroredCache.add(index);
+                            return;
+                        }
                         for (const lemma of lemmas) {
                             const lemmaToIndexes = this.tokenToIndexesCache.get(lemma);
                             if (lemmaToIndexes) lemmaToIndexes.add(index);
@@ -913,6 +1055,11 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
                 else this.tokenToIndexesCache.set(trimmedToken, new Set([index]));
                 const lemmas = await ts.yt.lemmatize(trimmedToken);
                 if (this.shouldCancelBuild) return;
+                if (!lemmas) {
+                    this.erroredCache.add(index);
+                    token.status = null;
+                    continue;
+                }
                 for (const lemma of lemmas) {
                     const lemmaToIndexes = this.tokenToIndexesCache.get(lemma);
                     if (lemmaToIndexes) lemmaToIndexes.add(index);
@@ -941,13 +1088,11 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
 
     private async _updateFrequency(token: Token, trimmedToken: string, index: number, ts: TrackState): Promise<void> {
         if (!ts.yt) throw new Error('Yomitan uninitialized - cannot update token frequency');
-        if (ts.dt.dictionaryTokenFrequencyAnnotation === TokenFrequencyAnnotation.NEVER) return;
-        if (
-            ts.dt.dictionaryTokenFrequencyAnnotation === TokenFrequencyAnnotation.UNCOLLECTED_ONLY &&
-            token.status !== TokenStatus.UNCOLLECTED
-        ) {
-            return;
-        }
+        const ano = this.generateStatistics
+            ? TokenFrequencyAnnotation.ALWAYS
+            : ts.dt.dictionaryTokenFrequencyAnnotation;
+        if (ano === TokenFrequencyAnnotation.NEVER) return;
+        if (ano === TokenFrequencyAnnotation.UNCOLLECTED_ONLY && token.status !== TokenStatus.UNCOLLECTED) return;
         if (ts.yt.getSupportsTokenizeFrequency() || this.initialized) {
             token.frequency = await ts.yt.frequency(trimmedToken);
         } else {
@@ -981,6 +1126,7 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
         if (shouldUseLemmaForm(ts.dt.dictionaryTokenMatchStrategy)) {
             const lemmas = await ts.yt!.lemmatize(trimmedToken);
             if (this.shouldCancelBuild) return null;
+            if (!lemmas) return null;
             const lemmaStatusResults: TokenStatusResult[] = [];
             for (const lemma of lemmas) {
                 const lemmaStatusResult = ts.collectedLemmaForm.get(lemma);
@@ -993,6 +1139,7 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
         if (shouldUseAnyForm(ts.dt.dictionaryTokenMatchStrategy)) {
             const lemmas = await ts.yt!.lemmatize(trimmedToken);
             if (this.shouldCancelBuild) return null;
+            if (!lemmas) return null;
             const anyFormStatusResults: TokenStatusResult[] = [];
             for (const lemma of lemmas) {
                 const statusResults = ts.collectedAnyForm.get(lemma);
@@ -1018,6 +1165,7 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
         if (shouldUseLemmaForm(ts.dt.dictionaryAnkiSentenceTokenMatchStrategy)) {
             const lemmas = await ts.yt!.lemmatize(trimmedToken);
             if (this.shouldCancelBuild) return null;
+            if (!lemmas) return null;
             const lemmaStatusResults: TokenStatusResult[] = [];
             for (const lemma of lemmas) {
                 const lemmaStatusResult = ts.collectedLemmaForm.get(lemma);
@@ -1030,6 +1178,7 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
         if (shouldUseAnyForm(ts.dt.dictionaryAnkiSentenceTokenMatchStrategy)) {
             const lemmas = await ts.yt!.lemmatize(trimmedToken);
             if (this.shouldCancelBuild) return null;
+            if (!lemmas) return null;
             const anyFormStatusResults: TokenStatusResult[] = [];
             for (const lemma of lemmas) {
                 const anyFormStatusResult = ts.collectedAnyForm.get(lemma);
@@ -1055,6 +1204,7 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
         if (shouldUseLemmaForm(ts.dt.dictionaryTokenMatchStrategy)) {
             const lemmas = await ts.yt!.lemmatize(trimmedToken);
             if (this.shouldCancelBuild) return null;
+            if (!lemmas) return null;
             const lemmaStatusResults: TokenStatusResult[] = [];
             for (const lemma of lemmas) {
                 const lemmaStatusResult = ts.collectedLemmaForm.get(lemma);
@@ -1073,6 +1223,7 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
         if (shouldUseAnyForm(ts.dt.dictionaryTokenMatchStrategy)) {
             const lemmas = await ts.yt!.lemmatize(trimmedToken);
             if (this.shouldCancelBuild) return null;
+            if (!lemmas) return null;
             const anyFormStatusResults: TokenStatusResult[] = [];
             for (const lemma of lemmas) {
                 const statusResults = ts.collectedAnyForm.get(lemma);
@@ -1094,6 +1245,7 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
         if (shouldUseLemmaForm(ts.dt.dictionaryAnkiSentenceTokenMatchStrategy)) {
             const lemmas = await ts.yt!.lemmatize(trimmedToken);
             if (this.shouldCancelBuild) return null;
+            if (!lemmas) return null;
             const lemmaStatusResults: TokenStatusResult[] = [];
             for (const lemma of lemmas) {
                 const lemmaStatusResult = ts.collectedLemmaForm.get(lemma);
@@ -1110,6 +1262,7 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
         if (shouldUseAnyForm(ts.dt.dictionaryAnkiSentenceTokenMatchStrategy)) {
             const lemmas = await ts.yt!.lemmatize(trimmedToken);
             if (this.shouldCancelBuild) return null;
+            if (!lemmas) return null;
             const anyFormStatusResults: TokenStatusResult[] = [];
             for (const lemma of lemmas) {
                 const anyFormStatusResult = ts.collectedAnyForm.get(lemma);
@@ -1147,6 +1300,7 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
         if (shouldUseLemmaForm(ts.dt.dictionaryTokenMatchStrategy)) {
             const lemmas = await ts.yt!.lemmatize(trimmedToken);
             if (this.shouldCancelBuild) return null;
+            if (!lemmas) return null;
             for (const lemma of lemmas) {
                 const lemmaStatusResult = ts.collectedLemmaForm.get(lemma);
                 if (lemmaStatusResult && lemmaStatusResult.source !== DictionaryTokenSource.ANKI_SENTENCE) {
@@ -1157,6 +1311,7 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
         if (shouldUseAnyForm(ts.dt.dictionaryTokenMatchStrategy)) {
             const lemmas = await ts.yt!.lemmatize(trimmedToken);
             if (this.shouldCancelBuild) return null;
+            if (!lemmas) return null;
             for (const lemma of lemmas) {
                 const statusResults = ts.collectedAnyForm.get(lemma);
                 if (!statusResults) continue;
@@ -1178,6 +1333,7 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
         if (shouldUseLemmaForm(ts.dt.dictionaryAnkiSentenceTokenMatchStrategy)) {
             const lemmas = await ts.yt!.lemmatize(trimmedToken);
             if (this.shouldCancelBuild) return null;
+            if (!lemmas) return null;
             for (const lemma of lemmas) {
                 const lemmaStatusResult = ts.collectedLemmaForm.get(lemma);
                 if (lemmaStatusResult?.source === DictionaryTokenSource.ANKI_SENTENCE) {
@@ -1188,6 +1344,7 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
         if (shouldUseAnyForm(ts.dt.dictionaryAnkiSentenceTokenMatchStrategy)) {
             const lemmas = await ts.yt!.lemmatize(trimmedToken);
             if (this.shouldCancelBuild) return null;
+            if (!lemmas) return null;
             for (const lemma of lemmas) {
                 const anyFormStatusResult = ts.collectedAnyForm.get(lemma);
                 if (!anyFormStatusResult) continue;
@@ -1212,6 +1369,14 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
         if (this.removeAnkiCardModifiedCB) {
             this.removeAnkiCardModifiedCB();
             this.removeAnkiCardModifiedCB = undefined;
+        }
+        if (this.removeRequestStatisticsSnapshotCB) {
+            this.removeRequestStatisticsSnapshotCB();
+            this.removeRequestStatisticsSnapshotCB = undefined;
+        }
+        if (this.removeRequestStatisticsGenerationCB) {
+            this.removeRequestStatisticsGenerationCB();
+            this.removeRequestStatisticsGenerationCB = undefined;
         }
         if (this.subtitlesInterval) {
             clearInterval(this.subtitlesInterval);
@@ -1386,7 +1551,7 @@ const applyReadingAnnotation = (fullText: string, token: Token, allowAsciiReadin
 };
 
 const applyFrequencyAnnotation = (tokenText: string, token: Token, dt?: DictionaryTrack) => {
-    if (token.frequency === undefined || !HAS_LETTER_REGEX.test(tokenText) || !dt) return tokenText;
+    if (token.frequency == null || !HAS_LETTER_REGEX.test(tokenText) || !dt) return tokenText;
     if (dt.dictionaryTokenFrequencyAnnotation === TokenFrequencyAnnotation.NEVER) return tokenText;
     if (
         dt.dictionaryTokenFrequencyAnnotation === TokenFrequencyAnnotation.UNCOLLECTED_ONLY &&

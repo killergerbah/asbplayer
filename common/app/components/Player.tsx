@@ -22,7 +22,7 @@ import { SubtitleCollection } from '@project/common/subtitle-collection';
 import { renderRichTextOntoSubtitles, HoveredToken, SubtitleAnnotations } from '@project/common/subtitle-annotations';
 import { SubtitleReader } from '@project/common/subtitle-reader';
 import { KeyBinder } from '@project/common/key-binder';
-import { timeDurationDisplay } from '../services/util';
+import { surroundingSubtitles, timeDurationDisplay } from '@project/common/util';
 import BroadcastChannelVideoProtocol from '../services/broadcast-channel-video-protocol';
 import ChromeTabVideoProtocol from '../services/chrome-tab-video-protocol';
 import Clock from '../services/clock';
@@ -96,6 +96,7 @@ export interface MediaSources {
 interface PlayerProps {
     sources?: MediaSources;
     subtitles: DisplaySubtitleModel[];
+    mediaId?: string;
     subtitleReader: SubtitleReader;
     dictionaryProvider: DictionaryProvider;
     settingsProvider: SettingsProvider;
@@ -139,6 +140,7 @@ interface PlayerProps {
 const Player = React.memo(function Player({
     sources,
     subtitles,
+    mediaId,
     subtitleReader,
     dictionaryProvider,
     settingsProvider,
@@ -488,11 +490,13 @@ const Player = React.memo(function Player({
             subtitleCollectionRef.current = newCol;
             return; // Handled by extension
         }
+        if (!mediaId) return;
 
         const subtitleAnnotations = new SubtitleAnnotations(
             dictionaryProvider,
             settingsProvider,
             options,
+            mediaId,
             (updatedSubtitles, dictionaryTracks) => {
                 renderRichTextOntoSubtitles(updatedSubtitles, dictionaryTracks);
                 channel?.subtitlesUpdated(updatedSubtitles);
@@ -520,7 +524,7 @@ const Player = React.memo(function Player({
             if (!(subtitleCollectionRef.current instanceof SubtitleAnnotations)) return;
             subtitleCollectionRef.current.unbind();
         };
-    }, [channel, dictionaryProvider, settingsProvider, tab, onSubtitles]);
+    }, [channel, dictionaryProvider, settingsProvider, mediaId, tab, onSubtitles]);
 
     useEffect(() => {
         if (!subtitleCollectionRef.current) return;
@@ -1268,6 +1272,35 @@ const Player = React.memo(function Player({
 
         seek(rewindSubtitle.start, clock, true, true);
     }, [clock, rewindSubtitle?.start, mediaAdapter, seek]);
+
+    useEffect(() => {
+        const unsubscribeSeek = dictionaryProvider.onRequestStatisticsSeek((timestamp) => {
+            void seek(timestamp, clock, true);
+        });
+        const unsubscribeMine = dictionaryProvider.onRequestStatisticsMineSentences((_mediaId, indexes) => {
+            const subtitleIndex = indexes[0];
+            if (subtitleIndex === undefined) return;
+            const subtitles = subtitlesRef.current;
+            const subtitle = subtitles?.[subtitleIndex];
+            if (!subtitle) return;
+            void handleCopyFromSubtitlePlayer(
+                subtitle,
+                surroundingSubtitles(
+                    subtitles,
+                    subtitle.index,
+                    settings.surroundingSubtitlesCountRadius,
+                    settings.surroundingSubtitlesTimeRadius
+                ),
+                settings.clickToMineDefaultAction,
+                true
+            );
+        });
+
+        return () => {
+            unsubscribeSeek();
+            unsubscribeMine();
+        };
+    }, [clock, dictionaryProvider, handleCopyFromSubtitlePlayer, seek, settings]);
 
     useEffect(() => {
         if (!webSocketClient) {

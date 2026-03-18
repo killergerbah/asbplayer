@@ -10,6 +10,7 @@ import type {
     TokenStatus,
 } from '../settings/settings';
 import type { GlobalState } from '../global-state';
+import type { DictionaryStatisticsSnapshot } from '../dictionary-statistics';
 import {
     RectModel,
     SubtitleModel,
@@ -594,6 +595,7 @@ export interface EditKeyboardShortcutsMessage extends Message {
 export interface OpenAsbplayerSettingsMessage extends Message {
     readonly command: 'open-asbplayer-settings';
     readonly tutorial?: boolean;
+    readonly scrollToId?: string;
 }
 
 export interface ExtensionVersionMessage extends Message {
@@ -939,4 +941,39 @@ export interface SaveTokenLocalToVideoMessage extends Message {
     readonly status: TokenStatus | null;
     readonly states: TokenState[];
     readonly applyStates: ApplyStrategy;
+}
+
+export interface DictionaryCountKnownTokensMessage extends MessageWithId {
+    readonly command: 'dictionary-count-known-tokens';
+    readonly profile: string | undefined;
+    readonly track: number;
+    readonly settings: AsbplayerSettings;
+}
+
+export interface DictionaryStatisticsMessage extends MessageWithId {
+    readonly command: 'dictionary-statistics';
+    readonly mediaId: string;
+    readonly snapshot?: DictionaryStatisticsSnapshot;
+}
+
+export interface DictionaryRequestStatisticsGenerationMessage extends MessageWithId {
+    readonly command: 'dictionary-request-statistics-generation';
+    readonly mediaId?: string;
+}
+
+export interface DictionaryRequestStatisticsSnapshotMessage extends MessageWithId {
+    readonly command: 'dictionary-request-statistics-snapshot';
+    readonly mediaId?: string;
+}
+
+export interface DictionaryRequestStatisticsSeekMessage extends MessageWithId {
+    readonly command: 'dictionary-request-statistics-seek';
+    readonly mediaId: string;
+    readonly timestamp: number;
+}
+
+export interface DictionaryRequestStatisticsMineSentencesMessage extends MessageWithId {
+    readonly command: 'dictionary-request-statistics-mine-sentences';
+    readonly mediaId: string;
+    readonly indexes: number[];
 }

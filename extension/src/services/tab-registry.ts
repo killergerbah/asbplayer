@@ -511,6 +511,25 @@ export default class TabRegistry {
         return undefined;
     }
 
+    async findAsbplayerTab({ filter }: { filter?: (asbplayer: Asbplayer) => boolean }): Promise<SlimTab | undefined> {
+        let chosenTab: SlimTab | undefined;
+        let min: number | null = null;
+        const now = Date.now();
+        const asbplayers = await this._asbplayers();
+
+        for (const asbplayer of Object.values(asbplayers)) {
+            if (!asbplayer.tab) continue;
+            if (filter !== undefined && !filter(asbplayer)) continue;
+            const elapsed = now - asbplayer.timestamp;
+            if (min === null || elapsed < min) {
+                min = elapsed;
+                chosenTab = asbplayer.tab;
+            }
+        }
+
+        return chosenTab;
+    }
+
     async _createNewTab() {
         return new Promise<Browser.tabs.Tab>(async (resolve, reject) => {
             const activeTabs = await browser.tabs.query({ active: true });

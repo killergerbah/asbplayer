@@ -3,6 +3,11 @@ import {
     AsbPlayerToVideoCommandV2,
     AsbplayerInstance,
     CardModel,
+    DictionaryRequestStatisticsGenerationMessage,
+    DictionaryRequestStatisticsSnapshotMessage,
+    DictionaryRequestStatisticsMineSentencesMessage,
+    DictionaryRequestStatisticsSeekMessage,
+    DictionaryStatisticsMessage,
     ExtensionToAsbPlayerCommand,
     ExtensionToAsbPlayerCommandTabsCommand,
     GetSettingsMessage,
@@ -30,6 +35,7 @@ import {
     SetGlobalStateMessage,
     GetGlobalStateMessage,
     DictionaryBuildAnkiCacheMessage,
+    DictionaryCountKnownTokensMessage,
     DictionaryGetBulkMessage,
     DictionaryGetByLemmaBulkMessage,
     DictionarySaveRecordLocalBulkMessage,
@@ -40,7 +46,9 @@ import {
     CardUpdatedDialogMessage,
     CardExportedDialogMessage,
     SaveTokenLocalFromAppMessage,
+    SubtitleModel,
 } from '@project/common';
+import { DictionaryStatisticsSnapshot } from '@project/common/dictionary-statistics';
 import {
     DictionaryLocalTokenInput,
     DictionaryTokenRecord,
@@ -164,6 +172,10 @@ export default class ChromeExtension {
         window.addEventListener('message', this.windowEventListener);
     }
 
+    get supportsDictionaryStatistics() {
+        return this.installed && gte(this.version, '1.16.0');
+    }
+
     get supportsDictionaryYomitanMecab() {
         return this.installed && gte(this.version, '1.15.0');
     }
@@ -250,6 +262,10 @@ export default class ChromeExtension {
 
     get supportsOffsetMessage() {
         return this.installed && gte(this.version, '0.23.0');
+    }
+
+    get id() {
+        return id;
     }
 
     startHeartbeat() {
@@ -651,6 +667,26 @@ export default class ChromeExtension {
         return await this._createResponsePromise(messageId);
     }
 
+    async dictionaryCountKnownTokens(
+        profile: string | undefined,
+        track: number,
+        settings: AsbplayerSettings
+    ): Promise<number> {
+        const messageId = uuidv4();
+        const command: AsbPlayerCommand<DictionaryCountKnownTokensMessage> = {
+            sender: 'asbplayerv2',
+            message: {
+                command: 'dictionary-count-known-tokens',
+                profile,
+                track,
+                settings,
+                messageId,
+            },
+        };
+        window.postMessage(command);
+        return await this._createResponsePromise(messageId);
+    }
+
     async dictionarySaveRecordLocalBulk(
         profile: string | undefined,
         localTokenInputs: DictionaryLocalTokenInput[],
@@ -742,6 +778,51 @@ export default class ChromeExtension {
         };
         window.postMessage(command);
         return this._createResponsePromise(messageId, 60000); // Usually <10s
+    }
+
+    publishStatisticsSnapshot(mediaId: string, snapshot?: DictionaryStatisticsSnapshot) {
+        const command: AsbPlayerCommand<DictionaryStatisticsMessage> = {
+            sender: 'asbplayerv2',
+            message: { command: 'dictionary-statistics', messageId: uuidv4(), mediaId, snapshot },
+        };
+        window.postMessage(command);
+    }
+
+    requestStatisticsSnapshot(mediaId?: string) {
+        const command: AsbPlayerCommand<DictionaryRequestStatisticsSnapshotMessage> = {
+            sender: 'asbplayerv2',
+            message: { command: 'dictionary-request-statistics-snapshot', messageId: uuidv4(), mediaId },
+        };
+        window.postMessage(command);
+    }
+
+    requestStatisticsGeneration(mediaId?: string) {
+        const command: AsbPlayerCommand<DictionaryRequestStatisticsGenerationMessage> = {
+            sender: 'asbplayerv2',
+            message: { command: 'dictionary-request-statistics-generation', messageId: uuidv4(), mediaId },
+        };
+        window.postMessage(command);
+    }
+
+    requestStatisticsSeek(mediaId: string, timestamp: number) {
+        const command: AsbPlayerCommand<DictionaryRequestStatisticsSeekMessage> = {
+            sender: 'asbplayerv2',
+            message: {
+                command: 'dictionary-request-statistics-seek',
+                messageId: uuidv4(),
+                mediaId,
+                timestamp,
+            },
+        };
+        window.postMessage(command);
+    }
+
+    requestStatisticsMineSentences(mediaId: string, indexes: number[]) {
+        const command: AsbPlayerCommand<DictionaryRequestStatisticsMineSentencesMessage> = {
+            sender: 'asbplayerv2',
+            message: { command: 'dictionary-request-statistics-mine-sentences', messageId: uuidv4(), mediaId, indexes },
+        };
+        window.postMessage(command);
     }
 
     private _createResponsePromise<T>(messageId: string, timeout = 5000) {

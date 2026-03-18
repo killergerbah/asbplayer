@@ -23,6 +23,7 @@ import Paper from '@mui/material/Paper';
 import { DictionaryProvider } from '@project/common/dictionary-db';
 import { useAnnotationTutorial } from '@project/common/hooks/use-annotation-tutorial';
 import { ExtensionGlobalStateProvider } from '@/services/extension-global-state-provider';
+import { useHasSubtitles } from '../hooks/use-has-subtitles';
 
 const globalStateProvider = new ExtensionGlobalStateProvider();
 
@@ -81,6 +82,7 @@ const Popup = ({
     const { localFontsAvailable, localFontsPermission, localFontFamilies } = useLocalFontFamilies();
     const theme = useTheme();
     const { handleAnnotationTutorialSeen, inAnnotationTutorial } = useAnnotationTutorial({ globalStateProvider });
+    const hasSubtitles = useHasSubtitles();
 
     if (!i18nInitialized) {
         return null;
@@ -122,6 +124,7 @@ const Popup = ({
                         extensionSupportsExportCardBind
                         extensionSupportsPageSettings
                         extensionSupportsDictionary
+                        extensionSupportsDictionaryStatistics
                         extensionSupportsDictionaryTokenStatusDisplayAlpha
                         extensionSupportsDictionaryYomitanMecab
                         forceVerticalTabs={false}
@@ -132,6 +135,7 @@ const Popup = ({
                         profiles={profilesContext.profiles}
                         activeProfile={profilesContext.activeProfile}
                         pageConfigs={settingsPageConfigs}
+                        scrollToId={hasSubtitles ? 'statistics' : undefined}
                         localFontsAvailable={localFontsAvailable}
                         localFontsPermission={localFontsPermission}
                         localFontFamilies={localFontFamilies}
@@ -141,6 +145,7 @@ const Popup = ({
                         onUnlockLocalFonts={handleUnlockLocalFonts}
                         inAnnotationTutorial={inAnnotationTutorial}
                         onAnnotationTutorialSeen={handleAnnotationTutorialSeen}
+                        onMineRequested={() => window.close()}
                     />
                 </Grid>
                 <Grid item>

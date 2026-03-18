@@ -142,6 +142,7 @@ export default class SubtitleController {
             this.dictionary,
             this.settings,
             { showingCheckRadiusMs: 150 },
+            this.video.src,
             (updatedSubtitles) => this._subtitleAnnotationsUpdated(updatedSubtitles),
             () => this.video.currentTime * 1000,
             new VideoFetcher(() => this.video.src)
@@ -574,6 +575,20 @@ export default class SubtitleController {
         this.notificationElementOverlay.refresh();
     }
 
+    subtitleAtIndex(index: number): [IndexedSubtitleModel | null, SubtitleModel[] | null] {
+        const subtitle = this.subtitles[index];
+        if (!subtitle) return [null, null];
+        return [
+            subtitle,
+            surroundingSubtitles(
+                this.subtitles,
+                index,
+                this.surroundingSubtitlesCountRadius,
+                this.surroundingSubtitlesTimeRadius
+            ),
+        ];
+    }
+
     currentSubtitle(): [IndexedSubtitleModel | null, SubtitleModel[] | null] {
         const now = 1000 * this.video.currentTime;
         let subtitle = null;
@@ -593,19 +608,8 @@ export default class SubtitleController {
             }
         }
 
-        if (subtitle === null || index === null) {
-            return [null, null];
-        }
-
-        return [
-            subtitle,
-            surroundingSubtitles(
-                this.subtitles,
-                index,
-                this.surroundingSubtitlesCountRadius,
-                this.surroundingSubtitlesTimeRadius
-            ),
-        ];
+        if (index === null) return [null, null];
+        return this.subtitleAtIndex(index);
     }
 
     unblur(track: number) {
