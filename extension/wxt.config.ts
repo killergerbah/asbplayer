@@ -31,6 +31,16 @@ const extName = 'asbplayer';
 export default defineConfig({
     modules: ['@wxt-dev/module-react'],
     srcDir: 'src',
+    vite: () => ({
+        plugins: [
+            {
+                name: 'watch-common',
+                configureServer(server) {
+                    server.watcher.add(path.resolve(__dirname, '../common'));
+                },
+            },
+        ],
+    }),
     zip: {
         sourcesRoot: '..',
         includeSources: ['.yarn/patches/**'],
@@ -50,7 +60,7 @@ export default defineConfig({
         },
     },
     manifest: ({ browser, mode }) => {
-        const version = '1.14.0';
+        const version = '1.15.0';
         const isDev = mode === 'development';
         const devLabel = isDev ? ' (Dev)' : '';
         const title = `${extName}${devLabel}`;
@@ -94,6 +104,8 @@ export default defineConfig({
                         'areena-yle-page.js',
                         'hbo-max-page.js',
                         'cijapanese-page.js',
+                        'svt-play-page.js',
+                        'ur-play-page.js',
                         'anki-ui.js',
                         'mp3-encoder-worker.js',
                         'pgs-parser-worker.js',

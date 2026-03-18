@@ -1,11 +1,13 @@
 import { Anki, escapeAnkiDeckQuery, escapeAnkiQuery, NoteInfo } from '@project/common/anki';
 import {
+    DictionaryBuildAnkiCacheStart,
     DictionaryBuildAnkiCacheState,
     DictionaryBuildAnkiCacheStateError as DictionaryBuildAnkiCacheError,
     DictionaryBuildAnkiCacheStateErrorCode,
     DictionaryBuildAnkiCacheStateType,
     DictionaryBuildAnkiCacheStats,
     DictionaryBuildAnkiCacheProgress,
+    Progress,
 } from '@project/common';
 import {
     ApplyStrategy,
@@ -37,6 +39,7 @@ const LOCAL_TOKEN_TRACK = -1; // null cannot be used in Dexie indexes
 export interface AnkiCacheSettingsDependencies {
     ankiConnectUrl: string;
     dictionaryYomitanUrl: string;
+    dictionaryYomitanParser: string;
     dictionaryYomitanScanLength: number;
     dictionaryAnkiDecks: string[];
     dictionaryAnkiWordFields: string[];
@@ -156,12 +159,6 @@ export interface DictionaryDeleteProfileResult {
     deletedMetas: DictionaryMetaKey[];
     deletedTokens: DictionaryTokenKey[];
     deletedAnkiCards: DictionaryAnkiCardKey[];
-}
-
-interface BuildAnkiCacheProgress {
-    current: number;
-    total: number;
-    startedAt: number;
 }
 
 function hasDeck(dt: DictionaryTrack, cardDeck: string): boolean {
@@ -408,15 +405,12 @@ export class DictionaryDB {
             const tokensToDelete: string[] = [];
             for (const localTokenInput of localTokenInputs) {
                 if (!HAS_LETTER_REGEX.test(localTokenInput.token)) {
-                    console.error(`Cannot save local token with invalid token: "${localTokenInput.token}"`);
-                    return { savedTokens: [], deletedTokens: [] };
+                    console.error(`Cannot save local token with invalid token: ${JSON.stringify(localTokenInput)}`);
+                    continue;
                 }
-                const existingRecord = tokenRecordMap.get(localTokenInput.token);
+                const existingRecord = tokenRecordMap.get(localTokenInput.token); // Ignore existing lemmas as they should be re-calculated
                 if (existingRecord) {
                     if (localTokenInput.status == null) localTokenInput.status = existingRecord.status;
-                    for (const existingLemma of existingRecord.lemmas) {
-                        if (!localTokenInput.lemmas.includes(existingLemma)) localTokenInput.lemmas.push(existingLemma);
-                    }
                     switch (applyStates) {
                         case ApplyStrategy.ADD:
                             for (const state of existingRecord.states) {
@@ -449,8 +443,8 @@ export class DictionaryDB {
                 }
                 localTokenInput.lemmas = localTokenInput.lemmas.filter((lemma) => HAS_LETTER_REGEX.test(lemma));
                 if (!localTokenInput.lemmas.length) {
-                    console.error(`Cannot save local token with no lemmas: "${localTokenInput.token}"`);
-                    return { savedTokens: [], deletedTokens: [] };
+                    console.error(`Cannot save local token with no lemmas: ${JSON.stringify(localTokenInput)}`);
+                    continue;
                 }
                 if (localTokenInput.status === TokenStatus.UNCOLLECTED && !localTokenInput.states.length) {
                     if (existingRecord) {
@@ -458,9 +452,9 @@ export class DictionaryDB {
                         continue;
                     } else {
                         console.error(
-                            `Cannot save local token with uncollected status and no states: "${localTokenInput.token}"`
+                            `Cannot save local token with uncollected status and no states: ${JSON.stringify(localTokenInput)}`
                         );
-                        return { savedTokens: [], deletedTokens: [] };
+                        continue;
                     }
                 }
                 recordsToAdd.push({
@@ -552,9 +546,7 @@ export class DictionaryDB {
                 const existingToken = existingProfileTokens.get(item.profile)?.get(item.token);
                 if (existingToken) {
                     item.status = Math.max(item.status ?? TokenStatus.UNCOLLECTED, existingToken.status!); // Keep the highest for imports
-                    for (const existingLemma of existingToken.lemmas) {
-                        if (!item.lemmas.includes(existingLemma)) item.lemmas.push(existingLemma);
-                    }
+                    if (!item.lemmas.length) item.lemmas = existingToken.lemmas; // Use existing lemmas only if it wasn't re-calculated
                     item.states = existingToken.states; // Treat the existing states as authoritative, TODO: expose ApplyStrategy for imports?
                 }
                 item.lemmas = item.lemmas.filter((lemma) => HAS_LETTER_REGEX.test(lemma));
@@ -562,7 +554,7 @@ export class DictionaryDB {
                 let status = item.status;
                 if (item.status == null || item.status < TokenStatus.UNKNOWN) {
                     if (!item.states.length) continue; // Status cannot be uncollected unless there is a state
-                    if (status == null) status = TokenStatus.UNCOLLECTED;
+                    status = TokenStatus.UNCOLLECTED;
                 } else if (item.status > fullyKnownStatus) {
                     status = fullyKnownStatus;
                 }
@@ -797,6 +789,13 @@ export class DictionaryDB {
         const buildTs = Date.now();
         const activeTracks: DictionaryMetaKey[] = [];
         let clearBuildIds = true;
+        statusUpdates({
+            type: DictionaryBuildAnkiCacheStateType.start,
+            body: {
+                buildTimestamp: buildTs,
+            } as DictionaryBuildAnkiCacheStart,
+        });
+
         try {
             const trackStates: TrackStatesForDB = new Map();
             const settingsToUpdate: { key: DictionaryMetaKey; changes: { settings: string } }[] = [];
@@ -812,7 +811,7 @@ export class DictionaryDB {
                     return await this.db.meta.where('[profile+track]').equals(key).first();
                 });
                 if (existingBuild !== undefined) {
-                    console.warn(`Build already in progress - expires at ${existingBuild.lastBuildExpiresAt}}`);
+                    console.error(`Build already in progress - expires at ${existingBuild.lastBuildExpiresAt}`);
                     statusUpdates({
                         type: DictionaryBuildAnkiCacheStateType.error,
                         body: {
@@ -853,6 +852,7 @@ export class DictionaryDB {
                 const currSettings: AnkiCacheSettingsDependencies = {
                     ankiConnectUrl: settings.ankiConnectUrl,
                     dictionaryYomitanUrl: dt.dictionaryYomitanUrl,
+                    dictionaryYomitanParser: dt.dictionaryYomitanParser,
                     dictionaryYomitanScanLength: dt.dictionaryYomitanScanLength,
                     dictionaryAnkiDecks: dt.dictionaryAnkiDecks,
                     dictionaryAnkiWordFields: dt.dictionaryAnkiWordFields,
@@ -882,6 +882,7 @@ export class DictionaryDB {
                     statusUpdates({
                         type: DictionaryBuildAnkiCacheStateType.stats,
                         body: {
+                            buildTimestamp: buildTs,
                             tracksToClear,
                             orphanedCards: numCardsFromOrphanedTracks,
                             modifiedTokens: Array.from(modifiedTokens),
@@ -893,6 +894,7 @@ export class DictionaryDB {
                 statusUpdates({
                     type: DictionaryBuildAnkiCacheStateType.stats,
                     body: {
+                        buildTimestamp: buildTs,
                         modifiedTokens: Array.from(modifiedTokens),
                     } as DictionaryBuildAnkiCacheStats,
                 });
@@ -908,7 +910,10 @@ export class DictionaryDB {
                     trackStates,
                     modifiedCards,
                     orphanedTrackCardIds,
-                    anki
+                    anki,
+                    buildId,
+                    activeTracks,
+                    statusUpdates
                 );
                 for (const [track, ts] of trackStates.entries()) {
                     await this._buildAnkiCardStatuses(track, ts, modifiedCards, anki);
@@ -945,6 +950,7 @@ export class DictionaryDB {
             statusUpdates({
                 type: DictionaryBuildAnkiCacheStateType.stats,
                 body: {
+                    buildTimestamp: buildTs,
                     tracksToBuild: Array.from(trackStates.keys()),
                     modifiedCards: numUpdatedCards,
                     modifiedTokens: [], // Delay publishing deleted modified tokens so tokens aren't flashed uncollected during build
@@ -982,6 +988,9 @@ export class DictionaryDB {
      * @param modifiedCards The map to populate with modified cards.
      * @param orphanedTrackCardIds The map to populate with orphaned card IDs.
      * @param anki The Anki instance.
+     * @param buildId The build ID.
+     * @param activeTracks The active tracks.
+     * @param statusUpdates The status update callback.
      * @returns The number of modified cards.
      */
     private async _syncTrackStatesWithAnki(
@@ -989,7 +998,10 @@ export class DictionaryDB {
         trackStates: TrackStatesForDB,
         modifiedCards: CardsForDB,
         orphanedTrackCardIds: Map<number, number[]>,
-        anki: Anki
+        anki: Anki,
+        buildId: string,
+        activeTracks: DictionaryMetaKey[],
+        statusUpdates: (state: DictionaryBuildAnkiCacheState) => void
     ): Promise<number> {
         const allDecksQuery = Array.from(trackStates.values()).some((ts) => !ts.dt.dictionaryAnkiDecks.length)
             ? ''
@@ -1061,7 +1073,9 @@ export class DictionaryDB {
         const modifiedCardsDeck: Map<number, string> = new Map();
         if (modifiedNotes.length) {
             const modifiedCardIds = Array.from(modifiedCardIdsSet);
-            for (const cardInfo of await anki.cardsInfo(modifiedCardIds)) {
+            for (const cardInfo of await anki.cardsInfo(modifiedCardIds, async (progress) => {
+                await this._updateBuildAnkiCacheProgress(buildId, activeTracks, progress, [], statusUpdates, true);
+            })) {
                 modifiedCardsDeck.set(cardInfo.cardId, cardInfo.deckName); // cardsInfo is much slower than notesInfo so we try to call it only if needed
             }
             const dts = Array.from(trackStates.values()).map((ts) => ts.dt);
@@ -1223,9 +1237,10 @@ export class DictionaryDB {
     private async _updateBuildAnkiCacheProgress(
         buildId: string,
         activeTracks: DictionaryMetaKey[],
-        progress: BuildAnkiCacheProgress,
+        progress: Progress,
         modifiedTokens: string[],
-        statusUpdates: (state: DictionaryBuildAnkiCacheState) => void
+        statusUpdates: (state: DictionaryBuildAnkiCacheState) => void,
+        forAnkiSync: boolean = false
     ): Promise<void> {
         const rate = progress.current / (Date.now() - progress.startedAt);
         const eta = rate ? Math.ceil((progress.total - progress.current) / rate) : 0;
@@ -1243,6 +1258,7 @@ export class DictionaryDB {
                 total: progress.total,
                 buildTimestamp: progress.startedAt,
                 modifiedTokens,
+                forAnkiSync,
             } as DictionaryBuildAnkiCacheProgress,
         });
     }
@@ -1262,7 +1278,7 @@ export class DictionaryDB {
         statusUpdates: (state: DictionaryBuildAnkiCacheState) => void
     ): Promise<void> {
         let error: any;
-        const progress: BuildAnkiCacheProgress = {
+        const progress: Progress = {
             current: 0,
             total: modifiedCards.size,
             startedAt: Date.now(),
@@ -1303,11 +1319,11 @@ export class DictionaryDB {
                     statusUpdates({
                         type: DictionaryBuildAnkiCacheStateType.stats,
                         body: {
+                            buildTimestamp: buildTs,
                             tracksToBuild: Array.from(trackStates.keys()),
                             modifiedCards: numUpdatedCards,
                             orphanedCards: numCardsFromOrphanedTracks,
                             tracksToClear: tracksToClear,
-                            buildTimestamp: buildTs,
                             modifiedTokens: Array.from(modifiedTokens),
                         } as DictionaryBuildAnkiCacheStats,
                     });
@@ -1322,7 +1338,7 @@ export class DictionaryDB {
         modifiedCards: CardsForDB,
         buildId: string,
         activeTracks: DictionaryMetaKey[],
-        progress: BuildAnkiCacheProgress,
+        progress: Progress,
         statusUpdates: (state: DictionaryBuildAnkiCacheState) => void
     ): Promise<void> {
         if (!modifiedCards.size) return;
@@ -1389,10 +1405,9 @@ export class DictionaryDB {
                                     if (!HAS_LETTER_REGEX.test(trimmedToken)) continue;
                                     let val = tokenCardsMap.get(trimmedToken);
                                     if (!val) {
-                                        val = {
-                                            lemmas: await ts.yomitan.lemmatize(trimmedToken),
-                                            cardIds: new Set<number>(),
-                                        };
+                                        const lemmas = await ts.yomitan.lemmatize(trimmedToken);
+                                        if (!lemmas.length) continue; // Not a valid dictionary entry
+                                        val = { lemmas, cardIds: new Set<number>() };
                                         tokenCardsMap.set(trimmedToken, val);
                                     }
                                     val.cardIds.add(cardId);

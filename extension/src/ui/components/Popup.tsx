@@ -122,6 +122,8 @@ const Popup = ({
                         extensionSupportsExportCardBind
                         extensionSupportsPageSettings
                         extensionSupportsDictionary
+                        extensionSupportsDictionaryTokenStatusDisplayAlpha
+                        extensionSupportsDictionaryYomitanMecab
                         forceVerticalTabs={false}
                         anki={anki}
                         chromeKeyBinds={chromeCommandBindsToKeyBinds(commands)}

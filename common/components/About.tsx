@@ -116,10 +116,10 @@ const dependencies: Dependency[] = [
         purpose: 'Subtitle parsing',
     },
     {
-        name: 'vtt.js',
-        projectLink: 'https://github.com/mozilla/vtt.js',
+        name: 'videojs-vtt.js',
+        projectLink: 'https://github.com/videojs/vtt.js',
         license: 'Apache 2.0',
-        licenseLink: 'https://github.com/mozilla/vtt.js/blob/master/LICENSE',
+        licenseLink: 'https://github.com/videojs/vtt.js/blob/0.15.x/LICENSE',
         purpose: 'Subtitle parsing',
     },
     {
