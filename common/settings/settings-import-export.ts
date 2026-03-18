@@ -385,6 +385,12 @@ const settingsSchema = {
         themeType: {
             type: 'string',
         },
+        videoSubtitleSplitBehavior: {
+            type: 'string',
+        },
+        subtitlePlayerWidth: {
+            type: 'number',
+        },
         copyToClipboardOnMine: {
             type: 'boolean',
         },

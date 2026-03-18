@@ -41,6 +41,7 @@ import { MineSubtitleParams } from '../hooks/use-app-web-socket-client';
 import { isMobile } from 'react-device-detect';
 import ChromeExtension, { ExtensionMessage } from '../services/chrome-extension';
 import { MineSubtitleCommand, WebSocketClient } from '../../web-socket-client';
+import { clampSubtitlePlayerWidth } from './video-subtitle-split';
 import './subtitles.css';
 
 let lastKnownWidth: number | undefined;
@@ -362,7 +363,7 @@ interface SubtitlePlayerProps {
     onMouseOver: (e: React.MouseEvent) => void;
     onMouseOut: (e: React.MouseEvent) => void;
     onResizeStart?: () => void;
-    onResizeEnd?: () => void;
+    onResizeEnd?: (width: number) => void;
     autoPauseContext: AutoPauseContext;
     subtitles?: DisplaySubtitleModel[];
     subtitleCollection: SubtitleColoring | SubtitleCollection<DisplaySubtitleModel>;
@@ -385,6 +386,7 @@ interface SubtitlePlayerProps {
     maxResizeWidth: number;
     initialWidth?: number;
     initialWidthKey?: string;
+    resetWidthOnOrientationChange?: boolean;
     webSocketClient?: WebSocketClient;
 }
 
@@ -422,6 +424,7 @@ export default function SubtitlePlayer({
     maxResizeWidth,
     initialWidth,
     initialWidthKey,
+    resetWidthOnOrientationChange = true,
     webSocketClient,
 }: SubtitlePlayerProps) {
     const { t } = useTranslation();
@@ -1026,7 +1029,7 @@ export default function SubtitlePlayer({
             return;
         }
 
-        const clampedInitialWidth = Math.min(maxResizeWidth, Math.max(minSubtitlePlayerWidth, initialWidth));
+        const clampedInitialWidth = clampSubtitlePlayerWidth(initialWidth, minSubtitlePlayerWidth, maxResizeWidth);
         setWidth(clampedInitialWidth);
         lastKnownWidth = clampedInitialWidth;
         appliedInitialWidthKeyRef.current = initialWidthKey;
@@ -1046,13 +1049,17 @@ export default function SubtitlePlayer({
     }, [width, maxResizeWidth]);
 
     useEffect(() => {
+        if (!resetWidthOnOrientationChange) {
+            return;
+        }
+
         const listener = () => {
             lastKnownWidth = undefined;
             setWidth(calculateInitialWidth());
         };
         screen.orientation.addEventListener('change', listener);
         return () => screen.orientation.removeEventListener('change', listener);
-    }, [setWidth]);
+    }, [resetWidthOnOrientationChange, setWidth]);
 
     const { dragging, draggingStartLocation, draggingCurrentLocation } = useDragging({ holdToDragMs: 750 });
 

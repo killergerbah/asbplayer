@@ -5,7 +5,7 @@ interface Props {
     minWidth: number;
     maxWidth: number;
     onResizeStart?: () => void;
-    onResizeEnd?: () => void;
+    onResizeEnd?: (width: number) => void;
 }
 
 // https://stackoverflow.com/questions/49469834/recommended-way-to-have-drawer-resizable
@@ -20,9 +20,13 @@ export const useResize = ({ initialWidth, minWidth, maxWidth, onResizeStart, onR
     }, [setIsResizing, onResizeStart]);
 
     const disableResize = useCallback(() => {
+        if (!isResizing) {
+            return;
+        }
+
         setIsResizing(false);
-        onResizeEnd?.();
-    }, [setIsResizing, onResizeEnd]);
+        onResizeEnd?.(width);
+    }, [isResizing, setIsResizing, onResizeEnd, width]);
 
     const recordLastMouseDownPosition = useCallback((e: MouseEvent) => {
         setLastMouseDownClientX(e.clientX);
