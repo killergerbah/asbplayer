@@ -1093,7 +1093,7 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
             : ts.dt.dictionaryTokenFrequencyAnnotation;
         if (ano === TokenFrequencyAnnotation.NEVER) return;
         if (ano === TokenFrequencyAnnotation.UNCOLLECTED_ONLY && token.status !== TokenStatus.UNCOLLECTED) return;
-        if (ts.yt.getSupportsTokenizeFrequency() || this.initialized) {
+        if (this.initialized || ts.yt.getSupportsBulkFrequency(ts.dt)) {
             token.frequency = await ts.yt.frequency(trimmedToken);
         } else {
             this.refreshCache.add(index);

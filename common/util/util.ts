@@ -625,6 +625,7 @@ const areTokenReadingsEqual = (a: TokenReading, b: TokenReading) =>
 
 /**
  * An async safe semaphore implementation that preserves FIFO order (within a priority group).
+ * Priority levels are set with acquire(), higher numbers indicate a higher priority.
  * It uses an id for release to allow multiple releases (e.g try/finally with early releases).
  * @param options.permits The number of concurrent permits.
  * @param options.lifetimeMs Maximum lifetime of an acquire before automatic release (prevents deadlocks if callers don't call this.release()).
@@ -634,8 +635,7 @@ export class AsyncSemaphore {
     private lifetimeMs?: number;
     private acquired: Set<number> = new Set();
     private timers: Map<number, ReturnType<typeof setTimeout>> = new Map();
-    private waiting: ((id: number) => void)[] = [];
-    private waitingPriority: ((id: number) => void)[] = [];
+    private waiting: Map<number, ((id: number) => void)[]> = new Map();
     private counter: number = 0;
     private getNextId = () => {
         if (this.counter === Number.MAX_SAFE_INTEGER) this.counter = 0;
@@ -665,15 +665,18 @@ export class AsyncSemaphore {
         return id;
     }
 
-    acquire(prioritize?: boolean): Promise<number> {
+    acquire(priority: number = 0): Promise<number> {
         return new Promise<number>((resolve) => {
             if (this.permits > 0) {
                 this.permits--;
                 resolve(this._acquire());
-            } else if (prioritize) {
-                this.waitingPriority.push(resolve);
             } else {
-                this.waiting.push(resolve);
+                let queue = this.waiting.get(priority);
+                if (!queue) {
+                    queue = [];
+                    this.waiting.set(priority, queue);
+                }
+                queue.push(resolve);
             }
         });
     }
@@ -684,10 +687,11 @@ export class AsyncSemaphore {
         clearTimeout(this.timers.get(id)!);
         this.timers.delete(id);
 
-        if (this.waitingPriority.length > 0) {
-            this.waitingPriority.shift()!(this._acquire());
-        } else if (this.waiting.length > 0) {
-            this.waiting.shift()!(this._acquire());
+        if (this.waiting.size > 0) {
+            const highestPriority = Math.max(...this.waiting.keys());
+            const queue = this.waiting.get(highestPriority)!;
+            queue.shift()!(this._acquire());
+            if (!queue.length) this.waiting.delete(highestPriority);
         } else {
             this.permits++;
         }
