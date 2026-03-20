@@ -740,9 +740,7 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
                         schedule(onFrame);
                     } catch (error) {
                         fail(
-                            error instanceof Error
-                                ? error
-                                : new Error(`Could not render WebM frame: ${String(error)}`)
+                            error instanceof Error ? error : new Error(`Could not render WebM frame: ${String(error)}`)
                         );
                     }
                 };
