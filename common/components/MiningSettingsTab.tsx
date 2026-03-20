@@ -224,7 +224,7 @@ const MiningSettingsTab: React.FC<Props> = ({ settings, onSettingChanged, showWe
                 <TextField
                     select
                     fullWidth
-                    label="Capture format"
+                    label={t('settings.mediaFragmentCaptureFormat')}
                     value={mediaFragmentFormat}
                     onChange={(event) =>
                         onSettingChanged(
@@ -233,9 +233,11 @@ const MiningSettingsTab: React.FC<Props> = ({ settings, onSettingChanged, showWe
                         )
                     }
                 >
-                    <MenuItem value="jpeg">JPEG screenshot</MenuItem>
+                    <MenuItem value="jpeg">{t('settings.mediaFragmentFormatScreenshot')}</MenuItem>
                     <MenuItem value="webm" disabled={!webmCaptureSupported}>
-                        {webmCaptureSupported ? 'WebM clip' : 'WebM clip (unsupported)'}
+                        {webmCaptureSupported
+                            ? t('settings.mediaFragmentFormatVideoClip')
+                            : t('settings.mediaFragmentFormatVideoClipUnsupported')}
                     </MenuItem>
                 </TextField>
             )}
@@ -271,7 +273,7 @@ const MiningSettingsTab: React.FC<Props> = ({ settings, onSettingChanged, showWe
                 <>
                     <TextField
                         type="number"
-                        label="Clip trim start"
+                        label={t('settings.mediaFragmentTrimStart')}
                         fullWidth
                         value={mediaFragmentTrimStart}
                         color="primary"
@@ -287,7 +289,7 @@ const MiningSettingsTab: React.FC<Props> = ({ settings, onSettingChanged, showWe
                     />
                     <TextField
                         type="number"
-                        label="Clip trim end"
+                        label={t('settings.mediaFragmentTrimEnd')}
                         fullWidth
                         value={mediaFragmentTrimEnd}
                         color="primary"

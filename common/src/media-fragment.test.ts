@@ -141,3 +141,28 @@ it('still upgrades legacy screenshots to WebM when a source file is available', 
     expect(mediaFragment?.extension).toEqual('webm');
     expect(mediaFragment?.canChangeTimestamp).toEqual(true);
 });
+
+it('exposes the resolved WebM end timestamp on the media fragment', () => {
+    const mediaRecorder: any = function () {};
+    mediaRecorder.isTypeSupported = (mimeType: string) => mimeType === 'video/webm';
+
+    (globalThis as any).MediaRecorder = mediaRecorder;
+    (HTMLCanvasElement.prototype as any).captureStream = () => undefined;
+
+    const mediaFragment = MediaFragment.fromCard(
+        makeCard({
+            file: {
+                name: 'sample.mp4',
+                blobUrl: 'blob:sample',
+            },
+        }),
+        0,
+        0,
+        'webm',
+        200,
+        300
+    );
+
+    expect(mediaFragment?.timestamp).toEqual(1_200);
+    expect(mediaFragment?.endTimestamp).toEqual(1_700);
+});

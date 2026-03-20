@@ -228,6 +228,7 @@ export interface MediaFragmentData {
     name: string;
     extension: string;
     timestamp: number;
+    endTimestamp?: number;
     base64: () => Promise<string>;
     dataUrl: () => Promise<string>;
     blob: () => Promise<Blob>;
@@ -341,6 +342,10 @@ export default class MediaFragment {
         return this.data.timestamp;
     }
 
+    get endTimestamp() {
+        return this.data.endTimestamp;
+    }
+
     get extension() {
         return this.data.extension;
     }
@@ -373,38 +378,17 @@ export default class MediaFragment {
             throw new Error('Failed to create canvas context for PNG conversion');
         }
 
-        if (typeof createImageBitmap === 'function') {
-            const imageBitmap = await createImageBitmap(sourceBlob);
-            try {
-                canvas.width = imageBitmap.width;
-                canvas.height = imageBitmap.height;
-                ctx.drawImage(imageBitmap, 0, 0);
-            } finally {
-                imageBitmap.close();
-            }
-        } else {
-            const objectUrl = URL.createObjectURL(sourceBlob);
-            try {
-                const image = await new Promise<HTMLImageElement>((resolve, reject) => {
-                    const img = new Image();
-                    img.onload = () => {
-                        img.onload = null;
-                        img.onerror = null;
-                        resolve(img);
-                    };
-                    img.onerror = () => {
-                        img.onload = null;
-                        img.onerror = null;
-                        reject(new Error('Failed to load image for PNG conversion'));
-                    };
-                    img.src = objectUrl;
-                });
-                canvas.width = image.naturalWidth || image.width;
-                canvas.height = image.naturalHeight || image.height;
-                ctx.drawImage(image, 0, 0);
-            } finally {
-                URL.revokeObjectURL(objectUrl);
-            }
+        if (typeof createImageBitmap !== 'function') {
+            throw new Error('createImageBitmap is unavailable');
+        }
+
+        const imageBitmap = await createImageBitmap(sourceBlob);
+        try {
+            canvas.width = imageBitmap.width;
+            canvas.height = imageBitmap.height;
+            ctx.drawImage(imageBitmap, 0, 0);
+        } finally {
+            imageBitmap.close();
         }
 
         return await this._canvasToBlob(canvas, 'image/png');

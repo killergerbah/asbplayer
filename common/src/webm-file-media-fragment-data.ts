@@ -134,7 +134,7 @@ type WebmCaptureSettings = {
     renderWatchdogTimeoutMs: number;
 };
 
-type FrameSchedulerMode = 'video-frame-callback' | 'animation-frame' | 'timeout';
+type FrameSchedulerMode = 'video-frame-callback' | 'animation-frame';
 
 type CaptureRunSetup = {
     video: HTMLVideoElement;
@@ -196,6 +196,10 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
 
     get timestamp() {
         return this._startTimestamp;
+    }
+
+    get endTimestamp() {
+        return this._startTimestamp + this._durationMs;
     }
 
     get extension() {
@@ -434,7 +438,7 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
         canvas.width = width;
         canvas.height = height;
 
-        if (!this._ctx || this._ctx.canvas !== canvas) {
+        if (!this._ctx) {
             this._ctx = canvas.getContext('2d') ?? undefined;
         }
 
@@ -510,7 +514,8 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
             };
             recorder.onerror = (event) => {
                 const error = event.error;
-                const recorderError = error instanceof Error ? error : new Error('Could not encode WebM');
+                const recorderError =
+                    error instanceof Error ? error : new Error(`Could not encode WebM: ${String(error)}`);
                 rejectRecorderStarted?.(recorderError);
                 resolveRecorderStarted = undefined;
                 rejectRecorderStarted = undefined;
@@ -549,7 +554,6 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
 
         let videoFrameCallbackHandle: number | undefined;
         let animationFrameHandle: number | undefined;
-        let fallbackTimer: ReturnType<typeof setTimeout> | undefined;
         const pageVisible = () => typeof document === 'undefined' || document.visibilityState === 'visible';
 
         const clearScheduledFrame = () => {
@@ -562,11 +566,6 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
                 cancelAnimationFrame(animationFrameHandle);
                 animationFrameHandle = undefined;
             }
-
-            if (fallbackTimer !== undefined) {
-                clearTimeout(fallbackTimer);
-                fallbackTimer = undefined;
-            }
         };
 
         const drawFrame = () => {
@@ -574,14 +573,9 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
             captureTrack?.requestFrame();
         };
         const frameSchedulerMode: FrameSchedulerMode =
-            typeof video.requestVideoFrameCallback === 'function'
-                ? 'video-frame-callback'
-                : typeof requestAnimationFrame === 'function'
-                  ? 'animation-frame'
-                  : 'timeout';
+            typeof video.requestVideoFrameCallback === 'function' ? 'video-frame-callback' : 'animation-frame';
         if (frameSchedulerMode !== 'video-frame-callback') {
-            const fallbackLabel = frameSchedulerMode === 'animation-frame' ? 'requestAnimationFrame' : 'setTimeout';
-            console.info(`[MediaFragment] Frame-scheduler fallback triggered: using ${fallbackLabel}`);
+            console.info('[MediaFragment] Frame-scheduler fallback triggered: using requestAnimationFrame');
         }
         const done = (mediaTimeSeconds?: number) => {
             const mediaTimeMs = (mediaTimeSeconds ?? video.currentTime) * 1000;
@@ -602,10 +596,7 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
 
             if (frameSchedulerMode === 'animation-frame') {
                 animationFrameHandle = requestAnimationFrame(() => onFrame());
-                return;
             }
-
-            fallbackTimer = setTimeout(onFrame, fallbackFrameDelayMs);
         };
 
         drawFrame();
@@ -688,7 +679,11 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
                             schedule(onFrame);
                         })
                         .catch((error) => {
-                            fail(error instanceof Error ? error : new Error(String(error)));
+                            fail(
+                                error instanceof Error
+                                    ? error
+                                    : new Error(`Could not resume WebM capture playback: ${String(error)}`)
+                            );
                         });
                 }
                 function onVisibilityChange() {
@@ -744,7 +739,11 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
                         armWatchdog();
                         schedule(onFrame);
                     } catch (error) {
-                        fail(error instanceof Error ? error : new Error(String(error)));
+                        fail(
+                            error instanceof Error
+                                ? error
+                                : new Error(`Could not render WebM frame: ${String(error)}`)
+                        );
                     }
                 };
 
@@ -792,11 +791,6 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
         video.muted = true;
         video.volume = 0;
         video.playbackRate = 1;
-
-        const videoWithPreservesPitch = video as HTMLVideoElement & { preservesPitch?: boolean };
-        if (typeof videoWithPreservesPitch.preservesPitch === 'boolean') {
-            videoWithPreservesPitch.preservesPitch = false;
-        }
     }
 
     private async _stopAndFlushRecorder(

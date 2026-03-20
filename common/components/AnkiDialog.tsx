@@ -1,13 +1,7 @@
 import React, { MutableRefObject, useCallback, useState, useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import makeStyles from '@mui/styles/makeStyles';
-import {
-    MediaFragment,
-    SubtitleModel,
-    CardModel,
-    AnkiExportMode,
-    resolveWebmMediaFragmentRange,
-} from '@project/common';
+import { MediaFragment, SubtitleModel, CardModel, AnkiExportMode } from '@project/common';
 import { AnkiSettings, Profile, sortedAnkiFieldModels } from '@project/common/settings';
 import {
     humanReadableTime,
@@ -453,27 +447,7 @@ const AnkiDialog = ({
 
         setImage((previousImage) => {
             previousImage?.dispose();
-
-            if (settings.mediaFragmentFormat === 'webm' && card.file) {
-                const { startTimestamp, endTimestamp } = resolveWebmMediaFragmentRange(
-                    card.subtitle.start,
-                    card.subtitle.end,
-                    settings.mediaFragmentTrimStart,
-                    settings.mediaFragmentTrimEnd
-                );
-                setImageTimestampInterval([startTimestamp, endTimestamp]);
-
-                return MediaFragment.fromWebmFile(
-                    card.file,
-                    startTimestamp,
-                    endTimestamp,
-                    settings.maxImageWidth,
-                    settings.maxImageHeight
-                );
-            }
-
-            setImageTimestampInterval(undefined);
-            return MediaFragment.fromCard(
+            const image = MediaFragment.fromCard(
                 card,
                 settings.maxImageWidth,
                 settings.maxImageHeight,
@@ -481,6 +455,14 @@ const AnkiDialog = ({
                 settings.mediaFragmentTrimStart,
                 settings.mediaFragmentTrimEnd
             );
+
+            setImageTimestampInterval(
+                image?.extension === 'webm' && image.endTimestamp !== undefined
+                    ? [image.timestamp, image.endTimestamp]
+                    : undefined
+            );
+
+            return image;
         });
     }, [
         card,
