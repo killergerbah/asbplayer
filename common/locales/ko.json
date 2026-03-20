@@ -58,6 +58,10 @@
         "inNotOut": "사용",
         "inAndOut": "활성화 (마우스커서 이동시 자동재생)"
     },
+    "videoSubtitleSplitBehavior": {
+        "rememberSplitPosition": "Remember my split position",
+        "autoMaximizeVideo": "Auto-maximize video"
+    },
     "ankiDialog": {
         "applySelection": "선택항목 적용",
         "audio": "오디오",
@@ -438,6 +442,7 @@
         "theme": "테마",
         "themeDark": "어둡게",
         "themeLight": "밝게",
+        "videoSubtitleSplitBehavior": "Video-Subtitle Split Behavior",
         "title": "설정",
         "unlockLocalFonts": "클릭하여 폰트 메뉴 잠금을 해제하세요",
         "unboundBind": "연결되지 않음",

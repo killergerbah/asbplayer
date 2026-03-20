@@ -58,6 +58,10 @@
         "inNotOut": "有効",
         "inAndOut": "有効。マウスカーソルを外すと自動再生。"
     },
+    "videoSubtitleSplitBehavior": {
+        "rememberSplitPosition": "Remember my split position",
+        "autoMaximizeVideo": "Auto-maximize video"
+    },
     "ankiDialog": {
         "applySelection": "選択範囲を適用する",
         "audio": "音声",
@@ -438,6 +442,7 @@
         "theme": "テーマ",
         "themeDark": "ダーク",
         "themeLight": "ライト",
+        "videoSubtitleSplitBehavior": "Video-Subtitle Split Behavior",
         "title": "設定",
         "unlockLocalFonts": "フォント検出の解除",
         "unboundBind": "キーバインドなし",
