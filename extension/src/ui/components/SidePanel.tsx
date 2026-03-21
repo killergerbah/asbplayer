@@ -424,7 +424,8 @@ export default function SidePanel({ dictionaryProvider, settingsProvider, settin
                     settings.maxImageHeight,
                     settings.mediaFragmentFormat,
                     settings.mediaFragmentTrimStart,
-                    settings.mediaFragmentTrimEnd
+                    settings.mediaFragmentTrimEnd,
+                    settings.mediaFragmentMaxClipLength
                 );
 
                 if (image) {
