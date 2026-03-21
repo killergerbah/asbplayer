@@ -98,7 +98,7 @@ export default class PlaybackPreferences {
         this._storage.set(displaySubtitlesKey, String(displaySubtitles));
     }
 
-    get subtitlePlayerWidth() {
+    get subtitlePlayerWidth(): number | undefined {
         const value = this._storage.get(subtitlePlayerWidthKey);
 
         if (value === null) {
