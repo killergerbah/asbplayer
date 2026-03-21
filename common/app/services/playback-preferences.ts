@@ -102,7 +102,7 @@ export default class PlaybackPreferences {
         const value = this._storage.get(subtitlePlayerWidthKey);
 
         if (value === null) {
-            return -1;
+            return undefined;
         }
 
         return Number(value);

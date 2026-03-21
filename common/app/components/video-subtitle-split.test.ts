@@ -7,30 +7,17 @@ it('uses the saved split width in remember mode', () => {
             behavior: VideoSubtitleSplitBehavior.rememberSplitPosition,
             persistedWidth: 420,
             autoWidth: 300,
-            videoFileUrl: 'blob:video',
-            appBarHidden: false,
-            appBarHeight: 64,
         })
-    ).toEqual({
-        initialWidth: 420,
-        initialWidthKey: 'remember:420',
-    });
+    ).toBe(420);
 });
 
-it('falls back to the auto width in remember mode when nothing has been saved', () => {
+it('leaves the width unchanged in remember mode when nothing has been saved', () => {
     expect(
         resolveVideoSubtitleSplitLayout({
             behavior: VideoSubtitleSplitBehavior.rememberSplitPosition,
-            persistedWidth: -1,
             autoWidth: 300,
-            videoFileUrl: 'blob:video',
-            appBarHidden: false,
-            appBarHeight: 64,
         })
-    ).toEqual({
-        initialWidth: 300,
-        initialWidthKey: 'remember:-1',
-    });
+    ).toBeUndefined();
 });
 
 it('ignores saved width in auto-maximize mode', () => {
@@ -39,14 +26,8 @@ it('ignores saved width in auto-maximize mode', () => {
             behavior: VideoSubtitleSplitBehavior.autoMaximizeVideo,
             persistedWidth: 420,
             autoWidth: 300,
-            videoFileUrl: 'blob:video',
-            appBarHidden: true,
-            appBarHeight: 0,
         })
-    ).toEqual({
-        initialWidth: 300,
-        initialWidthKey: 'auto:blob:video|true|0',
-    });
+    ).toBe(300);
 });
 
 it('clamps split width to the current bounds', () => {

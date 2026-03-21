@@ -385,8 +385,6 @@ interface SubtitlePlayerProps {
     keyBinder: KeyBinder;
     maxResizeWidth: number;
     initialWidth?: number;
-    initialWidthKey?: string;
-    resetWidthOnOrientationChange?: boolean;
     webSocketClient?: WebSocketClient;
 }
 
@@ -423,8 +421,6 @@ export default function SubtitlePlayer({
     keyBinder,
     maxResizeWidth,
     initialWidth,
-    initialWidthKey,
-    resetWidthOnOrientationChange = true,
     webSocketClient,
 }: SubtitlePlayerProps) {
     const { t } = useTranslation();
@@ -1019,21 +1015,22 @@ export default function SubtitlePlayer({
         onResizeEnd,
     });
 
-    const appliedInitialWidthKeyRef = useRef<string | undefined>(undefined);
+    const appliedInitialWidthRef = useRef<number | undefined>(undefined);
     useEffect(() => {
         if (!resizable || initialWidth === undefined || maxResizeWidth < minSubtitlePlayerWidth) {
             return;
         }
 
-        if (initialWidthKey && appliedInitialWidthKeyRef.current === initialWidthKey) {
+        const clampedInitialWidth = clampSubtitlePlayerWidth(initialWidth, minSubtitlePlayerWidth, maxResizeWidth);
+
+        if (appliedInitialWidthRef.current === clampedInitialWidth) {
             return;
         }
 
-        const clampedInitialWidth = clampSubtitlePlayerWidth(initialWidth, minSubtitlePlayerWidth, maxResizeWidth);
+        appliedInitialWidthRef.current = clampedInitialWidth;
         setWidth(clampedInitialWidth);
         lastKnownWidth = clampedInitialWidth;
-        appliedInitialWidthKeyRef.current = initialWidthKey;
-    }, [resizable, initialWidth, initialWidthKey, maxResizeWidth, setWidth]);
+    }, [resizable, initialWidth, maxResizeWidth, setWidth]);
 
     // Scroll to selected subtitle when layout changes
     useEffect(() => {
@@ -1047,19 +1044,6 @@ export default function SubtitlePlayer({
     useEffect(() => {
         lastKnownWidth = width;
     }, [width, maxResizeWidth]);
-
-    useEffect(() => {
-        if (!resetWidthOnOrientationChange) {
-            return;
-        }
-
-        const listener = () => {
-            lastKnownWidth = undefined;
-            setWidth(calculateInitialWidth());
-        };
-        screen.orientation.addEventListener('change', listener);
-        return () => screen.orientation.removeEventListener('change', listener);
-    }, [resetWidthOnOrientationChange, setWidth]);
 
     const { dragging, draggingStartLocation, draggingCurrentLocation } = useDragging({ holdToDragMs: 750 });
 

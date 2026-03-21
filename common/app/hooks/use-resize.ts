@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface Props {
     initialWidth: () => number;
@@ -13,6 +13,11 @@ export const useResize = ({ initialWidth, minWidth, maxWidth, onResizeStart, onR
     const [isResizing, setIsResizing] = useState(false);
     const [width, setWidth] = useState(initialWidth);
     const [lastMouseDownClientX, setLastMouseDownClientX] = useState<number>(0);
+    const widthRef = useRef(width);
+
+    useEffect(() => {
+        widthRef.current = width;
+    }, [width]);
 
     const enableResize = useCallback(() => {
         setIsResizing(true);
@@ -25,8 +30,8 @@ export const useResize = ({ initialWidth, minWidth, maxWidth, onResizeStart, onR
         }
 
         setIsResizing(false);
-        onResizeEnd?.(width);
-    }, [isResizing, setIsResizing, onResizeEnd, width]);
+        onResizeEnd?.(widthRef.current);
+    }, [isResizing, setIsResizing, onResizeEnd]);
 
     const recordLastMouseDownPosition = useCallback((e: MouseEvent) => {
         setLastMouseDownClientX(e.clientX);

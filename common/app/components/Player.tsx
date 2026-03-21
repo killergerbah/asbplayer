@@ -250,9 +250,7 @@ const Player = React.memo(function Player({
         const video = document.createElement('video');
         video.preload = 'metadata';
         video.onloadedmetadata = () => {
-            if (video.videoWidth > 0 && video.videoHeight > 0) {
-                setVideoAspectRatio(video.videoWidth / video.videoHeight);
-            }
+            setVideoAspectRatio(video.videoWidth / video.videoHeight);
         };
         video.src = videoFileUrl;
 
@@ -1325,20 +1323,16 @@ const Player = React.memo(function Player({
     const videoInWindow = Boolean(loaded && videoFileUrl && !videoPopOut);
     const playerHeight = appBarHidden ? windowHeight : Math.max(0, windowHeight - appBarHeight);
     const aspectFitVideoWidth =
-        videoAspectRatio && videoAspectRatio > 0
+        videoAspectRatio
             ? Math.max(minVideoPlayerWidth, Math.round(playerHeight * videoAspectRatio))
             : undefined;
     const autoSubtitlePlayerInitialWidth =
         videoInWindow && aspectFitVideoWidth !== undefined ? Math.max(0, windowWidth - aspectFitVideoWidth) : undefined;
-    const { initialWidth: subtitlePlayerInitialWidth, initialWidthKey: subtitlePlayerInitialWidthKey } =
-        resolveVideoSubtitleSplitLayout({
-            behavior: settings.videoSubtitleSplitBehavior,
-            persistedWidth: playbackPreferences.subtitlePlayerWidth,
-            autoWidth: autoSubtitlePlayerInitialWidth,
-            videoFileUrl: videoInWindow ? videoFileUrl : undefined,
-            appBarHidden,
-            appBarHeight,
-        });
+    const subtitlePlayerInitialWidth = resolveVideoSubtitleSplitLayout({
+        behavior: settings.videoSubtitleSplitBehavior,
+        persistedWidth: playbackPreferences.subtitlePlayerWidth,
+        autoWidth: autoSubtitlePlayerInitialWidth,
+    });
     const subtitlePlayerMaxResizeWidth = Math.max(0, windowWidth - minVideoPlayerWidth);
     const notEnoughSpaceForSubtitlePlayer = subtitlePlayerMaxResizeWidth < minSubtitlePlayerWidth;
     const actuallyHideSubtitlePlayer =
@@ -1443,10 +1437,6 @@ const Player = React.memo(function Player({
                         keyBinder={keyBinder}
                         webSocketClient={webSocketClient}
                         initialWidth={subtitlePlayerInitialWidth}
-                        initialWidthKey={subtitlePlayerInitialWidthKey}
-                        resetWidthOnOrientationChange={
-                            settings.videoSubtitleSplitBehavior === VideoSubtitleSplitBehavior.autoMaximizeVideo
-                        }
                     />
                 </Grid>
             </Grid>
