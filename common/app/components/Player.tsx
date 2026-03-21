@@ -1322,10 +1322,9 @@ const Player = React.memo(function Player({
     const loaded = videoFileUrl || subtitles;
     const videoInWindow = Boolean(loaded && videoFileUrl && !videoPopOut);
     const playerHeight = appBarHidden ? windowHeight : Math.max(0, windowHeight - appBarHeight);
-    const aspectFitVideoWidth =
-        videoAspectRatio
-            ? Math.max(minVideoPlayerWidth, Math.round(playerHeight * videoAspectRatio))
-            : undefined;
+    const aspectFitVideoWidth = videoAspectRatio
+        ? Math.max(minVideoPlayerWidth, Math.round(playerHeight * videoAspectRatio))
+        : undefined;
     const autoSubtitlePlayerInitialWidth =
         videoInWindow && aspectFitVideoWidth !== undefined ? Math.max(0, windowWidth - aspectFitVideoWidth) : undefined;
     const subtitlePlayerInitialWidth = resolveVideoSubtitleSplitLayout({
