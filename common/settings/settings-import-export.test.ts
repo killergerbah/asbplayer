@@ -130,7 +130,6 @@ it('validates exported settings', () => {
         postMiningPlaybackState: 0,
         themeType: 'dark',
         videoSubtitleSplitBehavior: VideoSubtitleSplitBehavior.rememberSplitPosition,
-        subtitlePlayerWidth: 320,
         copyToClipboardOnMine: false,
         rememberSubtitleOffset: true,
         lastSubtitleOffset: 0,

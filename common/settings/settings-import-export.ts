@@ -403,9 +403,6 @@ const settingsSchema = {
         videoSubtitleSplitBehavior: {
             type: 'string',
         },
-        subtitlePlayerWidth: {
-            type: 'number',
-        },
         copyToClipboardOnMine: {
             type: 'boolean',
         },

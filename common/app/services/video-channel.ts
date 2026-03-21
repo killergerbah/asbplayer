@@ -633,7 +633,6 @@ export default class VideoChannel {
         const {
             themeType,
             videoSubtitleSplitBehavior,
-            subtitlePlayerWidth,
             copyToClipboardOnMine,
             autoPausePreference,
             seekDuration,
@@ -661,7 +660,6 @@ export default class VideoChannel {
             value: {
                 themeType,
                 videoSubtitleSplitBehavior,
-                subtitlePlayerWidth,
                 copyToClipboardOnMine,
                 autoPausePreference,
                 seekDuration,

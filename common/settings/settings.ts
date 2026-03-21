@@ -15,7 +15,6 @@ export enum VideoSubtitleSplitBehavior {
 export interface MiscSettings {
     readonly themeType: 'dark' | 'light';
     readonly videoSubtitleSplitBehavior: VideoSubtitleSplitBehavior;
-    readonly subtitlePlayerWidth: number;
     readonly copyToClipboardOnMine: boolean;
     readonly autoPausePreference: AutoPausePreference;
     readonly seekDuration: number;

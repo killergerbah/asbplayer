@@ -170,7 +170,6 @@ export const defaultSettings: AsbplayerSettings = {
     postMiningPlaybackState: PostMinePlayback.remember,
     themeType: 'dark',
     videoSubtitleSplitBehavior: VideoSubtitleSplitBehavior.rememberSplitPosition,
-    subtitlePlayerWidth: -1,
     copyToClipboardOnMine: false,
     rememberSubtitleOffset: true,
     lastSubtitleOffset: 0,

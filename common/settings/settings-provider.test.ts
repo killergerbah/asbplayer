@@ -102,12 +102,8 @@ it('can change the value of value-typed settings', async () => {
     const provider = new SettingsProvider(new MockSettingsStorage());
     await provider.set({ audioField: 'test-value' });
     expect(await provider.getSingle('audioField')).toBe('test-value');
-    await provider.set({
-        videoSubtitleSplitBehavior: VideoSubtitleSplitBehavior.autoMaximizeVideo,
-        subtitlePlayerWidth: 320,
-    });
+    await provider.set({ videoSubtitleSplitBehavior: VideoSubtitleSplitBehavior.autoMaximizeVideo });
     expect(await provider.getSingle('videoSubtitleSplitBehavior')).toBe(VideoSubtitleSplitBehavior.autoMaximizeVideo);
-    expect(await provider.getSingle('subtitlePlayerWidth')).toBe(320);
 });
 
 it('returns the same object references if the values inside do not change', async () => {

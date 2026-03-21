@@ -289,16 +289,11 @@ const Player = React.memo(function Player({
         (width: number) => {
             setSubtitlePlayerResizing(false);
 
-            if (
-                settings.videoSubtitleSplitBehavior !== VideoSubtitleSplitBehavior.rememberSplitPosition ||
-                settings.subtitlePlayerWidth === width
-            ) {
-                return;
+            if (settings.videoSubtitleSplitBehavior === VideoSubtitleSplitBehavior.rememberSplitPosition) {
+                playbackPreferences.subtitlePlayerWidth = width;
             }
-
-            settingsProvider.set({ subtitlePlayerWidth: width }).catch(onError);
         },
-        [onError, settings.subtitlePlayerWidth, settings.videoSubtitleSplitBehavior, settingsProvider]
+        [playbackPreferences, settings.videoSubtitleSplitBehavior]
     );
 
     const handleOnStartedShowingSubtitle = useCallback(() => {
@@ -1338,7 +1333,7 @@ const Player = React.memo(function Player({
     const { initialWidth: subtitlePlayerInitialWidth, initialWidthKey: subtitlePlayerInitialWidthKey } =
         resolveVideoSubtitleSplitLayout({
             behavior: settings.videoSubtitleSplitBehavior,
-            persistedWidth: settings.subtitlePlayerWidth,
+            persistedWidth: playbackPreferences.subtitlePlayerWidth,
             autoWidth: autoSubtitlePlayerInitialWidth,
             videoFileUrl: videoInWindow ? videoFileUrl : undefined,
             appBarHidden,
