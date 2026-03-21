@@ -34,6 +34,7 @@ const MiningSettingsTab: React.FC<Props> = ({ settings, onSettingChanged, showWe
         mediaFragmentFormat,
         mediaFragmentTrimStart,
         mediaFragmentTrimEnd,
+        mediaFragmentMaxClipLength,
         streamingScreenshotDelay,
         surroundingSubtitlesCountRadius,
         surroundingSubtitlesTimeRadius,
@@ -297,6 +298,23 @@ const MiningSettingsTab: React.FC<Props> = ({ settings, onSettingChanged, showWe
                         slotProps={{
                             htmlInput: {
                                 step: 100,
+                            },
+                            input: {
+                                endAdornment: <InputAdornment position="end">ms</InputAdornment>,
+                            },
+                        }}
+                    />
+                    <TextField
+                        type="number"
+                        label={t('settings.mediaFragmentMaxClipLength')}
+                        fullWidth
+                        value={mediaFragmentMaxClipLength}
+                        color="primary"
+                        onChange={(event) => onSettingChanged('mediaFragmentMaxClipLength', Number(event.target.value))}
+                        slotProps={{
+                            htmlInput: {
+                                min: 0,
+                                step: 1000,
                             },
                             input: {
                                 endAdornment: <InputAdornment position="end">ms</InputAdornment>,

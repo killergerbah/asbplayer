@@ -512,7 +512,8 @@ function App({
                             settingsRef.current.maxImageHeight,
                             settingsRef.current.mediaFragmentFormat,
                             settingsRef.current.mediaFragmentTrimStart,
-                            settingsRef.current.mediaFragmentTrimEnd
+                            settingsRef.current.mediaFragmentTrimEnd,
+                            settingsRef.current.mediaFragmentMaxClipLength
                         ),
                         word: newCard.word ?? '',
                         source: `${newCard.subtitleFileName} (${humanReadableTime(card.mediaTimestamp)})`,
@@ -635,7 +636,8 @@ function App({
                     settings.maxImageHeight,
                     settings.mediaFragmentFormat,
                     settings.mediaFragmentTrimStart,
-                    settings.mediaFragmentTrimEnd
+                    settings.mediaFragmentTrimEnd,
+                    settings.mediaFragmentMaxClipLength
                 )!;
 
                 if (image.error === undefined) {
@@ -656,6 +658,7 @@ function App({
             settings.mediaFragmentFormat,
             settings.mediaFragmentTrimStart,
             settings.mediaFragmentTrimEnd,
+            settings.mediaFragmentMaxClipLength,
             t,
         ]
     );

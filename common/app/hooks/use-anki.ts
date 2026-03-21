@@ -88,6 +88,9 @@ class SettingsAccessor {
     get mediaFragmentTrimEnd() {
         return this.settings.mediaFragmentTrimEnd;
     }
+    get mediaFragmentMaxClipLength() {
+        return this.settings.mediaFragmentMaxClipLength;
+    }
     get surroundingSubtitlesCountRadius() {
         return this.settings.surroundingSubtitlesCountRadius;
     }

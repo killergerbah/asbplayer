@@ -74,10 +74,15 @@ export const resolveWebmMediaFragmentRange = (
     subtitleStart: number,
     subtitleEnd: number,
     mediaFragmentTrimStart: number,
-    mediaFragmentTrimEnd: number
+    mediaFragmentTrimEnd: number,
+    mediaFragmentMaxClipLength: number = 0
 ) => {
     const resolvedTrimStart = Number.isFinite(mediaFragmentTrimStart) ? mediaFragmentTrimStart : 0;
     const resolvedTrimEnd = Number.isFinite(mediaFragmentTrimEnd) ? mediaFragmentTrimEnd : 0;
+    const resolvedMaxClipLength =
+        Number.isFinite(mediaFragmentMaxClipLength) && mediaFragmentMaxClipLength > 0
+            ? Math.max(minWebmMediaFragmentDurationMs, mediaFragmentMaxClipLength)
+            : 0;
     const desiredEndTimestamp = subtitleEnd - resolvedTrimEnd;
     const desiredStartTimestamp = Math.max(0, subtitleStart + resolvedTrimStart);
 
@@ -91,6 +96,17 @@ export const resolveWebmMediaFragmentRange = (
     }
 
     const endTimestamp = Math.max(desiredStartTimestamp + minWebmMediaFragmentDurationMs, desiredEndTimestamp);
+    const duration = endTimestamp - desiredStartTimestamp;
+
+    if (resolvedMaxClipLength > 0 && duration > resolvedMaxClipLength) {
+        const centerTimestamp = desiredStartTimestamp + duration / 2;
+        const startTimestamp = Math.max(0, centerTimestamp - resolvedMaxClipLength / 2);
+
+        return {
+            startTimestamp,
+            endTimestamp: startTimestamp + resolvedMaxClipLength,
+        };
+    }
 
     return {
         startTimestamp: desiredStartTimestamp,
@@ -258,7 +274,8 @@ export default class MediaFragment {
         maxHeight: number,
         mediaFragmentFormat: MediaFragmentFormat,
         mediaFragmentTrimStart: number,
-        mediaFragmentTrimEnd: number
+        mediaFragmentTrimEnd: number,
+        mediaFragmentMaxClipLength: number
     ): MediaFragment | undefined;
     static fromCard(
         card: CardModel,
@@ -266,7 +283,8 @@ export default class MediaFragment {
         maxHeight: number,
         mediaFragmentFormat: MediaFragmentFormat = 'jpeg',
         mediaFragmentTrimStart: number = 0,
-        mediaFragmentTrimEnd: number = 0
+        mediaFragmentTrimEnd: number = 0,
+        mediaFragmentMaxClipLength: number = 0
     ) {
         if (card.mediaFragment) {
             return MediaFragment.fromBase64(
@@ -283,7 +301,8 @@ export default class MediaFragment {
                 card.subtitle.start,
                 card.subtitle.end,
                 mediaFragmentTrimStart,
-                mediaFragmentTrimEnd
+                mediaFragmentTrimEnd,
+                mediaFragmentMaxClipLength
             );
 
             return MediaFragment.fromWebmFile(card.file, startTimestamp, endTimestamp, maxWidth, maxHeight);

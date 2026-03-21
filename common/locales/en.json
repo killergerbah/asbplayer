@@ -378,6 +378,7 @@
         "mediaFragmentFormatScreenshot": "Screenshot",
         "mediaFragmentFormatVideoClip": "Video clip",
         "mediaFragmentFormatVideoClipUnsupported": "Video clip (unsupported)",
+        "mediaFragmentMaxClipLength": "Max clip length",
         "mediaFragmentTrimEnd": "Clip trim end",
         "mediaFragmentTrimStart": "Clip trim start",
         "mining": "Mining",

@@ -51,6 +51,13 @@ it('resolves WebM range with non-finite trims by treating them as zero', () => {
     expect(endTimestamp).toEqual(2_000);
 });
 
+it('caps WebM range around the center of the trimmed duration', () => {
+    const { startTimestamp, endTimestamp } = resolveWebmMediaFragmentRange(30_000, 50_000, 2_000, 4_000, 10_000);
+
+    expect(startTimestamp).toEqual(34_000);
+    expect(endTimestamp).toEqual(44_000);
+});
+
 it('returns false for WebM support when MediaRecorder is unavailable', () => {
     (globalThis as any).MediaRecorder = undefined;
     (HTMLCanvasElement.prototype as any).captureStream = () => undefined;
@@ -160,7 +167,8 @@ it('exposes the resolved WebM end timestamp on the media fragment', () => {
         0,
         'webm',
         200,
-        300
+        300,
+        10_000
     );
 
     expect(mediaFragment?.timestamp).toEqual(1_200);

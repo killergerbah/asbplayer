@@ -311,6 +311,9 @@ const settingsSchema = {
         mediaFragmentTrimEnd: {
             type: 'number',
         },
+        mediaFragmentMaxClipLength: {
+            type: 'number',
+        },
         surroundingSubtitlesCountRadius: {
             type: 'number',
         },

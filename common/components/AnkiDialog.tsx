@@ -453,7 +453,8 @@ const AnkiDialog = ({
                 settings.maxImageHeight,
                 settings.mediaFragmentFormat,
                 settings.mediaFragmentTrimStart,
-                settings.mediaFragmentTrimEnd
+                settings.mediaFragmentTrimEnd,
+                settings.mediaFragmentMaxClipLength
             );
 
             setImageTimestampInterval(
@@ -472,6 +473,7 @@ const AnkiDialog = ({
         settings.mediaFragmentFormat,
         settings.mediaFragmentTrimStart,
         settings.mediaFragmentTrimEnd,
+        settings.mediaFragmentMaxClipLength,
     ]);
 
     useEffect(() => {
