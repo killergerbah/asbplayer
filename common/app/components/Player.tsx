@@ -46,7 +46,7 @@ import { createBlobUrl } from '../../blob-url';
 import { MiningContext } from '../services/mining-context';
 import { SeekTimestampCommand, WebSocketClient } from '../../web-socket-client';
 import { ensureStoragePersisted } from '../../util';
-import { resolveVideoSubtitleSplitLayout } from './video-subtitle-split';
+import { resolveVideoSubtitleSplitLayout, useVideoAspectRatio } from './video-subtitle-split';
 
 const minVideoPlayerWidth = 300;
 
@@ -206,7 +206,6 @@ const Player = React.memo(function Player({
     const flattenSubtitleFiles = sources?.flattenSubtitleFiles;
     const videoFile = sources?.videoFile;
     const videoFileUrl = sources?.videoFileUrl;
-    const [videoAspectRatio, setVideoAspectRatio] = useState<number>();
     const playModeEnabled = subtitles && subtitles.length > 0 && Boolean(videoFileUrl);
     const [subtitlePlayerResizing, setSubtitlePlayerResizing] = useState<boolean>(false);
     const [loadingSubtitles, setLoadingSubtitles] = useState<boolean>(false);
@@ -239,27 +238,6 @@ const Player = React.memo(function Player({
     const appBarHeight = useAppBarHeight();
     const classes = useStyles({ appBarHidden, appBarHeight });
     const calculateLength = () => trackLength(channelRef.current, subtitlesRef.current);
-
-    useEffect(() => {
-        setVideoAspectRatio(undefined);
-
-        if (!videoFileUrl) {
-            return;
-        }
-
-        const video = document.createElement('video');
-        video.preload = 'metadata';
-        video.onloadedmetadata = () => {
-            setVideoAspectRatio(video.videoWidth / video.videoHeight);
-        };
-        video.src = videoFileUrl;
-
-        return () => {
-            video.onloadedmetadata = null;
-            video.removeAttribute('src');
-            video.load();
-        };
-    }, [videoFileUrl]);
 
     useEffect(() => {
         playModesRef.current = playModes;
@@ -1319,8 +1297,11 @@ const Player = React.memo(function Player({
 
     const [windowWidth, windowHeight] = useWindowSize(true);
 
+    const videoInWindow = Boolean(videoFileUrl && !videoPopOut);
+    const shouldLoadVideoAspectRatio =
+        videoInWindow && settings.videoSubtitleSplitBehavior !== VideoSubtitleSplitBehavior.rememberSplitPosition;
+    const videoAspectRatio = useVideoAspectRatio(videoFileUrl, shouldLoadVideoAspectRatio);
     const loaded = videoFileUrl || subtitles;
-    const videoInWindow = Boolean(loaded && videoFileUrl && !videoPopOut);
     const playerHeight = appBarHidden ? windowHeight : Math.max(0, windowHeight - appBarHeight);
     const aspectFitVideoWidth = videoAspectRatio
         ? Math.max(minVideoPlayerWidth, Math.round(playerHeight * videoAspectRatio))
