@@ -5,7 +5,7 @@ import { JpegFileMediaFragmentData } from './jpeg-file-media-fragment-data';
 import { WebmFileMediaFragmentData } from './webm-file-media-fragment-data';
 
 const maxPrefixLength = 24;
-const videoReadyTimeoutMs = 7_000;
+const videoReadyTimeoutMs = 5_000;
 const webmMimeTypeCandidates = [
     // Preferred codec order for short fragments: AV1, VP8, VP9, then generic WebM fallback.
     'video/webm;codecs=av1',
@@ -118,28 +118,32 @@ export const createVideoElement = async (blobUrl: string): Promise<HTMLVideoElem
     await new Promise((resolve, reject) => {
         const video = document.createElement('video');
         let settled = false;
-        const timeout = setTimeout(() => {
-            if (!settled) {
+        const t0 = Date.now();
+        const interval = setInterval(() => {
+            if (settled) {
+                return;
+            }
+
+            const isFullySeekable = video.seekable.length > 0 && video.seekable.end(0) === video.duration;
+            const timedOut = Date.now() - t0 >= videoReadyTimeoutMs;
+
+            if (!isFullySeekable && !timedOut) {
+                return;
+            }
+
+            if (timedOut && !isFullySeekable) {
                 console.warn(
                     `[MediaFragment] Video did not become ready within ${videoReadyTimeoutMs}ms. Continuing with fallback initialization.`
                 );
-                settled = true;
-                cleanup();
-                resolve(video);
             }
-        }, videoReadyTimeoutMs);
+
+            settled = true;
+            cleanup();
+            resolve(video);
+        }, 100);
         const cleanup = () => {
-            clearTimeout(timeout);
-            video.onloadedmetadata = null;
-            video.oncanplay = null;
+            clearInterval(interval);
             video.onerror = null;
-        };
-        const done = () => {
-            if (!settled) {
-                settled = true;
-                cleanup();
-                resolve(video);
-            }
         };
         const fail = () => {
             if (!settled) {
@@ -149,10 +153,8 @@ export const createVideoElement = async (blobUrl: string): Promise<HTMLVideoElem
             }
         };
 
-        video.onloadedmetadata = done;
-        video.oncanplay = done;
         video.onerror = fail;
-        video.preload = 'metadata';
+        video.preload = 'auto';
         video.autoplay = false;
         video.volume = 0;
         video.controls = false;
