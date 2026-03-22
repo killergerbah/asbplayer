@@ -242,6 +242,10 @@ func (forwarder forwarder) handlePostRequest(c echo.Context) error {
 }
 
 func shouldInterceptAddNote(request ankiConnectRequest, fieldName string, fieldValue string) bool {
+	if fieldName == "" || fieldValue == "" {
+		return true
+	}
+
 	params, ok := request.Params["note"].(map[string]interface{})
 	if !ok {
 		return false
@@ -329,8 +333,8 @@ func main() {
 	port := getenv("PORT", "8766")
 	ankiConnectUrl := getenv("ANKI_CONNECT_URL", "http://127.0.0.1:8765")
 	postMineAction, _ := strconv.Atoi(getenv("POST_MINE_ACTION", "2"))
-	interceptField := getenv("INTERCEPT_FIELD", "MiscInfo")
-	interceptValue := getenv("INTERCEPT_VALUE", "asbplayer")
+	interceptField := getenv("INTERCEPT_FIELD", "")
+	interceptValue := getenv("INTERCEPT_VALUE", "")
 	fmt.Printf("Started with config:\n\n\tPORT=%v\n\tANKI_CONNECT_URL=%v\n\tPOST_MINE_ACTION=%v\n\tINTERCEPT_FIELD=%v\n\tINTERCEPT_VALUE=%v\n",
 		port, ankiConnectUrl, postMineAction, interceptField, interceptValue)
 
