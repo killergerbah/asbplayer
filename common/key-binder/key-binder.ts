@@ -48,6 +48,11 @@ export interface KeyBinder {
         disabledGetter: () => boolean,
         capture?: boolean
     ): () => void;
+    bindUpdateSelectedCard(
+        onUpdateSelectedCard: (event: KeyboardEvent) => void,
+        disabledGetter: () => boolean,
+        capture?: boolean
+    ): () => void;
     bindExportCard(
         onExportCard: (event: KeyboardEvent) => void,
         disabledGetter: () => boolean,
@@ -260,6 +265,32 @@ export class DefaultKeyBinder implements KeyBinder {
             }
 
             onUpdateLastCard(event);
+            return true;
+        };
+    }
+
+    bindUpdateSelectedCard(
+        onUpdateSelectedCard: (event: KeyboardEvent) => void,
+        disabledGetter: () => boolean,
+        capture = false
+    ) {
+        const shortcut = this.keyBindSet.updateSelectedCard.keys;
+
+        if (!shortcut) {
+            return () => {};
+        }
+
+        const handler = this.updateSelectedCardHandler(onUpdateSelectedCard, disabledGetter);
+        return this._bind(shortcut, capture, handler);
+    }
+
+    updateSelectedCardHandler(onUpdateSelectedCard: (event: KeyboardEvent) => void, disabledGetter: () => boolean) {
+        return (event: KeyboardEvent) => {
+            if (disabledGetter()) {
+                return false;
+            }
+
+            onUpdateSelectedCard(event);
             return true;
         };
     }

@@ -238,6 +238,10 @@ export interface ShowAnkiUiMessage extends Message, CardModel {
     readonly id: string;
 }
 
+export interface ShowCardSelectUiMessage extends Message, CardModel {
+    readonly command: 'show-card-select-ui';
+}
+
 export interface RecordingStartedMessage extends Message {
     readonly command: 'recording-started';
 }

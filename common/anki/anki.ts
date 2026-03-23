@@ -143,6 +143,7 @@ export interface ExportParams {
     customFieldValues: { [key: string]: string };
     tags: string[];
     mode: AnkiExportMode;
+    noteId?: number;
     ankiConnectUrl?: string;
 }
 
@@ -434,7 +435,8 @@ export class Anki {
         tags,
         mode,
         ankiConnectUrl,
-    }: ExportParams) {
+    noteId,
+}: ExportParams) {
         const fields = {};
 
         this._appendField(fields, this.settingsProvider.sentenceField, text, true);
@@ -476,12 +478,14 @@ export class Anki {
         const gui = mode === 'gui';
         const updateLast = mode === 'updateLast';
 
+        const updateSpecific = mode === 'updateSpecific';
+
         if (this.settingsProvider.audioField && audioClip && audioClip.error === undefined) {
             const sanitizedName = this._sanitizeFileName(audioClip.name);
             const data = await audioClip.base64();
 
             if (data) {
-                if (gui || updateLast) {
+                if (gui || updateLast || updateSpecific) {
                     const fileName = (await this._storeMediaFile(sanitizedName, data, ankiConnectUrl)).result;
                     this._appendField(fields, this.settingsProvider.audioField, `[sound:${fileName}]`, false);
                 } else {
@@ -499,7 +503,7 @@ export class Anki {
             const data = await image.base64();
 
             if (data) {
-                if (gui || updateLast) {
+                if (gui || updateLast || updateSpecific) {
                     const fileName = (await this._storeMediaFile(sanitizedName, data, ankiConnectUrl)).result;
                     this._appendField(fields, this.settingsProvider.imageField, `<img src="${fileName}">`, false);
                 } else {
@@ -562,6 +566,46 @@ export class Anki {
                 }
 
                 throw new Error('Could not update last card because the card info could not be fetched');
+            case 'updateSpecific':
+                if (noteId === undefined) {
+                    throw new Error('noteId is required for updateSpecific mode');
+                }
+
+                params.note['id'] = noteId;
+                const specificInfoResponse = await this._executeAction('notesInfo', { notes: [noteId] });
+
+                if (specificInfoResponse.result.length > 0 && specificInfoResponse.result[0].noteId === noteId) {
+                    const specificInfo = specificInfoResponse.result[0];
+
+                    this._inheritHtmlMarkupFromField('sentenceField', specificInfo, params);
+                    this._inheritHtmlMarkupFromField('track1Field', specificInfo, params);
+                    this._inheritHtmlMarkupFromField('track2Field', specificInfo, params);
+                    this._inheritHtmlMarkupFromField('track3Field', specificInfo, params);
+
+                    await this._executeAction('updateNoteFields', params, ankiConnectUrl);
+
+                    if (tags.length > 0) {
+                        await this._executeAction(
+                            'addTags',
+                            { notes: [noteId], tags: tags.join(' ') },
+                            ankiConnectUrl
+                        );
+                    }
+
+                    if (!this.settingsProvider.wordField || !specificInfo.fields) {
+                        return specificInfo.noteId;
+                    }
+
+                    const specificWordField = specificInfo.fields[this.settingsProvider.wordField];
+
+                    if (!specificWordField || !specificWordField.value) {
+                        return specificInfo.noteId;
+                    }
+
+                    return specificWordField.value;
+                }
+
+                throw new Error('Could not update card because the card info could not be fetched');
             case 'default':
                 return (await this._executeAction('addNote', params, ankiConnectUrl)).result;
             default:
