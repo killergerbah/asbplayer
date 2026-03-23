@@ -7,7 +7,6 @@ import {
     DictionaryImportRecordLocalBulkMessage,
     ExtensionToAsbPlayerCommand,
     Message,
-    MessageWithId,
     ExtensionToVideoCommand,
     DictionaryStatisticsMessage,
     DictionaryRequestStatisticsGenerationMessage,

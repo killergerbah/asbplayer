@@ -21,7 +21,6 @@ import {
     DictionaryTokenRecord,
 } from '@project/common/dictionary-db';
 import { ApplyStrategy, AsbplayerSettings } from '@project/common/settings';
-import { v4 as uuidv4 } from 'uuid';
 
 type ExtensionDictionaryStatisticsCommand<T extends Message> =
     | ExtensionToAsbPlayerCommand<T>
@@ -159,7 +158,7 @@ export class LocalDictionaryStorage implements DictionaryStorage {
     publishStatisticsSnapshot(mediaId: string, snapshot?: DictionaryStatisticsSnapshot) {
         const message: ExtensionToAsbPlayerCommand<DictionaryStatisticsMessage> = {
             sender: 'asbplayer-extension-to-player',
-            message: { command: 'dictionary-statistics', messageId: uuidv4(), mediaId, snapshot },
+            message: { command: 'dictionary-statistics', mediaId, snapshot },
         };
         window.parent.postMessage(message);
     }
@@ -188,7 +187,7 @@ export class LocalDictionaryStorage implements DictionaryStorage {
     requestStatisticsSnapshot(mediaId?: string) {
         const message: ExtensionToAsbPlayerCommand<DictionaryRequestStatisticsSnapshotMessage> = {
             sender: 'asbplayer-extension-to-player',
-            message: { command: 'dictionary-request-statistics-snapshot', messageId: uuidv4(), mediaId },
+            message: { command: 'dictionary-request-statistics-snapshot', mediaId },
         };
         window.parent.postMessage(message);
     }
@@ -221,7 +220,7 @@ export class LocalDictionaryStorage implements DictionaryStorage {
     requestStatisticsGeneration(mediaId?: string) {
         const message: ExtensionToAsbPlayerCommand<DictionaryRequestStatisticsGenerationMessage> = {
             sender: 'asbplayer-extension-to-player',
-            message: { command: 'dictionary-request-statistics-generation', messageId: uuidv4(), mediaId },
+            message: { command: 'dictionary-request-statistics-generation', mediaId },
         };
         window.parent.postMessage(message);
     }
@@ -256,7 +255,6 @@ export class LocalDictionaryStorage implements DictionaryStorage {
             sender: 'asbplayer-extension-to-player',
             message: {
                 command: 'dictionary-request-statistics-seek',
-                messageId: uuidv4(),
                 mediaId,
                 timestamp,
             },
@@ -290,7 +288,6 @@ export class LocalDictionaryStorage implements DictionaryStorage {
             sender: 'asbplayer-extension-to-player',
             message: {
                 command: 'dictionary-request-statistics-mine-sentences',
-                messageId: uuidv4(),
                 mediaId,
                 indexes,
             },

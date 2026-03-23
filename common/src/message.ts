@@ -950,29 +950,29 @@ export interface DictionaryCountKnownTokensMessage extends MessageWithId {
     readonly settings: AsbplayerSettings;
 }
 
-export interface DictionaryStatisticsMessage extends MessageWithId {
+export interface DictionaryStatisticsMessage extends Message {
     readonly command: 'dictionary-statistics';
     readonly mediaId: string;
     readonly snapshot?: DictionaryStatisticsSnapshot;
 }
 
-export interface DictionaryRequestStatisticsGenerationMessage extends MessageWithId {
+export interface DictionaryRequestStatisticsGenerationMessage extends Message {
     readonly command: 'dictionary-request-statistics-generation';
     readonly mediaId?: string;
 }
 
-export interface DictionaryRequestStatisticsSnapshotMessage extends MessageWithId {
+export interface DictionaryRequestStatisticsSnapshotMessage extends Message {
     readonly command: 'dictionary-request-statistics-snapshot';
     readonly mediaId?: string;
 }
 
-export interface DictionaryRequestStatisticsSeekMessage extends MessageWithId {
+export interface DictionaryRequestStatisticsSeekMessage extends Message {
     readonly command: 'dictionary-request-statistics-seek';
     readonly mediaId: string;
     readonly timestamp: number;
 }
 
-export interface DictionaryRequestStatisticsMineSentencesMessage extends MessageWithId {
+export interface DictionaryRequestStatisticsMineSentencesMessage extends Message {
     readonly command: 'dictionary-request-statistics-mine-sentences';
     readonly mediaId: string;
     readonly indexes: number[];

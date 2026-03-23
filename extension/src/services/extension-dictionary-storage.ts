@@ -240,7 +240,7 @@ export class ExtensionDictionaryStorage implements DictionaryStorage {
     publishStatisticsSnapshot(mediaId: string, snapshot?: DictionaryStatisticsSnapshot) {
         const message: DictionaryDBCommand<DictionaryStatisticsMessage> = {
             sender: 'asbplayer-dictionary',
-            message: { command: 'dictionary-statistics', messageId: uuidv4(), mediaId, snapshot },
+            message: { command: 'dictionary-statistics', mediaId, snapshot },
         };
         return browser.runtime.sendMessage(message);
     }
@@ -269,7 +269,7 @@ export class ExtensionDictionaryStorage implements DictionaryStorage {
     requestStatisticsSnapshot(mediaId?: string) {
         const message: DictionaryDBCommand<DictionaryRequestStatisticsSnapshotMessage> = {
             sender: 'asbplayer-dictionary',
-            message: { command: 'dictionary-request-statistics-snapshot', messageId: uuidv4(), mediaId },
+            message: { command: 'dictionary-request-statistics-snapshot', mediaId },
         };
         return browser.runtime.sendMessage(message);
     }
@@ -301,7 +301,7 @@ export class ExtensionDictionaryStorage implements DictionaryStorage {
     requestStatisticsGeneration(mediaId?: string) {
         const message: DictionaryDBCommand<DictionaryRequestStatisticsGenerationMessage> = {
             sender: 'asbplayer-dictionary',
-            message: { command: 'dictionary-request-statistics-generation', messageId: uuidv4(), mediaId },
+            message: { command: 'dictionary-request-statistics-generation', mediaId },
         };
         return browser.runtime.sendMessage(message);
     }
@@ -335,7 +335,6 @@ export class ExtensionDictionaryStorage implements DictionaryStorage {
             sender: 'asbplayer-dictionary',
             message: {
                 command: 'dictionary-request-statistics-seek',
-                messageId: uuidv4(),
                 timestamp,
                 mediaId,
             },
@@ -369,7 +368,6 @@ export class ExtensionDictionaryStorage implements DictionaryStorage {
             sender: 'asbplayer-dictionary',
             message: {
                 command: 'dictionary-request-statistics-mine-sentences',
-                messageId: uuidv4(),
                 mediaId,
                 indexes,
             },

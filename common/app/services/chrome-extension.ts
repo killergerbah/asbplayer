@@ -46,7 +46,6 @@ import {
     CardUpdatedDialogMessage,
     CardExportedDialogMessage,
     SaveTokenLocalFromAppMessage,
-    SubtitleModel,
 } from '@project/common';
 import { DictionaryStatisticsSnapshot } from '@project/common/dictionary-statistics';
 import {
@@ -783,7 +782,7 @@ export default class ChromeExtension {
     publishStatisticsSnapshot(mediaId: string, snapshot?: DictionaryStatisticsSnapshot) {
         const command: AsbPlayerCommand<DictionaryStatisticsMessage> = {
             sender: 'asbplayerv2',
-            message: { command: 'dictionary-statistics', messageId: uuidv4(), mediaId, snapshot },
+            message: { command: 'dictionary-statistics', mediaId, snapshot },
         };
         window.postMessage(command);
     }
@@ -791,7 +790,7 @@ export default class ChromeExtension {
     requestStatisticsSnapshot(mediaId?: string) {
         const command: AsbPlayerCommand<DictionaryRequestStatisticsSnapshotMessage> = {
             sender: 'asbplayerv2',
-            message: { command: 'dictionary-request-statistics-snapshot', messageId: uuidv4(), mediaId },
+            message: { command: 'dictionary-request-statistics-snapshot', mediaId },
         };
         window.postMessage(command);
     }
@@ -799,7 +798,7 @@ export default class ChromeExtension {
     requestStatisticsGeneration(mediaId?: string) {
         const command: AsbPlayerCommand<DictionaryRequestStatisticsGenerationMessage> = {
             sender: 'asbplayerv2',
-            message: { command: 'dictionary-request-statistics-generation', messageId: uuidv4(), mediaId },
+            message: { command: 'dictionary-request-statistics-generation', mediaId },
         };
         window.postMessage(command);
     }
@@ -809,7 +808,6 @@ export default class ChromeExtension {
             sender: 'asbplayerv2',
             message: {
                 command: 'dictionary-request-statistics-seek',
-                messageId: uuidv4(),
                 mediaId,
                 timestamp,
             },
@@ -820,7 +818,7 @@ export default class ChromeExtension {
     requestStatisticsMineSentences(mediaId: string, indexes: number[]) {
         const command: AsbPlayerCommand<DictionaryRequestStatisticsMineSentencesMessage> = {
             sender: 'asbplayerv2',
-            message: { command: 'dictionary-request-statistics-mine-sentences', messageId: uuidv4(), mediaId, indexes },
+            message: { command: 'dictionary-request-statistics-mine-sentences', mediaId, indexes },
         };
         window.postMessage(command);
     }

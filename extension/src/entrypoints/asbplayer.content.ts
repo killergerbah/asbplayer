@@ -190,41 +190,26 @@ export default defineContentScript({
                     case 'dictionary-statistics': {
                         const { mediaId, snapshot } = command.message as DictionaryStatisticsMessage;
                         await dictionaryStorage.publishStatisticsSnapshot(mediaId, snapshot);
-                        sendMessageToPlayer({
-                            messageId: command.message.messageId,
-                        });
                         break;
                     }
                     case 'dictionary-request-statistics-snapshot': {
                         const { mediaId } = command.message as DictionaryRequestStatisticsSnapshotMessage;
                         await dictionaryStorage.requestStatisticsSnapshot(mediaId);
-                        sendMessageToPlayer({
-                            messageId: command.message.messageId,
-                        });
                         break;
                     }
                     case 'dictionary-request-statistics-generation': {
                         const { mediaId } = command.message as DictionaryRequestStatisticsGenerationMessage;
                         await dictionaryStorage.requestStatisticsGeneration(mediaId);
-                        sendMessageToPlayer({
-                            messageId: command.message.messageId,
-                        });
                         break;
                     }
                     case 'dictionary-request-statistics-seek': {
                         const { mediaId, timestamp } = command.message as DictionaryRequestStatisticsSeekMessage;
                         await dictionaryStorage.requestStatisticsSeek(mediaId, timestamp);
-                        sendMessageToPlayer({
-                            messageId: command.message.messageId,
-                        });
                         break;
                     }
                     case 'dictionary-request-statistics-mine-sentences': {
                         const { mediaId, indexes } = command.message as DictionaryRequestStatisticsMineSentencesMessage;
                         await dictionaryStorage.requestStatisticsMineSentences(mediaId, indexes);
-                        sendMessageToPlayer({
-                            messageId: command.message.messageId,
-                        });
                         break;
                     }
                     case 'request-subtitles':
