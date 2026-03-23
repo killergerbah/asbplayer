@@ -471,6 +471,7 @@ export interface KeyBindSet {
     readonly exportCard: KeyBind;
     readonly takeScreenshot: KeyBind;
     readonly toggleRecording: KeyBind;
+    readonly loadLastSubtitle: KeyBind;
 }
 
 export interface WebSocketClientSettings {
@@ -478,7 +479,7 @@ export interface WebSocketClientSettings {
     readonly webSocketClientEnabled: boolean;
 }
 
-export type ChromeBoundKeyBindName = 'copySubtitle' | 'ankiExport' | 'updateLastCard' | 'exportCard' | 'takeScreenshot';
+export type ChromeBoundKeyBindName = 'copySubtitle' | 'ankiExport' | 'updateLastCard' | 'exportCard' | 'takeScreenshot' | 'loadLastSubtitle';
 export type SubtitleAlignment = 'top' | 'bottom';
 export enum SubtitleListPreference {
     noSubtitleList = 'noSubtitleList',
@@ -578,6 +579,7 @@ const keyBindNameMap: any = {
     'take-screenshot': 'takeScreenshot',
     'toggle-recording': 'toggleRecording',
     'toggle-video-select': 'selectSubtitleTrack',
+    'load-last-subtitle': 'loadLastSubtitle',
 };
 
 export function chromeCommandBindsToKeyBinds(chromeCommands: { [key: string]: string | undefined }) {

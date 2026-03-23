@@ -29,12 +29,14 @@ import {
     CopySubtitleMessage,
     ExtensionToAsbPlayerCommand,
     ExtensionToVideoCommand,
+    LoadSubtitleFromDownloadMessage,
     Message,
     PostMineAction,
     TakeScreenshotMessage,
     ToggleRecordingMessage,
     ToggleVideoSelectMessage,
 } from '@project/common';
+import { bufferToBase64 } from '@project/common/base64';
 import { SettingsProvider } from '@project/common/settings';
 import { fetchSupportedLanguages, primeLocalization } from '@/services/localization-fetcher';
 import VideoDisappearedHandler from '@/handlers/video/video-disappeared-handler';
@@ -286,8 +288,27 @@ export default defineBackground(() => {
         }
     });
 
+    const subtitleExtensions = ['.srt', '.ass', '.ssa', '.vtt', '.sub', '.sup', '.dfxp', '.ttml2'];
+
+    browser.downloads?.onChanged.addListener(async (delta) => {
+        if (delta.state?.current !== 'complete') return;
+        const results = await browser.downloads.search({ id: delta.id });
+        const download = results[0];
+        if (!download) return;
+        const name = download.filename.replace(/\\/g, '/').split('/').pop() ?? '';
+        if (!subtitleExtensions.some((ext) => name.toLowerCase().endsWith(ext))) return;
+        try {
+            const response = await fetch(download.url);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const base64 = await bufferToBase64(await response.arrayBuffer());
+            await browser.storage.local.set({ lastSubtitleDownload: { name, base64 } });
+        } catch (e) {
+            await browser.storage.local.set({ lastSubtitleDownload: { name, error: String(e) } });
+        }
+    });
+
     browser.commands?.onCommand.addListener((command) => {
-        browser.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        browser.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
             const validAsbplayer = (asbplayer: Asbplayer) => {
                 if (asbplayer.sidePanel) {
                     return false;
@@ -418,6 +439,29 @@ export default defineBackground(() => {
                             };
                             return extensionToPlayerCommand;
                         },
+                    });
+                    break;
+                case 'load-last-subtitle':
+                    const result = await browser.storage.local.get('lastSubtitleDownload');
+                    const subtitle = result.lastSubtitleDownload as
+                        | { name: string; base64?: string; error?: string }
+                        | undefined;
+                    const loadMsg: LoadSubtitleFromDownloadMessage = subtitle?.base64
+                        ? { command: 'load-subtitle-from-download', name: subtitle.name, base64: subtitle.base64 }
+                        : {
+                              command: 'load-subtitle-from-download',
+                              name: subtitle?.name ?? '',
+                              base64: '',
+                              error: subtitle?.error ?? 'noSubtitleDownload',
+                          };
+                    tabRegistry.publishCommandToVideoElements((videoElement) => {
+                        if (tabs.find((t) => t.id === videoElement.tab.id) === undefined) return undefined;
+                        const cmd: ExtensionToVideoCommand<LoadSubtitleFromDownloadMessage> = {
+                            sender: 'asbplayer-extension-to-video',
+                            message: loadMsg,
+                            src: videoElement.src,
+                        };
+                        return cmd;
                     });
                     break;
                 default:

@@ -48,6 +48,11 @@ export interface KeyBinder {
         disabledGetter: () => boolean,
         capture?: boolean
     ): () => void;
+    bindLoadLastSubtitle(
+        onLoadLastSubtitle: (event: KeyboardEvent) => void,
+        disabledGetter: () => boolean,
+        capture?: boolean
+    ): () => void;
     bindExportCard(
         onExportCard: (event: KeyboardEvent) => void,
         disabledGetter: () => boolean,
@@ -260,6 +265,32 @@ export class DefaultKeyBinder implements KeyBinder {
             }
 
             onUpdateLastCard(event);
+            return true;
+        };
+    }
+
+    bindLoadLastSubtitle(
+        onLoadLastSubtitle: (event: KeyboardEvent) => void,
+        disabledGetter: () => boolean,
+        capture = false
+    ) {
+        const shortcut = this.keyBindSet.loadLastSubtitle.keys;
+
+        if (!shortcut) {
+            return () => {};
+        }
+
+        const handler = this.loadLastSubtitleHandler(onLoadLastSubtitle, disabledGetter);
+        return this._bind(shortcut, capture, handler);
+    }
+
+    loadLastSubtitleHandler(onLoadLastSubtitle: (event: KeyboardEvent) => void, disabledGetter: () => boolean) {
+        return (event: KeyboardEvent) => {
+            if (disabledGetter()) {
+                return false;
+            }
+
+            onLoadLastSubtitle(event);
             return true;
         };
     }

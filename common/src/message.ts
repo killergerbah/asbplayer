@@ -211,6 +211,13 @@ export interface CardUpdatedDialogMessage extends Message {
     readonly command: 'card-updated-dialog';
 }
 
+export interface LoadSubtitleFromDownloadMessage extends Message {
+    readonly command: 'load-subtitle-from-download';
+    readonly name: string;
+    readonly base64: string;
+    readonly error?: string;
+}
+
 export interface CardExportedMessage extends Message, CardModel {
     readonly command: 'card-exported';
     readonly cardName: string;

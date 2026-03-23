@@ -14,6 +14,7 @@ import {
     ExtensionSyncMessage,
     ImageCaptureParams,
     NotificationDialogMessage,
+    LoadSubtitleFromDownloadMessage,
     NotifyErrorMessage,
     OffsetToVideoMessage,
     PauseFromVideoMessage,
@@ -823,6 +824,24 @@ export default class Binding {
                             states,
                             applyStates
                         );
+                        break;
+                    case 'load-subtitle-from-download':
+                        const loadSubtitleMsg = request.message as LoadSubtitleFromDownloadMessage;
+                        if (loadSubtitleMsg.error || !loadSubtitleMsg.base64) {
+                            const reason =
+                                loadSubtitleMsg.error === 'noSubtitleDownload'
+                                    ? 'info.noSubtitleDownload'
+                                    : 'info.error';
+                            const params =
+                                loadSubtitleMsg.error === 'noSubtitleDownload'
+                                    ? {}
+                                    : { message: loadSubtitleMsg.error ?? 'Unknown error' };
+                            this.subtitleController.notification(reason, params);
+                        } else {
+                            const bytes = Uint8Array.from(atob(loadSubtitleMsg.base64), (c) => c.charCodeAt(0));
+                            const file = new File([bytes], loadSubtitleMsg.name);
+                            this.loadSubtitles([file], false);
+                        }
                         break;
                     case 'notify-error':
                         const notifyErrorMessage = request.message as NotifyErrorMessage;

@@ -23,6 +23,9 @@
     "shortcutToggleRecordingDescription": {
         "message": "Manually start/stop audio recording, even when subtitles are loaded."
     },
+    "shortcutLoadLastSubtitleDescription": {
+        "message": "Load the most recently downloaded subtitle file onto the active video."
+    },
     "shortcutSelectSubtitleTrackDescription": {
         "message": "Select subtitle tracks to load."
     },
