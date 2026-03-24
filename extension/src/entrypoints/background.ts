@@ -36,7 +36,16 @@ import {
     ToggleRecordingMessage,
     ToggleVideoSelectMessage,
 } from '@project/common';
-import { bufferToBase64 } from '@project/common/base64';
+// btoa is available as a global in service workers, but window.btoa is not.
+// Using TextDecoder + btoa avoids the window reference in @project/common/base64.
+function arrayBufferToBase64(buffer: ArrayBuffer): string {
+    let binary = '';
+    const bytes = new Uint8Array(buffer);
+    for (let i = 0; i < bytes.byteLength; i++) {
+        binary += String.fromCharCode(bytes[i]);
+    }
+    return btoa(binary);
+}
 import { SettingsProvider } from '@project/common/settings';
 import { fetchSupportedLanguages, primeLocalization } from '@/services/localization-fetcher';
 import VideoDisappearedHandler from '@/handlers/video/video-disappeared-handler';
@@ -300,7 +309,7 @@ export default defineBackground(() => {
         try {
             const response = await fetch(download.url);
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            const base64 = await bufferToBase64(await response.arrayBuffer());
+            const base64 = arrayBufferToBase64(await response.arrayBuffer());
             await browser.storage.local.set({ lastSubtitleDownload: { name, base64 } });
         } catch (e) {
             await browser.storage.local.set({ lastSubtitleDownload: { name, error: String(e) } });
