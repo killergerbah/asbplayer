@@ -167,6 +167,7 @@ export const defaultSettings: AsbplayerSettings = {
     miningHistoryStorageLimit: 25,
     clickToMineDefaultAction: PostMineAction.showAnkiDialog,
     postMiningPlaybackState: PostMinePlayback.remember,
+    updateLastCardForSameSubtitle: false,
     themeType: 'dark',
     copyToClipboardOnMine: false,
     rememberSubtitleOffset: true,

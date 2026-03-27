@@ -26,6 +26,7 @@ export interface MiscSettings {
     readonly language: string;
     readonly clickToMineDefaultAction: PostMineAction;
     readonly postMiningPlaybackState: PostMinePlayback;
+    readonly updateLastCardForSameSubtitle: boolean;
     readonly lastSubtitleOffset: number;
     readonly lastSelectedAnkiExportMode: AnkiExportMode;
     readonly tabName: string;

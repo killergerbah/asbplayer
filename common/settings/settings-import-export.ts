@@ -403,6 +403,9 @@ const settingsSchema = {
         copyToClipboardOnMine: {
             type: 'boolean',
         },
+        updateLastCardForSameSubtitle: {
+            type: 'boolean',
+        },
         rememberSubtitleOffset: {
             type: 'boolean',
         },
