@@ -77,6 +77,11 @@ export interface DictionaryLocalTokenInput {
     states: TokenState[];
 }
 
+export interface DictionaryTokenCounts {
+    knownTokens: number;
+    ignoredTokens: number;
+}
+
 type DictionaryAnkiCardKey = [number, number, string];
 interface DictionaryAnkiCardRecord {
     profile: string;
@@ -388,13 +393,13 @@ export class DictionaryDB {
         });
     }
 
-    async countKnownTokens(
+    async countTokens(
         inputProfile: string | undefined,
         track: number,
         settings: AsbplayerSettings
-    ): Promise<number> {
+    ): Promise<DictionaryTokenCounts> {
         const dt = settings.dictionaryTracks[track];
-        if (!dt) return 0;
+        if (!dt) return { knownTokens: 0, ignoredTokens: 0 };
         const profile = this._getProfile(inputProfile);
         return this.db.transaction('r', this.db.tokens, this.db.ankiCards, async () => {
             const records = await this.db.tokens
@@ -402,7 +407,7 @@ export class DictionaryDB {
                 .between([profile, Dexie.minKey], [profile, Dexie.maxKey])
                 .filter((r) => r.track === track || r.track === LOCAL_TOKEN_TRACK)
                 .toArray();
-            if (!records.length) return 0;
+            if (!records.length) return { knownTokens: 0, ignoredTokens: 0 };
 
             const prioritizedTokenRecords = new Map<string, DictionaryTokenRecord>();
             for (const record of records) {
@@ -417,19 +422,22 @@ export class DictionaryDB {
                 }
             }
 
-            let count = 0;
+            const counts: DictionaryTokenCounts = { knownTokens: 0, ignoredTokens: 0 };
             const ankiRecords: DictionaryTokenRecord[] = [];
             const cardIds = new Set<number>();
             for (const record of prioritizedTokenRecords.values()) {
-                if (record.states.includes(TokenState.IGNORED)) continue;
+                if (record.states.includes(TokenState.IGNORED)) {
+                    counts.ignoredTokens += 1;
+                    continue;
+                }
                 if (record.source === DictionaryTokenSource.LOCAL) {
-                    if (isTokenStatusKnown(record.status!)) count += 1;
+                    if (isTokenStatusKnown(record.status!)) counts.knownTokens += 1;
                     continue;
                 }
                 ankiRecords.push(record);
                 for (const cardId of record.cardIds) cardIds.add(cardId);
             }
-            if (!cardIds.size) return count;
+            if (!cardIds.size) return counts;
 
             const cardStatusMap = await this.db.ankiCards
                 .where('[cardId+track+profile]')
@@ -447,10 +455,10 @@ export class DictionaryDB {
                     record.cardIds.map((cardId) => cardStatusMap.get(cardId)!),
                     dt.dictionaryAnkiTreatSuspended
                 );
-                if (isTokenStatusKnown(status)) count += 1;
+                if (isTokenStatusKnown(status)) counts.knownTokens += 1;
             }
 
-            return count;
+            return counts;
         });
     }
 

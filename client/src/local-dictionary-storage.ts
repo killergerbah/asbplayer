@@ -90,8 +90,8 @@ export class LocalDictionaryStorage implements DictionaryStorage {
         return this.dictionaryDB.importRecordLocalBulk(records, profiles);
     }
 
-    countKnownTokens(profile: string | undefined, track: number, settings: AsbplayerSettings) {
-        return this.dictionaryDB.countKnownTokens(profile, track, settings);
+    countTokens(profile: string | undefined, track: number, settings: AsbplayerSettings) {
+        return this.dictionaryDB.countTokens(profile, track, settings);
     }
 
     buildAnkiCache(profile: string | undefined, settings: AsbplayerSettings) {

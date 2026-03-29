@@ -1,10 +1,12 @@
 import { DictionaryProvider } from '@project/common/dictionary-db';
 import {
+    DictionaryStatisticsTrackSnapshot,
     DictionaryStatisticsRewatchSnapshot,
     DictionaryStatisticsSentence,
     DictionaryStatisticsSentenceBucketEntry,
     DictionaryStatisticsSentenceBuckets,
     DictionaryStatisticsSentenceBucketStatus,
+    DictionaryStatisticsSentenceTotals,
     DictionaryStatisticsSentenceStatusBucket,
     DictionaryStatisticsSnapshot,
     DictionaryStatisticsTokenStatusCounts,
@@ -69,18 +71,43 @@ const statusOrder: TokenStatus[] = [
 ];
 
 const sentenceBucketStatusOrder: DictionaryStatisticsSentenceBucketStatus[] = [TokenStatus.UNCOLLECTED];
+const emptySentenceBuckets: DictionaryStatisticsSentenceBuckets = {
+    allKnown: {
+        count: 0,
+        entries: [],
+    },
+    byStatus: {
+        [TokenStatus.UNCOLLECTED]: [],
+    },
+};
 
 const percentDisplay = (value: number) => {
     const fractionDigits = value > 99 ? 3 : 1;
-
     return `${value.toFixed(fractionDigits)}%`;
 };
+const averageDisplay = (value: number) => value.toFixed(1);
+const averageFromTotals = (total: number, count: number) => (count > 0 ? total / count : 0);
 const clampPercent = (value: number) => Math.max(0, Math.min(100, value));
 const percent = (value: number, total: number) => (total > 0 ? (value / total) * 100 : 0);
 const labelWithCount = (label: string, count: number) => `${label}: ${count}`;
+const emptySentenceTotals: DictionaryStatisticsSentenceTotals = {
+    processedSentenceCount: 0,
+    totalWords: 0,
+    totalKnownWords: 0,
+    statusCounts: [],
+};
+const distributionBarHeight = 6;
+const sentenceComprehensionBucketSize = 20;
+const sentenceComprehensionBucketCount = 5;
 const minimumComprehensionStatus = TokenStatus.UNKNOWN;
 const fullyKnownTokenStatus = getFullyKnownTokenStatus();
 const comprehensionStatusRange = fullyKnownTokenStatus - minimumComprehensionStatus;
+
+interface SentenceComprehensionDistributionBucket {
+    start: number;
+    end: number;
+    count: number;
+}
 
 function comprehensionScore(status: TokenStatus): number {
     return (Math.max(status, minimumComprehensionStatus) - minimumComprehensionStatus) / comprehensionStatusRange;
@@ -89,19 +116,16 @@ function comprehensionScore(status: TokenStatus): number {
 function comprehensionFromStatusOccurrences(statusCounts: DictionaryStatisticsTokenStatusCounts): number {
     let totalOccurrences = 0;
     let comprehensionSum = 0;
-
     for (const status of statusOrder) {
         const numOccurrences = statusCounts[status].numOccurrences;
         totalOccurrences += numOccurrences;
         comprehensionSum += numOccurrences * comprehensionScore(status);
     }
-
     return totalOccurrences > 0 ? (comprehensionSum / totalOccurrences) * 100 : 0;
 }
 
 function ComprehensionScale({ value }: { value: number }) {
     const clampedValue = clampPercent(value);
-
     return (
         <Box>
             <Box sx={{ position: 'relative', pt: 0.5 }}>
@@ -169,6 +193,118 @@ function ComprehensionScale({ value }: { value: number }) {
     );
 }
 
+function FrequencyDistributionBar({ totalPercent, knownPercent }: { totalPercent: number; knownPercent: number }) {
+    const clampedTotalPercent = clampPercent(totalPercent);
+    const clampedKnownPercent = clampPercent(Math.min(knownPercent, clampedTotalPercent));
+    return (
+        <Box
+            sx={{
+                position: 'relative',
+                height: distributionBarHeight,
+                overflow: 'hidden',
+                borderRadius: 999,
+                backgroundColor: 'grey.700',
+            }}
+        >
+            <Box
+                sx={{
+                    position: 'absolute',
+                    inset: 0,
+                    width: `${clampedTotalPercent}%`,
+                    backgroundColor: 'grey.300',
+                }}
+            />
+            <Box
+                sx={{
+                    position: 'absolute',
+                    inset: 0,
+                    width: `${clampedKnownPercent}%`,
+                    backgroundColor: 'primary.main',
+                }}
+            />
+        </Box>
+    );
+}
+
+function StatusDistributionBar({ value, color }: { value: number; color: string }) {
+    const clampedValue = clampPercent(value);
+    return (
+        <Box
+            sx={{
+                position: 'relative',
+                height: distributionBarHeight,
+                overflow: 'hidden',
+                borderRadius: 999,
+                backgroundColor: 'grey.700',
+            }}
+        >
+            <Box
+                sx={{
+                    position: 'absolute',
+                    inset: 0,
+                    width: `${clampedValue}%`,
+                    backgroundColor: color,
+                }}
+            />
+        </Box>
+    );
+}
+
+function comprehensionDistributionFromSentenceTotals(
+    sentenceTotals: DictionaryStatisticsSentenceTotals
+): SentenceComprehensionDistributionBucket[] {
+    const comprehensionDistribution = Array.from(
+        {
+            length: sentenceComprehensionBucketCount,
+        },
+        (_, index) => ({
+            start: index * sentenceComprehensionBucketSize,
+            end: (index + 1) * sentenceComprehensionBucketSize,
+            count: 0,
+        })
+    );
+    for (const sentenceStatusCounts of sentenceTotals.statusCounts) {
+        const comprehensionPercent = comprehensionFromStatusOccurrences(sentenceStatusCounts);
+        const bucketIndex = Math.min(
+            comprehensionDistribution.length - 1,
+            Math.floor(comprehensionPercent / sentenceComprehensionBucketSize)
+        );
+        comprehensionDistribution[bucketIndex].count += 1;
+    }
+    return comprehensionDistribution;
+}
+
+function comprehensionDistributionLabel(bucket: SentenceComprehensionDistributionBucket) {
+    return `${bucket.start}-${bucket.end}%`;
+}
+
+function SentenceComprehensionDistribution({
+    buckets,
+    totalSentences,
+}: {
+    buckets: SentenceComprehensionDistributionBucket[];
+    totalSentences: number;
+}) {
+    return (
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mt: 0.5 }}>
+            {buckets.map((bucket) => {
+                const bucketPercent = percent(bucket.count, totalSentences);
+                return (
+                    <Box key={`${bucket.start}-${bucket.end}`}>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5, gap: 1 }}>
+                            <Typography variant="body2">{comprehensionDistributionLabel(bucket)}</Typography>
+                            <Typography variant="body2" color="text.secondary">
+                                {bucket.count} · {percentDisplay(bucketPercent)}
+                            </Typography>
+                        </Box>
+                        <StatusDistributionBar value={bucketPercent} color="primary.main" />
+                    </Box>
+                );
+            })}
+        </Box>
+    );
+}
+
 function StatisticsInfoTooltip({ label, lines }: { label: string; lines: string[] }) {
     return (
         <Tooltip
@@ -200,10 +336,7 @@ function StatisticsSectionHeading({ title, infoLines }: { title: string; infoLin
 }
 
 function sentenceStatusBucketLabel(bucket: DictionaryStatisticsSentenceStatusBucket, statusLabel: string) {
-    if (bucket.overflow) {
-        return `${bucket.tokenCount}+ ${statusLabel}`;
-    }
-
+    if (bucket.overflow) return `${bucket.tokenCount}+ ${statusLabel}`;
     return `${bucket.tokenCount} ${statusLabel}`;
 }
 
@@ -219,45 +352,63 @@ function sentenceDialogBucketData(
             entries: sentenceBuckets.allKnown.entries,
         };
     }
-
-    const statusBuckets = sentenceBuckets.byStatus[bucket.status];
-    const statusBucket = statusBuckets[bucket.groupIndex];
-
-    if (!statusBucket) {
-        return undefined;
-    }
-
+    const statusBucket = sentenceBuckets.byStatus[bucket.status][bucket.groupIndex];
+    if (!statusBucket) return;
     return {
         label: sentenceStatusBucketLabel(statusBucket, statusLabels[bucket.status]),
         entries: statusBucket.entries,
     };
 }
 
+function selectedRewatchSnapshotForTrack(
+    trackSnapshot: DictionaryStatisticsTrackSnapshot,
+    selectedRewatchesByTrack: Record<number, number>
+): DictionaryStatisticsRewatchSnapshot | undefined {
+    if (!trackSnapshot.rewatchSnapshots.length) return;
+    const selectedRewatch = Math.min(
+        selectedRewatchesByTrack[trackSnapshot.track] ?? 1,
+        trackSnapshot.rewatchSnapshots.length
+    );
+    return trackSnapshot.rewatchSnapshots[selectedRewatch - 1];
+}
+
 interface SentenceStatsPanelProps {
     title: string;
     totalSentences: number;
     sentenceBuckets: DictionaryStatisticsSentenceBuckets;
+    comprehensionDistribution: SentenceComprehensionDistributionBucket[];
     statusLabels: Record<TokenStatus, string>;
+    comprehensionDistributionLabel: string;
     totalSentencesLabel: string;
+    uniqueWordsPerSentenceLabel: string;
+    uniqueWordsPerSentence: number;
+    knownWordsPerSentenceLabel: string;
+    knownWordsPerSentence: number;
     knownSentencesLabel: string;
-    knownWordsCount?: number;
-    knownWordsLabel?: string;
-    knownWordsPercent?: number;
-    comprehensionLabel?: string;
-    comprehensionPercent?: number;
-    globalKnownLabel?: string;
-    globalKnownCount?: number;
+    knownWordsCount: number;
+    knownWordsLabel: string;
+    knownWordsPercent: number;
+    comprehensionLabel: string;
+    comprehensionPercent: number;
+    globalKnownLabel: string;
+    globalKnownCount: number;
+    onOpenSentenceBucketDetails: (bucket: SentenceDialogBucket) => void;
     headerAction?: ReactNode;
     emptyMessage?: string;
-    onOpenSentenceBucketDetails?: (bucket: SentenceDialogBucket) => void;
 }
 
 function SentenceStatsPanel({
     title,
     totalSentences,
     sentenceBuckets,
+    comprehensionDistribution,
     statusLabels,
+    comprehensionDistributionLabel,
     totalSentencesLabel,
+    uniqueWordsPerSentenceLabel,
+    uniqueWordsPerSentence,
+    knownWordsPerSentenceLabel,
+    knownWordsPerSentence,
     knownSentencesLabel,
     knownWordsCount,
     knownWordsLabel,
@@ -270,10 +421,6 @@ function SentenceStatsPanel({
     emptyMessage,
     onOpenSentenceBucketDetails,
 }: SentenceStatsPanelProps) {
-    const showSummaryMetrics =
-        (knownWordsLabel !== undefined && knownWordsCount !== undefined && knownWordsPercent !== undefined) ||
-        (comprehensionLabel !== undefined && comprehensionPercent !== undefined) ||
-        (globalKnownLabel !== undefined && globalKnownCount !== undefined);
     const interleavedSentenceStatusBuckets = useMemo(() => {
         const maxBucketCount = sentenceBucketStatusOrder.reduce(
             (maximum, status) => Math.max(maximum, sentenceBuckets.byStatus[status].length),
@@ -290,11 +437,7 @@ function SentenceStatsPanel({
             for (const status of sentenceBucketStatusOrder) {
                 const statusBuckets = sentenceBuckets.byStatus[status];
                 const bucket = statusBuckets[groupIndex];
-
-                if (!bucket) {
-                    continue;
-                }
-
+                if (!bucket) continue;
                 rows.push({
                     bucket: { kind: 'status', status, groupIndex },
                     label: sentenceStatusBucketLabel(bucket, statusLabels[status]),
@@ -315,12 +458,8 @@ function SentenceStatsPanel({
             entries: DictionaryStatisticsSentenceBucketEntry[]
         ) => {
             const content = `${label} · ${count} · ${percentDisplay(percent(count, totalSentences))}`;
-            const canOpen = onOpenSentenceBucketDetails !== undefined && entries.length > 0;
-
-            if (!canOpen) {
-                return <Typography color="text.secondary">{content}</Typography>;
-            }
-
+            const canOpen = entries.length > 0;
+            if (!canOpen) return <Typography color="text.secondary">{content}</Typography>;
             return (
                 <ButtonBase
                     sx={{
@@ -380,25 +519,14 @@ function SentenceStatsPanel({
                     <Typography color="text.secondary">{emptyMessage}</Typography>
                 ) : (
                     <>
-                        {comprehensionLabel !== undefined && comprehensionPercent !== undefined && (
-                            <Typography color="text.secondary">
-                                {`${comprehensionLabel}: ${percentDisplay(comprehensionPercent)}`}
-                            </Typography>
-                        )}
-                        {knownWordsLabel !== undefined &&
-                            knownWordsCount !== undefined &&
-                            knownWordsPercent !== undefined && (
-                                <Typography color="text.secondary">
-                                    {`${knownWordsLabel}: ${knownWordsCount} · ${percentDisplay(knownWordsPercent)}`}
-                                </Typography>
-                            )}
-                        {globalKnownLabel !== undefined && globalKnownCount !== undefined && (
-                            <Typography color="text.secondary">{`${globalKnownLabel}: ${globalKnownCount}`}</Typography>
-                        )}
-                        {showSummaryMetrics && <Divider flexItem sx={{ my: 0.25 }} />}
                         <Typography color="text.secondary">
-                            {labelWithCount(totalSentencesLabel, totalSentences)}
+                            {`${comprehensionLabel}: ${percentDisplay(comprehensionPercent)}`}
                         </Typography>
+                        <Typography color="text.secondary">
+                            {`${knownWordsLabel}: ${knownWordsCount} · ${percentDisplay(knownWordsPercent)}`}
+                        </Typography>
+                        <Typography color="text.secondary">{`${globalKnownLabel}: ${globalKnownCount}`}</Typography>
+                        <Divider flexItem sx={{ my: 0.25 }} />
                         {renderSentenceBucketRow(
                             { kind: 'allKnown' },
                             knownSentencesLabel,
@@ -408,11 +536,35 @@ function SentenceStatsPanel({
                         {interleavedSentenceStatusBuckets.map(({ bucket, label, count, entries }) =>
                             renderSentenceBucketRow(bucket, label, count, entries)
                         )}
+                        <Typography color="text.secondary">
+                            {labelWithCount(totalSentencesLabel, totalSentences)}
+                        </Typography>
+                        <Typography color="text.secondary">
+                            {`${uniqueWordsPerSentenceLabel}: ${averageDisplay(uniqueWordsPerSentence)}`}
+                        </Typography>
+                        <Typography color="text.secondary">
+                            {`${knownWordsPerSentenceLabel}: ${averageDisplay(knownWordsPerSentence)}`}
+                        </Typography>
+                        <Typography variant="subtitle2">{comprehensionDistributionLabel}</Typography>
+                        <SentenceComprehensionDistribution
+                            buckets={comprehensionDistribution}
+                            totalSentences={totalSentences}
+                        />
                     </>
                 )}
             </Box>
         </Box>
     );
+}
+
+function sentenceAveragesFromTotals(sentenceTotals: DictionaryStatisticsSentenceTotals) {
+    return {
+        averageWordsPerSentence: averageFromTotals(sentenceTotals.totalWords, sentenceTotals.processedSentenceCount),
+        averageKnownWordsPerSentence: averageFromTotals(
+            sentenceTotals.totalKnownWords,
+            sentenceTotals.processedSentenceCount
+        ),
+    };
 }
 
 export default function StatisticsSettingsTab({ dictionaryProvider, onSeekRequested, onMineRequested }: Props) {
@@ -512,7 +664,7 @@ export default function StatisticsSettingsTab({ dictionaryProvider, onSeekReques
     const comprehensionInfoLines = useMemo(() => [t('statistics.info.comprehension')], [t]);
     const globalKnownInfoLines = useMemo(() => [t('statistics.info.globalKnownWords')], [t]);
     const wordDistributionInfoLines = useMemo(
-        () => [t('statistics.info.wordDistribution'), t('statistics.info.occurrences')],
+        () => [t('statistics.info.wordDistribution'), t('statistics.info.occurrences'), t('statistics.info.frequency')],
         [t]
     );
     const sentenceStatisticsInfoLines = useMemo(
@@ -522,42 +674,25 @@ export default function StatisticsSettingsTab({ dictionaryProvider, onSeekReques
         ],
         [t]
     );
+    const uniqueWordsPerSentenceLabel = t('statistics.uniqueWordsPerSentence');
+    const knownWordsPerSentenceLabel = t('statistics.knownWordsPerSentence');
     const activeSentenceDialog = useMemo(() => {
-        if (!sentenceDialogState || !snapshot) {
-            return undefined;
-        }
-
+        if (!sentenceDialogState || !snapshot) return;
         const trackSnapshot = snapshot.snapshots.find((candidate) => candidate.track === sentenceDialogState.track);
-
-        if (!trackSnapshot) {
-            return undefined;
-        }
+        if (!trackSnapshot) return;
 
         const trackTitle = `${t('settings.subtitleTrackChoice', { trackNumber: trackSnapshot.track + 1 })}`;
-        const sourceSentenceBuckets =
-            sentenceDialogState.scope === 'current'
-                ? trackSnapshot.sentenceBuckets
-                : trackSnapshot.rewatchSnapshots.length > 0
-                  ? trackSnapshot.rewatchSnapshots[
-                        Math.min(
-                            (selectedRewatchesByTrack[trackSnapshot.track] ?? 1) - 1,
-                            Math.max(0, trackSnapshot.rewatchSnapshots.length - 1)
-                        )
-                    ]?.sentenceBuckets
-                  : undefined;
-
-        if (!sourceSentenceBuckets) {
-            return undefined;
-        }
+        const selectedRewatchSnapshot = selectedRewatchSnapshotForTrack(trackSnapshot, selectedRewatchesByTrack);
+        const sourceSentenceBuckets = (() => {
+            if (sentenceDialogState.scope === 'current') return trackSnapshot.sentenceBuckets;
+            return selectedRewatchSnapshot?.sentenceBuckets;
+        })();
+        if (sourceSentenceBuckets === undefined) return;
 
         const bucketData = sentenceDialogBucketData(sentenceDialogState.bucket, sourceSentenceBuckets, statusLabels, t);
-
-        if (!bucketData) {
-            return undefined;
-        }
+        if (!bucketData) return;
 
         const miningEnabled = trackSnapshot.progress.current >= trackSnapshot.progress.total;
-
         if (sentenceDialogState.scope === 'current') {
             return {
                 title: `${trackTitle} · ${t('statistics.currentPass')} · ${bucketData.label}`,
@@ -567,21 +702,11 @@ export default function StatisticsSettingsTab({ dictionaryProvider, onSeekReques
             };
         }
 
-        const selectedRewatch = Math.min(
-            selectedRewatchesByTrack[trackSnapshot.track] ?? 1,
-            Math.max(1, trackSnapshot.rewatchSnapshots.length)
-        );
-        const selectedRewatchSnapshot =
-            trackSnapshot.rewatchSnapshots.length > 0 ? trackSnapshot.rewatchSnapshots[selectedRewatch - 1] : undefined;
-        const projectedTitle =
-            selectedRewatchSnapshot !== undefined
-                ? `${t('statistics.projectedRewatch')} · ${t('statistics.rewatchOption', {
-                      rewatch: selectedRewatchSnapshot.rewatch,
-                  })}`
-                : t('statistics.projectedRewatch');
-
+        if (selectedRewatchSnapshot === undefined) return;
         return {
-            title: `${trackTitle} · ${projectedTitle} · ${bucketData.label}`,
+            title: `${trackTitle} · ${t('statistics.projectedRewatch')} · ${t('statistics.rewatchOption', {
+                rewatch: selectedRewatchSnapshot.rewatch,
+            })} · ${bucketData.label}`,
             entries: bucketData.entries,
             totalSentences: trackSnapshot.progress.total,
             miningEnabled,
@@ -629,23 +754,33 @@ export default function StatisticsSettingsTab({ dictionaryProvider, onSeekReques
                 const trackProgressPercent = percent(trackSnapshot.progress.current, totalSentences);
                 const knownPercent = percent(trackSnapshot.numKnownTokens, consideredTokens);
                 const comprehension = comprehensionFromStatusOccurrences(trackSnapshot.statusCounts);
-                const maxRewatchs = trackSnapshot.rewatchSnapshots.length;
-                const selectedRewatch = Math.min(
-                    selectedRewatchesByTrack[trackSnapshot.track] ?? 1,
-                    Math.max(1, maxRewatchs)
+                const { averageWordsPerSentence, averageKnownWordsPerSentence } = sentenceAveragesFromTotals(
+                    trackSnapshot.sentenceTotals
                 );
-                const selectedRewatchSnapshot: DictionaryStatisticsRewatchSnapshot | undefined =
-                    maxRewatchs > 0 ? trackSnapshot.rewatchSnapshots[selectedRewatch - 1] : undefined;
-                const projectedSentenceBuckets =
-                    selectedRewatchSnapshot?.sentenceBuckets ?? trackSnapshot.sentenceBuckets;
-                const projectedKnownCount = selectedRewatchSnapshot?.numKnownTokens;
+                const currentSentenceComprehensionDistribution = comprehensionDistributionFromSentenceTotals(
+                    trackSnapshot.sentenceTotals
+                );
+                const selectedRewatchSnapshot = selectedRewatchSnapshotForTrack(
+                    trackSnapshot,
+                    selectedRewatchesByTrack
+                );
+                const maxRewatches = trackSnapshot.rewatchSnapshots.length;
+                const projectedSentenceBuckets = selectedRewatchSnapshot?.sentenceBuckets ?? emptySentenceBuckets;
+                const projectedKnownCount = selectedRewatchSnapshot?.numKnownTokens ?? 0;
                 const projectedKnownPercent = selectedRewatchSnapshot
                     ? percent(selectedRewatchSnapshot.numKnownTokens, consideredTokens)
-                    : undefined;
+                    : 0;
                 const projectedComprehension = selectedRewatchSnapshot
                     ? comprehensionFromStatusOccurrences(selectedRewatchSnapshot.statusCounts)
-                    : undefined;
-                const projectedGlobalKnownCount = selectedRewatchSnapshot?.numDictionaryKnownTokens;
+                    : 0;
+                const projectedGlobalKnownCount = selectedRewatchSnapshot?.numDictionaryKnownTokens ?? 0;
+                const {
+                    averageWordsPerSentence: projectedAverageWordsPerSentence,
+                    averageKnownWordsPerSentence: projectedAverageKnownWordsPerSentence,
+                } = sentenceAveragesFromTotals(selectedRewatchSnapshot?.sentenceTotals ?? emptySentenceTotals);
+                const projectedSentenceComprehensionDistribution = comprehensionDistributionFromSentenceTotals(
+                    selectedRewatchSnapshot?.sentenceTotals ?? emptySentenceTotals
+                );
                 const currentPassTitle = t('statistics.currentPass');
 
                 return (
@@ -683,6 +818,9 @@ export default function StatisticsSettingsTab({ dictionaryProvider, onSeekReques
                                     infoLines={globalKnownInfoLines}
                                 />
                                 <Typography variant="h5">{trackSnapshot.numDictionaryKnownTokens}</Typography>
+                                <Typography color="text.secondary">
+                                    {`${t('settings.dictionaryTokenStateIgnored')}: ${trackSnapshot.numDictionaryIgnoredTokens}`}
+                                </Typography>
                             </Box>
                         </Box>
 
@@ -738,18 +876,20 @@ export default function StatisticsSettingsTab({ dictionaryProvider, onSeekReques
                                         label: statusLabels[status],
                                         count: trackSnapshot.statusCounts[status].numUnique,
                                         occurrences: trackSnapshot.statusCounts[status].numOccurrences,
+                                        color: trackSnapshot.statusColors[status],
                                     })),
                                     {
                                         key: 'ignored',
                                         label: t('settings.dictionaryTokenStateIgnored'),
                                         count: trackSnapshot.numIgnoredTokens,
                                         occurrences: trackSnapshot.numIgnoredOccurrences,
+                                        color: '#e0e0e0',
                                     },
                                 ].map((statusRow) => (
                                     <Box key={statusRow.key} sx={{ mb: 1 }}>
                                         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                                            <Typography>{statusRow.label}</Typography>
-                                            <Typography color="text.secondary">
+                                            <Typography variant="body2">{statusRow.label}</Typography>
+                                            <Typography variant="body2" color="text.secondary">
                                                 {statusRow.count} ·{' '}
                                                 {percentDisplay(
                                                     percent(statusRow.count, trackSnapshot.numUniqueTokens)
@@ -757,9 +897,9 @@ export default function StatisticsSettingsTab({ dictionaryProvider, onSeekReques
                                                 {` (${statusRow.occurrences})`}
                                             </Typography>
                                         </Box>
-                                        <LinearProgress
-                                            variant="determinate"
+                                        <StatusDistributionBar
                                             value={percent(statusRow.count, trackSnapshot.numUniqueTokens)}
+                                            color={statusRow.color}
                                         />
                                     </Box>
                                 ))}
@@ -771,20 +911,21 @@ export default function StatisticsSettingsTab({ dictionaryProvider, onSeekReques
                                 {trackSnapshot.frequencyBuckets.map((bucket) => {
                                     const bucketLabel =
                                         bucket.label === 'Unknown' ? statusLabels[TokenStatus.UNKNOWN] : bucket.label;
+                                    const bucketPercent = percent(bucket.count, consideredTokens);
+                                    const bucketKnownPercent = percent(bucket.knownCount, consideredTokens);
 
                                     return (
                                         <Box key={bucket.label} sx={{ mb: 1 }}>
                                             <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                                                <Typography>{bucketLabel}</Typography>
-                                                <Typography color="text.secondary">
-                                                    {bucket.count} ·{' '}
-                                                    {percentDisplay(percent(bucket.count, consideredTokens))}
+                                                <Typography variant="body2">{bucketLabel}</Typography>
+                                                <Typography variant="body2" color="text.secondary">
+                                                    {bucket.count} · {percentDisplay(bucketPercent)}
                                                     {` (${bucket.occurrences})`}
                                                 </Typography>
                                             </Box>
-                                            <LinearProgress
-                                                variant="determinate"
-                                                value={percent(bucket.count, consideredTokens)}
+                                            <FrequencyDistributionBar
+                                                totalPercent={bucketPercent}
+                                                knownPercent={bucketKnownPercent}
                                             />
                                         </Box>
                                     );
@@ -810,8 +951,14 @@ export default function StatisticsSettingsTab({ dictionaryProvider, onSeekReques
                                     title={currentPassTitle}
                                     totalSentences={totalSentences}
                                     sentenceBuckets={trackSnapshot.sentenceBuckets}
+                                    comprehensionDistribution={currentSentenceComprehensionDistribution}
                                     statusLabels={statusLabels}
+                                    comprehensionDistributionLabel={t('statistics.comprehensionDistribution')}
                                     totalSentencesLabel={t('statistics.totalSentences')}
+                                    uniqueWordsPerSentenceLabel={uniqueWordsPerSentenceLabel}
+                                    uniqueWordsPerSentence={averageWordsPerSentence}
+                                    knownWordsPerSentenceLabel={knownWordsPerSentenceLabel}
+                                    knownWordsPerSentence={averageKnownWordsPerSentence}
                                     knownSentencesLabel={t('statistics.knownSentences')}
                                     knownWordsCount={trackSnapshot.numKnownTokens}
                                     knownWordsLabel={t('statistics.knownWords')}
@@ -830,8 +977,14 @@ export default function StatisticsSettingsTab({ dictionaryProvider, onSeekReques
                                     title={t('statistics.projectedRewatch')}
                                     totalSentences={totalSentences}
                                     sentenceBuckets={projectedSentenceBuckets}
+                                    comprehensionDistribution={projectedSentenceComprehensionDistribution}
                                     statusLabels={statusLabels}
+                                    comprehensionDistributionLabel={t('statistics.comprehensionDistribution')}
                                     totalSentencesLabel={t('statistics.totalSentences')}
+                                    uniqueWordsPerSentenceLabel={uniqueWordsPerSentenceLabel}
+                                    uniqueWordsPerSentence={projectedAverageWordsPerSentence}
+                                    knownWordsPerSentenceLabel={knownWordsPerSentenceLabel}
+                                    knownWordsPerSentence={projectedAverageKnownWordsPerSentence}
                                     knownSentencesLabel={t('statistics.knownSentences')}
                                     knownWordsCount={projectedKnownCount}
                                     knownWordsLabel={t('statistics.knownWords')}
@@ -841,12 +994,12 @@ export default function StatisticsSettingsTab({ dictionaryProvider, onSeekReques
                                     globalKnownLabel={t('statistics.globalKnownWords')}
                                     globalKnownCount={projectedGlobalKnownCount}
                                     headerAction={
-                                        maxRewatchs > 0 ? (
+                                        selectedRewatchSnapshot !== undefined ? (
                                             <TextField
                                                 select
                                                 size="small"
                                                 label={t('statistics.rewatchSelect')}
-                                                value={selectedRewatch}
+                                                value={selectedRewatchSnapshot.rewatch}
                                                 sx={{ minWidth: 160 }}
                                                 onChange={(event) =>
                                                     handleSelectedRewatchChanged(
@@ -868,7 +1021,7 @@ export default function StatisticsSettingsTab({ dictionaryProvider, onSeekReques
                                             </TextField>
                                         ) : undefined
                                     }
-                                    emptyMessage={maxRewatchs === 0 ? t('statistics.noMoreRewatches') : undefined}
+                                    emptyMessage={maxRewatches === 0 ? t('statistics.noMoreRewatches') : undefined}
                                     onOpenSentenceBucketDetails={(bucket) =>
                                         handleOpenProjectedSentenceBucketDetails(trackSnapshot.track, bucket)
                                     }

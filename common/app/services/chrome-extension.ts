@@ -35,7 +35,7 @@ import {
     SetGlobalStateMessage,
     GetGlobalStateMessage,
     DictionaryBuildAnkiCacheMessage,
-    DictionaryCountKnownTokensMessage,
+    DictionaryCountTokensMessage,
     DictionaryGetBulkMessage,
     DictionaryGetByLemmaBulkMessage,
     DictionarySaveRecordLocalBulkMessage,
@@ -58,6 +58,7 @@ import {
     TokenResults,
     DictionaryDeleteRecordLocalResult,
     DictionaryDeleteProfileResult,
+    DictionaryTokenCounts,
 } from '@project/common/dictionary-db';
 import {
     ApplyStrategy,
@@ -666,16 +667,16 @@ export default class ChromeExtension {
         return await this._createResponsePromise(messageId);
     }
 
-    async dictionaryCountKnownTokens(
+    async dictionaryCountTokens(
         profile: string | undefined,
         track: number,
         settings: AsbplayerSettings
-    ): Promise<number> {
+    ): Promise<DictionaryTokenCounts> {
         const messageId = uuidv4();
-        const command: AsbPlayerCommand<DictionaryCountKnownTokensMessage> = {
+        const command: AsbPlayerCommand<DictionaryCountTokensMessage> = {
             sender: 'asbplayerv2',
             message: {
-                command: 'dictionary-count-known-tokens',
+                command: 'dictionary-count-tokens',
                 profile,
                 track,
                 settings,

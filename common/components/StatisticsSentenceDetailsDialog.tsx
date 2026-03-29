@@ -32,10 +32,6 @@ interface Props {
     onMineSentence: (sentence: DictionaryStatisticsSentence) => void;
 }
 
-function compareEntries(left: DictionaryStatisticsSentenceBucketEntry, right: DictionaryStatisticsSentenceBucketEntry) {
-    return left.sentence.index - right.sentence.index;
-}
-
 export default function StatisticsSentenceDetailsDialog({
     open,
     title,
@@ -57,30 +53,21 @@ export default function StatisticsSentenceDetailsDialog({
 
     const sortedEntries = useMemo(() => {
         const next = entries.slice();
-
         next.sort((left, right) => {
             if (sort === 'frequency') {
                 const leftFrequency = left.lowestFrequency ?? Number.POSITIVE_INFINITY;
                 const rightFrequency = right.lowestFrequency ?? Number.POSITIVE_INFINITY;
-
-                if (leftFrequency !== rightFrequency) {
-                    return leftFrequency - rightFrequency;
-                }
+                if (leftFrequency !== rightFrequency) return leftFrequency - rightFrequency;
             } else if (sort === 'occurrences') {
                 if (left.highestOccurrences !== right.highestOccurrences) {
                     return right.highestOccurrences - left.highestOccurrences;
                 }
                 const leftFrequency = left.lowestFrequency ?? Number.POSITIVE_INFINITY;
                 const rightFrequency = right.lowestFrequency ?? Number.POSITIVE_INFINITY;
-
-                if (leftFrequency !== rightFrequency) {
-                    return leftFrequency - rightFrequency;
-                }
+                if (leftFrequency !== rightFrequency) return leftFrequency - rightFrequency;
             }
-
-            return compareEntries(left, right);
+            return left.sentence.index - right.sentence.index;
         });
-
         return next;
     }, [entries, sort]);
 
@@ -127,7 +114,6 @@ export default function StatisticsSentenceDetailsDialog({
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                         {sortedEntries.map((entry) => {
                             const sentence = entry.sentence;
-
                             return (
                                 <Paper
                                     key={sentence.index}
@@ -151,10 +137,7 @@ export default function StatisticsSentenceDetailsDialog({
                                         }}
                                         onClick={() => onSeekToSentence(sentence)}
                                         onKeyDown={(event) => {
-                                            if (event.key !== 'Enter' && event.key !== ' ') {
-                                                return;
-                                            }
-
+                                            if (event.key !== 'Enter' && event.key !== ' ') return;
                                             event.preventDefault();
                                             onSeekToSentence(sentence);
                                         }}

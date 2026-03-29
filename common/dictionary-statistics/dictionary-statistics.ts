@@ -6,17 +6,17 @@ import {
     NUM_TOKEN_STATUSES,
     SettingsProvider,
     TokenState,
+    TokenStatusConfig,
     TokenStatus,
 } from '@project/common/settings';
 import { HAS_LETTER_REGEX } from '@project/common/util';
-import { Yomitan } from '@project/common/yomitan';
 
 const dictionaryStatisticsFrequencyBuckets = [1000, 2000, 5000, 10000, 20000] as const; // Overflow and unknown appears after these
 const dictionaryStatisticsSentenceBucketTokenCounts = [1] as const;
 const dictionaryStatisticsSentenceBucketOverflowTokenCount =
     dictionaryStatisticsSentenceBucketTokenCounts[dictionaryStatisticsSentenceBucketTokenCounts.length - 1] + 1;
 
-export type DictionaryStatisticsSentenceBucketStatus = TokenStatus.UNCOLLECTED; // Only have sentence buckets for Uncollected but considered Unknown as well
+export type DictionaryStatisticsSentenceBucketStatus = TokenStatus.UNCOLLECTED;
 
 export interface DictionaryStatisticsSentence {
     text: string;
@@ -81,9 +81,21 @@ function dictionaryStatisticsSentence(sentence: DictionaryStatisticsSentence): D
 
 interface TrackState {
     numDictionaryKnownTokens: number;
+    numDictionaryIgnoredTokens: number;
+    statusColors: Record<TokenStatus, string>;
     progress: Progress;
     uniqueTokens: Map<string, UniqueToken>;
     sentenceStates: Map<number, SentenceState>;
+}
+
+function statusColorsFromConfig(tokenStatusConfig: readonly TokenStatusConfig[]): Record<TokenStatus, string> {
+    const statusColors = {} as Record<TokenStatus, string>;
+    for (let status: TokenStatus = 0; status < NUM_TOKEN_STATUSES; ++status) {
+        const color = tokenStatusConfig[status]?.color ?? '#9E9E9E';
+        const alpha = tokenStatusConfig[status]?.alpha ?? 'FF';
+        statusColors[status] = `${color}${alpha}`;
+    }
+    return statusColors;
 }
 
 interface UniqueToken {
@@ -98,10 +110,6 @@ interface SentenceState {
     sentence: DictionaryStatisticsSentence;
     uniqueTokensKeys: string[];
     uniqueTokenOccurrences: Map<string, number>;
-    consideredTokens: number;
-    knownTokens: number;
-    unknownTokens: number;
-    uncollectedTokens: number;
 }
 
 interface EvaluatedSentenceState {
@@ -110,8 +118,8 @@ interface EvaluatedSentenceState {
     knownTokens: number;
     unknownTokens: number;
     uncollectedTokens: number;
+    statusCounts: DictionaryStatisticsTokenStatusCounts;
     consideredTokenKeys: string[];
-    unknownTokenKeys: string[];
     uncollectedTokenKeys: string[];
 }
 
@@ -123,20 +131,31 @@ export interface DictionaryStatisticsSnapshot {
 export interface DictionaryStatisticsTrackSnapshot {
     track: number;
     progress: Progress;
+    statusColors: Record<TokenStatus, string>;
     numDictionaryKnownTokens: number;
+    numDictionaryIgnoredTokens: number;
     numUniqueTokens: number;
     numIgnoredTokens: number;
     numIgnoredOccurrences: number;
     numKnownTokens: number;
+    sentenceTotals: DictionaryStatisticsSentenceTotals;
     statusCounts: DictionaryStatisticsTokenStatusCounts;
     frequencyBuckets: DictionaryStatisticsFrequencyBucket[];
     sentenceBuckets: DictionaryStatisticsSentenceBuckets;
     rewatchSnapshots: DictionaryStatisticsRewatchSnapshot[];
 }
 
+export interface DictionaryStatisticsSentenceTotals {
+    processedSentenceCount: number;
+    totalWords: number;
+    totalKnownWords: number;
+    statusCounts: DictionaryStatisticsTokenStatusCounts[];
+}
+
 export interface DictionaryStatisticsFrequencyBucket {
     label: string;
     count: number;
+    knownCount: number;
     occurrences: number;
 }
 
@@ -169,6 +188,7 @@ export interface DictionaryStatisticsRewatchSnapshot {
     rewatch: number;
     numKnownTokens: number;
     numDictionaryKnownTokens: number;
+    sentenceTotals: DictionaryStatisticsSentenceTotals;
     statusCounts: DictionaryStatisticsTokenStatusCounts;
     sentenceBuckets: DictionaryStatisticsSentenceBuckets;
 }
@@ -184,28 +204,15 @@ function emptySentenceBuckets(): DictionaryStatisticsSentenceBuckets {
 }
 
 function sentenceStatusBucketForCount(sentenceBuckets: DictionaryStatisticsSentenceStatusBucket[], tokenCount: number) {
-    if (tokenCount <= 0) {
-        return undefined;
-    }
-
-    const overflowBucket = sentenceBuckets[sentenceBuckets.length - 1];
-
+    if (tokenCount <= 0) return;
     for (let i = 0; i < sentenceBuckets.length; ++i) {
         const sentenceBucket = sentenceBuckets[i];
-        if (sentenceBucket.overflow) {
-            break;
-        }
-
-        if (tokenCount === sentenceBucket.tokenCount) {
-            return sentenceBucket;
-        }
+        if (sentenceBucket.overflow) break;
+        if (tokenCount === sentenceBucket.tokenCount) return sentenceBucket;
     }
-
-    if (overflowBucket?.overflow && tokenCount >= overflowBucket.tokenCount) {
-        return overflowBucket;
-    }
-
-    return undefined;
+    const overflowBucket = sentenceBuckets[sentenceBuckets.length - 1];
+    if (overflowBucket?.overflow && tokenCount >= overflowBucket.tokenCount) return overflowBucket;
+    return;
 }
 
 function evaluateSentenceState(
@@ -217,29 +224,28 @@ function evaluateSentenceState(
     let knownTokens = 0;
     let unknownTokens = 0;
     let uncollectedTokens = 0;
+    const statusCounts = emptyStatusCounts();
     const consideredTokenKeys: string[] = [];
-    const unknownTokenKeys: string[] = [];
     const uncollectedTokenKeys: string[] = [];
 
     for (const tokenKey of sentenceState.uniqueTokensKeys) {
         const token = uniqueTokens.get(tokenKey);
         if (!token || token.ignored) continue;
-
-        const status = projectedStatuses?.get(tokenKey) ?? token.status;
+        const occurrences = sentenceState.uniqueTokenOccurrences.get(tokenKey) ?? 0;
         consideredTokens += 1;
         consideredTokenKeys.push(tokenKey);
 
+        const status = projectedStatuses?.get(tokenKey) ?? token.status;
+        statusCounts[status].numUnique += 1;
+        statusCounts[status].numOccurrences += occurrences;
         if (isTokenStatusKnown(status)) {
             knownTokens += 1;
             continue;
         }
-
         if (status === TokenStatus.UNKNOWN) {
             unknownTokens += 1;
-            unknownTokenKeys.push(tokenKey);
             continue;
         }
-
         if (status === TokenStatus.UNCOLLECTED) {
             uncollectedTokens += 1;
             uncollectedTokenKeys.push(tokenKey);
@@ -252,8 +258,8 @@ function evaluateSentenceState(
         knownTokens,
         unknownTokens,
         uncollectedTokens,
+        statusCounts,
         consideredTokenKeys,
-        unknownTokenKeys,
         uncollectedTokenKeys,
     };
 }
@@ -273,10 +279,7 @@ function sentenceBucketEntry(
         if (token.frequency != null && (lowestFrequency === undefined || token.frequency < lowestFrequency)) {
             lowestFrequency = token.frequency;
         }
-
-        if (token.numOccurrences > highestOccurrences) {
-            highestOccurrences = token.numOccurrences;
-        }
+        if (token.numOccurrences > highestOccurrences) highestOccurrences = token.numOccurrences;
     }
 
     return {
@@ -304,23 +307,40 @@ function buildSentenceBucketData(
             );
         }
 
-        const uncollectedSentenceTokenKeys = [...sentenceState.unknownTokenKeys, ...sentenceState.uncollectedTokenKeys];
-        const uncollectedSentenceTokenCount = sentenceState.unknownTokens + sentenceState.uncollectedTokens;
-
         const uncollectedBucket = sentenceStatusBucketForCount(
             sentenceBuckets.byStatus[TokenStatus.UNCOLLECTED],
-            uncollectedSentenceTokenCount
+            sentenceState.uncollectedTokens
         );
-
         if (uncollectedBucket) {
             uncollectedBucket.count += 1;
             uncollectedBucket.entries.push(
-                sentenceBucketEntry(sentenceState, uncollectedSentenceTokenKeys, uniqueTokens)
+                sentenceBucketEntry(sentenceState, sentenceState.uncollectedTokenKeys, uniqueTokens)
             );
         }
     }
 
     return sentenceBuckets;
+}
+
+function evaluatedSentenceStatesForTrack(
+    ts: TrackState,
+    projectedStatuses?: Map<string, TokenStatus>
+): EvaluatedSentenceState[] {
+    return Array.from(ts.sentenceStates.values(), (sentenceState) =>
+        evaluateSentenceState(sentenceState, ts.uniqueTokens, projectedStatuses)
+    );
+}
+
+function sentenceTotals(sentenceStates: EvaluatedSentenceState[]): DictionaryStatisticsSentenceTotals {
+    const totalWords = sentenceStates.reduce((sum, sentenceState) => sum + sentenceState.consideredTokens, 0);
+    const totalKnownWords = sentenceStates.reduce((sum, sentenceState) => sum + sentenceState.knownTokens, 0);
+
+    return {
+        processedSentenceCount: sentenceStates.length,
+        totalWords,
+        totalKnownWords,
+        statusCounts: sentenceStates.map((sentenceState) => sentenceState.statusCounts),
+    };
 }
 
 function buildRewatchSnapshots(ts: TrackState): DictionaryStatisticsRewatchSnapshot[] {
@@ -341,19 +361,15 @@ function buildRewatchSnapshots(ts: TrackState): DictionaryStatisticsRewatchSnaps
 
     while (true) {
         const tokensToPromote = new Set<string>();
-
         for (const sentenceState of ts.sentenceStates.values()) {
             const evaluated = evaluateSentenceState(sentenceState, ts.uniqueTokens, projectedStatuses);
             const isIPlusOneUncollected =
                 evaluated.consideredTokens > 0 && evaluated.knownTokens === evaluated.consideredTokens - 1;
-
             if (!isIPlusOneUncollected) continue;
-
             if (evaluated.uncollectedTokenKeys.length === 1 && evaluated.unknownTokens === 0) {
                 tokensToPromote.add(evaluated.uncollectedTokenKeys[0]);
             }
         }
-
         if (!tokensToPromote.size) break;
 
         for (const tokenKey of tokensToPromote) {
@@ -363,16 +379,13 @@ function buildRewatchSnapshots(ts: TrackState): DictionaryStatisticsRewatchSnaps
             }
         }
 
-        const evaluatedSentenceStates = Array.from(ts.sentenceStates.values(), (sentenceState) =>
-            evaluateSentenceState(sentenceState, ts.uniqueTokens, projectedStatuses)
-        );
+        const evaluatedSentenceStates = evaluatedSentenceStatesForTrack(ts, projectedStatuses);
         const sentenceBuckets = buildSentenceBucketData(evaluatedSentenceStates, ts.uniqueTokens);
+        const currentSentenceTotals = sentenceTotals(evaluatedSentenceStates);
         const statusCounts = emptyStatusCounts();
         let numKnownTokens = 0;
-
         for (const [tokenKey, token] of ts.uniqueTokens.entries()) {
             if (token.ignored) continue;
-
             const status = projectedStatuses.get(tokenKey) ?? token.status;
             statusCounts[status].numUnique += 1;
             statusCounts[status].numOccurrences += token.numOccurrences;
@@ -383,6 +396,7 @@ function buildRewatchSnapshots(ts: TrackState): DictionaryStatisticsRewatchSnaps
             rewatch: rewatchSnapshots.length + 1,
             numKnownTokens,
             numDictionaryKnownTokens: ts.numDictionaryKnownTokens + (numKnownTokens - currentKnownTokens),
+            sentenceTotals: currentSentenceTotals,
             statusCounts,
             sentenceBuckets,
         });
@@ -425,6 +439,8 @@ export class DictionaryStatistics {
     init(track: number, total: number): void {
         this.trackStates.set(track, {
             numDictionaryKnownTokens: 0,
+            numDictionaryIgnoredTokens: 0,
+            statusColors: statusColorsFromConfig([]),
             progress: { current: 0, total, startedAt: Date.now() },
             uniqueTokens: new Map(),
             sentenceStates: new Map(),
@@ -448,42 +464,32 @@ export class DictionaryStatistics {
                 if (!dictionaryTrackEnabled(dt)) return;
                 const ts = this.trackStates.get(track);
                 if (!ts) throw new Error(`Track ${track} not initialized for dictionary statistics`);
-                const numDictionaryKnownTokens = await this.dictionaryProvider.countKnownTokens(
+                const { knownTokens, ignoredTokens } = await this.dictionaryProvider.countTokens(
                     profile,
                     track,
                     settings
                 );
-                ts.numDictionaryKnownTokens = numDictionaryKnownTokens;
+                ts.numDictionaryKnownTokens = knownTokens;
+                ts.numDictionaryIgnoredTokens = ignoredTokens;
+                ts.statusColors = statusColorsFromConfig(dt.dictionaryTokenStatusConfig);
                 await this._publish(this._snapshot(), startTime);
             })
         );
     }
 
-    async ingest(track: number, tokens: Token[], sentence: DictionaryStatisticsSentence, yt: Yomitan): Promise<void> {
+    async ingest(track: number, tokens: Token[], sentence: DictionaryStatisticsSentence): Promise<void> {
         const ts = this.trackStates.get(track);
         if (!ts) throw new Error(`Track ${track} not initialized for dictionary statistics`);
-        const sentenceText = sentence.text;
 
         // Aggregate unique tokens in this sentence
         const uniqueTokens = new Map<string, Token>();
         const uniqueTokenOccurrences = new Map<string, number>();
         for (const token of tokens) {
-            let uniqueTokenKey = sentenceText.substring(token.pos[0], token.pos[1]);
-            if (!HAS_LETTER_REGEX.test(uniqueTokenKey)) continue;
+            if (!token.groupingKey) continue;
+            const tokenText = sentence.text.substring(token.pos[0], token.pos[1]);
+            if (!HAS_LETTER_REGEX.test(tokenText)) continue;
 
-            const lemmas = await yt.lemmatize(uniqueTokenKey);
-            if (lemmas?.length) {
-                let foundLemma = false;
-                for (const lemma of lemmas) {
-                    if (uniqueTokens.has(lemma) || ts.uniqueTokens.has(lemma)) {
-                        uniqueTokenKey = lemma;
-                        foundLemma = true;
-                        break;
-                    }
-                }
-                if (!foundLemma) uniqueTokenKey = lemmas[0];
-            }
-
+            const uniqueTokenKey = token.groupingKey;
             uniqueTokenOccurrences.set(uniqueTokenKey, (uniqueTokenOccurrences.get(uniqueTokenKey) ?? 0) + 1);
             const existing = uniqueTokens.get(uniqueTokenKey);
             if (!existing) {
@@ -516,10 +522,6 @@ export class DictionaryStatistics {
             sentence: dictionaryStatisticsSentence(sentence),
             uniqueTokensKeys: [],
             uniqueTokenOccurrences,
-            consideredTokens: 0,
-            knownTokens: 0,
-            unknownTokens: 0,
-            uncollectedTokens: 0,
         };
         for (const [uniqueTokenKey, token] of uniqueTokens.entries()) {
             ss.uniqueTokensKeys.push(uniqueTokenKey);
@@ -543,12 +545,6 @@ export class DictionaryStatistics {
                     numSentenceReferences: 1,
                 });
             }
-            if (ignored) continue;
-
-            ss.consideredTokens += 1;
-            if (isTokenStatusKnown(status)) ss.knownTokens += 1;
-            if (status === TokenStatus.UNKNOWN) ss.unknownTokens += 1;
-            if (status === TokenStatus.UNCOLLECTED) ss.uncollectedTokens += 1;
         }
         ts.sentenceStates.set(sentence.index, ss);
     }
@@ -561,10 +557,13 @@ export class DictionaryStatistics {
                 .map(([track, ts]) => {
                     const statusCounts = emptyStatusCounts();
                     const frequencyCounts: number[] = new Array(dictionaryStatisticsFrequencyBuckets.length).fill(0);
+                    const frequencyKnownCounts = new Array(dictionaryStatisticsFrequencyBuckets.length).fill(0);
                     const frequencyOccurrenceCounts = new Array(dictionaryStatisticsFrequencyBuckets.length).fill(0);
                     let overflowFrequencyCount = 0;
+                    let overflowFrequencyKnownCount = 0;
                     let overflowFrequencyOccurrences = 0;
                     let unknownFrequencyCount = 0;
+                    let unknownFrequencyKnownCount = 0;
                     let unknownFrequencyOccurrences = 0;
                     let numIgnoredTokens = 0;
                     let numIgnoredOccurrences = 0;
@@ -576,12 +575,15 @@ export class DictionaryStatistics {
                             numIgnoredOccurrences += token.numOccurrences;
                             continue;
                         }
+
                         statusCounts[token.status].numUnique += 1;
                         statusCounts[token.status].numOccurrences += token.numOccurrences;
-                        if (isTokenStatusKnown(token.status)) numKnownTokens += 1;
+                        const knownToken = isTokenStatusKnown(token.status);
+                        if (knownToken) numKnownTokens += 1;
 
                         if (token.frequency == null) {
                             unknownFrequencyCount += 1;
+                            if (knownToken) unknownFrequencyKnownCount += 1;
                             unknownFrequencyOccurrences += token.numOccurrences;
                             continue;
                         }
@@ -589,22 +591,21 @@ export class DictionaryStatistics {
                         for (let i = 0; i < dictionaryStatisticsFrequencyBuckets.length; ++i) {
                             if (token.frequency > dictionaryStatisticsFrequencyBuckets[i]) continue;
                             frequencyCounts[i] += 1;
+                            if (knownToken) frequencyKnownCounts[i] += 1;
                             frequencyOccurrenceCounts[i] += token.numOccurrences;
                             isOverflow = false;
                             break;
                         }
                         if (isOverflow) {
                             overflowFrequencyCount += 1;
+                            if (knownToken) overflowFrequencyKnownCount += 1;
                             overflowFrequencyOccurrences += token.numOccurrences;
                         }
                     }
 
-                    const sentenceBuckets = buildSentenceBucketData(
-                        Array.from(ts.sentenceStates.values(), (sentenceState) =>
-                            evaluateSentenceState(sentenceState, ts.uniqueTokens)
-                        ),
-                        ts.uniqueTokens
-                    );
+                    const evaluatedSentenceStates = evaluatedSentenceStatesForTrack(ts);
+                    const sentenceBuckets = buildSentenceBucketData(evaluatedSentenceStates, ts.uniqueTokens);
+                    const currentSentenceTotals = sentenceTotals(evaluatedSentenceStates);
                     const rewatchSnapshots = buildRewatchSnapshots(ts);
 
                     const frequencyBuckets: DictionaryStatisticsFrequencyBucket[] =
@@ -613,28 +614,34 @@ export class DictionaryStatistics {
                             return {
                                 label: prev === undefined ? `1-${curr}` : `${prev + 1}-${curr}`,
                                 count: frequencyCounts[index],
+                                knownCount: frequencyKnownCounts[index],
                                 occurrences: frequencyOccurrenceCounts[index],
                             };
                         });
                     frequencyBuckets.push({
                         label: `${dictionaryStatisticsFrequencyBuckets[dictionaryStatisticsFrequencyBuckets.length - 1]}+`,
                         count: overflowFrequencyCount,
+                        knownCount: overflowFrequencyKnownCount,
                         occurrences: overflowFrequencyOccurrences,
                     });
                     frequencyBuckets.push({
                         label: 'Unknown',
                         count: unknownFrequencyCount,
+                        knownCount: unknownFrequencyKnownCount,
                         occurrences: unknownFrequencyOccurrences,
                     });
 
                     return {
                         track,
                         progress: ts.progress,
+                        statusColors: ts.statusColors,
                         numDictionaryKnownTokens: ts.numDictionaryKnownTokens,
+                        numDictionaryIgnoredTokens: ts.numDictionaryIgnoredTokens,
                         numUniqueTokens: ts.uniqueTokens.size,
                         numIgnoredTokens,
                         numIgnoredOccurrences,
                         numKnownTokens,
+                        sentenceTotals: currentSentenceTotals,
                         statusCounts,
                         frequencyBuckets,
                         sentenceBuckets,

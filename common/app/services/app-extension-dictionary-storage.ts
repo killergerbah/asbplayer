@@ -86,8 +86,8 @@ export class AppExtensionDictionaryStorage implements DictionaryStorage {
         return this._extension.dictionaryImportRecordLocalBulk(records, profiles);
     }
 
-    countKnownTokens(profile: string | undefined, track: number, settings: AsbplayerSettings) {
-        return this._extension.dictionaryCountKnownTokens(profile, track, settings);
+    countTokens(profile: string | undefined, track: number, settings: AsbplayerSettings) {
+        return this._extension.dictionaryCountTokens(profile, track, settings);
     }
 
     buildAnkiCache(profile: string | undefined, settings: AsbplayerSettings) {

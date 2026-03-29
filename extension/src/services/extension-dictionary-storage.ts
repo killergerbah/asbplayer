@@ -4,7 +4,7 @@ import {
     DictionaryBuildAnkiCacheMessage,
     DictionaryBuildAnkiCacheState,
     DictionaryBuildAnkiCacheStateMessage,
-    DictionaryCountKnownTokensMessage,
+    DictionaryCountTokensMessage,
     DictionaryDBCommand,
     DictionaryDeleteProfileMessage,
     DictionaryDeleteRecordLocalBulkMessage,
@@ -162,11 +162,11 @@ export class ExtensionDictionaryStorage implements DictionaryStorage {
         return browser.runtime.sendMessage(message);
     }
 
-    countKnownTokens(profile: string | undefined, track: number, settings: AsbplayerSettings) {
-        const message: DictionaryDBCommand<DictionaryCountKnownTokensMessage> = {
+    countTokens(profile: string | undefined, track: number, settings: AsbplayerSettings) {
+        const message: DictionaryDBCommand<DictionaryCountTokensMessage> = {
             sender: 'asbplayer-dictionary',
             message: {
-                command: 'dictionary-count-known-tokens',
+                command: 'dictionary-count-tokens',
                 messageId: uuidv4(),
                 profile,
                 track,

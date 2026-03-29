@@ -3,7 +3,7 @@ import {
     DictionaryBuildAnkiCacheMessage,
     DictionaryBuildAnkiCacheState,
     DictionaryBuildAnkiCacheStateMessage,
-    DictionaryCountKnownTokensMessage,
+    DictionaryCountTokensMessage,
     DictionaryImportRecordLocalBulkMessage,
     ExtensionToAsbPlayerCommand,
     Message,
@@ -87,10 +87,10 @@ export default class DictionaryHandler {
                     .then((result) => sendResponse(result));
                 return true;
             }
-            case 'dictionary-count-known-tokens': {
-                const message = command.message as DictionaryCountKnownTokensMessage;
+            case 'dictionary-count-tokens': {
+                const message = command.message as DictionaryCountTokensMessage;
                 this.dictionaryDB
-                    .countKnownTokens(message.profile, message.track, message.settings)
+                    .countTokens(message.profile, message.track, message.settings)
                     .then((result) => sendResponse(result));
                 return true;
             }

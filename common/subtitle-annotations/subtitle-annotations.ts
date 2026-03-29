@@ -61,6 +61,11 @@ interface TokenStatusResult {
     token?: string; // For any form filtering
 }
 
+interface ResolvedTokenStatusResult {
+    status: TokenStatus;
+    source?: DictionaryTokenSource;
+}
+
 interface TrackState {
     track: number;
     dt: DictionaryTrack;
@@ -81,6 +86,26 @@ function shouldUseLemmaForm(s: TokenMatchStrategy): boolean {
 
 function shouldUseAnyForm(s: TokenMatchStrategy): boolean {
     return s === TokenMatchStrategy.ANY_FORM_COLLECTED;
+}
+
+function shouldUseLemmaGroupingKey(source: DictionaryTokenSource | undefined, dt: DictionaryTrack): boolean {
+    const strategy =
+        source === DictionaryTokenSource.ANKI_SENTENCE
+            ? dt.dictionaryAnkiSentenceTokenMatchStrategy
+            : dt.dictionaryTokenMatchStrategy;
+    return strategy === TokenMatchStrategy.ANY_FORM_COLLECTED || strategy === TokenMatchStrategy.LEMMA_FORM_COLLECTED;
+}
+
+function groupingKeyForToken(
+    trimmedToken: string,
+    lemmas: string[],
+    source: DictionaryTokenSource | undefined,
+    dt: DictionaryTrack
+): string {
+    // if (lemmas.length && shouldUseLemmaGroupingKey(source, dt)) {
+    //     return `lemma:${JSON.stringify(Array.from(new Set(lemmas)).sort())}`;
+    // }
+    return `token:${trimmedToken}`; // Using lemma causes the sentence status to disagree with richText (e.g. "Known sentences" have unknown tokens displayed but they are actually known due to their lemmas).
 }
 
 export function getCardTokenStatus(
@@ -706,7 +731,7 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
                                             this.trackStates.map((ts) => ts.dt)
                                         );
                                         const tokens = tokenization.tokens;
-                                        await this.dictionaryStatistics.ingest(track, tokens, sentence, ts.yt!); // Treat the entire source entry as a single sentence
+                                        await this.dictionaryStatistics.ingest(track, tokens, sentence); // Treat the entire source entry as a single sentence
                                         if (
                                             tokens.every(
                                                 (t) =>
@@ -970,17 +995,19 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
                         }
 
                         const states = ts.tokenStates.get(trimmedToken) ?? [];
+                        const { status, source } =
+                            states.includes(TokenState.IGNORED) || !HAS_LETTER_REGEX.test(trimmedToken)
+                                ? { status: getFullyKnownTokenStatus() }
+                                : ((await this._tokenStatus(trimmedToken, ts)) ?? { status: null });
                         const token: Token = {
                             pos: [existingToken.pos[0], existingToken.pos[1]],
                             readings: existingToken.readings.map((r) => ({
                                 pos: [r.pos[0], r.pos[1]],
                                 reading: r.reading,
                             })),
+                            status,
                             states,
-                            status:
-                                states.includes(TokenState.IGNORED) || !HAS_LETTER_REGEX.test(trimmedToken)
-                                    ? getFullyKnownTokenStatus()
-                                    : await this._tokenStatus(trimmedToken, ts),
+                            groupingKey: groupingKeyForToken(trimmedToken, lemmas, source, ts.dt),
                         };
                         if (token.status === null) this.erroredCache.add(index);
                         await this._updateFrequency(token, trimmedToken, index, ts);
@@ -1069,9 +1096,12 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
                 // Build token status
                 if (token.states.includes(TokenState.IGNORED) || !HAS_LETTER_REGEX.test(trimmedToken)) {
                     token.status = getFullyKnownTokenStatus();
+                    token.groupingKey = groupingKeyForToken(trimmedToken, lemmas, undefined, ts.dt);
                     continue;
                 }
-                token.status = await this._tokenStatus(trimmedToken, ts);
+                const { status, source } = (await this._tokenStatus(trimmedToken, ts)) ?? { status: null };
+                token.status = status;
+                token.groupingKey = groupingKeyForToken(trimmedToken, lemmas, source, ts.dt);
                 if (token.status === null) this.erroredCache.add(index);
                 await this._updateFrequency(token, trimmedToken, index, ts);
                 if (this.shouldCancelBuild) return;
@@ -1100,7 +1130,7 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
         }
     }
 
-    private async _tokenStatus(trimmedToken: string, ts: TrackState): Promise<TokenStatus | null> {
+    private async _tokenStatus(trimmedToken: string, ts: TrackState): Promise<ResolvedTokenStatusResult | null> {
         if (!ts.yt) throw new Error('Yomitan uninitialized - cannot calculate token status');
         switch (ts.dt.dictionaryTokenMatchStrategyPriority) {
             case TokenMatchStrategyPriority.EXACT:
@@ -1116,11 +1146,14 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
         }
     }
 
-    private async _handlePriorityExact(trimmedToken: string, ts: TrackState): Promise<TokenStatus | null> {
+    private async _handlePriorityExact(
+        trimmedToken: string,
+        ts: TrackState
+    ): Promise<ResolvedTokenStatusResult | null> {
         if (shouldUseExactForm(ts.dt.dictionaryTokenMatchStrategy)) {
             const tokenStatusResult = ts.collectedExactForm.get(trimmedToken);
             if (tokenStatusResult && tokenStatusResult.source !== DictionaryTokenSource.ANKI_SENTENCE) {
-                return tokenStatusResult.status;
+                return tokenStatusResult;
             }
         }
         if (shouldUseLemmaForm(ts.dt.dictionaryTokenMatchStrategy)) {
@@ -1134,7 +1167,12 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
                     lemmaStatusResults.push(lemmaStatusResult);
                 }
             }
-            if (lemmaStatusResults.length) return Math.max(...lemmaStatusResults.map((r) => r.status));
+            if (lemmaStatusResults.length) {
+                return {
+                    status: Math.max(...lemmaStatusResults.map((r) => r.status)),
+                    source: lemmaStatusResults[0].source,
+                };
+            }
         }
         if (shouldUseAnyForm(ts.dt.dictionaryTokenMatchStrategy)) {
             const lemmas = await ts.yt!.lemmatize(trimmedToken);
@@ -1152,15 +1190,28 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
             }
             if (anyFormStatusResults.length) {
                 const exactMatches = anyFormStatusResults.filter((r) => r.token === trimmedToken);
-                if (exactMatches.length) return Math.max(...exactMatches.map((r) => r.status));
+                if (exactMatches.length) {
+                    return {
+                        status: Math.max(...exactMatches.map((r) => r.status)),
+                        source: exactMatches[0].source,
+                    };
+                }
                 const lemmaMatches = anyFormStatusResults.filter((r) => lemmas.includes(r.token!));
-                if (lemmaMatches.length) return Math.max(...lemmaMatches.map((r) => r.status));
-                return Math.max(...anyFormStatusResults.map((r) => r.status));
+                if (lemmaMatches.length) {
+                    return {
+                        status: Math.max(...lemmaMatches.map((r) => r.status)),
+                        source: lemmaMatches[0].source,
+                    };
+                }
+                return {
+                    status: Math.max(...anyFormStatusResults.map((r) => r.status)),
+                    source: anyFormStatusResults[0].source,
+                };
             }
         }
         if (shouldUseExactForm(ts.dt.dictionaryAnkiSentenceTokenMatchStrategy)) {
             const tokenStatusResult = ts.collectedExactForm.get(trimmedToken);
-            if (tokenStatusResult?.source === DictionaryTokenSource.ANKI_SENTENCE) return tokenStatusResult.status;
+            if (tokenStatusResult?.source === DictionaryTokenSource.ANKI_SENTENCE) return tokenStatusResult;
         }
         if (shouldUseLemmaForm(ts.dt.dictionaryAnkiSentenceTokenMatchStrategy)) {
             const lemmas = await ts.yt!.lemmatize(trimmedToken);
@@ -1173,7 +1224,12 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
                     lemmaStatusResults.push(lemmaStatusResult);
                 }
             }
-            if (lemmaStatusResults.length) return Math.max(...lemmaStatusResults.map((r) => r.status));
+            if (lemmaStatusResults.length) {
+                return {
+                    status: Math.max(...lemmaStatusResults.map((r) => r.status)),
+                    source: lemmaStatusResults[0].source,
+                };
+            }
         }
         if (shouldUseAnyForm(ts.dt.dictionaryAnkiSentenceTokenMatchStrategy)) {
             const lemmas = await ts.yt!.lemmatize(trimmedToken);
@@ -1191,16 +1247,32 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
             }
             if (anyFormStatusResults.length) {
                 const exactMatches = anyFormStatusResults.filter((r) => r.token === trimmedToken);
-                if (exactMatches.length) return Math.max(...exactMatches.map((r) => r.status));
+                if (exactMatches.length) {
+                    return {
+                        status: Math.max(...exactMatches.map((r) => r.status)),
+                        source: exactMatches[0].source,
+                    };
+                }
                 const lemmaMatches = anyFormStatusResults.filter((r) => lemmas.includes(r.token!));
-                if (lemmaMatches.length) return Math.max(...lemmaMatches.map((r) => r.status));
-                return Math.max(...anyFormStatusResults.map((r) => r.status));
+                if (lemmaMatches.length) {
+                    return {
+                        status: Math.max(...lemmaMatches.map((r) => r.status)),
+                        source: lemmaMatches[0].source,
+                    };
+                }
+                return {
+                    status: Math.max(...anyFormStatusResults.map((r) => r.status)),
+                    source: anyFormStatusResults[0].source,
+                };
             }
         }
-        return TokenStatus.UNCOLLECTED;
+        return { status: TokenStatus.UNCOLLECTED };
     }
 
-    private async _handlePriorityLemma(trimmedToken: string, ts: TrackState): Promise<TokenStatus | null> {
+    private async _handlePriorityLemma(
+        trimmedToken: string,
+        ts: TrackState
+    ): Promise<ResolvedTokenStatusResult | null> {
         if (shouldUseLemmaForm(ts.dt.dictionaryTokenMatchStrategy)) {
             const lemmas = await ts.yt!.lemmatize(trimmedToken);
             if (this.shouldCancelBuild) return null;
@@ -1212,12 +1284,17 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
                     lemmaStatusResults.push(lemmaStatusResult);
                 }
             }
-            if (lemmaStatusResults.length) return Math.max(...lemmaStatusResults.map((r) => r.status));
+            if (lemmaStatusResults.length) {
+                return {
+                    status: Math.max(...lemmaStatusResults.map((r) => r.status)),
+                    source: lemmaStatusResults[0].source,
+                };
+            }
         }
         if (shouldUseExactForm(ts.dt.dictionaryTokenMatchStrategy)) {
             const tokenStatusResult = ts.collectedExactForm.get(trimmedToken);
             if (tokenStatusResult && tokenStatusResult.source !== DictionaryTokenSource.ANKI_SENTENCE) {
-                return tokenStatusResult.status;
+                return tokenStatusResult;
             }
         }
         if (shouldUseAnyForm(ts.dt.dictionaryTokenMatchStrategy)) {
@@ -1236,10 +1313,23 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
             }
             if (anyFormStatusResults.length) {
                 const lemmaMatches = anyFormStatusResults.filter((r) => lemmas.includes(r.token!));
-                if (lemmaMatches.length) return Math.max(...lemmaMatches.map((r) => r.status));
+                if (lemmaMatches.length) {
+                    return {
+                        status: Math.max(...lemmaMatches.map((r) => r.status)),
+                        source: lemmaMatches[0].source,
+                    };
+                }
                 const exactMatches = anyFormStatusResults.filter((r) => r.token === trimmedToken);
-                if (exactMatches.length) return Math.max(...exactMatches.map((r) => r.status));
-                return Math.max(...anyFormStatusResults.map((r) => r.status));
+                if (exactMatches.length) {
+                    return {
+                        status: Math.max(...exactMatches.map((r) => r.status)),
+                        source: exactMatches[0].source,
+                    };
+                }
+                return {
+                    status: Math.max(...anyFormStatusResults.map((r) => r.status)),
+                    source: anyFormStatusResults[0].source,
+                };
             }
         }
         if (shouldUseLemmaForm(ts.dt.dictionaryAnkiSentenceTokenMatchStrategy)) {
@@ -1253,11 +1343,16 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
                     lemmaStatusResults.push(lemmaStatusResult);
                 }
             }
-            if (lemmaStatusResults.length) return Math.max(...lemmaStatusResults.map((r) => r.status));
+            if (lemmaStatusResults.length) {
+                return {
+                    status: Math.max(...lemmaStatusResults.map((r) => r.status)),
+                    source: lemmaStatusResults[0].source,
+                };
+            }
         }
         if (shouldUseExactForm(ts.dt.dictionaryAnkiSentenceTokenMatchStrategy)) {
             const tokenStatusResult = ts.collectedExactForm.get(trimmedToken);
-            if (tokenStatusResult?.source === DictionaryTokenSource.ANKI_SENTENCE) return tokenStatusResult.status;
+            if (tokenStatusResult?.source === DictionaryTokenSource.ANKI_SENTENCE) return tokenStatusResult;
         }
         if (shouldUseAnyForm(ts.dt.dictionaryAnkiSentenceTokenMatchStrategy)) {
             const lemmas = await ts.yt!.lemmatize(trimmedToken);
@@ -1275,26 +1370,39 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
             }
             if (anyFormStatusResults.length) {
                 const lemmaMatches = anyFormStatusResults.filter((r) => lemmas.includes(r.token!));
-                if (lemmaMatches.length) return Math.max(...lemmaMatches.map((r) => r.status));
+                if (lemmaMatches.length) {
+                    return {
+                        status: Math.max(...lemmaMatches.map((r) => r.status)),
+                        source: lemmaMatches[0].source,
+                    };
+                }
                 const exactMatches = anyFormStatusResults.filter((r) => r.token === trimmedToken);
-                if (exactMatches.length) return Math.max(...exactMatches.map((r) => r.status));
-                return Math.max(...anyFormStatusResults.map((r) => r.status));
+                if (exactMatches.length) {
+                    return {
+                        status: Math.max(...exactMatches.map((r) => r.status)),
+                        source: exactMatches[0].source,
+                    };
+                }
+                return {
+                    status: Math.max(...anyFormStatusResults.map((r) => r.status)),
+                    source: anyFormStatusResults[0].source,
+                };
             }
         }
-        return TokenStatus.UNCOLLECTED;
+        return { status: TokenStatus.UNCOLLECTED };
     }
 
     private async _handlePriorityKnown(
         trimmedToken: string,
         ts: TrackState,
         cmp: (tokenStatuses: TokenStatus[]) => TokenStatus
-    ): Promise<TokenStatus | null> {
-        const tokenStatuses: TokenStatus[] = [];
+    ): Promise<ResolvedTokenStatusResult | null> {
+        const tokenStatusResults: TokenStatusResult[] = [];
 
         if (shouldUseExactForm(ts.dt.dictionaryTokenMatchStrategy)) {
             const tokenStatusResult = ts.collectedExactForm.get(trimmedToken);
             if (tokenStatusResult && tokenStatusResult.source !== DictionaryTokenSource.ANKI_SENTENCE) {
-                tokenStatuses.push(tokenStatusResult.status);
+                tokenStatusResults.push(tokenStatusResult);
             }
         }
         if (shouldUseLemmaForm(ts.dt.dictionaryTokenMatchStrategy)) {
@@ -1304,7 +1412,7 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
             for (const lemma of lemmas) {
                 const lemmaStatusResult = ts.collectedLemmaForm.get(lemma);
                 if (lemmaStatusResult && lemmaStatusResult.source !== DictionaryTokenSource.ANKI_SENTENCE) {
-                    tokenStatuses.push(lemmaStatusResult.status);
+                    tokenStatusResults.push(lemmaStatusResult);
                 }
             }
         }
@@ -1317,17 +1425,22 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
                 if (!statusResults) continue;
                 for (const statusResult of statusResults) {
                     if (statusResult.source !== DictionaryTokenSource.ANKI_SENTENCE) {
-                        tokenStatuses.push(statusResult.status);
+                        tokenStatusResults.push(statusResult);
                     }
                 }
             }
         }
-        if (tokenStatuses.length) return cmp(tokenStatuses);
+        if (tokenStatusResults.length) {
+            return {
+                status: cmp(tokenStatusResults.map((r) => r.status)),
+                source: tokenStatusResults[0].source,
+            };
+        }
 
         if (shouldUseExactForm(ts.dt.dictionaryAnkiSentenceTokenMatchStrategy)) {
             const tokenStatusResult = ts.collectedExactForm.get(trimmedToken);
             if (tokenStatusResult?.source === DictionaryTokenSource.ANKI_SENTENCE) {
-                tokenStatuses.push(tokenStatusResult.status);
+                tokenStatusResults.push(tokenStatusResult);
             }
         }
         if (shouldUseLemmaForm(ts.dt.dictionaryAnkiSentenceTokenMatchStrategy)) {
@@ -1337,7 +1450,7 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
             for (const lemma of lemmas) {
                 const lemmaStatusResult = ts.collectedLemmaForm.get(lemma);
                 if (lemmaStatusResult?.source === DictionaryTokenSource.ANKI_SENTENCE) {
-                    tokenStatuses.push(lemmaStatusResult.status);
+                    tokenStatusResults.push(lemmaStatusResult);
                 }
             }
         }
@@ -1350,14 +1463,19 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
                 if (!anyFormStatusResult) continue;
                 for (const statusResult of anyFormStatusResult) {
                     if (statusResult.source === DictionaryTokenSource.ANKI_SENTENCE) {
-                        tokenStatuses.push(statusResult.status);
+                        tokenStatusResults.push(statusResult);
                     }
                 }
             }
         }
-        if (tokenStatuses.length) return cmp(tokenStatuses);
+        if (tokenStatusResults.length) {
+            return {
+                status: cmp(tokenStatusResults.map((r) => r.status)),
+                source: tokenStatusResults[0].source,
+            };
+        }
 
-        return TokenStatus.UNCOLLECTED;
+        return { status: TokenStatus.UNCOLLECTED };
     }
 
     unbind() {

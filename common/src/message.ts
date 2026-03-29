@@ -943,8 +943,8 @@ export interface SaveTokenLocalToVideoMessage extends Message {
     readonly applyStates: ApplyStrategy;
 }
 
-export interface DictionaryCountKnownTokensMessage extends MessageWithId {
-    readonly command: 'dictionary-count-known-tokens';
+export interface DictionaryCountTokensMessage extends MessageWithId {
+    readonly command: 'dictionary-count-tokens';
     readonly profile: string | undefined;
     readonly track: number;
     readonly settings: AsbplayerSettings;

@@ -617,6 +617,7 @@ const areTokensEqual = (aToken: any, bToken: any) => {
     if (!arrayEquals(aToken.states, bToken.states)) return false;
     if (!arrayEquals(aToken.readings, bToken.readings, areTokenReadingsEqual)) return false;
     if (aToken.frequency !== bToken.frequency) return false;
+    if (aToken.groupingKey !== bToken.groupingKey) return false;
     return true;
 };
 

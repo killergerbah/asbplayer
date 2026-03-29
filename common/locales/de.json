@@ -550,6 +550,9 @@
         "empty": "No statistics have been generated for the current sentences yet.",
         "uniqueWords": "Unique words",
         "knownWords": "Known words",
+        "uniqueWordsPerSentence": "Unique words per sentence",
+        "knownWordsPerSentence": "Known words per sentence",
+        "comprehensionDistribution": "Comprehension distribution",
         "globalKnownWords": "Global known words",
         "comprehension": "Comprehension",
         "wordDistribution": "Word distribution (occurrences)",
@@ -567,16 +570,17 @@
         "sortByOccurrences": "Most occurrences",
         "matchingSentences": "Matching sentences",
         "sentenceDetailsEmpty": "No sentences matched this bucket.",
-        "noMoreRewatches": "There will be no more mining after all I+1 sentences this session.",
+        "noMoreRewatches": "There will be no more mining after all i+1 sentences this session.",
         "totalSentences": "Total sentences",
         "knownSentences": "Known sentences",
         "info": {
             "comprehension": "How many unique words are known, weighted by status and occurrences.",
             "globalKnownWords": "How many words are known including locally stored words and Anki.",
             "wordDistribution": "How unique words are distributed across status and frequency.",
+            "frequency": "Frequency: The rank-based frequency from your frequency dictionaries for known and all words.",
             "occurrences": "Occurrences: The total number of times a word appears.",
             "sentenceStatistics": "How easily this content can be mined.",
-            "projectedRewatch": "Assumes all I+1 uncollected sentences were mined from the previous watch."
+            "projectedRewatch": "Assumes all i+1 uncollected sentences were mined from the previous watch."
         }
     },
     "subtitlePlayer": {

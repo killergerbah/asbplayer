@@ -31,6 +31,7 @@ export interface Token {
     status?: TokenStatus | null; // null means "error"
     readings: TokenReading[];
     frequency?: number | null; // null means no frequency data
+    groupingKey?: string; // Stable key for equivalence aggregation
 }
 
 export interface Tokenization {

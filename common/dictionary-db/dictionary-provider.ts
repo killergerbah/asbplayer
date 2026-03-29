@@ -1,6 +1,7 @@
 import {
     DictionaryLocalTokenInput,
     DictionaryTokenRecord,
+    DictionaryTokenCounts,
     DictionaryExportRecordLocalResult,
     DictionaryImportRecordLocalResult,
     LemmaResults,
@@ -32,7 +33,11 @@ export interface DictionaryStorage {
         records: Partial<DictionaryTokenRecord>[],
         profiles: string[]
     ) => Promise<DictionaryImportRecordLocalResult>;
-    countKnownTokens: (profile: string | undefined, track: number, settings: AsbplayerSettings) => Promise<number>;
+    countTokens: (
+        profile: string | undefined,
+        track: number,
+        settings: AsbplayerSettings
+    ) => Promise<DictionaryTokenCounts>;
     buildAnkiCache: (profile: string | undefined, settings: AsbplayerSettings) => Promise<void>;
     ankiCardWasModified: () => void;
     onAnkiCardModified: (callback: () => void) => () => void;
@@ -94,8 +99,8 @@ export class DictionaryProvider {
         return this._storage.importRecordLocalBulk(records, profiles);
     }
 
-    countKnownTokens(profile: string | undefined, track: number, settings: AsbplayerSettings) {
-        return this._storage.countKnownTokens(profile, track, settings);
+    countTokens(profile: string | undefined, track: number, settings: AsbplayerSettings) {
+        return this._storage.countTokens(profile, track, settings);
     }
 
     buildAnkiCache(profile: string | undefined, settings: AsbplayerSettings) {
