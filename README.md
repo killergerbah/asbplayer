@@ -127,15 +127,15 @@ Thank you to all those who have translated asbplayer:
 
 **Mana Tsutsumi** (Japanese, initial translation),
 **Kai Böse** (German),
-**Triline**, **nekorushi** (Polish),
+**Triline**, **[@nekorushi](https://github.com/nekorushi)** (Polish),
 **NeverWinterSwor** (Simplified Chinese),
-**Yagxter**, **Chatterine** (Brazilian Portuguese),
+**Yagxter**, **[@chatterine](https://github.com/chatterine)** (Brazilian Portuguese),
 **Leo Gonzalez** (Spanish),
-**Yuri (ganqqwerty)** (Russian),
+**Yuri ([@ganqqwerty](https://github.com/ganqqwerty))** (Russian),
 **Kellen (kputuhuk)** (Russian),
 **Vladislav Kochetkov (vakochetkov)** (Russian),
-**825i** (Finnish),
-**Jaybird1291** (French),
+**[@825i](https://github.com/825i)** (Finnish),
+**[@Jaybird1291](https://github.com/jaybird1291)** (French),
 **Tigerbabe aka Gyaru Jinsei Juku** (Korean),
 **yaacha** (Indonesian)
 
