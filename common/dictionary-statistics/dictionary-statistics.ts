@@ -33,6 +33,7 @@ export interface DictionaryStatisticsTokenStatusCount {
 }
 
 export type DictionaryStatisticsTokenStatusCounts = Record<TokenStatus, DictionaryStatisticsTokenStatusCount>;
+export type DictionaryStatisticsFrequencyBucketStatusCounts = Record<TokenStatus, number>;
 
 function emptyStatusCounts(): DictionaryStatisticsTokenStatusCounts {
     const counts = {} as DictionaryStatisticsTokenStatusCounts;
@@ -41,6 +42,14 @@ function emptyStatusCounts(): DictionaryStatisticsTokenStatusCounts {
             numUnique: 0,
             numOccurrences: 0,
         };
+    }
+    return counts;
+}
+
+function emptyFrequencyBucketStatusCounts(): DictionaryStatisticsFrequencyBucketStatusCounts {
+    const counts = {} as DictionaryStatisticsFrequencyBucketStatusCounts;
+    for (let i: TokenStatus = 0; i < NUM_TOKEN_STATUSES; ++i) {
+        counts[i] = 0;
     }
     return counts;
 }
@@ -155,7 +164,7 @@ export interface DictionaryStatisticsSentenceTotals {
 export interface DictionaryStatisticsFrequencyBucket {
     label: string;
     count: number;
-    knownCount: number;
+    statusCounts: DictionaryStatisticsFrequencyBucketStatusCounts;
     occurrences: number;
 }
 
@@ -557,13 +566,16 @@ export class DictionaryStatistics {
                 .map(([track, ts]) => {
                     const statusCounts = emptyStatusCounts();
                     const frequencyCounts: number[] = new Array(dictionaryStatisticsFrequencyBuckets.length).fill(0);
-                    const frequencyKnownCounts = new Array(dictionaryStatisticsFrequencyBuckets.length).fill(0);
+                    const frequencyStatusCounts = Array.from(
+                        { length: dictionaryStatisticsFrequencyBuckets.length },
+                        () => emptyFrequencyBucketStatusCounts()
+                    );
                     const frequencyOccurrenceCounts = new Array(dictionaryStatisticsFrequencyBuckets.length).fill(0);
                     let overflowFrequencyCount = 0;
-                    let overflowFrequencyKnownCount = 0;
+                    const overflowFrequencyStatusCounts = emptyFrequencyBucketStatusCounts();
                     let overflowFrequencyOccurrences = 0;
                     let unknownFrequencyCount = 0;
-                    let unknownFrequencyKnownCount = 0;
+                    const unknownFrequencyStatusCounts = emptyFrequencyBucketStatusCounts();
                     let unknownFrequencyOccurrences = 0;
                     let numIgnoredTokens = 0;
                     let numIgnoredOccurrences = 0;
@@ -583,7 +595,7 @@ export class DictionaryStatistics {
 
                         if (token.frequency == null) {
                             unknownFrequencyCount += 1;
-                            if (knownToken) unknownFrequencyKnownCount += 1;
+                            unknownFrequencyStatusCounts[token.status] += 1;
                             unknownFrequencyOccurrences += token.numOccurrences;
                             continue;
                         }
@@ -591,14 +603,14 @@ export class DictionaryStatistics {
                         for (let i = 0; i < dictionaryStatisticsFrequencyBuckets.length; ++i) {
                             if (token.frequency > dictionaryStatisticsFrequencyBuckets[i]) continue;
                             frequencyCounts[i] += 1;
-                            if (knownToken) frequencyKnownCounts[i] += 1;
+                            frequencyStatusCounts[i][token.status] += 1;
                             frequencyOccurrenceCounts[i] += token.numOccurrences;
                             isOverflow = false;
                             break;
                         }
                         if (isOverflow) {
                             overflowFrequencyCount += 1;
-                            if (knownToken) overflowFrequencyKnownCount += 1;
+                            overflowFrequencyStatusCounts[token.status] += 1;
                             overflowFrequencyOccurrences += token.numOccurrences;
                         }
                     }
@@ -614,20 +626,20 @@ export class DictionaryStatistics {
                             return {
                                 label: prev === undefined ? `1-${curr}` : `${prev + 1}-${curr}`,
                                 count: frequencyCounts[index],
-                                knownCount: frequencyKnownCounts[index],
+                                statusCounts: frequencyStatusCounts[index],
                                 occurrences: frequencyOccurrenceCounts[index],
                             };
                         });
                     frequencyBuckets.push({
                         label: `${dictionaryStatisticsFrequencyBuckets[dictionaryStatisticsFrequencyBuckets.length - 1]}+`,
                         count: overflowFrequencyCount,
-                        knownCount: overflowFrequencyKnownCount,
+                        statusCounts: overflowFrequencyStatusCounts,
                         occurrences: overflowFrequencyOccurrences,
                     });
                     frequencyBuckets.push({
                         label: 'Unknown',
                         count: unknownFrequencyCount,
-                        knownCount: unknownFrequencyKnownCount,
+                        statusCounts: unknownFrequencyStatusCounts,
                         occurrences: unknownFrequencyOccurrences,
                     });
 

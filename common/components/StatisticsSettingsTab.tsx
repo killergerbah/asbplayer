@@ -1,5 +1,6 @@
 import { DictionaryProvider } from '@project/common/dictionary-db';
 import {
+    DictionaryStatisticsFrequencyBucketStatusCounts,
     DictionaryStatisticsTrackSnapshot,
     DictionaryStatisticsRewatchSnapshot,
     DictionaryStatisticsSentence,
@@ -193,9 +194,18 @@ function ComprehensionScale({ value }: { value: number }) {
     );
 }
 
-function FrequencyDistributionBar({ totalPercent, knownPercent }: { totalPercent: number; knownPercent: number }) {
+function FrequencyDistributionBar({
+    totalPercent,
+    count,
+    statusCounts,
+    statusColors,
+}: {
+    totalPercent: number;
+    count: number;
+    statusCounts: DictionaryStatisticsFrequencyBucketStatusCounts;
+    statusColors: DictionaryStatisticsTrackSnapshot['statusColors'];
+}) {
     const clampedTotalPercent = clampPercent(totalPercent);
-    const clampedKnownPercent = clampPercent(Math.min(knownPercent, clampedTotalPercent));
     return (
         <Box
             sx={{
@@ -206,22 +216,31 @@ function FrequencyDistributionBar({ totalPercent, knownPercent }: { totalPercent
                 backgroundColor: 'grey.700',
             }}
         >
-            <Box
-                sx={{
-                    position: 'absolute',
-                    inset: 0,
-                    width: `${clampedTotalPercent}%`,
-                    backgroundColor: 'grey.300',
-                }}
-            />
-            <Box
-                sx={{
-                    position: 'absolute',
-                    inset: 0,
-                    width: `${clampedKnownPercent}%`,
-                    backgroundColor: 'primary.main',
-                }}
-            />
+            {clampedTotalPercent > 0 && (
+                <Box
+                    sx={{
+                        position: 'absolute',
+                        inset: 0,
+                        width: `${clampedTotalPercent}%`,
+                        display: 'flex',
+                        overflow: 'hidden',
+                    }}
+                >
+                    {statusOrder.map((status) => {
+                        const statusCount = statusCounts[status];
+                        if (statusCount <= 0 || count <= 0) return null;
+                        return (
+                            <Box
+                                key={status}
+                                sx={{
+                                    width: `${(statusCount / count) * 100}%`,
+                                    backgroundColor: statusColors[status],
+                                }}
+                            />
+                        );
+                    })}
+                </Box>
+            )}
         </Box>
     );
 }
@@ -912,7 +931,6 @@ export default function StatisticsSettingsTab({ dictionaryProvider, onSeekReques
                                     const bucketLabel =
                                         bucket.label === 'Unknown' ? statusLabels[TokenStatus.UNKNOWN] : bucket.label;
                                     const bucketPercent = percent(bucket.count, consideredTokens);
-                                    const bucketKnownPercent = percent(bucket.knownCount, consideredTokens);
 
                                     return (
                                         <Box key={bucket.label} sx={{ mb: 1 }}>
@@ -925,7 +943,9 @@ export default function StatisticsSettingsTab({ dictionaryProvider, onSeekReques
                                             </Box>
                                             <FrequencyDistributionBar
                                                 totalPercent={bucketPercent}
-                                                knownPercent={bucketKnownPercent}
+                                                count={bucket.count}
+                                                statusCounts={bucket.statusCounts}
+                                                statusColors={trackSnapshot.statusColors}
                                             />
                                         </Box>
                                     );

@@ -577,7 +577,7 @@
             "comprehension": "How many unique words are known, weighted by status and occurrences.",
             "globalKnownWords": "How many words are known including locally stored words and Anki.",
             "wordDistribution": "How unique words are distributed across status and frequency.",
-            "frequency": "Frequency: The rank-based frequency from your frequency dictionaries for known and all words.",
+            "frequency": "Frequency: The rank-based frequency from your frequency dictionaries.",
             "occurrences": "Occurrences: The total number of times a word appears.",
             "sentenceStatistics": "How easily this content can be mined.",
             "projectedRewatch": "Assumes all i+1 uncollected sentences were mined from the previous watch."
