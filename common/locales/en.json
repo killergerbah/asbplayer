@@ -552,7 +552,6 @@
         "knownWords": "Known words",
         "uniqueWordsPerSentence": "Unique words per sentence",
         "knownWordsPerSentence": "Known words per sentence",
-        "comprehensionDistribution": "Comprehension distribution",
         "globalKnownWords": "Global known words",
         "comprehension": "Comprehension",
         "wordDistribution": "Word distribution (occurrences)",

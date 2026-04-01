@@ -730,10 +730,9 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
                                             [sentence],
                                             this.trackStates.map((ts) => ts.dt)
                                         );
-                                        const tokens = tokenization.tokens;
-                                        await this.dictionaryStatistics.ingest(track, tokens, sentence); // Treat the entire source entry as a single sentence
+                                        this.dictionaryStatistics.ingest(sentence); // Treat the entire source entry as a single sentence
                                         if (
-                                            tokens.every(
+                                            sentence.tokenization!.tokens.every(
                                                 (t) =>
                                                     t.frequency !== undefined ||
                                                     t.states.includes(TokenState.IGNORED) ||

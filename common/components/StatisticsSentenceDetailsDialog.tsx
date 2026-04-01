@@ -58,6 +58,9 @@ export default function StatisticsSentenceDetailsDialog({
                 const leftFrequency = left.lowestFrequency ?? Number.POSITIVE_INFINITY;
                 const rightFrequency = right.lowestFrequency ?? Number.POSITIVE_INFINITY;
                 if (leftFrequency !== rightFrequency) return leftFrequency - rightFrequency;
+                if (left.highestOccurrences !== right.highestOccurrences) {
+                    return right.highestOccurrences - left.highestOccurrences;
+                }
             } else if (sort === 'occurrences') {
                 if (left.highestOccurrences !== right.highestOccurrences) {
                     return right.highestOccurrences - left.highestOccurrences;

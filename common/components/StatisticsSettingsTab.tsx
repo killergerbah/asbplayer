@@ -6,16 +6,17 @@ import {
     DictionaryStatisticsSentence,
     DictionaryStatisticsSentenceBucketEntry,
     DictionaryStatisticsSentenceBuckets,
-    DictionaryStatisticsSentenceBucketStatus,
+    DictionaryStatisticsSentenceStatusCounts,
     DictionaryStatisticsSentenceTotals,
-    DictionaryStatisticsSentenceStatusBucket,
+    DictionaryStatisticsSentenceUncollectedBucket,
     DictionaryStatisticsSnapshot,
     DictionaryStatisticsTokenStatusCounts,
+    processDictionaryStatisticsSnapshot,
 } from '@project/common/dictionary-statistics';
 import { getFullyKnownTokenStatus, TokenStatus } from '@project/common/settings';
 import StatisticsSentenceDetailsDialog from '@project/common/components/StatisticsSentenceDetailsDialog';
 import { useTranslation } from 'react-i18next';
-import { type ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
+import { type MouseEvent, type ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 import Box from '@mui/material/Box';
 import ButtonBase from '@mui/material/ButtonBase';
 import Button from '@mui/material/Button';
@@ -30,6 +31,7 @@ import Typography from '@mui/material/Typography';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded';
 import Tooltip from '@mui/material/Tooltip';
+import { timeDurationDisplay } from '@project/common/util/util';
 
 interface Props {
     dictionaryProvider: DictionaryProvider;
@@ -48,8 +50,7 @@ type SentenceDialogBucket =
           kind: 'allKnown';
       }
     | {
-          kind: 'status';
-          status: DictionaryStatisticsSentenceBucketStatus;
+          kind: 'uncollected';
           groupIndex: number;
       };
 
@@ -71,15 +72,12 @@ const statusOrder: TokenStatus[] = [
     TokenStatus.UNCOLLECTED,
 ];
 
-const sentenceBucketStatusOrder: DictionaryStatisticsSentenceBucketStatus[] = [TokenStatus.UNCOLLECTED];
 const emptySentenceBuckets: DictionaryStatisticsSentenceBuckets = {
     allKnown: {
         count: 0,
         entries: [],
     },
-    byStatus: {
-        [TokenStatus.UNCOLLECTED]: [],
-    },
+    uncollected: [],
 };
 
 const percentDisplay = (value: number) => {
@@ -90,6 +88,8 @@ const averageDisplay = (value: number) => value.toFixed(1);
 const averageFromTotals = (total: number, count: number) => (count > 0 ? total / count : 0);
 const clampPercent = (value: number) => Math.max(0, Math.min(100, value));
 const percent = (value: number, total: number) => (total > 0 ? (value / total) * 100 : 0);
+const countPercentOccurrencesDisplay = (count: number, total: number, occurrences: number) =>
+    `${count} · ${percentDisplay(percent(count, total))} (${occurrences})`;
 const labelWithCount = (label: string, count: number) => `${label}: ${count}`;
 const emptySentenceTotals: DictionaryStatisticsSentenceTotals = {
     processedSentenceCount: 0,
@@ -98,16 +98,15 @@ const emptySentenceTotals: DictionaryStatisticsSentenceTotals = {
     statusCounts: [],
 };
 const distributionBarHeight = 6;
-const sentenceComprehensionBucketSize = 20;
-const sentenceComprehensionBucketCount = 5;
+const sentenceComprehensionGraphHeight = 120;
 const minimumComprehensionStatus = TokenStatus.UNKNOWN;
 const fullyKnownTokenStatus = getFullyKnownTokenStatus();
 const comprehensionStatusRange = fullyKnownTokenStatus - minimumComprehensionStatus;
+const sentenceComprehensionGraphTicks = Array.from({ length: 11 }, (_, index) => 100 - index * 10);
 
-interface SentenceComprehensionDistributionBucket {
-    start: number;
-    end: number;
-    count: number;
+interface SentenceComprehensionPoint {
+    sentence: DictionaryStatisticsSentence;
+    comprehensionPercent: number;
 }
 
 function comprehensionScore(status: TokenStatus): number {
@@ -118,7 +117,7 @@ function comprehensionFromStatusOccurrences(statusCounts: DictionaryStatisticsTo
     let totalOccurrences = 0;
     let comprehensionSum = 0;
     for (const status of statusOrder) {
-        const numOccurrences = statusCounts[status].numOccurrences;
+        const numOccurrences = statusCounts.get(status)!.numOccurrences;
         totalOccurrences += numOccurrences;
         comprehensionSum += numOccurrences * comprehensionScore(status);
     }
@@ -199,11 +198,15 @@ function FrequencyDistributionBar({
     count,
     statusCounts,
     statusColors,
+    statusLabels,
+    totalConsideredCount,
 }: {
     totalPercent: number;
     count: number;
     statusCounts: DictionaryStatisticsFrequencyBucketStatusCounts;
     statusColors: DictionaryStatisticsTrackSnapshot['statusColors'];
+    statusLabels: Record<TokenStatus, string>;
+    totalConsideredCount: number;
 }) {
     const clampedTotalPercent = clampPercent(totalPercent);
     return (
@@ -227,16 +230,25 @@ function FrequencyDistributionBar({
                     }}
                 >
                     {statusOrder.map((status) => {
-                        const statusCount = statusCounts[status];
-                        if (statusCount <= 0 || count <= 0) return null;
+                        const statusCount = statusCounts.get(status)!;
+                        if (statusCount.numUnique <= 0 || count <= 0) return null;
                         return (
-                            <Box
+                            <Tooltip
                                 key={status}
-                                sx={{
-                                    width: `${(statusCount / count) * 100}%`,
-                                    backgroundColor: statusColors[status],
-                                }}
-                            />
+                                placement="top"
+                                title={`${statusLabels[status]}: ${countPercentOccurrencesDisplay(
+                                    statusCount.numUnique,
+                                    totalConsideredCount,
+                                    statusCount.numOccurrences
+                                )}`}
+                            >
+                                <Box
+                                    sx={{
+                                        width: `${(statusCount.numUnique / count) * 100}%`,
+                                        backgroundColor: statusColors[status],
+                                    }}
+                                />
+                            </Tooltip>
                         );
                     })}
                 </Box>
@@ -269,57 +281,188 @@ function StatusDistributionBar({ value, color }: { value: number; color: string 
     );
 }
 
-function comprehensionDistributionFromSentenceTotals(
+function comprehensionPointsFromSentenceTotals(
     sentenceTotals: DictionaryStatisticsSentenceTotals
-): SentenceComprehensionDistributionBucket[] {
-    const comprehensionDistribution = Array.from(
-        {
-            length: sentenceComprehensionBucketCount,
-        },
-        (_, index) => ({
-            start: index * sentenceComprehensionBucketSize,
-            end: (index + 1) * sentenceComprehensionBucketSize,
-            count: 0,
-        })
-    );
-    for (const sentenceStatusCounts of sentenceTotals.statusCounts) {
-        const comprehensionPercent = comprehensionFromStatusOccurrences(sentenceStatusCounts);
-        const bucketIndex = Math.min(
-            comprehensionDistribution.length - 1,
-            Math.floor(comprehensionPercent / sentenceComprehensionBucketSize)
-        );
-        comprehensionDistribution[bucketIndex].count += 1;
-    }
-    return comprehensionDistribution;
+): SentenceComprehensionPoint[] {
+    return sentenceTotals.statusCounts.map(({ sentence, statusCounts }: DictionaryStatisticsSentenceStatusCounts) => ({
+        sentence,
+        comprehensionPercent: comprehensionFromStatusOccurrences(statusCounts),
+    }));
 }
 
-function comprehensionDistributionLabel(bucket: SentenceComprehensionDistributionBucket) {
-    return `${bucket.start}-${bucket.end}%`;
+function sentenceComprehensionPointLabel(point: SentenceComprehensionPoint) {
+    return `#${point.sentence.index + 1} · ${percentDisplay(point.comprehensionPercent)}`;
 }
 
-function SentenceComprehensionDistribution({
-    buckets,
-    totalSentences,
+function sentenceComprehensionXAxisLabels(points: SentenceComprehensionPoint[]) {
+    const total = points.length;
+    if (total <= 0) return [{ value: 1, position: 0 }];
+
+    const values = new Set<number>([1, total]);
+    for (let value = 50; value < total; value += 50) values.add(value);
+
+    const denominator = Math.max(total - 1, 1);
+    return Array.from(values)
+        .sort((left, right) => left - right)
+        .map((value) => ({
+            value,
+            position: total === 1 ? 0 : ((value - 1) / denominator) * 100,
+        }));
+}
+
+function SentenceComprehensionGraph({
+    points,
+    onSeekToSentence,
 }: {
-    buckets: SentenceComprehensionDistributionBucket[];
-    totalSentences: number;
+    points: SentenceComprehensionPoint[];
+    onSeekToSentence: (sentence: DictionaryStatisticsSentence) => void;
 }) {
+    const handleChartClick = useCallback(
+        (event: MouseEvent<SVGSVGElement>) => {
+            if (!points.length) return;
+
+            const bounds = event.currentTarget.getBoundingClientRect();
+            if (bounds.width <= 0) return;
+
+            const clampedOffsetX = Math.max(0, Math.min(event.clientX - bounds.left, bounds.width));
+            const index = Math.min(points.length - 1, Math.floor((clampedOffsetX / bounds.width) * points.length));
+            onSeekToSentence(points[index].sentence);
+        },
+        [onSeekToSentence, points]
+    );
+
+    const maximumSentenceStart = points.length ? points[points.length - 1].sentence.start : 0;
+    const xAxisLabels = sentenceComprehensionXAxisLabels(points);
+
     return (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mt: 0.5 }}>
-            {buckets.map((bucket) => {
-                const bucketPercent = percent(bucket.count, totalSentences);
-                return (
-                    <Box key={`${bucket.start}-${bucket.end}`}>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5, gap: 1 }}>
-                            <Typography variant="body2">{comprehensionDistributionLabel(bucket)}</Typography>
-                            <Typography variant="body2" color="text.secondary">
-                                {bucket.count} · {percentDisplay(bucketPercent)}
-                            </Typography>
+        <Box sx={{ display: 'flex', gap: 1, mt: 0.5 }}>
+            <Box
+                sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'flex-end',
+                    justifyContent: 'space-between',
+                    height: sentenceComprehensionGraphHeight,
+                    pt: 0.75,
+                }}
+            >
+                {sentenceComprehensionGraphTicks.map((tick) => (
+                    <Typography key={tick} variant="caption" color="text.secondary" sx={{ lineHeight: 1 }}>
+                        {tick}%
+                    </Typography>
+                ))}
+            </Box>
+            <Box sx={{ flex: 1, minWidth: 0, pb: 0.5 }}>
+                <Box
+                    sx={{
+                        position: 'relative',
+                        width: '100%',
+                        height: sentenceComprehensionGraphHeight + 28,
+                    }}
+                >
+                    <Box
+                        sx={{
+                            position: 'absolute',
+                            left: 6,
+                            right: 6,
+                            top: 6,
+                            bottom: 22,
+                        }}
+                    >
+                        <Box
+                            component="svg"
+                            viewBox={`0 0 ${Math.max(points.length, 1)} ${sentenceComprehensionGraphHeight}`}
+                            preserveAspectRatio="none"
+                            onClick={handleChartClick}
+                            sx={{
+                                display: 'block',
+                                width: '100%',
+                                height: '100%',
+                                color: 'primary.main',
+                                cursor: points.length ? 'pointer' : 'default',
+                            }}
+                        >
+                            {sentenceComprehensionGraphTicks
+                                .filter((tick) => tick > 0 && tick < 100)
+                                .map((tick) => (
+                                    <line
+                                        key={tick}
+                                        x1={0}
+                                        x2={Math.max(points.length, 1)}
+                                        y1={
+                                            sentenceComprehensionGraphHeight -
+                                            (tick / 100) * sentenceComprehensionGraphHeight
+                                        }
+                                        y2={
+                                            sentenceComprehensionGraphHeight -
+                                            (tick / 100) * sentenceComprehensionGraphHeight
+                                        }
+                                        stroke="rgba(127, 127, 127, 0.16)"
+                                        strokeWidth={0.5}
+                                        vectorEffect="non-scaling-stroke"
+                                    />
+                                ))}
+                            {points.map((point, index) => {
+                                const barHeight = Math.max(
+                                    1,
+                                    (clampPercent(point.comprehensionPercent) / 100) * sentenceComprehensionGraphHeight
+                                );
+                                return (
+                                    <g key={point.sentence.index}>
+                                        <title>
+                                            {`${sentenceComprehensionPointLabel(point)} · ${timeDurationDisplay(
+                                                point.sentence.start,
+                                                maximumSentenceStart,
+                                                true
+                                            )}`}
+                                        </title>
+                                        <rect
+                                            x={index}
+                                            y={sentenceComprehensionGraphHeight - barHeight}
+                                            width={1}
+                                            height={barHeight}
+                                            fill="currentColor"
+                                            opacity={0.82}
+                                            shapeRendering="crispEdges"
+                                        />
+                                    </g>
+                                );
+                            })}
                         </Box>
-                        <StatusDistributionBar value={bucketPercent} color="primary.main" />
                     </Box>
-                );
-            })}
+                    <Box
+                        sx={{
+                            position: 'absolute',
+                            left: 8,
+                            right: 8,
+                            bottom: 4,
+                            height: 18,
+                        }}
+                    >
+                        {xAxisLabels.map(({ value, position }) => (
+                            <Typography
+                                key={value}
+                                variant="caption"
+                                color="text.secondary"
+                                sx={{
+                                    position: 'absolute',
+                                    left: `${position}%`,
+                                    transform:
+                                        position === 0
+                                            ? 'none'
+                                            : position === 100
+                                              ? 'translateX(-100%)'
+                                              : 'translateX(-50%)',
+                                    lineHeight: 1,
+                                    whiteSpace: 'nowrap',
+                                }}
+                            >
+                                {value}
+                            </Typography>
+                        ))}
+                    </Box>
+                </Box>
+            </Box>
         </Box>
     );
 }
@@ -354,15 +497,18 @@ function StatisticsSectionHeading({ title, infoLines }: { title: string; infoLin
     );
 }
 
-function sentenceStatusBucketLabel(bucket: DictionaryStatisticsSentenceStatusBucket, statusLabel: string) {
-    if (bucket.overflow) return `${bucket.tokenCount}+ ${statusLabel}`;
-    return `${bucket.tokenCount} ${statusLabel}`;
+function uncollectedSentenceBucketLabel(
+    bucket: DictionaryStatisticsSentenceUncollectedBucket,
+    uncollectedLabel: string
+) {
+    if (bucket.tokenCount > 1) return `${bucket.tokenCount}+ ${uncollectedLabel}`;
+    return `${bucket.tokenCount} ${uncollectedLabel}`;
 }
 
 function sentenceDialogBucketData(
     bucket: SentenceDialogBucket,
     sentenceBuckets: DictionaryStatisticsSentenceBuckets,
-    statusLabels: Record<TokenStatus, string>,
+    uncollectedLabel: string,
     t: (key: string, options?: any) => string
 ) {
     if (bucket.kind === 'allKnown') {
@@ -371,11 +517,11 @@ function sentenceDialogBucketData(
             entries: sentenceBuckets.allKnown.entries,
         };
     }
-    const statusBucket = sentenceBuckets.byStatus[bucket.status][bucket.groupIndex];
-    if (!statusBucket) return;
+    const uncollectedBucket = sentenceBuckets.uncollected[bucket.groupIndex];
+    if (!uncollectedBucket) return;
     return {
-        label: sentenceStatusBucketLabel(statusBucket, statusLabels[bucket.status]),
-        entries: statusBucket.entries,
+        label: uncollectedSentenceBucketLabel(uncollectedBucket, uncollectedLabel),
+        entries: uncollectedBucket.entries,
     };
 }
 
@@ -395,10 +541,7 @@ interface SentenceStatsPanelProps {
     title: string;
     totalSentences: number;
     sentenceBuckets: DictionaryStatisticsSentenceBuckets;
-    comprehensionDistribution: SentenceComprehensionDistributionBucket[];
-    statusLabels: Record<TokenStatus, string>;
-    comprehensionDistributionLabel: string;
-    totalSentencesLabel: string;
+    uncollectedLabel: string;
     uniqueWordsPerSentenceLabel: string;
     uniqueWordsPerSentence: number;
     knownWordsPerSentenceLabel: string;
@@ -420,10 +563,7 @@ function SentenceStatsPanel({
     title,
     totalSentences,
     sentenceBuckets,
-    comprehensionDistribution,
-    statusLabels,
-    comprehensionDistributionLabel,
-    totalSentencesLabel,
+    uncollectedLabel,
     uniqueWordsPerSentenceLabel,
     uniqueWordsPerSentence,
     knownWordsPerSentenceLabel,
@@ -440,34 +580,16 @@ function SentenceStatsPanel({
     emptyMessage,
     onOpenSentenceBucketDetails,
 }: SentenceStatsPanelProps) {
-    const interleavedSentenceStatusBuckets = useMemo(() => {
-        const maxBucketCount = sentenceBucketStatusOrder.reduce(
-            (maximum, status) => Math.max(maximum, sentenceBuckets.byStatus[status].length),
-            0
-        );
-        const rows: {
-            bucket: SentenceDialogBucket;
-            label: string;
-            count: number;
-            entries: DictionaryStatisticsSentenceBucketEntry[];
-        }[] = [];
-
-        for (let groupIndex = 0; groupIndex < maxBucketCount; ++groupIndex) {
-            for (const status of sentenceBucketStatusOrder) {
-                const statusBuckets = sentenceBuckets.byStatus[status];
-                const bucket = statusBuckets[groupIndex];
-                if (!bucket) continue;
-                rows.push({
-                    bucket: { kind: 'status', status, groupIndex },
-                    label: sentenceStatusBucketLabel(bucket, statusLabels[status]),
-                    count: bucket.count,
-                    entries: bucket.entries,
-                });
-            }
-        }
-
-        return rows;
-    }, [sentenceBuckets, statusLabels]);
+    const uncollectedSentenceBuckets = useMemo(
+        () =>
+            sentenceBuckets.uncollected.map((bucket, groupIndex) => ({
+                bucket: { kind: 'uncollected', groupIndex } as const,
+                label: uncollectedSentenceBucketLabel(bucket, uncollectedLabel),
+                count: bucket.count,
+                entries: bucket.entries,
+            })),
+        [sentenceBuckets, uncollectedLabel]
+    );
 
     const renderSentenceBucketRow = useCallback(
         (
@@ -545,30 +667,21 @@ function SentenceStatsPanel({
                             {`${knownWordsLabel}: ${knownWordsCount} · ${percentDisplay(knownWordsPercent)}`}
                         </Typography>
                         <Typography color="text.secondary">{`${globalKnownLabel}: ${globalKnownCount}`}</Typography>
-                        <Divider flexItem sx={{ my: 0.25 }} />
-                        {renderSentenceBucketRow(
-                            { kind: 'allKnown' },
-                            knownSentencesLabel,
-                            sentenceBuckets.allKnown.count,
-                            sentenceBuckets.allKnown.entries
-                        )}
-                        {interleavedSentenceStatusBuckets.map(({ bucket, label, count, entries }) =>
-                            renderSentenceBucketRow(bucket, label, count, entries)
-                        )}
-                        <Typography color="text.secondary">
-                            {labelWithCount(totalSentencesLabel, totalSentences)}
-                        </Typography>
                         <Typography color="text.secondary">
                             {`${uniqueWordsPerSentenceLabel}: ${averageDisplay(uniqueWordsPerSentence)}`}
                         </Typography>
                         <Typography color="text.secondary">
                             {`${knownWordsPerSentenceLabel}: ${averageDisplay(knownWordsPerSentence)}`}
                         </Typography>
-                        <Typography variant="subtitle2">{comprehensionDistributionLabel}</Typography>
-                        <SentenceComprehensionDistribution
-                            buckets={comprehensionDistribution}
-                            totalSentences={totalSentences}
-                        />
+                        {renderSentenceBucketRow(
+                            { kind: 'allKnown' },
+                            knownSentencesLabel,
+                            sentenceBuckets.allKnown.count,
+                            sentenceBuckets.allKnown.entries
+                        )}
+                        {uncollectedSentenceBuckets.map(({ bucket, label, count, entries }) =>
+                            renderSentenceBucketRow(bucket, label, count, entries)
+                        )}
                     </>
                 )}
             </Box>
@@ -588,17 +701,14 @@ function sentenceAveragesFromTotals(sentenceTotals: DictionaryStatisticsSentence
 
 export default function StatisticsSettingsTab({ dictionaryProvider, onSeekRequested, onMineRequested }: Props) {
     const { t } = useTranslation();
-    const [snapshot, setSnapshot] = useState<DictionaryStatisticsSnapshot>();
+    const [mediaId, setMediaId] = useState<string>();
+    const [trackSnapshots, setTrackSnapshots] = useState<DictionaryStatisticsTrackSnapshot[]>([]);
     const [generationRequested, setGenerationRequested] = useState(false);
     const [selectedRewatchesByTrack, setSelectedRewatchesByTrack] = useState<Record<number, number>>({});
     const [sentenceDialogState, setSentenceDialogState] = useState<SentenceDialogState>();
-    const trackSnapshots = useMemo(() => snapshot?.snapshots ?? [], [snapshot]);
-    const mediaId = snapshot?.mediaId;
     const hasTracks = trackSnapshots.length > 0;
     const allTrackProgressComplete = useMemo(
-        () =>
-            hasTracks &&
-            trackSnapshots.every((trackSnapshot) => trackSnapshot.progress.current >= trackSnapshot.progress.total),
+        () => hasTracks && trackSnapshots.every((s) => s.progress.current >= s.progress.total),
         [hasTracks, trackSnapshots]
     );
     const isGenerating = generationRequested && (!hasTracks || !allTrackProgressComplete);
@@ -606,10 +716,12 @@ export default function StatisticsSettingsTab({ dictionaryProvider, onSeekReques
     useEffect(() => {
         const unsubscribeStatistics = dictionaryProvider.onStatisticsSnapshot(
             (snapshot?: DictionaryStatisticsSnapshot) => {
-                setSnapshot(snapshot);
+                setMediaId(snapshot?.mediaId);
+                const nextTrackSnapshots = processDictionaryStatisticsSnapshot(snapshot);
+                setTrackSnapshots(nextTrackSnapshots);
                 if (
-                    snapshot?.snapshots.length &&
-                    snapshot.snapshots.every(
+                    nextTrackSnapshots.length &&
+                    nextTrackSnapshots.every(
                         (trackSnapshot) => trackSnapshot.progress.current >= trackSnapshot.progress.total
                     )
                 ) {
@@ -639,7 +751,7 @@ export default function StatisticsSettingsTab({ dictionaryProvider, onSeekReques
             setGenerationRequested(false);
         }, 5000);
         return () => clearTimeout(timeout);
-    }, [generationRequested, hasTracks, snapshot]);
+    }, [generationRequested, hasTracks, trackSnapshots]);
 
     const handleSelectedRewatchChanged = useCallback((track: number, rewatch: number) => {
         setSelectedRewatchesByTrack((current) => ({ ...current, [track]: rewatch }));
@@ -662,12 +774,12 @@ export default function StatisticsSettingsTab({ dictionaryProvider, onSeekReques
     const handleMineSentence = useCallback(
         async (sentence: DictionaryStatisticsSentence) => {
             if (mediaId === undefined) return;
-            const trackSnapshot = snapshot?.snapshots.find((candidate) => candidate.track === sentence.track);
+            const trackSnapshot = trackSnapshots.find((candidate) => candidate.track === sentence.track);
             if (!trackSnapshot || trackSnapshot.progress.current < trackSnapshot.progress.total) return;
             await Promise.resolve(dictionaryProvider.requestStatisticsMineSentences(mediaId, [sentence.index]));
             onMineRequested?.(mediaId);
         },
-        [dictionaryProvider, onMineRequested, snapshot, mediaId]
+        [dictionaryProvider, onMineRequested, trackSnapshots, mediaId]
     );
     const statusLabels = useMemo(
         () => ({
@@ -695,9 +807,10 @@ export default function StatisticsSettingsTab({ dictionaryProvider, onSeekReques
     );
     const uniqueWordsPerSentenceLabel = t('statistics.uniqueWordsPerSentence');
     const knownWordsPerSentenceLabel = t('statistics.knownWordsPerSentence');
+    const uncollectedLabel = statusLabels[TokenStatus.UNCOLLECTED];
     const activeSentenceDialog = useMemo(() => {
-        if (!sentenceDialogState || !snapshot) return;
-        const trackSnapshot = snapshot.snapshots.find((candidate) => candidate.track === sentenceDialogState.track);
+        if (!sentenceDialogState) return;
+        const trackSnapshot = trackSnapshots.find((candidate) => candidate.track === sentenceDialogState.track);
         if (!trackSnapshot) return;
 
         const trackTitle = `${t('settings.subtitleTrackChoice', { trackNumber: trackSnapshot.track + 1 })}`;
@@ -708,7 +821,12 @@ export default function StatisticsSettingsTab({ dictionaryProvider, onSeekReques
         })();
         if (sourceSentenceBuckets === undefined) return;
 
-        const bucketData = sentenceDialogBucketData(sentenceDialogState.bucket, sourceSentenceBuckets, statusLabels, t);
+        const bucketData = sentenceDialogBucketData(
+            sentenceDialogState.bucket,
+            sourceSentenceBuckets,
+            uncollectedLabel,
+            t
+        );
         if (!bucketData) return;
 
         const miningEnabled = trackSnapshot.progress.current >= trackSnapshot.progress.total;
@@ -730,7 +848,7 @@ export default function StatisticsSettingsTab({ dictionaryProvider, onSeekReques
             totalSentences: trackSnapshot.progress.total,
             miningEnabled,
         };
-    }, [sentenceDialogState, snapshot, statusLabels, t, selectedRewatchesByTrack]);
+    }, [sentenceDialogState, trackSnapshots, uncollectedLabel, t, selectedRewatchesByTrack]);
 
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pb: 2 }}>
@@ -776,7 +894,7 @@ export default function StatisticsSettingsTab({ dictionaryProvider, onSeekReques
                 const { averageWordsPerSentence, averageKnownWordsPerSentence } = sentenceAveragesFromTotals(
                     trackSnapshot.sentenceTotals
                 );
-                const currentSentenceComprehensionDistribution = comprehensionDistributionFromSentenceTotals(
+                const currentSentenceComprehensionPoints = comprehensionPointsFromSentenceTotals(
                     trackSnapshot.sentenceTotals
                 );
                 const selectedRewatchSnapshot = selectedRewatchSnapshotForTrack(
@@ -797,9 +915,6 @@ export default function StatisticsSettingsTab({ dictionaryProvider, onSeekReques
                     averageWordsPerSentence: projectedAverageWordsPerSentence,
                     averageKnownWordsPerSentence: projectedAverageKnownWordsPerSentence,
                 } = sentenceAveragesFromTotals(selectedRewatchSnapshot?.sentenceTotals ?? emptySentenceTotals);
-                const projectedSentenceComprehensionDistribution = comprehensionDistributionFromSentenceTotals(
-                    selectedRewatchSnapshot?.sentenceTotals ?? emptySentenceTotals
-                );
                 const currentPassTitle = t('statistics.currentPass');
 
                 return (
@@ -854,13 +969,22 @@ export default function StatisticsSettingsTab({ dictionaryProvider, onSeekReques
                             <ComprehensionScale value={comprehension} />
                         </Box>
 
+                        <SentenceComprehensionGraph
+                            points={currentSentenceComprehensionPoints}
+                            onSeekToSentence={handleSeekSentence}
+                        />
+
                         <Box
                             sx={{
                                 display: 'grid',
-                                gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(2, 1fr)' },
+                                gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
                                 gap: 2,
                             }}
                         >
+                            <Box>
+                                <Typography variant="subtitle2">{t('statistics.totalSentences')}</Typography>
+                                <Typography variant="h5">{totalSentences}</Typography>
+                            </Box>
                             <Box>
                                 <Typography variant="subtitle2">{t('statistics.uniqueWords')}</Typography>
                                 <Typography variant="h5">{trackSnapshot.numUniqueTokens}</Typography>
@@ -893,8 +1017,8 @@ export default function StatisticsSettingsTab({ dictionaryProvider, onSeekReques
                                     ...statusOrder.map((status) => ({
                                         key: `${status}`,
                                         label: statusLabels[status],
-                                        count: trackSnapshot.statusCounts[status].numUnique,
-                                        occurrences: trackSnapshot.statusCounts[status].numOccurrences,
+                                        count: trackSnapshot.statusCounts.get(status)!.numUnique,
+                                        occurrences: trackSnapshot.statusCounts.get(status)!.numOccurrences,
                                         color: trackSnapshot.statusColors[status],
                                     })),
                                     {
@@ -909,11 +1033,11 @@ export default function StatisticsSettingsTab({ dictionaryProvider, onSeekReques
                                         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
                                             <Typography variant="body2">{statusRow.label}</Typography>
                                             <Typography variant="body2" color="text.secondary">
-                                                {statusRow.count} ·{' '}
-                                                {percentDisplay(
-                                                    percent(statusRow.count, trackSnapshot.numUniqueTokens)
+                                                {countPercentOccurrencesDisplay(
+                                                    statusRow.count,
+                                                    trackSnapshot.numUniqueTokens,
+                                                    statusRow.occurrences
                                                 )}
-                                                {` (${statusRow.occurrences})`}
                                             </Typography>
                                         </Box>
                                         <StatusDistributionBar
@@ -937,8 +1061,11 @@ export default function StatisticsSettingsTab({ dictionaryProvider, onSeekReques
                                             <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
                                                 <Typography variant="body2">{bucketLabel}</Typography>
                                                 <Typography variant="body2" color="text.secondary">
-                                                    {bucket.count} · {percentDisplay(bucketPercent)}
-                                                    {` (${bucket.occurrences})`}
+                                                    {countPercentOccurrencesDisplay(
+                                                        bucket.count,
+                                                        consideredTokens,
+                                                        bucket.numOccurrences
+                                                    )}
                                                 </Typography>
                                             </Box>
                                             <FrequencyDistributionBar
@@ -946,6 +1073,8 @@ export default function StatisticsSettingsTab({ dictionaryProvider, onSeekReques
                                                 count={bucket.count}
                                                 statusCounts={bucket.statusCounts}
                                                 statusColors={trackSnapshot.statusColors}
+                                                statusLabels={statusLabels}
+                                                totalConsideredCount={consideredTokens}
                                             />
                                         </Box>
                                     );
@@ -971,10 +1100,7 @@ export default function StatisticsSettingsTab({ dictionaryProvider, onSeekReques
                                     title={currentPassTitle}
                                     totalSentences={totalSentences}
                                     sentenceBuckets={trackSnapshot.sentenceBuckets}
-                                    comprehensionDistribution={currentSentenceComprehensionDistribution}
-                                    statusLabels={statusLabels}
-                                    comprehensionDistributionLabel={t('statistics.comprehensionDistribution')}
-                                    totalSentencesLabel={t('statistics.totalSentences')}
+                                    uncollectedLabel={uncollectedLabel}
                                     uniqueWordsPerSentenceLabel={uniqueWordsPerSentenceLabel}
                                     uniqueWordsPerSentence={averageWordsPerSentence}
                                     knownWordsPerSentenceLabel={knownWordsPerSentenceLabel}
@@ -997,10 +1123,7 @@ export default function StatisticsSettingsTab({ dictionaryProvider, onSeekReques
                                     title={t('statistics.projectedRewatch')}
                                     totalSentences={totalSentences}
                                     sentenceBuckets={projectedSentenceBuckets}
-                                    comprehensionDistribution={projectedSentenceComprehensionDistribution}
-                                    statusLabels={statusLabels}
-                                    comprehensionDistributionLabel={t('statistics.comprehensionDistribution')}
-                                    totalSentencesLabel={t('statistics.totalSentences')}
+                                    uncollectedLabel={uncollectedLabel}
                                     uniqueWordsPerSentenceLabel={uniqueWordsPerSentenceLabel}
                                     uniqueWordsPerSentence={projectedAverageWordsPerSentence}
                                     knownWordsPerSentenceLabel={knownWordsPerSentenceLabel}
