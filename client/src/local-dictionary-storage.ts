@@ -62,6 +62,10 @@ export class LocalDictionaryStorage implements DictionaryStorage {
         return this.dictionaryDB.getBulk(profile, track, tokens);
     }
 
+    getAllTokens(profile: string | undefined, track: number) {
+        return this.dictionaryDB.getAllTokens(profile, track);
+    }
+
     getByLemmaBulk(profile: string | undefined, track: number, lemmas: string[]) {
         return this.dictionaryDB.getByLemmaBulk(profile, track, lemmas);
     }
@@ -88,10 +92,6 @@ export class LocalDictionaryStorage implements DictionaryStorage {
 
     importRecordLocalBulk(records: Partial<DictionaryTokenRecord>[], profiles: string[]) {
         return this.dictionaryDB.importRecordLocalBulk(records, profiles);
-    }
-
-    countTokens(profile: string | undefined, track: number, settings: AsbplayerSettings) {
-        return this.dictionaryDB.countTokens(profile, track, settings);
     }
 
     buildAnkiCache(profile: string | undefined, settings: AsbplayerSettings) {

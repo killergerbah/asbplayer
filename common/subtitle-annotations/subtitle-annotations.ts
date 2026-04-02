@@ -647,7 +647,7 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
                         this.dictionaryStatistics.init(ts.track, this.totalSubtitlesPerTrack.get(ts.track) ?? 0);
                         this.statisticsProcessedSubtitleIndexesByTrack.set(ts.track, new Set());
                     }
-                    void this.dictionaryStatistics.refreshDictionaryKnownTokens(profile); // Init with just known words
+                    void this.dictionaryStatistics.refreshDictionaryTokens(profile); // Init with dictionary token state
                     tokenCacheRefreshInterval = TOKEN_CACHE_STATISTICS_REFRESH_INTERVAL;
                 }
             }
@@ -774,7 +774,7 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
                 }
             }
             if (tokensRefreshed.length && generatingStatistics) {
-                void this.dictionaryStatistics.refreshDictionaryKnownTokens(profile);
+                void this.dictionaryStatistics.refreshDictionaryTokens(profile);
             }
 
             if (this.shouldCancelBuild) {

@@ -1,7 +1,6 @@
 import {
     DictionaryLocalTokenInput,
     DictionaryTokenRecord,
-    DictionaryTokenCounts,
     DictionaryExportRecordLocalResult,
     DictionaryImportRecordLocalResult,
     LemmaResults,
@@ -17,6 +16,7 @@ import { download, getCurrentTimeString } from '../util';
 
 export interface DictionaryStorage {
     getBulk: (profile: string | undefined, track: number, tokens: string[]) => Promise<TokenResults>;
+    getAllTokens: (profile: string | undefined, track: number) => Promise<TokenResults>;
     getByLemmaBulk: (profile: string | undefined, track: number, lemmas: string[]) => Promise<LemmaResults>;
     saveRecordLocalBulk: (
         profile: string | undefined,
@@ -33,11 +33,6 @@ export interface DictionaryStorage {
         records: Partial<DictionaryTokenRecord>[],
         profiles: string[]
     ) => Promise<DictionaryImportRecordLocalResult>;
-    countTokens: (
-        profile: string | undefined,
-        track: number,
-        settings: AsbplayerSettings
-    ) => Promise<DictionaryTokenCounts>;
     buildAnkiCache: (profile: string | undefined, settings: AsbplayerSettings) => Promise<void>;
     ankiCardWasModified: () => void;
     onAnkiCardModified: (callback: () => void) => () => void;
@@ -64,6 +59,10 @@ export class DictionaryProvider {
 
     getBulk(profile: string | undefined, track: number, tokens: string[]) {
         return this._storage.getBulk(profile, track, tokens);
+    }
+
+    getAllTokens(profile: string | undefined, track: number) {
+        return this._storage.getAllTokens(profile, track);
     }
 
     getByLemmaBulk(profile: string | undefined, track: number, lemmas: string[]) {
@@ -97,10 +96,6 @@ export class DictionaryProvider {
 
     importRecordLocalBulk(records: Partial<DictionaryTokenRecord>[], profiles: string[]) {
         return this._storage.importRecordLocalBulk(records, profiles);
-    }
-
-    countTokens(profile: string | undefined, track: number, settings: AsbplayerSettings) {
-        return this._storage.countTokens(profile, track, settings);
     }
 
     buildAnkiCache(profile: string | undefined, settings: AsbplayerSettings) {

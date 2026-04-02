@@ -35,7 +35,7 @@ import {
     SetGlobalStateMessage,
     GetGlobalStateMessage,
     DictionaryBuildAnkiCacheMessage,
-    DictionaryCountTokensMessage,
+    DictionaryGetAllTokensMessage,
     DictionaryGetBulkMessage,
     DictionaryGetByLemmaBulkMessage,
     DictionarySaveRecordLocalBulkMessage,
@@ -58,7 +58,6 @@ import {
     TokenResults,
     DictionaryDeleteRecordLocalResult,
     DictionaryDeleteProfileResult,
-    DictionaryTokenCounts,
 } from '@project/common/dictionary-db';
 import {
     ApplyStrategy,
@@ -647,6 +646,21 @@ export default class ChromeExtension {
         return await this._createResponsePromise(messageId);
     }
 
+    async dictionaryGetAllTokens(profile: string | undefined, track: number): Promise<TokenResults> {
+        const messageId = uuidv4();
+        const command: AsbPlayerCommand<DictionaryGetAllTokensMessage> = {
+            sender: 'asbplayerv2',
+            message: {
+                command: 'dictionary-get-all-tokens',
+                profile,
+                track,
+                messageId,
+            },
+        };
+        window.postMessage(command);
+        return await this._createResponsePromise(messageId);
+    }
+
     async dictionaryGetByLemmaBulk(
         profile: string | undefined,
         track: number,
@@ -660,26 +674,6 @@ export default class ChromeExtension {
                 profile,
                 track,
                 lemmas,
-                messageId,
-            },
-        };
-        window.postMessage(command);
-        return await this._createResponsePromise(messageId);
-    }
-
-    async dictionaryCountTokens(
-        profile: string | undefined,
-        track: number,
-        settings: AsbplayerSettings
-    ): Promise<DictionaryTokenCounts> {
-        const messageId = uuidv4();
-        const command: AsbPlayerCommand<DictionaryCountTokensMessage> = {
-            sender: 'asbplayerv2',
-            message: {
-                command: 'dictionary-count-tokens',
-                profile,
-                track,
-                settings,
                 messageId,
             },
         };

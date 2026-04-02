@@ -4,7 +4,7 @@ import {
     DictionaryBuildAnkiCacheMessage,
     DictionaryBuildAnkiCacheState,
     DictionaryBuildAnkiCacheStateMessage,
-    DictionaryCountTokensMessage,
+    DictionaryGetAllTokensMessage,
     DictionaryDBCommand,
     DictionaryDeleteProfileMessage,
     DictionaryDeleteRecordLocalBulkMessage,
@@ -89,6 +89,19 @@ export class ExtensionDictionaryStorage implements DictionaryStorage {
         return browser.runtime.sendMessage(message);
     }
 
+    getAllTokens(profile: string | undefined, track: number) {
+        const message: DictionaryDBCommand<DictionaryGetAllTokensMessage> = {
+            sender: 'asbplayer-dictionary',
+            message: {
+                command: 'dictionary-get-all-tokens',
+                messageId: uuidv4(),
+                profile,
+                track,
+            },
+        };
+        return browser.runtime.sendMessage(message);
+    }
+
     getByLemmaBulk(profile: string | undefined, track: number, lemmas: string[]) {
         const message: DictionaryDBCommand<DictionaryGetByLemmaBulkMessage> = {
             sender: 'asbplayer-dictionary',
@@ -158,20 +171,6 @@ export class ExtensionDictionaryStorage implements DictionaryStorage {
         const message: DictionaryDBCommand<DictionaryImportRecordLocalBulkMessage> = {
             sender: 'asbplayer-dictionary',
             message: { command: 'dictionary-import-record-local-bulk', messageId: uuidv4(), records, profiles },
-        };
-        return browser.runtime.sendMessage(message);
-    }
-
-    countTokens(profile: string | undefined, track: number, settings: AsbplayerSettings) {
-        const message: DictionaryDBCommand<DictionaryCountTokensMessage> = {
-            sender: 'asbplayer-dictionary',
-            message: {
-                command: 'dictionary-count-tokens',
-                messageId: uuidv4(),
-                profile,
-                track,
-                settings,
-            },
         };
         return browser.runtime.sendMessage(message);
     }

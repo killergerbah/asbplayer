@@ -1,7 +1,7 @@
 import type {
     AddProfileMessage,
     DictionaryBuildAnkiCacheMessage,
-    DictionaryCountTokensMessage,
+    DictionaryGetAllTokensMessage,
     DictionaryDeleteProfileMessage,
     DictionaryDeleteRecordLocalBulkMessage,
     DictionaryGetBulkMessage,
@@ -179,10 +179,10 @@ export default defineContentScript({
                         });
                         break;
                     }
-                    case 'dictionary-count-tokens': {
-                        const { profile, track, settings } = command.message as DictionaryCountTokensMessage;
+                    case 'dictionary-get-all-tokens': {
+                        const { profile, track } = command.message as DictionaryGetAllTokensMessage;
                         sendMessageToPlayer({
-                            response: await dictionaryStorage.countTokens(profile, track, settings),
+                            response: await dictionaryStorage.getAllTokens(profile, track),
                             messageId: command.message.messageId,
                         });
                         break;

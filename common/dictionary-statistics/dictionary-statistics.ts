@@ -1,5 +1,5 @@
 import { Progress, Tokenization } from '@project/common';
-import { DictionaryProvider } from '@project/common/dictionary-db';
+import { DictionaryProvider, TokenResults } from '@project/common/dictionary-db';
 import {
     dictionaryTrackEnabled,
     NUM_TOKEN_STATUSES,
@@ -19,8 +19,8 @@ export interface DictionaryStatisticsSentence {
 }
 
 export interface DictionaryStatisticsDictionarySnapshot {
-    numKnownTokens: number;
-    numIgnoredTokens: number;
+    tokens: TokenResults;
+    dictionaryAnkiTreatSuspended: TokenStatus | 'NORMAL';
 }
 export type DictionaryStatisticsSentences = Record<number, DictionaryStatisticsSentence>;
 
@@ -89,8 +89,8 @@ export class DictionaryStatistics {
             statusColors: statusColorsFromConfig([]),
             stats: {
                 dictionary: {
-                    numKnownTokens: 0,
-                    numIgnoredTokens: 0,
+                    tokens: {},
+                    dictionaryAnkiTreatSuspended: 'NORMAL',
                 },
                 sentences: {},
             },
@@ -106,7 +106,7 @@ export class DictionaryStatistics {
         return ts.progress.current >= ts.progress.total;
     }
 
-    async refreshDictionaryKnownTokens(profile: string | undefined): Promise<void> {
+    async refreshDictionaryTokens(profile: string | undefined): Promise<void> {
         const startTime = Date.now();
         const settings = await this.settingsProvider.getAll();
         await Promise.all(
@@ -114,13 +114,8 @@ export class DictionaryStatistics {
                 if (!dictionaryTrackEnabled(dt)) return;
                 const ts = this.rawTrackSnapshots.get(track);
                 if (!ts) throw new Error(`Track ${track} not initialized for dictionary statistics`);
-                const { knownTokens, ignoredTokens } = await this.dictionaryProvider.countTokens(
-                    profile,
-                    track,
-                    settings
-                );
-                ts.stats.dictionary.numKnownTokens = knownTokens;
-                ts.stats.dictionary.numIgnoredTokens = ignoredTokens;
+                ts.stats.dictionary.tokens = await this.dictionaryProvider.getAllTokens(profile, track);
+                ts.stats.dictionary.dictionaryAnkiTreatSuspended = dt.dictionaryAnkiTreatSuspended;
                 ts.statusColors = statusColorsFromConfig(dt.dictionaryTokenStatusConfig);
                 await this._publish(this._snapshot(), startTime);
             })
@@ -144,8 +139,8 @@ export class DictionaryStatistics {
                     statusColors: ts.statusColors,
                     stats: {
                         dictionary: {
-                            numKnownTokens: ts.stats.dictionary.numKnownTokens,
-                            numIgnoredTokens: ts.stats.dictionary.numIgnoredTokens,
+                            tokens: ts.stats.dictionary.tokens,
+                            dictionaryAnkiTreatSuspended: ts.stats.dictionary.dictionaryAnkiTreatSuspended,
                         },
                         sentences: ts.stats.sentences,
                     },

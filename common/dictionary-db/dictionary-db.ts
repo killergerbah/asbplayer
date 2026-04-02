@@ -16,11 +16,9 @@ import {
     DictionaryTokenSource,
     DictionaryTrack,
     getFullyKnownTokenStatus,
-    isTokenStatusKnown,
     TokenState,
     TokenStatus,
 } from '@project/common/settings';
-import { getCardTokenStatus } from '@project/common/subtitle-annotations';
 import { HAS_LETTER_REGEX, inBatches, mapAsync } from '@project/common/util';
 import { Yomitan } from '@project/common/yomitan/yomitan';
 import Dexie from 'dexie';
@@ -75,11 +73,6 @@ export interface DictionaryLocalTokenInput {
     status: TokenStatus | null;
     lemmas: string[];
     states: TokenState[];
-}
-
-export interface DictionaryTokenCounts {
-    knownTokens: number;
-    ignoredTokens: number;
 }
 
 type DictionaryAnkiCardKey = [number, number, string];
@@ -190,92 +183,120 @@ export class DictionaryDB {
         return inputProfile ?? 'Default';
     }
 
+    private async _cardStatusMap(
+        profile: string,
+        track: number,
+        cardIds: Iterable<number>
+    ): Promise<Map<number, CardStatus>> {
+        const uniqueCardIds = Array.from(new Set(cardIds));
+        if (!uniqueCardIds.length) return new Map();
+
+        return this.db.ankiCards
+            .where('[cardId+track+profile]')
+            .anyOf(uniqueCardIds.map((cardId) => [cardId, track, profile]))
+            .toArray()
+            .then((ankiCards) => {
+                const cardStatusMap = new Map<number, CardStatus>();
+                for (const ankiCard of ankiCards) {
+                    cardStatusMap.set(ankiCard.cardId, {
+                        status: ankiCard.status,
+                        suspended: ankiCard.suspended,
+                    });
+                }
+                return cardStatusMap;
+            });
+    }
+
+    private async _tokenResultsFromRecords(
+        profile: string,
+        track: number,
+        records: DictionaryTokenRecord[]
+    ): Promise<TokenResults> {
+        if (!records.length) return {};
+
+        const tokenRecordMap = new Map<string, DictionaryTokenRecord[]>();
+        for (const record of records) {
+            const val = tokenRecordMap.get(record.token);
+            if (val) val.push(record);
+            else tokenRecordMap.set(record.token, [record]);
+        }
+        const tokenResults: TokenResults = {};
+
+        // Prioritize local tokens
+        for (const [token, tokenRecords] of tokenRecordMap.entries()) {
+            for (const record of tokenRecords) {
+                if (record.source !== DictionaryTokenSource.LOCAL) continue;
+                tokenResults[token] = {
+                    source: record.source,
+                    statuses: [{ status: record.status!, suspended: false }],
+                    states: record.states,
+                };
+                tokenRecordMap.delete(token);
+                break;
+            }
+        }
+        if (!tokenRecordMap.size) return tokenResults;
+
+        const cardStatusMap = await this._cardStatusMap(
+            profile,
+            track,
+            Array.from(tokenRecordMap.values()).flatMap((tokenRecords) =>
+                tokenRecords.flatMap((record) => record.cardIds)
+            )
+        );
+
+        // Need to prioritize word cards over sentences
+        for (const [token, tokenRecords] of tokenRecordMap.entries()) {
+            for (const record of tokenRecords) {
+                if (record.source !== DictionaryTokenSource.ANKI_WORD) continue;
+                const statuses: CardStatus[] = [];
+                for (const cardId of record.cardIds) statuses.push(cardStatusMap.get(cardId)!);
+                tokenResults[token] = { source: record.source, statuses, states: record.states };
+                tokenRecordMap.delete(token);
+                break;
+            }
+        }
+        if (!tokenRecordMap.size) return tokenResults;
+
+        // Finally use sentence cards if needed
+        for (const [token, tokenRecords] of tokenRecordMap.entries()) {
+            for (const record of tokenRecords) {
+                if (record.source !== DictionaryTokenSource.ANKI_SENTENCE) continue;
+                const statuses: CardStatus[] = [];
+                for (const cardId of record.cardIds) statuses.push(cardStatusMap.get(cardId)!);
+                tokenResults[token] = { source: record.source, statuses, states: record.states };
+                tokenRecordMap.delete(token);
+                break;
+            }
+        }
+
+        return tokenResults;
+    }
+
     async getBulk(inputProfile: string | undefined, track: number, tokens: string[]): Promise<TokenResults> {
         if (!tokens.length) return {};
         const profile = this._getProfile(inputProfile);
 
         return this.db.transaction('r', this.db.tokens, this.db.ankiCards, async () => {
-            return this.db.tokens
+            const records = await this.db.tokens
                 .where('[profile+token]')
                 .anyOf(tokens.map((token) => [profile, token]))
                 .filter((r) => r.track === track || r.track === LOCAL_TOKEN_TRACK)
-                .toArray()
-                .then(async (records) => {
-                    if (!records.length) return {};
-                    const tokenRecordMap = new Map<string, DictionaryTokenRecord[]>();
-                    for (const record of records) {
-                        const val = tokenRecordMap.get(record.token);
-                        if (val) val.push(record);
-                        else tokenRecordMap.set(record.token, [record]);
-                    }
-                    const tokenResults: TokenResults = {};
+                .toArray();
+            return this._tokenResultsFromRecords(profile, track, records);
+        });
+    }
 
-                    // Prioritize local tokens
-                    for (const [token, records] of tokenRecordMap.entries()) {
-                        for (const record of records) {
-                            if (record.source !== DictionaryTokenSource.LOCAL) continue;
-                            tokenResults[token] = {
-                                source: record.source,
-                                statuses: [{ status: record.status!, suspended: false }],
-                                states: record.states,
-                            };
-                            tokenRecordMap.delete(token);
-                            break;
-                        }
-                    }
-                    if (!tokenRecordMap.size) return tokenResults;
+    async getAllTokens(inputProfile: string | undefined, track: number): Promise<TokenResults> {
+        const profile = this._getProfile(inputProfile);
 
-                    // Fetch Anki card statuses for remaining tokens
-                    const cardStatusMap: Map<number, CardStatus> = await this.db.ankiCards
-                        .where('[cardId+track+profile]')
-                        .anyOf(
-                            Array.from(
-                                new Set(
-                                    Array.from(tokenRecordMap.values()).flatMap((records) =>
-                                        records.flatMap((record) => record.cardIds)
-                                    )
-                                )
-                            ).map((cardId) => [cardId, track, profile])
-                        )
-                        .toArray()
-                        .then((ankiCards) => {
-                            if (!ankiCards.length) return new Map();
-                            const cardStatusMap = new Map<number, CardStatus>();
-                            for (const ankiCard of ankiCards) {
-                                cardStatusMap.set(ankiCard.cardId, {
-                                    status: ankiCard.status,
-                                    suspended: ankiCard.suspended,
-                                });
-                            }
-                            return cardStatusMap;
-                        });
-
-                    // Need to prioritize word cards over sentences
-                    for (const [token, records] of tokenRecordMap.entries()) {
-                        for (const record of records) {
-                            if (record.source !== DictionaryTokenSource.ANKI_WORD) continue;
-                            const statuses: CardStatus[] = [];
-                            for (const cardId of record.cardIds) statuses.push(cardStatusMap.get(cardId)!);
-                            tokenResults[token] = { source: record.source, statuses, states: record.states };
-                            tokenRecordMap.delete(token);
-                            break;
-                        }
-                    }
-                    if (!tokenRecordMap.size) return tokenResults;
-
-                    // Finally use sentence cards if needed
-                    for (const [token, records] of tokenRecordMap.entries()) {
-                        for (const record of records) {
-                            if (record.source !== DictionaryTokenSource.ANKI_SENTENCE) continue;
-                            const statuses: CardStatus[] = [];
-                            for (const cardId of record.cardIds) statuses.push(cardStatusMap.get(cardId)!);
-                            tokenResults[token] = { source: record.source, statuses, states: record.states };
-                            tokenRecordMap.delete(token);
-                            break;
-                        }
-                    }
-                    return tokenResults;
-                });
+        return this.db.transaction('r', this.db.tokens, this.db.ankiCards, async () => {
+            const records = await this.db.tokens
+                .where('[profile+token]')
+                .between([profile, Dexie.minKey], [profile, Dexie.maxKey])
+                .filter((r) => r.track === track || r.track === LOCAL_TOKEN_TRACK)
+                .toArray();
+            return this._tokenResultsFromRecords(profile, track, records);
         });
     }
 
@@ -390,75 +411,6 @@ export class DictionaryDB {
                     }
                     return lemmaResults;
                 });
-        });
-    }
-
-    async countTokens(
-        inputProfile: string | undefined,
-        track: number,
-        settings: AsbplayerSettings
-    ): Promise<DictionaryTokenCounts> {
-        const dt = settings.dictionaryTracks[track];
-        if (!dt) return { knownTokens: 0, ignoredTokens: 0 };
-        const profile = this._getProfile(inputProfile);
-        return this.db.transaction('r', this.db.tokens, this.db.ankiCards, async () => {
-            const records = await this.db.tokens
-                .where('[profile+token]')
-                .between([profile, Dexie.minKey], [profile, Dexie.maxKey])
-                .filter((r) => r.track === track || r.track === LOCAL_TOKEN_TRACK)
-                .toArray();
-            if (!records.length) return { knownTokens: 0, ignoredTokens: 0 };
-
-            const prioritizedTokenRecords = new Map<string, DictionaryTokenRecord>();
-            for (const record of records) {
-                const existingRecord = prioritizedTokenRecords.get(record.token);
-                if (
-                    !existingRecord ||
-                    record.source === DictionaryTokenSource.LOCAL ||
-                    (record.source === DictionaryTokenSource.ANKI_WORD &&
-                        existingRecord.source === DictionaryTokenSource.ANKI_SENTENCE)
-                ) {
-                    prioritizedTokenRecords.set(record.token, record);
-                }
-            }
-
-            const counts: DictionaryTokenCounts = { knownTokens: 0, ignoredTokens: 0 };
-            const ankiRecords: DictionaryTokenRecord[] = [];
-            const cardIds = new Set<number>();
-            for (const record of prioritizedTokenRecords.values()) {
-                if (record.states.includes(TokenState.IGNORED)) {
-                    counts.ignoredTokens += 1;
-                    continue;
-                }
-                if (record.source === DictionaryTokenSource.LOCAL) {
-                    if (isTokenStatusKnown(record.status!)) counts.knownTokens += 1;
-                    continue;
-                }
-                ankiRecords.push(record);
-                for (const cardId of record.cardIds) cardIds.add(cardId);
-            }
-            if (!cardIds.size) return counts;
-
-            const cardStatusMap = await this.db.ankiCards
-                .where('[cardId+track+profile]')
-                .anyOf(Array.from(cardIds, (cardId) => [cardId, track, profile]))
-                .toArray()
-                .then((ankiCards) => {
-                    const statusMap = new Map<number, CardStatus>();
-                    for (const ankiCard of ankiCards) {
-                        statusMap.set(ankiCard.cardId, { status: ankiCard.status, suspended: ankiCard.suspended });
-                    }
-                    return statusMap;
-                });
-            for (const record of ankiRecords) {
-                const status = getCardTokenStatus(
-                    record.cardIds.map((cardId) => cardStatusMap.get(cardId)!),
-                    dt.dictionaryAnkiTreatSuspended
-                );
-                if (isTokenStatusKnown(status)) counts.knownTokens += 1;
-            }
-
-            return counts;
         });
     }
 

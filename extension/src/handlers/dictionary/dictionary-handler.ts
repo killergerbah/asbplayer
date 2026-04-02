@@ -3,7 +3,7 @@ import {
     DictionaryBuildAnkiCacheMessage,
     DictionaryBuildAnkiCacheState,
     DictionaryBuildAnkiCacheStateMessage,
-    DictionaryCountTokensMessage,
+    DictionaryGetAllTokensMessage,
     DictionaryImportRecordLocalBulkMessage,
     ExtensionToAsbPlayerCommand,
     Message,
@@ -50,6 +50,11 @@ export default class DictionaryHandler {
                     .then((result) => sendResponse(result));
                 return true;
             }
+            case 'dictionary-get-all-tokens': {
+                const message = command.message as DictionaryGetAllTokensMessage;
+                this.dictionaryDB.getAllTokens(message.profile, message.track).then((result) => sendResponse(result));
+                return true;
+            }
             case 'dictionary-get-by-lemma-bulk': {
                 const message = command.message as DictionaryGetByLemmaBulkMessage;
                 this.dictionaryDB
@@ -84,13 +89,6 @@ export default class DictionaryHandler {
                 const message = command.message as DictionaryImportRecordLocalBulkMessage;
                 this.dictionaryDB
                     .importRecordLocalBulk(message.records, message.profiles)
-                    .then((result) => sendResponse(result));
-                return true;
-            }
-            case 'dictionary-count-tokens': {
-                const message = command.message as DictionaryCountTokensMessage;
-                this.dictionaryDB
-                    .countTokens(message.profile, message.track, message.settings)
                     .then((result) => sendResponse(result));
                 return true;
             }

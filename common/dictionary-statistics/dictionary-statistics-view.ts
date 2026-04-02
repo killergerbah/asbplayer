@@ -6,6 +6,7 @@ import {
     DictionaryStatisticsSentences,
     DictionaryStatisticsSnapshot,
 } from '@project/common/dictionary-statistics';
+import { getCardTokenStatus } from '@project/common/subtitle-annotations';
 import { HAS_LETTER_REGEX } from '@project/common/util';
 
 /**
@@ -123,6 +124,11 @@ interface EvaluatedSentenceSnapshot {
     statusCounts: DictionaryStatisticsTokenStatusCounts;
     consideredTokenKeys: string[];
     uncollectedTokenKeys: string[];
+}
+
+interface DictionaryStatisticsDictionaryCounts {
+    numKnownTokens: number;
+    numIgnoredTokens: number;
 }
 
 function emptyStatusCounts(): DictionaryStatisticsTokenStatusCounts {
@@ -439,8 +445,24 @@ function statusCountsAndFrequencies(tokens: ProcessedTokenSnapshots) {
     };
 }
 
+function dictionaryCountsFromRaw(
+    dictionary: DictionaryStatisticsRawTrackSnapshot['stats']['dictionary']
+): DictionaryStatisticsDictionaryCounts {
+    let numKnownTokens = 0;
+    let numIgnoredTokens = 0;
+    for (const token of Object.values(dictionary.tokens)) {
+        if (token.states.includes(TokenState.IGNORED)) {
+            numIgnoredTokens += 1;
+            continue;
+        }
+        const status = getCardTokenStatus(token.statuses, dictionary.dictionaryAnkiTreatSuspended);
+        if (isTokenStatusKnown(status)) numKnownTokens += 1;
+    }
+    return { numKnownTokens, numIgnoredTokens };
+}
+
 function rewatchSnapshotsFromRaw(
-    dictionary: DictionaryStatisticsRawTrackSnapshot['stats']['dictionary'],
+    dictionaryKnownTokens: number,
     tokens: ProcessedTokenSnapshots,
     sentenceSnapshots: ProcessedSentenceSnapshot[],
     currentKnownTokens: number
@@ -493,7 +515,7 @@ function rewatchSnapshotsFromRaw(
         rewatchSnapshots.push({
             rewatch: rewatchSnapshots.length + 1,
             numKnownTokens: projectedKnownTokens,
-            numDictionaryKnownTokens: dictionary.numKnownTokens + (projectedKnownTokens - currentKnownTokens),
+            numDictionaryKnownTokens: dictionaryKnownTokens + (projectedKnownTokens - currentKnownTokens),
             sentenceTotals: projectedSentenceTotals,
             statusCounts: projectedStatusCounts,
             sentenceBuckets: projectedSentenceBuckets,
@@ -508,6 +530,7 @@ function processDictionaryStatisticsTrackSnapshot(
 ): DictionaryStatisticsTrackSnapshot {
     const { dictionary, sentences } = trackSnapshot.stats;
     const sentenceSnapshots = processSentenceSnapshots(sentences);
+    const dictionaryCounts = dictionaryCountsFromRaw(dictionary);
 
     const tokens: ProcessedTokenSnapshots = new Map();
     for (const { tokens: sentenceTokens } of sentenceSnapshots) {
@@ -521,14 +544,19 @@ function processDictionaryStatisticsTrackSnapshot(
     );
     const currentSentenceTotals = sentenceTotals(evaluatedSentenceSnapshots);
     const currentSentenceBuckets = buildSentenceBucketData(evaluatedSentenceSnapshots, tokens);
-    const rewatchSnapshots = rewatchSnapshotsFromRaw(dictionary, tokens, sentenceSnapshots, numKnownTokens);
+    const rewatchSnapshots = rewatchSnapshotsFromRaw(
+        dictionaryCounts.numKnownTokens,
+        tokens,
+        sentenceSnapshots,
+        numKnownTokens
+    );
 
     return {
         track: trackSnapshot.track,
         progress: trackSnapshot.progress,
         statusColors: trackSnapshot.statusColors,
-        numDictionaryKnownTokens: dictionary.numKnownTokens,
-        numDictionaryIgnoredTokens: dictionary.numIgnoredTokens,
+        numDictionaryKnownTokens: dictionaryCounts.numKnownTokens,
+        numDictionaryIgnoredTokens: dictionaryCounts.numIgnoredTokens,
         numUniqueTokens: tokens.size,
         numIgnoredTokens,
         numIgnoredOccurrences,
