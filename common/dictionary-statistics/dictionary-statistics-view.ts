@@ -1,5 +1,11 @@
 import { Progress } from '@project/common';
-import { isTokenStatusKnown, NUM_TOKEN_STATUSES, TokenState, TokenStatus } from '@project/common/settings';
+import {
+    getFullyKnownTokenStatus,
+    isTokenStatusKnown,
+    NUM_TOKEN_STATUSES,
+    TokenState,
+    TokenStatus,
+} from '@project/common/settings';
 import {
     DictionaryStatisticsRawTrackSnapshot,
     DictionaryStatisticsSentence,
@@ -16,6 +22,35 @@ import { HAS_LETTER_REGEX } from '@project/common/util';
  */
 
 const dictionaryStatisticsFrequencyBuckets = [1000, 2000, 5000, 10000, 20000] as const;
+const minimumComprehensionStatus = TokenStatus.UNKNOWN;
+const fullyKnownTokenStatus = getFullyKnownTokenStatus();
+const comprehensionStatusRange = fullyKnownTokenStatus - minimumComprehensionStatus;
+
+export const dictionaryStatisticsComprehensionBands = [
+    { min: 0, max: 60, label: '<60', color: '#c62828', textColor: '#ffffff' },
+    { min: 60, max: 70, label: '60+', color: '#ef6c00', textColor: '#ffffff' },
+    { min: 70, max: 80, label: '70+', color: '#f9a825', textColor: '#111111' },
+    { min: 80, max: 90, label: '80+', color: '#2e7d32', textColor: '#ffffff' },
+    { min: 90, max: 95, label: '90+', color: '#1565c0', textColor: '#ffffff' },
+    { min: 95, max: 100, label: '95+', color: 'primary.main', textColor: 'primary.contrastText' },
+] as const;
+
+export type DictionaryStatisticsSentenceSort = 'index' | 'frequency' | 'occurrences' | 'comprehension';
+export type DictionaryStatisticsSentenceSortDirection = 'asc' | 'desc';
+
+export interface DictionaryStatisticsSentenceSortState {
+    sort: DictionaryStatisticsSentenceSort;
+    direction: DictionaryStatisticsSentenceSortDirection;
+}
+
+export type DictionaryStatisticsSentenceDialogBucket =
+    | {
+          kind: 'allKnown';
+      }
+    | {
+          kind: 'uncollected';
+          groupIndex: number;
+      };
 
 export interface DictionaryStatisticsTokenStatusCount {
     numUnique: number;
@@ -36,6 +71,8 @@ export type DictionaryStatisticsFrequencyBucketStatusCounts = Map<
 export interface DictionaryStatisticsSentenceStatusCounts {
     sentence: DictionaryStatisticsSentence;
     statusCounts: DictionaryStatisticsTokenStatusCounts;
+    comprehensionPercent: number;
+    comprehensionBandIndex: number;
 }
 
 export interface DictionaryStatisticsSentenceTotals {
@@ -50,6 +87,13 @@ export interface DictionaryStatisticsFrequencyBucket {
     count: number;
     statusCounts: DictionaryStatisticsFrequencyBucketStatusCounts;
     numOccurrences: number;
+    percent: number;
+}
+
+export interface DictionaryStatisticsSentenceComprehensionPoint {
+    sentence: DictionaryStatisticsSentence;
+    comprehensionPercent: number;
+    comprehensionBandIndex: number;
 }
 
 export interface DictionaryStatisticsSentenceBucketEntry {
@@ -60,6 +104,8 @@ export interface DictionaryStatisticsSentenceBucketEntry {
     numUncollectedTokens: number;
     lowestFrequency?: number;
     highestOccurrences: number;
+    comprehensionPercent: number;
+    comprehensionBandIndex: number;
 }
 
 export interface DictionaryStatisticsSentenceUncollectedBucket {
@@ -80,6 +126,10 @@ export interface DictionaryStatisticsRewatchSnapshot {
     rewatch: number;
     numKnownTokens: number;
     numDictionaryKnownTokens: number;
+    knownPercent: number;
+    comprehensionPercent: number;
+    averageWordsPerSentence: number;
+    averageKnownWordsPerSentence: number;
     sentenceTotals: DictionaryStatisticsSentenceTotals;
     statusCounts: DictionaryStatisticsTokenStatusCounts;
     sentenceBuckets: DictionaryStatisticsSentenceBuckets;
@@ -88,14 +138,22 @@ export interface DictionaryStatisticsRewatchSnapshot {
 export interface DictionaryStatisticsTrackSnapshot {
     track: number;
     progress: Progress;
+    progressPercent: number;
     statusColors: Record<TokenStatus, string>;
     numDictionaryKnownTokens: number;
     numDictionaryIgnoredTokens: number;
     numUniqueTokens: number;
+    consideredTokens: number;
     numIgnoredTokens: number;
     numIgnoredOccurrences: number;
     numKnownTokens: number;
+    knownPercent: number;
+    comprehensionPercent: number;
+    averageWordsPerSentence: number;
+    averageKnownWordsPerSentence: number;
     sentenceTotals: DictionaryStatisticsSentenceTotals;
+    sentenceComprehensionPoints: DictionaryStatisticsSentenceComprehensionPoint[];
+    allSentenceEntries: DictionaryStatisticsSentenceBucketEntry[];
     statusCounts: DictionaryStatisticsTokenStatusCounts;
     frequencyBuckets: DictionaryStatisticsFrequencyBucket[];
     sentenceBuckets: DictionaryStatisticsSentenceBuckets;
@@ -129,6 +187,96 @@ interface EvaluatedSentenceSnapshot {
 interface DictionaryStatisticsDictionaryCounts {
     numKnownTokens: number;
     numIgnoredTokens: number;
+}
+
+export function clampPercent(value: number) {
+    return Math.max(0, Math.min(100, value));
+}
+
+export function percent(value: number, total: number) {
+    return total > 0 ? (value / total) * 100 : 0;
+}
+
+export function percentDisplay(value: number) {
+    const fractionDigits = value === 100 ? 0 : value > 99 ? 3 : 1;
+    return `${value.toFixed(fractionDigits)}%`;
+}
+
+export function averageDisplay(value: number) {
+    return value.toFixed(1);
+}
+
+export function countPercentOccurrencesDisplay(count: number, total: number, occurrences: number) {
+    return `${count} · ${percentDisplay(percent(count, total))} (${occurrences})`;
+}
+
+function averageFromTotals(total: number, count: number) {
+    return count > 0 ? total / count : 0;
+}
+
+function comprehensionScore(status: TokenStatus): number {
+    return (Math.max(status, minimumComprehensionStatus) - minimumComprehensionStatus) / comprehensionStatusRange;
+}
+
+function comprehensionFromStatusOccurrences(statusCounts: DictionaryStatisticsTokenStatusCounts): number {
+    let totalOccurrences = 0;
+    let comprehensionSum = 0;
+
+    for (let status: TokenStatus = 0; status < NUM_TOKEN_STATUSES; ++status) {
+        const numOccurrences = statusCounts.get(status)?.numOccurrences ?? 0;
+        totalOccurrences += numOccurrences;
+        comprehensionSum += numOccurrences * comprehensionScore(status);
+    }
+
+    return totalOccurrences > 0 ? (comprehensionSum / totalOccurrences) * 100 : 0;
+}
+
+function comprehensionBandIndexForPercent(value: number): number {
+    const clampedValue = clampPercent(value);
+    for (let i = 0; i < dictionaryStatisticsComprehensionBands.length - 1; ++i) {
+        if (clampedValue < dictionaryStatisticsComprehensionBands[i].max) return i;
+    }
+    return dictionaryStatisticsComprehensionBands.length - 1;
+}
+
+function sentenceAveragesFromTotals(sentenceTotals: DictionaryStatisticsSentenceTotals) {
+    return {
+        averageWordsPerSentence: averageFromTotals(sentenceTotals.totalWords, sentenceTotals.processedSentenceCount),
+        averageKnownWordsPerSentence: averageFromTotals(
+            sentenceTotals.totalKnownWords,
+            sentenceTotals.processedSentenceCount
+        ),
+    };
+}
+
+function sentenceComprehensionPointsFromSentenceTotals(
+    sentenceTotals: DictionaryStatisticsSentenceTotals
+): DictionaryStatisticsSentenceComprehensionPoint[] {
+    return sentenceTotals.statusCounts.map(({ sentence, comprehensionPercent, comprehensionBandIndex }) => ({
+        sentence,
+        comprehensionPercent,
+        comprehensionBandIndex,
+    }));
+}
+
+export function sentenceComprehensionPointLabel(point: DictionaryStatisticsSentenceComprehensionPoint) {
+    return `#${point.sentence.index + 1} · ${percentDisplay(point.comprehensionPercent)}`;
+}
+
+export function sentenceComprehensionXAxisLabels(points: DictionaryStatisticsSentenceComprehensionPoint[]) {
+    const total = points.length;
+    if (total <= 0) return [{ value: 1, position: 0 }];
+
+    const values = new Set<number>([1, total]);
+    for (let value = 50; value < total; value += 50) values.add(value);
+
+    const denominator = Math.max(total - 1, 1);
+    return Array.from(values)
+        .sort((left, right) => left - right)
+        .map((value) => ({
+            value,
+            position: total === 1 ? 0 : ((value - 1) / denominator) * 100,
+        }));
 }
 
 function emptyStatusCounts(): DictionaryStatisticsTokenStatusCounts {
@@ -284,10 +432,15 @@ function sentenceTotals(sentenceSnapshots: EvaluatedSentenceSnapshot[]): Diction
         processedSentenceCount: sentenceSnapshots.length,
         totalWords,
         totalKnownWords,
-        statusCounts: sentenceSnapshots.map((sentenceSnapshot) => ({
-            sentence: sentenceSnapshot.sentence,
-            statusCounts: sentenceSnapshot.statusCounts,
-        })),
+        statusCounts: sentenceSnapshots.map((sentenceSnapshot) => {
+            const comprehensionPercent = comprehensionFromStatusOccurrences(sentenceSnapshot.statusCounts);
+            return {
+                sentence: sentenceSnapshot.sentence,
+                statusCounts: sentenceSnapshot.statusCounts,
+                comprehensionPercent,
+                comprehensionBandIndex: comprehensionBandIndexForPercent(comprehensionPercent),
+            };
+        }),
     };
 }
 
@@ -310,6 +463,8 @@ function sentenceBucketEntry(
         if (token.numOccurrences > highestOccurrences) highestOccurrences = token.numOccurrences;
     }
 
+    const comprehensionPercent = comprehensionFromStatusOccurrences(sentenceSnapshot.statusCounts);
+
     return {
         sentence: sentenceSnapshot.sentence,
         numConsideredTokens: sentenceSnapshot.numConsideredTokens,
@@ -318,7 +473,18 @@ function sentenceBucketEntry(
         numUncollectedTokens: sentenceSnapshot.numUncollectedTokens,
         lowestFrequency,
         highestOccurrences,
+        comprehensionPercent,
+        comprehensionBandIndex: comprehensionBandIndexForPercent(comprehensionPercent),
     };
+}
+
+function allSentenceEntries(
+    sentenceSnapshots: EvaluatedSentenceSnapshot[],
+    tokens: ProcessedTokenSnapshots
+): DictionaryStatisticsSentenceBucketEntry[] {
+    return sentenceSnapshots.map((sentenceSnapshot) =>
+        sentenceBucketEntry(sentenceSnapshot, sentenceSnapshot.consideredTokenKeys, tokens)
+    );
 }
 
 function buildSentenceBucketData(
@@ -412,6 +578,8 @@ function statusCountsAndFrequencies(tokens: ProcessedTokenSnapshots) {
         }
     }
 
+    const consideredTokens = Array.from(statusCounts.values()).reduce((sum, count) => sum + count.numUnique, 0);
+
     const frequencyBuckets: DictionaryStatisticsFrequencyBucket[] = dictionaryStatisticsFrequencyBuckets.map(
         (curr, index) => {
             const prev = dictionaryStatisticsFrequencyBuckets[index - 1];
@@ -420,6 +588,7 @@ function statusCountsAndFrequencies(tokens: ProcessedTokenSnapshots) {
                 count: frequencyCounts[index],
                 statusCounts: frequencyStatusCounts[index],
                 numOccurrences: frequencyOccurrenceCounts[index],
+                percent: percent(frequencyCounts[index], consideredTokens),
             };
         }
     );
@@ -428,17 +597,20 @@ function statusCountsAndFrequencies(tokens: ProcessedTokenSnapshots) {
         count: overflowFrequencyCount,
         statusCounts: overflowFrequencyStatusCounts,
         numOccurrences: overflowFrequencyOccurrences,
+        percent: percent(overflowFrequencyCount, consideredTokens),
     });
     frequencyBuckets.push({
         label: 'Unknown',
         count: unknownFrequencyCount,
         statusCounts: unknownFrequencyStatusCounts,
         numOccurrences: unknownFrequencyOccurrences,
+        percent: percent(unknownFrequencyCount, consideredTokens),
     });
 
     return {
         statusCounts,
         frequencyBuckets,
+        consideredTokens,
         numIgnoredTokens,
         numIgnoredOccurrences,
         numKnownTokens,
@@ -465,7 +637,8 @@ function rewatchSnapshotsFromRaw(
     dictionaryKnownTokens: number,
     tokens: ProcessedTokenSnapshots,
     sentenceSnapshots: ProcessedSentenceSnapshot[],
-    currentKnownTokens: number
+    currentKnownTokens: number,
+    consideredTokens: number
 ): DictionaryStatisticsRewatchSnapshot[] {
     const tokenEntries = Array.from(tokens.entries());
     const projectedStatuses = new Map<string, TokenStatus>(
@@ -500,6 +673,8 @@ function rewatchSnapshotsFromRaw(
         );
         const projectedSentenceTotals = sentenceTotals(evaluatedProjectedSentences);
         const projectedSentenceBuckets = buildSentenceBucketData(evaluatedProjectedSentences, tokens);
+        const { averageWordsPerSentence, averageKnownWordsPerSentence } =
+            sentenceAveragesFromTotals(projectedSentenceTotals);
         const projectedStatusCounts = emptyStatusCounts();
         let projectedKnownTokens = 0;
 
@@ -512,10 +687,16 @@ function rewatchSnapshotsFromRaw(
             if (isTokenStatusKnown(projectedStatus)) projectedKnownTokens += 1;
         }
 
+        const comprehensionPercent = comprehensionFromStatusOccurrences(projectedStatusCounts);
+
         rewatchSnapshots.push({
             rewatch: rewatchSnapshots.length + 1,
             numKnownTokens: projectedKnownTokens,
             numDictionaryKnownTokens: dictionaryKnownTokens + (projectedKnownTokens - currentKnownTokens),
+            knownPercent: percent(projectedKnownTokens, consideredTokens),
+            comprehensionPercent,
+            averageWordsPerSentence,
+            averageKnownWordsPerSentence,
             sentenceTotals: projectedSentenceTotals,
             statusCounts: projectedStatusCounts,
             sentenceBuckets: projectedSentenceBuckets,
@@ -537,36 +718,258 @@ function processDictionaryStatisticsTrackSnapshot(
         for (const [k, token] of sentenceTokens.entries()) tokens.set(k, mergeTokenSnapshot(tokens.get(k), token));
     }
 
-    const { statusCounts, frequencyBuckets, numIgnoredTokens, numIgnoredOccurrences, numKnownTokens } =
-        statusCountsAndFrequencies(tokens);
+    const {
+        statusCounts,
+        frequencyBuckets,
+        consideredTokens,
+        numIgnoredTokens,
+        numIgnoredOccurrences,
+        numKnownTokens,
+    } = statusCountsAndFrequencies(tokens);
     const evaluatedSentenceSnapshots = sentenceSnapshots.map((sentenceSnapshot) =>
         evaluateSentenceSnapshot(sentenceSnapshot)
     );
     const currentSentenceTotals = sentenceTotals(evaluatedSentenceSnapshots);
+    const { averageWordsPerSentence, averageKnownWordsPerSentence } = sentenceAveragesFromTotals(currentSentenceTotals);
     const currentSentenceBuckets = buildSentenceBucketData(evaluatedSentenceSnapshots, tokens);
+    const sentenceComprehensionPoints = sentenceComprehensionPointsFromSentenceTotals(currentSentenceTotals);
+    const trackAllSentenceEntries = allSentenceEntries(evaluatedSentenceSnapshots, tokens);
+    const comprehensionPercent = comprehensionFromStatusOccurrences(statusCounts);
     const rewatchSnapshots = rewatchSnapshotsFromRaw(
         dictionaryCounts.numKnownTokens,
         tokens,
         sentenceSnapshots,
-        numKnownTokens
+        numKnownTokens,
+        consideredTokens
     );
 
     return {
         track: trackSnapshot.track,
         progress: trackSnapshot.progress,
+        progressPercent: percent(trackSnapshot.progress.current, trackSnapshot.progress.total),
         statusColors: trackSnapshot.statusColors,
         numDictionaryKnownTokens: dictionaryCounts.numKnownTokens,
         numDictionaryIgnoredTokens: dictionaryCounts.numIgnoredTokens,
         numUniqueTokens: tokens.size,
+        consideredTokens,
         numIgnoredTokens,
         numIgnoredOccurrences,
         numKnownTokens,
+        knownPercent: percent(numKnownTokens, consideredTokens),
+        comprehensionPercent,
+        averageWordsPerSentence,
+        averageKnownWordsPerSentence,
         sentenceTotals: currentSentenceTotals,
+        sentenceComprehensionPoints,
+        allSentenceEntries: trackAllSentenceEntries,
         statusCounts,
         frequencyBuckets,
         sentenceBuckets: currentSentenceBuckets,
         rewatchSnapshots,
     };
+}
+
+function compareSentenceFrequency(
+    left: DictionaryStatisticsSentenceBucketEntry,
+    right: DictionaryStatisticsSentenceBucketEntry
+) {
+    const leftFrequency = left.lowestFrequency ?? Number.POSITIVE_INFINITY;
+    const rightFrequency = right.lowestFrequency ?? Number.POSITIVE_INFINITY;
+    return leftFrequency - rightFrequency;
+}
+
+function compareSentenceOccurrences(
+    left: DictionaryStatisticsSentenceBucketEntry,
+    right: DictionaryStatisticsSentenceBucketEntry
+) {
+    return left.highestOccurrences - right.highestOccurrences;
+}
+
+function compareSentenceComprehension(
+    left: DictionaryStatisticsSentenceBucketEntry,
+    right: DictionaryStatisticsSentenceBucketEntry
+) {
+    return left.comprehensionPercent - right.comprehensionPercent;
+}
+
+function compareSentenceIndex(
+    left: DictionaryStatisticsSentenceBucketEntry,
+    right: DictionaryStatisticsSentenceBucketEntry
+) {
+    return left.sentence.index - right.sentence.index;
+}
+
+function compareWithDirection(comparison: number, direction: DictionaryStatisticsSentenceSortDirection) {
+    return direction === 'desc' ? -comparison : comparison;
+}
+
+function frequencyDirection(preferMostFrequent: boolean): DictionaryStatisticsSentenceSortDirection {
+    return preferMostFrequent ? 'asc' : 'desc';
+}
+
+function countDirection(preferHighest: boolean): DictionaryStatisticsSentenceSortDirection {
+    return preferHighest ? 'desc' : 'asc';
+}
+
+export function defaultDictionaryStatisticsSentenceSortDirection(sort: DictionaryStatisticsSentenceSort) {
+    return sort === 'occurrences' || sort === 'comprehension' ? 'desc' : 'asc';
+}
+
+export function defaultDictionaryStatisticsSentenceSortState(
+    sort: DictionaryStatisticsSentenceSort = 'index'
+): DictionaryStatisticsSentenceSortState {
+    return {
+        sort,
+        direction: defaultDictionaryStatisticsSentenceSortDirection(sort),
+    };
+}
+
+export function nextDictionaryStatisticsSentenceSortState(
+    current: DictionaryStatisticsSentenceSortState,
+    sort: DictionaryStatisticsSentenceSort
+): DictionaryStatisticsSentenceSortState {
+    if (current.sort === sort) {
+        return {
+            sort,
+            direction: current.direction === 'asc' ? 'desc' : 'asc',
+        };
+    }
+
+    return defaultDictionaryStatisticsSentenceSortState(sort);
+}
+
+export function uncollectedSentenceBucketLabel(
+    bucket: DictionaryStatisticsSentenceUncollectedBucket,
+    uncollectedLabel: string
+) {
+    if (bucket.tokenCount > 1) return `${bucket.tokenCount}+ ${uncollectedLabel}`;
+    return `${bucket.tokenCount} ${uncollectedLabel}`;
+}
+
+export function sentenceDialogBucketData(
+    bucket: DictionaryStatisticsSentenceDialogBucket,
+    sentenceBuckets: DictionaryStatisticsSentenceBuckets,
+    labels: {
+        knownSentencesLabel: string;
+        uncollectedLabel: string;
+    }
+) {
+    if (bucket.kind === 'allKnown') {
+        return {
+            label: labels.knownSentencesLabel,
+            entries: sentenceBuckets.allKnown.entries,
+        };
+    }
+    const uncollectedBucket = sentenceBuckets.uncollected[bucket.groupIndex];
+    if (!uncollectedBucket) return;
+    return {
+        label: uncollectedSentenceBucketLabel(uncollectedBucket, labels.uncollectedLabel),
+        entries: uncollectedBucket.entries,
+    };
+}
+
+export function selectedRewatchSnapshotForTrack(
+    trackSnapshot: DictionaryStatisticsTrackSnapshot,
+    selectedRewatchesByTrack: Record<number, number>
+) {
+    if (!trackSnapshot.rewatchSnapshots.length) return;
+    const selectedRewatch = Math.min(
+        selectedRewatchesByTrack[trackSnapshot.track] ?? 1,
+        trackSnapshot.rewatchSnapshots.length
+    );
+    return trackSnapshot.rewatchSnapshots[selectedRewatch - 1];
+}
+
+export function sortDictionaryStatisticsSentenceBucketEntries(
+    entries: DictionaryStatisticsSentenceBucketEntry[],
+    sortState: DictionaryStatisticsSentenceSortState
+) {
+    const next = entries.slice();
+    next.sort((left, right) => {
+        if (sortState.sort === 'comprehension') {
+            const comprehensionComparison = compareWithDirection(
+                compareSentenceComprehension(left, right),
+                sortState.direction
+            );
+            if (comprehensionComparison !== 0) return comprehensionComparison;
+
+            const preferHighest = sortState.direction === 'desc';
+            const frequencyComparison = compareWithDirection(
+                compareSentenceFrequency(left, right),
+                frequencyDirection(preferHighest)
+            );
+            if (frequencyComparison !== 0) return frequencyComparison;
+
+            const occurrenceComparison = compareWithDirection(
+                compareSentenceOccurrences(left, right),
+                countDirection(preferHighest)
+            );
+            if (occurrenceComparison !== 0) return occurrenceComparison;
+
+            return compareSentenceIndex(left, right);
+        }
+
+        if (sortState.sort === 'frequency') {
+            const frequencyComparison = compareWithDirection(
+                compareSentenceFrequency(left, right),
+                sortState.direction
+            );
+            if (frequencyComparison !== 0) return frequencyComparison;
+
+            const preferHighest = sortState.direction === 'asc';
+            const comprehensionComparison = compareWithDirection(
+                compareSentenceComprehension(left, right),
+                countDirection(preferHighest)
+            );
+            if (comprehensionComparison !== 0) return comprehensionComparison;
+
+            const occurrenceComparison = compareWithDirection(
+                compareSentenceOccurrences(left, right),
+                countDirection(preferHighest)
+            );
+            if (occurrenceComparison !== 0) return occurrenceComparison;
+
+            return compareSentenceIndex(left, right);
+        }
+
+        if (sortState.sort === 'occurrences') {
+            const occurrenceComparison = compareWithDirection(
+                compareSentenceOccurrences(left, right),
+                sortState.direction
+            );
+            if (occurrenceComparison !== 0) return occurrenceComparison;
+
+            const preferHighest = sortState.direction === 'desc';
+            const comprehensionComparison = compareWithDirection(
+                compareSentenceComprehension(left, right),
+                countDirection(preferHighest)
+            );
+            if (comprehensionComparison !== 0) return comprehensionComparison;
+
+            const frequencyComparison = compareWithDirection(
+                compareSentenceFrequency(left, right),
+                frequencyDirection(preferHighest)
+            );
+            if (frequencyComparison !== 0) return frequencyComparison;
+
+            return compareSentenceIndex(left, right);
+        }
+
+        const indexComparison = compareWithDirection(compareSentenceIndex(left, right), sortState.direction);
+        if (indexComparison !== 0) return indexComparison;
+
+        const frequencyComparison = compareWithDirection(compareSentenceFrequency(left, right), 'asc');
+        if (frequencyComparison !== 0) return frequencyComparison;
+
+        const occurrenceComparison = compareWithDirection(compareSentenceOccurrences(left, right), 'desc');
+        if (occurrenceComparison !== 0) return occurrenceComparison;
+
+        const comprehensionComparison = compareWithDirection(compareSentenceComprehension(left, right), 'desc');
+        if (comprehensionComparison !== 0) return comprehensionComparison;
+
+        return compareSentenceIndex(left, right);
+    });
+    return next;
 }
 
 export function processDictionaryStatisticsSnapshot(

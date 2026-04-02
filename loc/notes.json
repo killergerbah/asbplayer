@@ -363,9 +363,11 @@
         "comprehensionDistribution": "Label for the chart that shows how many sentences fall into each comprehension-score band.",
         "globalKnownWords": "Count of words considered known across the user's global data for a track.",
         "comprehension": "An estimated comprehension score for the current sentence collection.",
+        "sentenceIndex": "Label for the index of a sentence in the current sentence collection.",
         "wordDistribution": "Label for chart that shows distribution of word occurrences.",
         "statusDistribution": "Label for chart that shows distribution of words by known-status categories.",
-        "frequencyDistribution": "Label for chart that shows distribution of word frequencies.",
+        "frequency": "Label for rank-based frequency.",
+        "occurrences": "Label for total number of occurrences of a word in the sentence collection.",
         "sentenceStatistics": "Label for statistics relating to sentences rather than the entire media.",
         "currentWatch": "Indicates that the stats are relevant to the user's current knowledge, rather than projected rewatches.",
         "projectedRewatch": "Rewatch passes until no more i+1 uncollected sentences remains.",
@@ -373,9 +375,6 @@
         "rewatchOption": "Label template for each rewatch option (e.g., \"Rewatch #1\").",
         "miningDisabledUntilComplete": "Helper text indicating mining is disabled until statistics generation completes.",
         "sortBy": "Label for sorting control used to order sentences in the statistics view.",
-        "sortByIndex": "Sort option to order sentences by their original index in the source material.",
-        "sortByFrequency": "Sort option to order sentences by word frequency (most frequent first).",
-        "sortByOccurrences": "Sort option to order sentences by total word occurrences.",
         "matchingSentences": "Label for the list of sentences that match the current filter or selection."
     },
     "extension": {
