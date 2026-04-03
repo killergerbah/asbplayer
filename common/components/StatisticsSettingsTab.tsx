@@ -3,6 +3,7 @@ import {
     averageDisplay,
     clampPercent,
     countPercentOccurrencesDisplay,
+    DictionaryStatisticsAnkiTrackSnapshot,
     DictionaryStatisticsFrequencyBucketStatusCounts,
     dictionaryStatisticsComprehensionBands,
     DictionaryStatisticsSentenceDialogBucket,
@@ -15,6 +16,7 @@ import {
     percent,
     percentDisplay,
     DictionaryStatisticsSnapshot,
+    processDictionaryStatisticsAnkiTrackSnapshot,
     processDictionaryStatisticsSnapshot,
     selectedRewatchSnapshotForTrack,
     sentenceComprehensionPointLabel,
@@ -573,9 +575,233 @@ function SentenceStatsPanel({
     );
 }
 
+function AnkiStatisticsSection({
+    snapshot,
+    statusLabels,
+    statusColors,
+    title,
+    infoLines,
+    dueByTodayLabel,
+    dueByTomorrowLabel,
+    dueByWeekLabel,
+    suspendedCardsLabel,
+    deckFrequencyBreakdownLabel,
+    modelBreakdownLabel,
+    uniqueWordsLabel,
+    frequencyLabel,
+    unavailableMessage,
+    emptyDeckBreakdownMessage,
+}: {
+    snapshot: DictionaryStatisticsAnkiTrackSnapshot;
+    statusLabels: Record<TokenStatus, string>;
+    statusColors: DictionaryStatisticsTrackSnapshot['statusColors'];
+    title: string;
+    infoLines?: string[];
+    dueByTodayLabel: string;
+    dueByTomorrowLabel: string;
+    dueByWeekLabel: string;
+    suspendedCardsLabel: string;
+    deckFrequencyBreakdownLabel: string;
+    modelBreakdownLabel: string;
+    uniqueWordsLabel: (count: number) => string;
+    frequencyLabel: string;
+    unavailableMessage: string;
+    emptyDeckBreakdownMessage: string;
+}) {
+    return (
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <StatisticsSectionHeading title={title} infoLines={infoLines} />
+
+            {snapshot.progress !== undefined &&
+                snapshot.progress.total > 0 &&
+                snapshot.progress.current < snapshot.progress.total && (
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+                        <Typography variant="caption" color="text.secondary">
+                            {percentDisplay(snapshot.progressPercent)}
+                        </Typography>
+                        <LinearProgress
+                            value={snapshot.progressPercent}
+                            variant="determinate"
+                            sx={{ height: 6, borderRadius: 999 }}
+                        />
+                    </Box>
+                )}
+
+            {snapshot.available === false ? (
+                <Typography color="text.secondary">{unavailableMessage}</Typography>
+            ) : (
+                <>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                        <Typography variant="subtitle2">{deckFrequencyBreakdownLabel}</Typography>
+                        {snapshot.deckSnapshots.length === 0 ? (
+                            <Typography color="text.secondary">{emptyDeckBreakdownMessage}</Typography>
+                        ) : (
+                            snapshot.deckSnapshots.map((deckSnapshot) => (
+                                <Box
+                                    key={deckSnapshot.deckName}
+                                    sx={{
+                                        p: 1.5,
+                                        borderRadius: 1,
+                                        border: '1px solid',
+                                        borderColor: 'divider',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        gap: 1,
+                                    }}
+                                >
+                                    <Box
+                                        sx={{
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center',
+                                            gap: 1,
+                                            flexWrap: 'wrap',
+                                        }}
+                                    >
+                                        <Typography variant="subtitle2">{deckSnapshot.deckName}</Typography>
+                                    </Box>
+
+                                    <Box
+                                        sx={{
+                                            display: 'grid',
+                                            gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
+                                            gap: 1,
+                                        }}
+                                    >
+                                        {[
+                                            { label: dueByTodayLabel, count: deckSnapshot.dueCounts.today },
+                                            { label: dueByTomorrowLabel, count: deckSnapshot.dueCounts.tomorrow },
+                                            { label: dueByWeekLabel, count: deckSnapshot.dueCounts.week },
+                                            { label: suspendedCardsLabel, count: deckSnapshot.suspendedCards },
+                                        ].map((dueBucket) => (
+                                            <Box
+                                                key={`${deckSnapshot.deckName}-${dueBucket.label}`}
+                                                sx={{
+                                                    p: 1,
+                                                    borderRadius: 1,
+                                                    border: '1px solid',
+                                                    borderColor: 'divider',
+                                                }}
+                                            >
+                                                <Typography variant="caption" color="text.secondary">
+                                                    {dueBucket.label}
+                                                </Typography>
+                                                <Typography variant="subtitle1">{dueBucket.count}</Typography>
+                                            </Box>
+                                        ))}
+                                    </Box>
+
+                                    {deckSnapshot.modelSnapshots.length > 0 && (
+                                        <Box>
+                                            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                                                {modelBreakdownLabel}
+                                            </Typography>
+                                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+                                                {deckSnapshot.modelSnapshots.map((modelSnapshot) => (
+                                                    <Box
+                                                        key={`${deckSnapshot.deckName}-${modelSnapshot.modelName}`}
+                                                        sx={{
+                                                            p: 1.5,
+                                                            borderRadius: 1,
+                                                            border: '1px solid',
+                                                            borderColor: 'divider',
+                                                            display: 'flex',
+                                                            flexDirection: 'column',
+                                                            gap: 1,
+                                                        }}
+                                                    >
+                                                        <Box
+                                                            sx={{
+                                                                display: 'flex',
+                                                                justifyContent: 'space-between',
+                                                                alignItems: 'center',
+                                                                gap: 1,
+                                                                flexWrap: 'wrap',
+                                                            }}
+                                                        >
+                                                            <Typography variant="subtitle2">
+                                                                {modelSnapshot.modelName}
+                                                            </Typography>
+                                                            <Typography color="text.secondary">
+                                                                {uniqueWordsLabel(modelSnapshot.uniqueWords)}
+                                                            </Typography>
+                                                        </Box>
+
+                                                        <Box>
+                                                            <Typography
+                                                                variant="body2"
+                                                                color="text.secondary"
+                                                                sx={{ mb: 1 }}
+                                                            >
+                                                                {frequencyLabel}
+                                                            </Typography>
+                                                            {modelSnapshot.frequencyBuckets
+                                                                .filter((bucket) => bucket.count > 0)
+                                                                .map((bucket) => {
+                                                                    const bucketLabel =
+                                                                        bucket.label === 'Unknown'
+                                                                            ? statusLabels[TokenStatus.UNKNOWN]
+                                                                            : bucket.label;
+
+                                                                    return (
+                                                                        <Box
+                                                                            key={`${deckSnapshot.deckName}-${modelSnapshot.modelName}-${bucket.label}`}
+                                                                            sx={{ mb: 1 }}
+                                                                        >
+                                                                            <Box
+                                                                                sx={{
+                                                                                    display: 'flex',
+                                                                                    justifyContent: 'space-between',
+                                                                                    mb: 0.5,
+                                                                                }}
+                                                                            >
+                                                                                <Typography variant="body2">
+                                                                                    {bucketLabel}
+                                                                                </Typography>
+                                                                                <Typography
+                                                                                    variant="body2"
+                                                                                    color="text.secondary"
+                                                                                >
+                                                                                    {countPercentOccurrencesDisplay(
+                                                                                        bucket.count,
+                                                                                        modelSnapshot.uniqueWords,
+                                                                                        bucket.numOccurrences
+                                                                                    )}
+                                                                                </Typography>
+                                                                            </Box>
+                                                                            <FrequencyDistributionBar
+                                                                                totalPercent={bucket.percent}
+                                                                                count={bucket.count}
+                                                                                statusCounts={bucket.statusCounts}
+                                                                                statusColors={statusColors}
+                                                                                statusLabels={statusLabels}
+                                                                                totalConsideredCount={
+                                                                                    modelSnapshot.uniqueWords
+                                                                                }
+                                                                            />
+                                                                        </Box>
+                                                                    );
+                                                                })}
+                                                        </Box>
+                                                    </Box>
+                                                ))}
+                                            </Box>
+                                        </Box>
+                                    )}
+                                </Box>
+                            ))
+                        )}
+                    </Box>
+                </>
+            )}
+        </Box>
+    );
+}
+
 export default function StatisticsSettingsTab({ dictionaryProvider, onSeekRequested, onMineRequested }: Props) {
     const { t } = useTranslation();
     const [mediaId, setMediaId] = useState<string>();
+    const [statisticsSnapshot, setStatisticsSnapshot] = useState<DictionaryStatisticsSnapshot>();
     const [trackSnapshots, setTrackSnapshots] = useState<DictionaryStatisticsTrackSnapshot[]>([]);
     const [generationRequested, setGenerationRequested] = useState(false);
     const [selectedRewatchesByTrack, setSelectedRewatchesByTrack] = useState<Record<number, number>>({});
@@ -591,6 +817,7 @@ export default function StatisticsSettingsTab({ dictionaryProvider, onSeekReques
         const unsubscribeStatistics = dictionaryProvider.onStatisticsSnapshot(
             (snapshot?: DictionaryStatisticsSnapshot) => {
                 setMediaId(snapshot?.mediaId);
+                setStatisticsSnapshot(snapshot);
                 const nextTrackSnapshots = processDictionaryStatisticsSnapshot(snapshot);
                 setTrackSnapshots(nextTrackSnapshots);
                 if (
@@ -677,6 +904,17 @@ export default function StatisticsSettingsTab({ dictionaryProvider, onSeekReques
     const knownWordsPerSentenceLabel = t('statistics.knownWordsPerSentence');
     const uncollectedLabel = statusLabels[TokenStatus.UNCOLLECTED];
     const currentWatchTitle = t('statistics.currentWatch');
+    const ankiStatisticsTitle = t('statistics.anki.ankiStatistics');
+    const ankiStatisticsInfoLines = useMemo(() => [t('statistics.anki.info.ankiStatistics')], [t]);
+    const dueByTodayLabel = t('statistics.anki.dueByToday');
+    const dueByTomorrowLabel = t('statistics.anki.dueByTomorrow');
+    const dueByWeekLabel = t('statistics.anki.dueByWeek');
+    const suspendedCardsLabel = t('statistics.anki.suspended');
+    const deckFrequencyBreakdownLabel = t('statistics.anki.deckBreakdown');
+    const modelBreakdownLabel = t('statistics.anki.modelBreakdown');
+    const ankiUnavailableMessage = t('statistics.anki.ankiNeedsToBeRunning');
+    const emptyDeckBreakdownMessage = t('statistics.anki.noDeckBreakdown');
+    const deckUniqueWordsLabel = useCallback((count: number) => `${count} ${t('statistics.uniqueWords')}`, [t]);
 
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pb: 2 }}>
@@ -729,6 +967,10 @@ export default function StatisticsSettingsTab({ dictionaryProvider, onSeekReques
                 const projectedKnownPercent = selectedRewatchSnapshot?.knownPercent ?? 0;
                 const projectedComprehension = selectedRewatchSnapshot?.comprehensionPercent ?? 0;
                 const miningEnabled = trackSnapshot.progress.current >= trackSnapshot.progress.total;
+                const ankiTrackSnapshot = processDictionaryStatisticsAnkiTrackSnapshot(
+                    statisticsSnapshot,
+                    trackSnapshot.track
+                );
 
                 return (
                     <Paper
@@ -1027,6 +1269,24 @@ export default function StatisticsSettingsTab({ dictionaryProvider, onSeekReques
                                 />
                             </Box>
                         </Box>
+
+                        <AnkiStatisticsSection
+                            snapshot={ankiTrackSnapshot}
+                            statusLabels={statusLabels}
+                            statusColors={trackSnapshot.statusColors}
+                            title={ankiStatisticsTitle}
+                            infoLines={ankiStatisticsInfoLines}
+                            dueByTodayLabel={dueByTodayLabel}
+                            dueByTomorrowLabel={dueByTomorrowLabel}
+                            dueByWeekLabel={dueByWeekLabel}
+                            suspendedCardsLabel={suspendedCardsLabel}
+                            deckFrequencyBreakdownLabel={deckFrequencyBreakdownLabel}
+                            modelBreakdownLabel={modelBreakdownLabel}
+                            uniqueWordsLabel={deckUniqueWordsLabel}
+                            frequencyLabel={t('statistics.frequency')}
+                            unavailableMessage={ankiUnavailableMessage}
+                            emptyDeckBreakdownMessage={emptyDeckBreakdownMessage}
+                        />
                     </Paper>
                 );
             })}

@@ -121,6 +121,7 @@ interface TrackStateForDB {
 type TrackStatesForDB = Map<number, TrackStateForDB>;
 
 export interface CardStatus {
+    cardId?: number;
     status: TokenStatus;
     suspended: boolean;
 }
@@ -199,6 +200,7 @@ export class DictionaryDB {
                 const cardStatusMap = new Map<number, CardStatus>();
                 for (const ankiCard of ankiCards) {
                     cardStatusMap.set(ankiCard.cardId, {
+                        cardId: ankiCard.cardId,
                         status: ankiCard.status,
                         suspended: ankiCard.suspended,
                     });
@@ -363,6 +365,7 @@ export class DictionaryDB {
                             const cardStatusMap = new Map<number, CardStatus>();
                             for (const ankiCard of ankiCards) {
                                 cardStatusMap.set(ankiCard.cardId, {
+                                    cardId: ankiCard.cardId,
                                     status: ankiCard.status,
                                     suspended: ankiCard.suspended,
                                 });
