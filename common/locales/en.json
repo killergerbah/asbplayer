@@ -144,6 +144,7 @@
         "toggleVideoSubtitleTrack3": "Toggle subtitle track 3 in video",
         "toggleVideoSubtitleTracks": "Toggle subtitle track in video",
         "updateLastCard": "Update last-created Anki card with asbplayer-captured screenshot, audio, etc.",
+        "loadLastSubtitle": "Load last downloaded subtitle file onto the active video.",
         "exportCard": "Export card to Anki, bypassing dialog.",
         "toggleSidePanel": "Toggle side panel",
         "toggleRepeat": "Toggle repeat mode",
@@ -309,6 +310,7 @@
         "connectionFailed": "Connection failed",
         "error": "Error: {{message}}",
         "errorNoMessage": "Error",
+        "noSubtitleDownload": "No subtitle file found in recent downloads",
         "toggleSubtitlesShortcut": "Press \"{{keys}}\" to toggle subtitle display",
         "manualMiningIntervalPrompt": "Use mining shortcut again"
     },

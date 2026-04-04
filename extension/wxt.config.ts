@@ -154,6 +154,9 @@ export default defineConfig({
             'toggle-recording': {
                 description: '__MSG_shortcutToggleRecordingDescription__',
             },
+            'load-last-subtitle': {
+                description: '__MSG_shortcutLoadLastSubtitleDescription__',
+            },
         };
 
         if (isDev) {
@@ -169,7 +172,7 @@ export default defineConfig({
         let permissions = ['tabs', 'storage', 'unlimitedStorage'];
 
         if (browser === 'chrome') {
-            permissions = [...permissions, 'tabCapture', 'activeTab', 'contextMenus', 'sidePanel', 'offscreen'];
+            permissions = [...permissions, 'tabCapture', 'activeTab', 'contextMenus', 'sidePanel', 'offscreen', 'downloads'];
 
             const key = isDev
                 ? {}
