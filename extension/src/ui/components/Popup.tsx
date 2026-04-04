@@ -4,6 +4,7 @@ import { AsbplayerSettings, Profile, chromeCommandBindsToKeyBinds } from '@proje
 import SettingsForm from '@project/common/components/SettingsForm';
 import PanelIcon from '@project/common/components/PanelIcon';
 import LaunchIcon from '@mui/icons-material/Launch';
+import SettingsIcon from '@mui/icons-material/Settings';
 import { useCallback, useMemo } from 'react';
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
@@ -19,11 +20,14 @@ import SettingsProfileSelectMenu from '@project/common/components/SettingsProfil
 import { settingsPageConfigs } from '@/services/pages';
 import Stack from '@mui/material/Stack';
 import TutorialIcon from '@project/common/components/TutorialIcon';
+import BarChartIcon from '@mui/icons-material/BarChart';
 import Paper from '@mui/material/Paper';
 import { DictionaryProvider } from '@project/common/dictionary-db';
 import { useAnnotationTutorial } from '@project/common/hooks/use-annotation-tutorial';
 import { ExtensionGlobalStateProvider } from '@/services/extension-global-state-provider';
 import { uiTabRegistry, useHasSubtitles } from '../hooks/use-has-subtitles';
+import Statistics from '@project/common/components/Statistics';
+import { Box } from '@mui/material';
 
 const globalStateProvider = new ExtensionGlobalStateProvider();
 
@@ -109,6 +113,12 @@ const Popup = ({
         [handleMediaRequested]
     );
 
+    const [statisticsOpen, setStatisticsOpen] = useState<boolean>(false);
+    useEffect(() => {
+        if (hasSubtitles) setStatisticsOpen(true);
+    }, [hasSubtitles]);
+    const handleToggleStatistics = useCallback(() => setStatisticsOpen((v) => !v), []);
+
     if (!i18nInitialized) {
         return null;
     }
@@ -117,17 +127,51 @@ const Popup = ({
         <Paper>
             <Stack direction="column" spacing={1.5} sx={{ padding: theme.spacing(1.5) }}>
                 <ButtonGroup fullWidth variant="contained" color="primary" orientation="horizontal">
-                    <Button variant="contained" color="primary" startIcon={<LaunchIcon />} onClick={onOpenApp}>
+                    <Button
+                        size="small"
+                        variant="contained"
+                        color="primary"
+                        startIcon={<LaunchIcon />}
+                        onClick={onOpenApp}
+                    >
                         {t('action.openApp')}
                     </Button>
                     {!isMobile && (
-                        <Button variant="contained" color="primary" startIcon={<PanelIcon />} onClick={onOpenSidePanel}>
+                        <Button
+                            size="small"
+                            variant="contained"
+                            color="primary"
+                            startIcon={<PanelIcon />}
+                            onClick={onOpenSidePanel}
+                        >
                             {t('action.openSidePanel')}
                         </Button>
                     )}
                     <Button variant="contained" color="primary" startIcon={<TutorialIcon />} onClick={onOpenUserGuide}>
                         {t('action.userGuide')}
                     </Button>
+                    {hasSubtitles && statisticsOpen && (
+                        <Button
+                            size="small"
+                            variant="contained"
+                            color="primary"
+                            startIcon={<SettingsIcon />}
+                            onClick={handleToggleStatistics}
+                        >
+                            {t('bar.settings')}
+                        </Button>
+                    )}
+                    {hasSubtitles && !statisticsOpen && (
+                        <Button
+                            size="small"
+                            variant="contained"
+                            color="primary"
+                            startIcon={<BarChartIcon />}
+                            onClick={handleToggleStatistics}
+                        >
+                            {t('statistics.title')}
+                        </Button>
+                    )}
                 </ButtonGroup>
                 <Grid
                     item
@@ -135,44 +179,52 @@ const Popup = ({
                         height: isMobile ? 'auto' : 390,
                     }}
                 >
-                    <SettingsForm
-                        heightConstrained
-                        extensionInstalled
-                        extensionVersion={browser.runtime.getManifest().version}
-                        extensionSupportsAppIntegration
-                        extensionSupportsOverlay
-                        extensionSupportsSidePanel
-                        extensionSupportsOrderableAnkiFields
-                        extensionSupportsTrackSpecificSettings
-                        extensionSupportsSubtitlesWidthSetting
-                        extensionSupportsPauseOnHover
-                        extensionSupportsExportCardBind
-                        extensionSupportsPageSettings
-                        extensionSupportsDictionary
-                        extensionSupportsDictionaryStatistics
-                        extensionSupportsDictionaryTokenStatusDisplayAlpha
-                        extensionSupportsDictionaryYomitanMecab
-                        forceVerticalTabs={false}
-                        anki={anki}
-                        chromeKeyBinds={chromeCommandBindsToKeyBinds(commands)}
-                        dictionaryProvider={dictionaryProvider}
-                        settings={settings}
-                        profiles={profilesContext.profiles}
-                        activeProfile={profilesContext.activeProfile}
-                        pageConfigs={settingsPageConfigs}
-                        scrollToId={hasSubtitles ? 'statistics' : undefined}
-                        localFontsAvailable={localFontsAvailable}
-                        localFontsPermission={localFontsPermission}
-                        localFontFamilies={localFontFamilies}
-                        supportedLanguages={supportedLanguages}
-                        onSettingsChanged={onSettingsChanged}
-                        onOpenChromeExtensionShortcuts={onOpenExtensionShortcuts}
-                        onUnlockLocalFonts={handleUnlockLocalFonts}
-                        inAnnotationTutorial={inAnnotationTutorial}
-                        onAnnotationTutorialSeen={handleAnnotationTutorialSeen}
-                        onSeekRequested={handleMediaRequested}
-                        onMineRequested={handleMineRequested}
-                    />
+                    {!statisticsOpen && (
+                        <SettingsForm
+                            heightConstrained
+                            extensionInstalled
+                            extensionVersion={browser.runtime.getManifest().version}
+                            extensionSupportsAppIntegration
+                            extensionSupportsOverlay
+                            extensionSupportsSidePanel
+                            extensionSupportsOrderableAnkiFields
+                            extensionSupportsTrackSpecificSettings
+                            extensionSupportsSubtitlesWidthSetting
+                            extensionSupportsPauseOnHover
+                            extensionSupportsExportCardBind
+                            extensionSupportsPageSettings
+                            extensionSupportsDictionary
+                            extensionSupportsDictionaryTokenStatusDisplayAlpha
+                            extensionSupportsDictionaryYomitanMecab
+                            forceVerticalTabs={false}
+                            anki={anki}
+                            chromeKeyBinds={chromeCommandBindsToKeyBinds(commands)}
+                            dictionaryProvider={dictionaryProvider}
+                            settings={settings}
+                            profiles={profilesContext.profiles}
+                            activeProfile={profilesContext.activeProfile}
+                            pageConfigs={settingsPageConfigs}
+                            localFontsAvailable={localFontsAvailable}
+                            localFontsPermission={localFontsPermission}
+                            localFontFamilies={localFontFamilies}
+                            supportedLanguages={supportedLanguages}
+                            onSettingsChanged={onSettingsChanged}
+                            onOpenChromeExtensionShortcuts={onOpenExtensionShortcuts}
+                            onUnlockLocalFonts={handleUnlockLocalFonts}
+                            inAnnotationTutorial={inAnnotationTutorial}
+                            onAnnotationTutorialSeen={handleAnnotationTutorialSeen}
+                        />
+                    )}
+                    {statisticsOpen && (
+                        <Box sx={{ width: '100%', height: '100%', overflowY: 'scroll' }}>
+                            <Statistics
+                                dictionaryProvider={dictionaryProvider}
+                                onSeekRequested={handleMediaRequested}
+                                onMineRequested={handleMineRequested}
+                                sx={{ width: '100%', height: '100%' }}
+                            />
+                        </Box>
+                    )}
                 </Grid>
                 <Grid item>
                     <SettingsProfileSelectMenu {...profilesContext} />

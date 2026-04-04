@@ -46,6 +46,8 @@ import {
     CardUpdatedDialogMessage,
     CardExportedDialogMessage,
     SaveTokenLocalFromAppMessage,
+    SidePanelLocation,
+    AckTabsMessage,
 } from '@project/common';
 import { DictionaryStatisticsSnapshot } from '@project/common/dictionary-statistics';
 import {
@@ -92,6 +94,7 @@ export default class ChromeExtension {
     asbplayers: AsbplayerInstance[] | undefined;
     installed: boolean;
     sidePanel: boolean;
+    sidePanelAppRequestedLocation?: SidePanelLocation;
     videoPlayer: boolean | undefined;
     syncedVideoElement: VideoTabModel | undefined;
     loadedSubtitles: boolean = false;
@@ -146,14 +149,19 @@ export default class ChromeExtension {
                 }
 
                 if (tabsCommand.message.ackRequested) {
+                    let ackTabsMessage: AckTabsMessage = {
+                        command: 'ackTabs',
+                        id: id,
+                        receivedTabs: this.tabs,
+                        sidePanel: this.sidePanel,
+                        sidePanelAppRequestedLocation: this.sidePanelAppRequestedLocation,
+                        loadedSubtitles: this.loadedSubtitles,
+                        syncedVideoElement: this.syncedVideoElement,
+                        videoPlayer: this.videoPlayer ?? false,
+                    };
                     window.postMessage({
                         sender: 'asbplayerv2',
-                        message: {
-                            command: 'ackTabs',
-                            id: id,
-                            receivedTabs: this.tabs,
-                            sidePanel: this.sidePanel,
-                        },
+                        message: ackTabsMessage,
                     });
                 }
             } else {
@@ -305,6 +313,7 @@ export default class ChromeExtension {
             receivedTabs: fromVideoPlayer ? [] : this.tabs,
             videoPlayer: fromVideoPlayer,
             sidePanel: this.sidePanel,
+            sidePanelAppRequestedLocation: this.sidePanelAppRequestedLocation,
             loadedSubtitles,
             syncedVideoElement,
         };
@@ -358,11 +367,12 @@ export default class ChromeExtension {
         window.postMessage(command);
     }
 
-    toggleSidePanel() {
+    toggleSidePanel(location: SidePanelLocation) {
         const command: AsbPlayerCommand<ToggleSidePanelMessage> = {
             sender: 'asbplayerv2',
             message: {
                 command: 'toggle-side-panel',
+                location,
             },
         };
         window.postMessage(command);

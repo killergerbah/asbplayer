@@ -55,12 +55,11 @@ export default function CopyHistory(props: CopyHistoryProps) {
                 paper: classes.drawerPaper,
             }}
         >
-            <Paper className={classes.drawerHeader}>
+            <Paper elevation={0} className={classes.drawerHeader}>
                 <IconButton onClick={props.onClose}>
                     <ChevronRightIcon />
                 </IconButton>
             </Paper>
-            <Divider />
             <CopyHistoryList {...props} />
         </Drawer>
     );

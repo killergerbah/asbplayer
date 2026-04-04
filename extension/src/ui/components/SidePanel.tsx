@@ -16,8 +16,9 @@ import {
     DownloadImageMessage,
     DownloadAudioMessage,
     CardExportedMessage,
+    SidePanelLocation,
 } from '@project/common';
-import type { Message } from '@project/common';
+import type { Message, OpenSidePanelLocationMessage } from '@project/common';
 import type { BulkExportStartedPayload } from '../../controllers/bulk-export-controller';
 import { AsbplayerSettings, SettingsProvider } from '@project/common/settings';
 import { AudioClip } from '@project/common/audio-clip';
@@ -51,6 +52,8 @@ import { IndexedDBCopyHistoryRepository } from '@project/common/copy-history';
 import { mp3WorkerFactory } from '../../services/mp3-worker-factory';
 import { pgsParserWorkerFactory } from '../../services/pgs-parser-worker-factory';
 import { DictionaryProvider } from '@project/common/dictionary-db';
+import SidePanelStatistics from './SidePanelStatistics';
+import { useSidePanelAppRequestedLocation } from '../hooks/use-side-panel-app-requested-location';
 
 interface Props {
     dictionaryProvider: DictionaryProvider;
@@ -167,6 +170,14 @@ export default function SidePanel({ dictionaryProvider, settingsProvider, settin
             }
         });
     }, [extension]);
+
+    const { appRequestedLocation } = useSidePanelAppRequestedLocation();
+
+    useEffect(() => {
+        extension.sidePanelAppRequestedLocation = appRequestedLocation;
+        // Force restarts the heartbeat so that the tab registry can immediately receive the new location
+        extension.startHeartbeat();
+    }, [appRequestedLocation]);
 
     useEffect(() => {
         if (currentTabId === undefined || syncedVideoTab === undefined) {
@@ -504,6 +515,12 @@ export default function SidePanel({ dictionaryProvider, settingsProvider, settin
 
     const { initialized: i18nInitialized } = useI18n({ language: settings.language });
 
+    // TODO Should open automatically sometimes?
+    // TODO should highlight statistics are ready?
+    const [statisticsOpen, setStatisticsOpen] = useState<boolean>(false);
+    const handleShowStatistics = useCallback(() => setStatisticsOpen(true), []);
+    const handleCloseStatistics = useCallback(() => setStatisticsOpen(false), []);
+
     if (!i18nInitialized) {
         return null;
     }
@@ -523,7 +540,7 @@ export default function SidePanel({ dictionaryProvider, settingsProvider, settin
             <Alert open={alertOpen} onClose={handleAlertClosed} autoHideDuration={3000} severity={alertSeverity}>
                 {alert}
             </Alert>
-            {viewingAsbplayer ? (
+            {viewingAsbplayer && appRequestedLocation === 'mining-history' && (
                 <CopyHistoryList
                     open={true}
                     items={copyHistoryItems}
@@ -536,7 +553,18 @@ export default function SidePanel({ dictionaryProvider, settingsProvider, settin
                     onDownloadImage={handleDownloadImage}
                     onSelect={handleJumpToSubtitle}
                 />
-            ) : (
+            )}
+            {viewingAsbplayer && appRequestedLocation === 'statistics' && (
+                <SidePanelStatistics
+                    open
+                    showBackButton={false}
+                    dictionaryProvider={dictionaryProvider}
+                    onClose={() => {}}
+                    onSeekRequested={() => {}} // TODO
+                    onMineRequested={() => {}}
+                />
+            )}
+            {!viewingAsbplayer && (
                 <>
                     <CopyHistory
                         open={showCopyHistory}
@@ -594,6 +622,14 @@ export default function SidePanel({ dictionaryProvider, settingsProvider, settin
                                 miningContext={miningContext}
                                 keyBinder={keyBinder}
                             />
+                            <SidePanelStatistics
+                                open={statisticsOpen}
+                                showBackButton
+                                dictionaryProvider={dictionaryProvider}
+                                onClose={handleCloseStatistics}
+                                onSeekRequested={() => {}}
+                                onMineRequested={() => {}}
+                            />
                             <SidePanelTopControls
                                 ref={topControlsRef}
                                 show={showTopControls}
@@ -603,6 +639,7 @@ export default function SidePanel({ dictionaryProvider, settingsProvider, settin
                                 onBulkExportSubtitles={handleBulkExportSubtitles}
                                 disableBulkExport={recordingAudio}
                                 onShowMiningHistory={handleShowCopyHistory}
+                                onShowStatistics={handleShowStatistics}
                             />
                             <SidePanelBottomControls
                                 disabled={currentTabId !== syncedVideoTab?.id}

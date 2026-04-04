@@ -244,6 +244,7 @@ export default class KeyBindings {
                 event.preventDefault();
                 event.stopImmediatePropagation();
 
+                // TODO update
                 const command: VideoToExtensionCommand<OpenAsbplayerSettingsMessage> = {
                     sender: 'asbplayer-video',
                     message: {

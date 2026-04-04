@@ -529,13 +529,20 @@ function App({
 
     const handleOpenCopyHistory = useCallback(async () => {
         if (extension.supportsSidePanel) {
-            extension.toggleSidePanel();
+            extension.toggleSidePanel('mining-history');
         } else {
             await refreshCopyHistory();
             setCopyHistoryOpen((copyHistoryOpen) => !copyHistoryOpen);
             setVideoFullscreen(false);
         }
     }, [extension, refreshCopyHistory]);
+    const handleOpenStatistics = useCallback(() => {
+        if (!extension.installed) {
+            // TODO open stats in-app
+        } else if (extension.supportsDictionaryStatistics) {
+            extension.toggleSidePanel('statistics');
+        }
+    }, []);
     const handleCloseCopyHistory = useCallback(() => setCopyHistoryOpen(false), []);
     const handleAppBarToggle = useCallback(() => {
         const newValue = !playbackPreferences.theaterMode;
@@ -571,9 +578,8 @@ function App({
     }, []);
     const handleOpenSettings = useCallback(() => {
         setDisableKeyEvents(true);
-        setSettingsDialogScrollToId(subtitles.length && supportsDictionaryStatistics ? 'statistics' : undefined);
         setSettingsDialogOpen(true);
-    }, [subtitles.length, supportsDictionaryStatistics]);
+    }, [subtitles.length]);
     const handleAlertClosed = useCallback(() => setAlertOpen(false), []);
     const handleCloseSettings = useCallback(() => {
         setSettingsDialogOpen(false);
@@ -966,10 +972,6 @@ function App({
                 setSettingsDialogOpen(true);
                 setSettingsDialogScrollToId('keyboard-shortcuts');
             } else if (message.data.command === 'open-asbplayer-settings') {
-                const scrollToId = (message.data as OpenAsbplayerSettingsMessage).scrollToId;
-                setSettingsDialogScrollToId(
-                    scrollToId ?? (subtitles.length && supportsDictionaryStatistics ? 'statistics' : undefined)
-                );
                 setSettingsDialogOpen(true);
             } else if (message.data.command === 'show-anki-ui') {
                 handleAnki(message.data as ShowAnkiUiMessage);
@@ -1252,13 +1254,12 @@ function App({
                 event.preventDefault();
                 event.stopImmediatePropagation();
                 setDisableKeyEvents(true);
-                setSettingsDialogScrollToId('statistics');
-                setSettingsDialogOpen(true);
+                handleOpenStatistics();
             },
             () => ankiDialogOpen || !supportsDictionaryStatistics,
             false
         );
-    }, [keyBinder, ankiDialogOpen, supportsDictionaryStatistics]);
+    }, [keyBinder, ankiDialogOpen, supportsDictionaryStatistics, handleOpenStatistics]);
 
     const mp3Encoder = useCallback(async (blob: Blob, extension: string) => {
         return await Mp3Encoder.encode(blob, () => new mp3WorkerFactory());
@@ -1299,6 +1300,7 @@ function App({
         !extension.installed || extension.supportsLastSelectedAnkiExportModeSetting
             ? settings.lastSelectedAnkiExportMode
             : 'default';
+
     return (
         <StyledEngineProvider injectFirst>
             <ThemeProvider theme={theme}>
@@ -1409,6 +1411,7 @@ function App({
                                 hidden={appBarHidden}
                                 subtitleFiles={sources.subtitleFiles}
                                 onOpenCopyHistory={handleOpenCopyHistory}
+                                onOpenStatistics={supportsDictionaryStatistics ? handleOpenStatistics : undefined}
                                 onDownloadSubtitleFilesAsSrt={handleDownloadSubtitleFilesAsSrt}
                                 onOpenSettings={handleOpenSettings}
                                 lastError={lastError}

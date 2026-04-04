@@ -6,6 +6,7 @@ import {
     ExtensionToAsbPlayerCommandTabsCommand,
     ExtensionToVideoCommand,
     Message,
+    SidePanelLocation,
     VideoHeartbeatMessage,
     VideoTabModel,
 } from '@project/common';
@@ -22,6 +23,7 @@ export interface Asbplayer {
     id: string;
     tab?: SlimTab;
     sidePanel?: boolean;
+    sidePanelAppRequestedLocation?: SidePanelLocation;
     timestamp: number;
     receivedTabs?: VideoTabModel[];
     videoPlayer: boolean;
@@ -187,6 +189,7 @@ export default class TabRegistry {
             id: asbplayerId,
             videoPlayer,
             sidePanel,
+            sidePanelAppRequestedLocation,
             receivedTabs,
             loadedSubtitles,
             syncedVideoElement,
@@ -197,6 +200,7 @@ export default class TabRegistry {
             asbplayerId,
             videoPlayer,
             sidePanel ?? false,
+            sidePanelAppRequestedLocation,
             loadedSubtitles ?? false,
             receivedTabs,
             syncedVideoElement
@@ -225,13 +229,22 @@ export default class TabRegistry {
 
     async onAsbplayerAckTabs(
         tab: Browser.tabs.Tab | undefined,
-        { id: asbplayerId, videoPlayer, sidePanel, loadedSubtitles, receivedTabs, syncedVideoElement }: AckTabsMessage
+        {
+            id: asbplayerId,
+            videoPlayer,
+            sidePanel,
+            sidePanelAppRequestedLocation,
+            loadedSubtitles,
+            receivedTabs,
+            syncedVideoElement,
+        }: AckTabsMessage
     ) {
         this._updateAsbplayers(
             tab,
             asbplayerId,
             videoPlayer,
             sidePanel ?? false,
+            sidePanelAppRequestedLocation,
             loadedSubtitles ?? false,
             receivedTabs,
             syncedVideoElement
@@ -243,6 +256,7 @@ export default class TabRegistry {
         asbplayerId: string,
         videoPlayer: boolean,
         sidePanel: boolean,
+        sidePanelAppRequestedLocation: SidePanelLocation | undefined,
         loadedSubtitles: boolean,
         receivedTabs: VideoTabModel[] | undefined,
         syncedVideoElement: VideoTabModel | undefined
@@ -263,6 +277,7 @@ export default class TabRegistry {
                 timestamp: Date.now(),
                 receivedTabs,
                 sidePanel,
+                sidePanelAppRequestedLocation,
                 loadedSubtitles,
                 videoPlayer,
                 syncedVideoElement,

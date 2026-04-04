@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
 import AppBar from '@mui/material/AppBar';
 import BugReportIcon from '@mui/icons-material/BugReport';
-import FavoriteIcon from '@mui/icons-material/Favorite';
 import TutorialIcon from '@project/common/components/TutorialIcon';
 import IconButton from '@mui/material/IconButton';
 import HistoryIcon from '@mui/icons-material/History';
@@ -24,6 +23,7 @@ import ListItemText from '@mui/material/ListItemText';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import Popover from '@mui/material/Popover';
 import ErrorIcon from '@mui/icons-material/Error';
+import BarChartIcon from '@mui/icons-material/BarChart';
 
 interface BarProps {
     drawerWidth: number;
@@ -37,6 +37,7 @@ interface BarProps {
     onOpenSettings: () => void;
     onOpenCopyHistory: () => void;
     onCopyLastError: (error: string) => void;
+    onOpenStatistics?: () => void;
 }
 
 interface StyleProps {
@@ -130,6 +131,7 @@ export default function Bar({
     onOpenCopyHistory,
     onDownloadSubtitleFilesAsSrt,
     onCopyLastError,
+    onOpenStatistics,
 }: BarProps) {
     const classes = useStyles({ drawerWidth });
     const canSaveAsSrt =
@@ -212,6 +214,13 @@ export default function Bar({
                             <HistoryIcon />
                         </IconButton>
                     </CopyHistoryTooltip>
+                    {onOpenStatistics && (
+                        <Tooltip title={t('statistics.title')!}>
+                            <IconButton edge="end" color="inherit" onClick={onOpenStatistics}>
+                                <BarChartIcon />
+                            </IconButton>
+                        </Tooltip>
+                    )}
                 </Toolbar>
             </AppBar>
             <Popover

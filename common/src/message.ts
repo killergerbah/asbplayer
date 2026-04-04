@@ -53,6 +53,7 @@ export interface AsbplayerHeartbeatMessage extends Message {
     readonly receivedTabs?: VideoTabModel[];
     readonly videoPlayer: boolean;
     readonly sidePanel?: boolean;
+    readonly sidePanelAppRequestedLocation?: SidePanelLocation;
     readonly loadedSubtitles?: boolean;
     readonly syncedVideoElement?: VideoTabModel;
 }
@@ -63,6 +64,7 @@ export interface AckTabsMessage extends Message {
     readonly receivedTabs: VideoTabModel[];
     readonly videoPlayer: boolean;
     readonly sidePanel?: boolean;
+    readonly sidePanelAppRequestedLocation?: SidePanelLocation;
     readonly loadedSubtitles?: boolean;
     readonly syncedVideoElement?: VideoTabModel;
 }
@@ -647,8 +649,16 @@ export interface GrantedActiveTabPermissionMessage extends Message {
     readonly command: 'granted-active-tab-permission';
 }
 
+export type SidePanelLocation = 'mining-history' | 'statistics';
+
 export interface ToggleSidePanelMessage extends Message {
     readonly command: 'toggle-side-panel';
+    readonly location: SidePanelLocation;
+}
+
+export interface OpenSidePanelLocationMessage extends Message {
+    readonly command: 'open-side-panel-location';
+    readonly location: SidePanelLocation;
 }
 
 export interface CloseSidePanelMessage extends Message {
