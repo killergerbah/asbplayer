@@ -78,6 +78,7 @@ it('validates exported settings', () => {
         surroundingSubtitlesCountRadius: 2,
         surroundingSubtitlesTimeRadius: 10000,
         autoPausePreference: 2,
+        seekableTracks: [true, false, false],
         seekDuration: 4,
         speedChangeStep: 0.2,
         fastForwardModePlaybackRate: 3,
