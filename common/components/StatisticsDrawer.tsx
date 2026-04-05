@@ -1,7 +1,4 @@
-import Drawer from '@mui/material/Drawer';
-import IconButton from '@mui/material/IconButton';
-import Paper from '@mui/material/Paper';
-import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import Drawer from './Drawer';
 import { DictionaryProvider } from '@project/common/dictionary-db';
 import Statistics from '@project/common/components/Statistics';
 import { AsbplayerSettings } from '@project/common/settings';
@@ -31,26 +28,8 @@ const StatisticsDrawer: React.FC<Props> = ({
     onViewAnnotationSettings,
     onClose,
 }) => {
-    const width = drawerWidth === undefined ? '100%' : drawerWidth;
     return (
-        <Drawer
-            variant="persistent"
-            anchor="right"
-            open={open}
-            sx={{
-                height: '100%',
-            }}
-            slotProps={{
-                paper: { sx: { width } },
-            }}
-        >
-            {showBackButton && (
-                <Paper square elevation={0}>
-                    <IconButton onClick={onClose}>
-                        <ChevronRightIcon />
-                    </IconButton>
-                </Paper>
-            )}
+        <Drawer open={open} showBackButton={showBackButton} drawerWidth={drawerWidth} onClose={onClose}>
             <Statistics
                 dictionaryProvider={dictionaryProvider}
                 settings={settings}

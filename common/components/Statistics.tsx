@@ -955,7 +955,7 @@ export default function Statistics({
     );
 
     return (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pb: 2, ...(sx ?? {}) }}>
+        <Paper sx={{ display: 'flex', flexDirection: 'column', gap: 2, pb: 2, ...(sx ?? {}) }}>
             {!loadingSnapshots && !hasSnapshots && (
                 <Stack
                     spacing={2}
@@ -1027,7 +1027,6 @@ export default function Statistics({
                         <Paper
                             key={trackSnapshot.track}
                             square
-                            elevation={0}
                             sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 2 }}
                         >
                             {(!trackSnapshot.progress.current || trackSnapshot.progress.current < totalSentences) && (
@@ -1365,6 +1364,6 @@ export default function Statistics({
                     onMineSentence={handleMineSentence}
                 />
             )}
-        </Box>
+        </Paper>
     );
 }

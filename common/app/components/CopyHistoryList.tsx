@@ -371,7 +371,7 @@ export default function CopyHistoryList({
         }
 
         content = (
-            <Paper elevation={0} className={classes.listContainer} ref={listContainerRef}>
+            <Paper className={classes.listContainer} ref={listContainerRef}>
                 <List className={classes.list}>{elements}</List>
                 <Button
                     variant="contained"
@@ -386,7 +386,7 @@ export default function CopyHistoryList({
         );
     } else {
         content = (
-            <Paper elevation={0} className={classes.emptyState}>
+            <Paper className={classes.emptyState}>
                 <Typography variant="h6">{t('copyHistory.miningHistoryEmpty')}</Typography>
             </Paper>
         );
