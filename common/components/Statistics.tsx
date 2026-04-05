@@ -44,12 +44,12 @@ import { timeDurationDisplay } from '@project/common/util/util';
 import { SxProps, type Theme } from '@mui/material/styles';
 import Stack from '@mui/material/Stack';
 import BarChartIcon from '@mui/icons-material/BarChart';
-import { useHasSubtitles } from '@/ui/hooks/use-has-subtitles';
 import Link from '@mui/material/Link';
 
 interface Props {
     dictionaryProvider: DictionaryProvider;
     settings: AsbplayerSettings;
+    hasSubtitles: boolean;
     onViewAnnotationSettings: () => void;
     onSeekRequested: (mediaId: string) => void;
     onMineRequested: (mediaId: string) => void;
@@ -826,6 +826,7 @@ function AnkiStatisticsSection({
 export default function Statistics({
     dictionaryProvider,
     settings,
+    hasSubtitles,
     onViewAnnotationSettings,
     onSeekRequested,
     onMineRequested,
@@ -838,7 +839,6 @@ export default function Statistics({
     const [generationRequested, setGenerationRequested] = useState(false);
     const [selectedRewatchesByTrack, setSelectedRewatchesByTrack] = useState<Record<number, number>>({});
     const [sentenceDialogState, setSentenceDialogState] = useState<SentenceDialogState>();
-    const hasSubtitles = useHasSubtitles();
     const hasSnapshots = trackSnapshots && trackSnapshots.length > 0;
     const loadingSnapshots = trackSnapshots === undefined;
     const allTrackProgressComplete = useMemo(

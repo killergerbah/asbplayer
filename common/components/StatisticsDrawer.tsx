@@ -8,37 +8,40 @@ import { AsbplayerSettings } from '@project/common/settings';
 
 interface Props {
     open: boolean;
+    hasSubtitles: boolean;
     settings: AsbplayerSettings;
     showBackButton: boolean;
+    drawerWidth?: number;
     dictionaryProvider: DictionaryProvider;
     onSeekRequested: () => void;
     onMineRequested: () => void;
+    onViewAnnotationSettings: () => void;
     onClose: () => void;
 }
 
-const SidePanelStatistics: React.FC<Props> = ({
+const StatisticsDrawer: React.FC<Props> = ({
     dictionaryProvider,
     settings,
     open,
+    hasSubtitles,
     showBackButton,
+    drawerWidth,
     onSeekRequested,
     onMineRequested,
+    onViewAnnotationSettings,
     onClose,
 }) => {
-    const handleViewAnnotationSettings = useCallback(() => {
-        browser.tabs.create({
-            url: `${browser.runtime.getURL('/options.html')}#annotation`,
-            active: true,
-        });
-    }, []);
+    const width = drawerWidth === undefined ? '100%' : drawerWidth;
     return (
         <Drawer
             variant="persistent"
             anchor="right"
             open={open}
-            sx={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
+            sx={{
+                height: '100%',
+            }}
             slotProps={{
-                paper: { sx: { width: '100%' } },
+                paper: { sx: { width } },
             }}
         >
             {showBackButton && (
@@ -51,12 +54,13 @@ const SidePanelStatistics: React.FC<Props> = ({
             <Statistics
                 dictionaryProvider={dictionaryProvider}
                 settings={settings}
+                hasSubtitles={hasSubtitles}
                 onSeekRequested={onSeekRequested}
                 onMineRequested={onMineRequested}
-                onViewAnnotationSettings={handleViewAnnotationSettings}
+                onViewAnnotationSettings={onViewAnnotationSettings}
                 sx={{ width: '100%', height: '100%' }}
             />
         </Drawer>
     );
 };
-export default SidePanelStatistics;
+export default StatisticsDrawer;

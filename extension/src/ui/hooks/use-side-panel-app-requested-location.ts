@@ -10,7 +10,5 @@ export const useSidePanelAppRequestedLocation = () => {
         return onAppRequestedAppLocationChanged(setAppRequestedLocation);
     }, []);
 
-    console.log(appRequestedLocation);
-
     return { appRequestedLocation };
 };

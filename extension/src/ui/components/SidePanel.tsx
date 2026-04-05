@@ -16,9 +16,8 @@ import {
     DownloadImageMessage,
     DownloadAudioMessage,
     CardExportedMessage,
-    SidePanelLocation,
 } from '@project/common';
-import type { Message, OpenSidePanelLocationMessage } from '@project/common';
+import type { Message } from '@project/common';
 import type { BulkExportStartedPayload } from '../../controllers/bulk-export-controller';
 import { AsbplayerSettings, SettingsProvider } from '@project/common/settings';
 import { AudioClip } from '@project/common/audio-clip';
@@ -52,7 +51,7 @@ import { IndexedDBCopyHistoryRepository } from '@project/common/copy-history';
 import { mp3WorkerFactory } from '../../services/mp3-worker-factory';
 import { pgsParserWorkerFactory } from '../../services/pgs-parser-worker-factory';
 import { DictionaryProvider } from '@project/common/dictionary-db';
-import SidePanelStatistics from './SidePanelStatistics';
+import StatisticsDrawer from '@project/common/components/StatisticsDrawer';
 import { useSidePanelAppRequestedLocation } from '../hooks/use-side-panel-app-requested-location';
 
 interface Props {
@@ -520,6 +519,12 @@ export default function SidePanel({ dictionaryProvider, settingsProvider, settin
     const [statisticsOpen, setStatisticsOpen] = useState<boolean>(false);
     const handleShowStatistics = useCallback(() => setStatisticsOpen(true), []);
     const handleCloseStatistics = useCallback(() => setStatisticsOpen(false), []);
+    const handleViewAnnotationSettings = useCallback(() => {
+        browser.tabs.create({
+            url: `${browser.runtime.getURL('/options.html')}#annotation`,
+            active: true,
+        });
+    }, []);
 
     if (!i18nInitialized) {
         return null;
@@ -555,14 +560,16 @@ export default function SidePanel({ dictionaryProvider, settingsProvider, settin
                 />
             )}
             {viewingAsbplayer && appRequestedLocation === 'statistics' && (
-                <SidePanelStatistics
+                <StatisticsDrawer
                     open
+                    hasSubtitles={subtitles !== undefined && subtitles.length > 0}
                     settings={settings}
                     showBackButton={false}
                     dictionaryProvider={dictionaryProvider}
                     onClose={() => {}}
                     onSeekRequested={() => {}} // TODO
                     onMineRequested={() => {}}
+                    onViewAnnotationSettings={handleViewAnnotationSettings}
                 />
             )}
             {!viewingAsbplayer && (
@@ -623,14 +630,16 @@ export default function SidePanel({ dictionaryProvider, settingsProvider, settin
                                 miningContext={miningContext}
                                 keyBinder={keyBinder}
                             />
-                            <SidePanelStatistics
+                            <StatisticsDrawer
                                 open={statisticsOpen}
                                 settings={settings}
                                 showBackButton
+                                hasSubtitles={subtitles !== undefined && subtitles.length > 0}
                                 dictionaryProvider={dictionaryProvider}
                                 onClose={handleCloseStatistics}
                                 onSeekRequested={() => {}}
                                 onMineRequested={() => {}}
+                                onViewAnnotationSettings={handleViewAnnotationSettings}
                             />
                             <SidePanelTopControls
                                 ref={topControlsRef}

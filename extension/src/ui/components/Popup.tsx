@@ -221,6 +221,7 @@ const Popup = ({
                             <Statistics
                                 dictionaryProvider={dictionaryProvider}
                                 settings={settings}
+                                hasSubtitles={hasSubtitles}
                                 onViewAnnotationSettings={handleViewAnnotationSettings}
                                 onSeekRequested={handleMediaRequested}
                                 onMineRequested={handleMineRequested}

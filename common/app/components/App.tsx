@@ -38,6 +38,7 @@ import DragOverlay from './DragOverlay';
 import Bar from './Bar';
 import ChromeExtension, { ExtensionMessage } from '../services/chrome-extension';
 import CopyHistory from './CopyHistory';
+import StatisticsDrawer from '@project/common/components/StatisticsDrawer';
 import LandingPage from './LandingPage';
 import Player, { MediaSources } from './Player';
 import SettingsDialog from './SettingsDialog';
@@ -290,6 +291,7 @@ function App({
     const copyHistoryItemsRef = useRef<CopyHistoryItem[]>([]);
     copyHistoryItemsRef.current = copyHistoryItems;
     const [copyHistoryOpen, setCopyHistoryOpen] = useState<boolean>(false);
+    const [statisticsOpen, setStatisticsOpen] = useState<boolean>(false);
     const [theaterMode, setTheaterMode] = useState<boolean>(playbackPreferences.theaterMode);
     const [hideSubtitlePlayer, setHideSubtitlePlayer] = useState<boolean>(playbackPreferences.hideSubtitleList);
     const [videoPopOut, setVideoPopOut] = useState<boolean>(false);
@@ -537,10 +539,11 @@ function App({
         }
     }, [extension, refreshCopyHistory]);
     const handleOpenStatistics = useCallback(() => {
-        if (!extension.installed) {
-            // TODO open stats in-app
-        } else if (extension.supportsDictionaryStatistics) {
+        if (extension.supportsDictionaryStatistics) {
             extension.toggleSidePanel('statistics');
+        } else {
+            setStatisticsOpen((statisticsOpen) => !statisticsOpen);
+            setVideoFullscreen(false);
         }
     }, []);
     const handleCloseCopyHistory = useCallback(() => setCopyHistoryOpen(false), []);
@@ -1283,6 +1286,7 @@ function App({
         onNeedRefresh: handleOpenNeedRefreshDialog,
         onOfflineReady: handleOfflineReady,
     });
+    const handleCloseStatistics = useCallback(() => setStatisticsOpen(false), []);
 
     if (!i18nInitialized) {
         return null;
@@ -1293,7 +1297,7 @@ function App({
         tab === undefined &&
         ((loading && !videoFrameRef.current) || (sources.subtitleFiles.length === 0 && !sources.videoFile));
     const appBarHidden = sources.videoFile !== undefined && ((theaterMode && !videoPopOut) || videoFullscreen);
-    const effectiveCopyHistoryOpen = copyHistoryOpen && !videoFullscreen;
+    const effectiveDrawerOpen = (copyHistoryOpen || statisticsOpen) && !videoFullscreen;
     const lastSelectedAnkiExportMode =
         !extension.installed || extension.supportsLastSelectedAnkiExportModeSetting
             ? settings.lastSelectedAnkiExportMode
@@ -1356,7 +1360,7 @@ function App({
                         <Paper square>
                             <CopyHistory
                                 items={copyHistoryItems}
-                                open={effectiveCopyHistoryOpen}
+                                open={effectiveDrawerOpen}
                                 drawerWidth={drawerWidth}
                                 onClose={handleCloseCopyHistory}
                                 onDelete={deleteCopyHistoryItem}
@@ -1366,6 +1370,18 @@ function App({
                                 onDownloadSectionAsSrt={handleDownloadCopyHistorySectionAsSrt}
                                 onSelect={handleSelectCopyHistoryItem}
                                 onAnki={handleAnki}
+                            />
+                            <StatisticsDrawer
+                                open={statisticsOpen}
+                                settings={settings}
+                                dictionaryProvider={dictionaryProvider}
+                                hasSubtitles={subtitles !== undefined && subtitles.length > 0}
+                                showBackButton
+                                drawerWidth={drawerWidth}
+                                onSeekRequested={() => {}} // TODO
+                                onMineRequested={() => {}}
+                                onViewAnnotationSettings={() => {}}
+                                onClose={handleCloseStatistics}
                             />
                             {ankiDialogCard && (
                                 <AnkiDialog
@@ -1405,7 +1421,7 @@ function App({
                             <Bar
                                 title={fileName || 'asbplayer'}
                                 drawerWidth={drawerWidth}
-                                drawerOpen={effectiveCopyHistoryOpen}
+                                drawerOpen={effectiveDrawerOpen}
                                 hidden={appBarHidden}
                                 subtitleFiles={sources.subtitleFiles}
                                 onOpenCopyHistory={handleOpenCopyHistory}
@@ -1423,7 +1439,7 @@ function App({
                                 multiple
                                 hidden
                             />
-                            <Content drawerWidth={drawerWidth} drawerOpen={effectiveCopyHistoryOpen}>
+                            <Content drawerWidth={drawerWidth} drawerOpen={effectiveDrawerOpen}>
                                 <Paper square style={{ width: '100%', height: '100%', position: 'relative' }}>
                                     {nothingLoaded && (
                                         <LandingPage
@@ -1479,7 +1495,7 @@ function App({
                                     videoFrameRef={videoFrameRef}
                                     videoChannelRef={videoChannelRef}
                                     extension={extension}
-                                    drawerOpen={effectiveCopyHistoryOpen}
+                                    drawerOpen={effectiveDrawerOpen}
                                     appBarHidden={appBarHidden}
                                     showCopyButton={tab === undefined}
                                     videoFullscreen={videoFullscreen}
