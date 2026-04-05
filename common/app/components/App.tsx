@@ -3,6 +3,7 @@ import { makeStyles } from '@mui/styles';
 import { type Theme } from '@mui/material/styles';
 import ThemeProvider from '@mui/material/styles/ThemeProvider';
 import { useWindowSize } from '../hooks/use-window-size';
+import { useLocationHash } from '@project/common/hooks/use-location-hash';
 import {
     Image,
     SubtitleModel,
@@ -20,7 +21,6 @@ import {
     DownloadAudioMessage,
     CardTextFieldValues,
     ImageErrorCode,
-    OpenAsbplayerSettingsMessage,
     RequestSubtitlesResponse,
 } from '@project/common';
 import { createTheme } from '@project/common/theme';
@@ -1215,17 +1215,15 @@ function App({
         );
     }, []);
 
+    const { hash: settingsHash } = useLocationHash({ view: 'settings' });
     useEffect(() => {
-        var view = searchParams.get('view');
-        if (view === 'settings') {
-            setSettingsDialogOpen(true);
-
-            if (location.hash && location.hash.startsWith('#')) {
-                const id = location.hash.substring(1, location.hash.length);
-                setSettingsDialogScrollToId(id);
-            }
+        if (!settingsHash) {
+            return;
         }
-    }, [searchParams]);
+
+        setSettingsDialogScrollToId(settingsHash);
+        setSettingsDialogOpen(true);
+    }, [settingsHash]);
 
     useEffect(() => {
         if (sources.videoFile && alertOpen && alert && alertSeverity) {

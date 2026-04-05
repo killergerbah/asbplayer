@@ -4,9 +4,11 @@ import Paper from '@mui/material/Paper';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { DictionaryProvider } from '@project/common/dictionary-db';
 import Statistics from '@project/common/components/Statistics';
+import { AsbplayerSettings } from '@project/common/settings';
 
 interface Props {
     open: boolean;
+    settings: AsbplayerSettings;
     showBackButton: boolean;
     dictionaryProvider: DictionaryProvider;
     onSeekRequested: () => void;
@@ -16,12 +18,19 @@ interface Props {
 
 const SidePanelStatistics: React.FC<Props> = ({
     dictionaryProvider,
+    settings,
     open,
     showBackButton,
     onSeekRequested,
     onMineRequested,
     onClose,
 }) => {
+    const handleViewAnnotationSettings = useCallback(() => {
+        browser.tabs.create({
+            url: `${browser.runtime.getURL('/options.html')}#annotation`,
+            active: true,
+        });
+    }, []);
     return (
         <Drawer
             variant="persistent"
@@ -41,8 +50,10 @@ const SidePanelStatistics: React.FC<Props> = ({
             )}
             <Statistics
                 dictionaryProvider={dictionaryProvider}
+                settings={settings}
                 onSeekRequested={onSeekRequested}
                 onMineRequested={onMineRequested}
+                onViewAnnotationSettings={handleViewAnnotationSettings}
                 sx={{ width: '100%', height: '100%' }}
             />
         </Drawer>

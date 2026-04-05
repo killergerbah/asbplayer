@@ -548,6 +548,7 @@
         "generate": "Generate statistics",
         "generationInProgress": "Statistics generation in progress",
         "empty": "No statistics have been generated for the current sentences yet.",
+        "gettingStarted": "To generate statistics for loaded subtitles, enable annotations from the <0>settings</1>.",
         "uniqueWords": "Unique words",
         "knownWords": "Known words",
         "uniqueWordsPerSentence": "Unique words per sentence",

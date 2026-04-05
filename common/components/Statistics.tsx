@@ -23,9 +23,9 @@ import {
     sentenceDialogBucketData,
     uncollectedSentenceBucketLabel,
 } from '@project/common/dictionary-statistics';
-import { TokenStatus } from '@project/common/settings';
+import { AsbplayerSettings, dictionaryTrackEnabled, TokenStatus } from '@project/common/settings';
 import StatisticsSentenceDetailsDialog from '@project/common/components/StatisticsSentenceDetailsDialog';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import { type MouseEvent, type ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 import Box from '@mui/material/Box';
 import ButtonBase from '@mui/material/ButtonBase';
@@ -45,11 +45,14 @@ import { SxProps, type Theme } from '@mui/material/styles';
 import Stack from '@mui/material/Stack';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import { useHasSubtitles } from '@/ui/hooks/use-has-subtitles';
+import Link from '@mui/material/Link';
 
 interface Props {
     dictionaryProvider: DictionaryProvider;
-    onSeekRequested?: (mediaId: string) => void;
-    onMineRequested?: (mediaId: string) => void;
+    settings: AsbplayerSettings;
+    onViewAnnotationSettings: () => void;
+    onSeekRequested: (mediaId: string) => void;
+    onMineRequested: (mediaId: string) => void;
     sx?: SxProps<Theme>;
 }
 
@@ -820,7 +823,14 @@ function AnkiStatisticsSection({
     );
 }
 
-export default function Statistics({ dictionaryProvider, onSeekRequested, onMineRequested, sx }: Props) {
+export default function Statistics({
+    dictionaryProvider,
+    settings,
+    onViewAnnotationSettings,
+    onSeekRequested,
+    onMineRequested,
+    sx,
+}: Props) {
     const { t } = useTranslation();
     const [mediaId, setMediaId] = useState<string>();
     const [statisticsSnapshot, setStatisticsSnapshot] = useState<DictionaryStatisticsSnapshot>();
@@ -939,6 +949,10 @@ export default function Statistics({ dictionaryProvider, onSeekRequested, onMine
     const ankiUnavailableMessage = t('statistics.anki.ankiNeedsToBeRunning');
     const emptyDeckBreakdownMessage = t('statistics.anki.noDeckBreakdown');
     const deckUniqueWordsLabel = useCallback((count: number) => `${count} ${t('statistics.uniqueWords')}`, [t]);
+    const canGenerateStatistics = useMemo(
+        () => settings.dictionaryTracks.some((dt) => dictionaryTrackEnabled(dt)),
+        [settings]
+    );
 
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pb: 2, ...(sx ?? {}) }}>
@@ -955,12 +969,23 @@ export default function Statistics({ dictionaryProvider, onSeekRequested, onMine
                     }}
                 >
                     <Typography variant="h6" align="center">
-                        {hasSubtitles ? t('statistics.empty') : t('landing.noSubtitles')}
+                        {canGenerateStatistics && hasSubtitles && t('statistics.empty')}
+                        {canGenerateStatistics && !hasSubtitles && t('landing.noSubtitles')}
+                        {!canGenerateStatistics && (
+                            <Trans
+                                i18nKey={'statistics.gettingStarted'}
+                                components={[
+                                    <Link key={0} href={'#'} onClick={onViewAnnotationSettings}>
+                                        settings
+                                    </Link>,
+                                ]}
+                            />
+                        )}
                     </Typography>
                     <Button
                         variant="contained"
                         onClick={handleGenerate}
-                        disabled={!hasSubtitles}
+                        disabled={!hasSubtitles || !canGenerateStatistics}
                         loading={isGenerating}
                         startIcon={<BarChartIcon />}
                     >

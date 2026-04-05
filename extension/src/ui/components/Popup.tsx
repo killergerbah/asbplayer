@@ -112,6 +112,7 @@ const Popup = ({
         },
         [handleMediaRequested]
     );
+    const handleViewAnnotationSettings = useCallback(() => {}, []);
 
     const [statisticsOpen, setStatisticsOpen] = useState<boolean>(false);
     useEffect(() => {
@@ -219,6 +220,8 @@ const Popup = ({
                         <Box sx={{ width: '100%', height: '100%', overflowY: 'scroll' }}>
                             <Statistics
                                 dictionaryProvider={dictionaryProvider}
+                                settings={settings}
+                                onViewAnnotationSettings={handleViewAnnotationSettings}
                                 onSeekRequested={handleMediaRequested}
                                 onMineRequested={handleMineRequested}
                                 sx={{ width: '100%', height: '100%' }}

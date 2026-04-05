@@ -557,6 +557,7 @@ export default function SidePanel({ dictionaryProvider, settingsProvider, settin
             {viewingAsbplayer && appRequestedLocation === 'statistics' && (
                 <SidePanelStatistics
                     open
+                    settings={settings}
                     showBackButton={false}
                     dictionaryProvider={dictionaryProvider}
                     onClose={() => {}}
@@ -624,6 +625,7 @@ export default function SidePanel({ dictionaryProvider, settingsProvider, settin
                             />
                             <SidePanelStatistics
                                 open={statisticsOpen}
+                                settings={settings}
                                 showBackButton
                                 dictionaryProvider={dictionaryProvider}
                                 onClose={handleCloseStatistics}
