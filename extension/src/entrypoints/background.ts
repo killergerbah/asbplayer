@@ -458,6 +458,12 @@ export default defineBackground(() => {
     updateWebSocketClientState();
     tabRegistry.onAsbplayerInstance(updateWebSocketClientState);
     tabRegistry.onSyncedElement(updateWebSocketClientState);
+    browser.runtime.onConnect.addListener((port) => {
+        const asbplayerId = /asbplayer-side-panel-(.+)/.exec(port.name)?.[1];
+        if (asbplayerId) {
+            port.onDisconnect.addListener(() => tabRegistry.onAsbplayerRemoved(asbplayerId));
+        }
+    });
 
     const action = browser.action || browser.browserAction;
 

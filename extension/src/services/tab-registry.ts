@@ -286,6 +286,16 @@ export default class TabRegistry {
         });
     }
 
+    async onAsbplayerRemoved(id: string) {
+        await this._asbplayers((asbplayers) => {
+            if (id in asbplayers) {
+                delete asbplayers[id];
+                return true;
+            }
+            return false;
+        });
+    }
+
     async activeVideoElements() {
         const videoElements = await this._videoElements();
         const activeVideoElements: VideoTabModel[] = [];

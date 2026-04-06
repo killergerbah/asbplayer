@@ -172,6 +172,10 @@ export default function SidePanel({ dictionaryProvider, settingsProvider, settin
         });
     }, [extension]);
 
+    useEffect(() => {
+        browser.runtime.connect({ name: `asbplayer-side-panel-${extension.id}` });
+    }, [extension]);
+
     const { appRequestedLocation, extensionRequestedLocation } = useSidePanelRequestedLocation();
 
     useEffect(() => {
