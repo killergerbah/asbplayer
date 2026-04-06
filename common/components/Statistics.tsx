@@ -967,7 +967,14 @@ export default function Statistics({
     return (
         <Paper
             square
-            sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1, gap: 2, boxShadow: 'none', ...(sx ?? {}) }}
+            sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                flexGrow: 1,
+                gap: 2,
+                boxShadow: 'none',
+                ...(sx ?? {}),
+            }}
         >
             {!loadingSnapshots && !hasSnapshots && (
                 <Stack
@@ -1015,11 +1022,7 @@ export default function Statistics({
 
             {hasSnapshots && (
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                    {mediaInfo?.sourceString && (
-                        <Typography variant="h5" noWrap>
-                            {mediaInfo?.sourceString}
-                        </Typography>
-                    )}
+                    {mediaInfo?.sourceString && <Typography variant="h5">{mediaInfo?.sourceString}</Typography>}
                     {trackSnapshots.map((trackSnapshot) => {
                         const totalSentences = trackSnapshot.progress.total;
                         const trackTitle = `${t('settings.subtitleTrackChoice', { trackNumber: trackSnapshot.track + 1 })}`;
