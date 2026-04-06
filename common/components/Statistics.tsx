@@ -965,7 +965,10 @@ export default function Statistics({
     );
 
     return (
-        <Paper square sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1, gap: 2, ...(sx ?? {}) }}>
+        <Paper
+            square
+            sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1, gap: 2, boxShadow: 'none', ...(sx ?? {}) }}
+        >
             {!loadingSnapshots && !hasSnapshots && (
                 <Stack
                     spacing={2}

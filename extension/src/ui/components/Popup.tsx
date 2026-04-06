@@ -225,7 +225,7 @@ const Popup = ({
                         />
                     )}
                     {statisticsOpen && (
-                        <Box sx={{ width: '100%', height: '100%', overflowY: 'scroll' }}>
+                        <Box sx={{ display: 'flex', width: '100%', height: '100%', overflowY: 'scroll' }}>
                             <Statistics
                                 dictionaryProvider={dictionaryProvider}
                                 settings={settings}
