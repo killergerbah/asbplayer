@@ -3,6 +3,18 @@ import TabRegistry from '../../services/tab-registry';
 import { setExtensionRequestedLocation } from '@/services/side-panel';
 import { isFirefoxBuild } from '@/services/build-flags';
 
+const createStatisticsPopup = () => {
+    browser.windows.getLastFocused((window) => {
+        browser.windows.create({
+            type: 'popup',
+            focused: true,
+            width: window.width === undefined ? 800 : Math.floor(window.width / 2),
+            height: window.height === undefined ? 800 : Math.floor((window.height * 3) / 4),
+            url: browser.runtime.getURL('/statistics-ui.html'),
+        });
+    });
+};
+
 export default class OpenStatisticsHandler {
     private readonly _tabRegistry: TabRegistry;
 
@@ -29,8 +41,12 @@ export default class OpenStatisticsHandler {
                 })
                 .then((sidePanelAsbplayerId) => {
                     if (sidePanelAsbplayerId === undefined) {
-                        // TODO open a popup
+                        // If we get here there was no side panel, so create a popup because
+                        // Firefox doesn't allow us to show the side panel outside of a user gesture.
+                        createStatisticsPopup();
                     }
+                    // Else, a side panel was showing, and setExtensionRequestedLocation would have
+                    // loaded the statistics into the side panel.
                 });
         } else if (browser.sidePanel !== undefined) {
             void setExtensionRequestedLocation('statistics');
@@ -42,7 +58,7 @@ export default class OpenStatisticsHandler {
                     browser.sidePanel.open({ windowId: windowId! });
                 });
         } else {
-            // TODO open a popup
+            createStatisticsPopup();
         }
 
         return false;
