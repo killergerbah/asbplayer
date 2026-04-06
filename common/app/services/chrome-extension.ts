@@ -48,6 +48,7 @@ import {
     SaveTokenLocalFromAppMessage,
     SidePanelLocation,
     AckTabsMessage,
+    BrowserFeatures,
 } from '@project/common';
 import { DictionaryStatisticsSnapshot } from '@project/common/dictionary-statistics';
 import {
@@ -89,6 +90,7 @@ export default class ChromeExtension {
     readonly version: string;
     readonly extensionCommands: { [key: string]: string | undefined };
     readonly pageConfig?: { [K in keyof PageSettings]: SettingsFormPageConfig };
+    readonly browserFeatures?: BrowserFeatures;
 
     tabs: VideoTabModel[] | undefined;
     asbplayers: AsbplayerInstance[] | undefined;
@@ -108,7 +110,8 @@ export default class ChromeExtension {
     constructor(
         version?: string,
         extensionCommands?: { [key: string]: string | undefined },
-        pageConfig?: { [K in keyof PageSettings]: SettingsFormPageConfig }
+        pageConfig?: { [K in keyof PageSettings]: SettingsFormPageConfig },
+        browserFeatures?: BrowserFeatures
     ) {
         this.onMessageCallbacks = [];
         this.onTabsCallbacks = [];
@@ -116,6 +119,7 @@ export default class ChromeExtension {
         this.version = version ?? '';
         this.extensionCommands = extensionCommands ?? {};
         this.pageConfig = pageConfig;
+        this.browserFeatures = browserFeatures;
         this.sidePanel = false;
         this.windowEventListener = (event: MessageEvent) => {
             if (event.source !== window) {
@@ -246,6 +250,7 @@ export default class ChromeExtension {
     get supportsSidePanel() {
         return (
             this.installed &&
+            this.browserFeatures?.sidePanel &&
             ((!isFirefox && !isMobile && gte(this.version, '1.0.0')) ||
                 (isFirefox && !isMobile && gte(this.version, '1.14.0')))
         );

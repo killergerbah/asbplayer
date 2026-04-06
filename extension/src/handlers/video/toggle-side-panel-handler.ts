@@ -24,6 +24,7 @@ export default class ToggleSidePanelHandler {
 
     handle(command: Command<Message>, sender: Browser.runtime.MessageSender) {
         const toggleSidePanelMessage = command.message as ToggleSidePanelMessage;
+        const newLocation = toggleSidePanelMessage.location;
 
         let sidePanelOpen = false;
         let locationChanged = false;
@@ -32,7 +33,7 @@ export default class ToggleSidePanelHandler {
             commandFactory: (asbplayer) => {
                 if (asbplayer.sidePanel) {
                     sidePanelOpen = true;
-                    if (asbplayer.sidePanelAppRequestedLocation === toggleSidePanelMessage.location) {
+                    if (newLocation === undefined || asbplayer.sidePanelAppRequestedLocation === newLocation) {
                         const command: ExtensionToAsbPlayerCommand<CloseSidePanelMessage> = {
                             sender: 'asbplayer-extension-to-player',
                             message: {
@@ -50,9 +51,9 @@ export default class ToggleSidePanelHandler {
 
         if (sidePanelOpen && locationChanged) {
             // Side panel is open, and we just want to change its location
-            void setAppRequestedLocation(toggleSidePanelMessage.location);
+            void setAppRequestedLocation(newLocation!);
         } else if (!sidePanelOpen) {
-            void setAppRequestedLocation(toggleSidePanelMessage.location);
+            void setAppRequestedLocation(newLocation!);
             browser.windows
                 // @ts-ignore
                 .getLastFocused((w) => {

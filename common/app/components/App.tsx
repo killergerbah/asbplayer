@@ -539,7 +539,7 @@ function App({
         }
     }, [extension, refreshCopyHistory]);
     const handleOpenStatistics = useCallback(() => {
-        if (extension.supportsDictionaryStatistics) {
+        if (extension.supportsSidePanel && extension.supportsDictionaryStatistics) {
             extension.toggleSidePanel('statistics');
         } else {
             setStatisticsOpen((statisticsOpen) => !statisticsOpen);

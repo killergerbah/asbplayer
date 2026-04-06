@@ -311,3 +311,7 @@ export enum ControlType {
     subtitleOffset = 1,
     playbackRate = 2,
 }
+
+export interface BrowserFeatures {
+    sidePanel: boolean;
+}

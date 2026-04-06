@@ -17,7 +17,7 @@ import {
     DownloadAudioMessage,
     CardExportedMessage,
 } from '@project/common';
-import type { Message } from '@project/common';
+import type { AsbplayerInstance, Message } from '@project/common';
 import type { BulkExportStartedPayload } from '../../controllers/bulk-export-controller';
 import { AsbplayerSettings, SettingsProvider } from '@project/common/settings';
 import { AudioClip } from '@project/common/audio-clip';
@@ -53,6 +53,8 @@ import { pgsParserWorkerFactory } from '../../services/pgs-parser-worker-factory
 import { DictionaryProvider } from '@project/common/dictionary-db';
 import StatisticsDrawer from '@project/common/components/StatisticsDrawer';
 import { useSidePanelAppRequestedLocation } from '../hooks/use-side-panel-app-requested-location';
+import { useHasSubtitles } from '../hooks/use-has-subtitles';
+import { Asbplayer } from '@/services/tab-registry';
 
 interface Props {
     dictionaryProvider: DictionaryProvider;
@@ -64,6 +66,7 @@ interface Props {
 const sameVideoTab = (a: VideoTabModel, b: VideoTabModel) => {
     return a.id === b.id && a.src === b.src && a.synced === b.synced && a.syncedTimestamp === b.syncedTimestamp;
 };
+const alwaysFilterOut = (_: any) => false;
 
 const emptyArray: VideoTabModel[] = [];
 const miningContext = new MiningContext();
@@ -91,7 +94,7 @@ export default function SidePanel({ dictionaryProvider, settingsProvider, settin
     const [initializing, setInitializing] = useState<boolean>(true);
     const [syncedVideoTab, setSyncedVideoElement] = useState<VideoTabModel>();
     const [recordingAudio, setRecordingAudio] = useState<boolean>(false);
-    const [viewingAsbplayer, setViewingAsbplayer] = useState<boolean>(false);
+    const [viewingAsbplayerId, setViewingAsbplayerId] = useState<string>();
 
     const keyBinder = useAppKeyBinder(settings.keyBindSet, extension);
     const currentTabId = useCurrentTabId();
@@ -196,13 +199,30 @@ export default function SidePanel({ dictionaryProvider, settingsProvider, settin
 
     useEffect(() => {
         if (currentTabId === undefined) {
-            setViewingAsbplayer(false);
+            setViewingAsbplayerId(undefined);
             return;
         }
 
         return extension.subscribeTabs(() => {
-            const asbplayer = extension.asbplayers?.find((a) => a.tabId === currentTabId);
-            setViewingAsbplayer(asbplayer !== undefined);
+            const asbplayers = extension.asbplayers?.filter((a) => a.tabId === currentTabId);
+            if (asbplayers === undefined || asbplayers.length === 0) {
+                setViewingAsbplayerId(undefined);
+                return;
+            }
+
+            // It's possible that the tab registery has multiple asbplayers registered
+            // for the same tab. We should pick the newest one.
+            asbplayers.sort((a, b) => {
+                if (a.timestamp < b.timestamp) {
+                    return -1;
+                }
+                if (a.timestamp > b.timestamp) {
+                    return 1;
+                }
+                return 0;
+            });
+
+            setViewingAsbplayerId(asbplayers[asbplayers.length - 1].id);
         });
     }, [currentTabId, extension]);
 
@@ -375,10 +395,10 @@ export default function SidePanel({ dictionaryProvider, settingsProvider, settin
         copyHistoryRepository
     );
     useEffect(() => {
-        if (viewingAsbplayer) {
+        if (viewingAsbplayerId) {
             refreshCopyHistory();
         }
-    }, [refreshCopyHistory, viewingAsbplayer]);
+    }, [refreshCopyHistory, viewingAsbplayerId]);
     const [showCopyHistory, setShowCopyHistory] = useState<boolean>(false);
     const handleShowCopyHistory = useCallback(async () => {
         await refreshCopyHistory();
@@ -387,7 +407,7 @@ export default function SidePanel({ dictionaryProvider, settingsProvider, settin
     const handleCloseCopyHistory = useCallback(() => setShowCopyHistory(false), []);
     const handleClipAudio = useCallback(
         async (item: CopyHistoryItem) => {
-            if (viewingAsbplayer) {
+            if (viewingAsbplayerId) {
                 if (currentTabId) {
                     const downloadAudioCommand: ExtensionToAsbPlayerCommand<DownloadAudioMessage> = {
                         sender: 'asbplayer-extension-to-player',
@@ -411,11 +431,11 @@ export default function SidePanel({ dictionaryProvider, settingsProvider, settin
                 }
             }
         },
-        [settings, currentTabId, viewingAsbplayer]
+        [settings, currentTabId, viewingAsbplayerId]
     );
     const handleDownloadImage = useCallback(
         (item: CopyHistoryItem) => {
-            if (viewingAsbplayer) {
+            if (viewingAsbplayerId) {
                 if (currentTabId) {
                     const downloadImageCommand: ExtensionToAsbPlayerCommand<DownloadImageMessage> = {
                         sender: 'asbplayer-extension-to-player',
@@ -434,11 +454,11 @@ export default function SidePanel({ dictionaryProvider, settingsProvider, settin
                 }
             }
         },
-        [settings, currentTabId, viewingAsbplayer]
+        [settings, currentTabId, viewingAsbplayerId]
     );
     const handleJumpToSubtitle = useCallback(
         (card: CardModel) => {
-            if (!currentTabId || !viewingAsbplayer) {
+            if (!currentTabId || !viewingAsbplayerId) {
                 return;
             }
 
@@ -452,7 +472,7 @@ export default function SidePanel({ dictionaryProvider, settingsProvider, settin
             };
             browser.tabs.sendMessage(currentTabId, asbplayerCommand);
         },
-        [currentTabId, viewingAsbplayer]
+        [currentTabId, viewingAsbplayerId]
     );
     const handleAnki = useCallback(
         (copyHistoryItem: CopyHistoryItem) => {
@@ -531,6 +551,12 @@ export default function SidePanel({ dictionaryProvider, settingsProvider, settin
         return { sourceString: '' };
     }, []);
 
+    const viewingAsbplayerFilter = useCallback((a: Asbplayer) => a.id === viewingAsbplayerId, [viewingAsbplayerId]);
+    const viewingAsbplayerHasSubtitles = useHasSubtitles({
+        whereAsbplayer: viewingAsbplayerFilter,
+        whereVideoElement: alwaysFilterOut,
+    });
+
     if (!i18nInitialized) {
         return null;
     }
@@ -550,7 +576,7 @@ export default function SidePanel({ dictionaryProvider, settingsProvider, settin
             <Alert open={alertOpen} onClose={handleAlertClosed} autoHideDuration={3000} severity={alertSeverity}>
                 {alert}
             </Alert>
-            {viewingAsbplayer && appRequestedLocation === 'mining-history' && (
+            {viewingAsbplayerId && appRequestedLocation === 'mining-history' && (
                 <CopyHistoryList
                     open={true}
                     items={copyHistoryItems}
@@ -564,10 +590,10 @@ export default function SidePanel({ dictionaryProvider, settingsProvider, settin
                     onSelect={handleJumpToSubtitle}
                 />
             )}
-            {viewingAsbplayer && appRequestedLocation === 'statistics' && (
+            {viewingAsbplayerId && appRequestedLocation === 'statistics' && (
                 <StatisticsDrawer
                     open
-                    hasSubtitles={subtitles !== undefined && subtitles.length > 0}
+                    hasSubtitles={viewingAsbplayerHasSubtitles}
                     settings={settings}
                     showBackButton={false}
                     dictionaryProvider={dictionaryProvider}
@@ -579,7 +605,7 @@ export default function SidePanel({ dictionaryProvider, settingsProvider, settin
                     sx={{ p: 2 }}
                 />
             )}
-            {!viewingAsbplayer && (
+            {!viewingAsbplayerId && (
                 <>
                     <CopyHistory
                         open={showCopyHistory}

@@ -16,7 +16,6 @@ const Drawer: React.FC<Props> = ({ children, showBackButton, onClose, drawerWidt
     const width = drawerWidth === undefined ? '100%' : drawerWidth;
     const appBarHeight = useAppBarHeight();
 
-    console.log('appBarHeight=' + appBarHeight);
     return (
         <MuiDrawer
             variant="persistent"

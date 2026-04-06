@@ -73,6 +73,7 @@ import SaveTokenLocalHandler from '@/handlers/asbplayerv2/save-token-local-handl
 import { ExtensionGlobalStateProvider } from '@/services/extension-global-state-provider';
 import { lt as semverLt } from 'semver';
 import { AnnotationTutorialState } from '@project/common/global-state';
+import BrowserFeaturesHandler from '@/handlers/asbplayerv2/browser-features-handler';
 
 export default defineBackground(() => {
     if (!isFirefoxBuild) {
@@ -210,6 +211,7 @@ export default defineBackground(() => {
         new OpenExtensionShortcutsHandler(),
         new ExtensionCommandsHandler(),
         new PageConfigHandler(),
+        new BrowserFeaturesHandler(),
         new AsbplayerV2ToVideoCommandForwardingHandler(),
         new CaptureVisibleTabHandler(),
         new RequestModelHandler(),

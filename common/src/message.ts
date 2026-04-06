@@ -27,6 +27,7 @@ import {
     AnkiDialogSettings,
     AnkiExportMode,
     RichSubtitleModel,
+    BrowserFeatures,
 } from './model';
 import { AsbPlayerToVideoCommandV2 } from './command';
 import { DictionaryLocalTokenInput, DictionaryTokenRecord } from '../dictionary-db/dictionary-db';
@@ -605,6 +606,7 @@ export interface ExtensionVersionMessage extends Message {
     version: string;
     extensionCommands?: { [key: string]: string | undefined };
     pageConfig?: { [K in keyof PageSettings]: SettingsFormPageConfig };
+    browserFeatures?: BrowserFeatures;
 }
 
 export interface AlertMessage extends Message {
@@ -653,7 +655,7 @@ export type SidePanelLocation = 'mining-history' | 'statistics';
 
 export interface ToggleSidePanelMessage extends Message {
     readonly command: 'toggle-side-panel';
-    readonly location: SidePanelLocation;
+    readonly location?: SidePanelLocation;
 }
 
 export interface OpenSidePanelLocationMessage extends Message {

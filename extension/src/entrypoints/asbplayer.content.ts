@@ -23,6 +23,7 @@ import type {
     SetActiveProfileMessage,
     SetGlobalStateMessage,
     SetSettingsMessage,
+    ExtensionVersionMessage,
 } from '@project/common';
 import { ExtensionDictionaryStorage } from '@/services/extension-dictionary-storage';
 import { ExtensionSettingsStorage } from '@/services/extension-settings-storage';
@@ -293,21 +294,29 @@ export default defineContentScript({
                 },
             });
 
-            const pageConfigPromise = gte(manifest.version, '1.12.0')
-                ? browser.runtime.sendMessage({
-                      sender: 'asbplayerv2',
-                      message: {
-                          command: 'page-config',
-                      },
-                  })
-                : new Promise((resolve) => resolve(undefined));
+            const pageConfigPromise = browser.runtime.sendMessage({
+                sender: 'asbplayerv2',
+                message: {
+                    command: 'page-config',
+                },
+            });
 
-            sendMessageToPlayer({
+            const browserFeaturesPromise = browser.runtime.sendMessage({
+                sender: 'asbplayerv2',
+                message: {
+                    command: 'browser-features',
+                },
+            });
+
+            const versionMessage: ExtensionVersionMessage = {
                 command: 'version',
                 version: manifest.version,
                 extensionCommands: await commandsPromise,
                 pageConfig: await pageConfigPromise,
-            });
+                browserFeatures: await browserFeaturesPromise,
+            };
+
+            sendMessageToPlayer(versionMessage);
         });
     },
 });
