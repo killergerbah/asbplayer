@@ -92,35 +92,8 @@ const SettingsPage = ({
         browser.tabs.create({ active: true, url: 'chrome://extensions/shortcuts' });
     }, []);
 
-    const handleMediaRequested = useCallback(async (mediaId: string) => {
-        try {
-            const videoElements = await uiTabRegistry.activeVideoElements();
-            let tabId = videoElements.find((videoElement) => videoElement.src === mediaId)?.id;
-            if (tabId === undefined) {
-                tabId = (await uiTabRegistry.findAsbplayerTab({ filter: (asbplayer) => asbplayer.id === mediaId }))?.id;
-            }
-            if (tabId === undefined) return;
-
-            const targetTab = await browser.tabs.get(tabId);
-            if (targetTab.windowId !== undefined) {
-                await browser.windows.update(targetTab.windowId, { focused: true });
-            }
-            await browser.tabs.update(tabId, { active: true });
-        } catch {
-            // Best effort only
-        }
-    }, []);
-
     const { initialized: i18nInitialized } = useI18n({ language: settings?.language ?? 'en' });
     const { supportedLanguages } = useSupportedLanguages();
-
-    useEffect(
-        () =>
-            dictionaryProvider.onRequestStatisticsMineSentences((mediaId) => {
-                void handleMediaRequested(mediaId);
-            }),
-        [dictionaryProvider, handleMediaRequested]
-    );
 
     const { hash: scrollToId } = useLocationHash();
 

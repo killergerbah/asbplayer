@@ -173,6 +173,7 @@ export default function SidePanel({ dictionaryProvider, settingsProvider, settin
     }, [extension]);
 
     useEffect(() => {
+        // Allows background script to detect when the side panel has closed. See background.ts.
         browser.runtime.connect({ name: `asbplayer-side-panel-${extension.id}` });
     }, [extension]);
 
@@ -208,26 +209,13 @@ export default function SidePanel({ dictionaryProvider, settingsProvider, settin
         }
 
         return extension.subscribeTabs(() => {
-            const asbplayers = extension.asbplayers?.filter((a) => a.tabId === currentTabId);
-            if (asbplayers === undefined || asbplayers.length === 0) {
+            const asbplayer = extension.asbplayers?.find((a) => a.tabId === currentTabId);
+            if (asbplayer === undefined) {
                 setViewingAsbplayerId(undefined);
                 setViewingAsbplayerHasSubtitles(false);
                 return;
             }
 
-            // It's possible that the tab registery has multiple asbplayers registered
-            // for the same tab. We should pick the newest one.
-            asbplayers.sort((a, b) => {
-                if (a.timestamp < b.timestamp) {
-                    return -1;
-                }
-                if (a.timestamp > b.timestamp) {
-                    return 1;
-                }
-                return 0;
-            });
-
-            const asbplayer = asbplayers[asbplayers.length - 1];
             setViewingAsbplayerId(asbplayer.id);
             setViewingAsbplayerHasSubtitles(asbplayer.loadedSubtitles);
         });

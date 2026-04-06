@@ -27,7 +27,7 @@ import { useAnnotationTutorial } from '@project/common/hooks/use-annotation-tuto
 import { ExtensionGlobalStateProvider } from '@/services/extension-global-state-provider';
 import { uiTabRegistry, useHasSubtitles } from '../hooks/use-has-subtitles';
 import Statistics from '@project/common/components/Statistics';
-import { Box } from '@mui/material';
+import Box from '@mui/material/Box';
 
 const globalStateProvider = new ExtensionGlobalStateProvider();
 
