@@ -546,7 +546,7 @@ const Player = React.memo(function Player({
                     // We should probably have a hash or ID associated with the subtitle file this color update is for.
                     const updatedText = (s as TokenizedSubtitleModel).originalText ?? s.text;
                     const prevText =
-                        (allSubtitles[s.index] as TokenizedSubtitleModel).originalText ?? allSubtitles[s.index].text;
+                        (allSubtitles[s.index] as TokenizedSubtitleModel)?.originalText ?? allSubtitles[s.index]?.text;
                     if (updatedText === prevText) {
                         allSubtitles[s.index] = {
                             ...allSubtitles[s.index],
