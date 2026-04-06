@@ -74,6 +74,7 @@ import { ExtensionGlobalStateProvider } from '@/services/extension-global-state-
 import { lt as semverLt } from 'semver';
 import { AnnotationTutorialState } from '@project/common/global-state';
 import BrowserFeaturesHandler from '@/handlers/asbplayerv2/browser-features-handler';
+import OpenStatisticsHandler from '@/handlers/video/open-statistics-handler';
 
 export default defineBackground(() => {
     if (!isFirefoxBuild) {
@@ -179,6 +180,7 @@ export default defineBackground(() => {
         new SyncHandler(tabRegistry),
         new HttpPostHandler(),
         new ToggleSidePanelHandler(tabRegistry),
+        new OpenStatisticsHandler(tabRegistry),
         new OpenAsbplayerSettingsHandler(),
         new CopyToClipboardHandler(),
         new EncodeMp3Handler(),

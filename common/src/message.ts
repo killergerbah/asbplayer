@@ -46,6 +46,7 @@ export interface AsbplayerInstance {
     sidePanel: boolean;
     timestamp: number;
     videoPlayer: boolean;
+    loadedSubtitles: boolean;
 }
 
 export interface AsbplayerHeartbeatMessage extends Message {
@@ -661,6 +662,10 @@ export interface ToggleSidePanelMessage extends Message {
 export interface OpenSidePanelLocationMessage extends Message {
     readonly command: 'open-side-panel-location';
     readonly location: SidePanelLocation;
+}
+
+export interface OpenStatisticsMessage extends Message {
+    readonly command: 'open-statistics';
 }
 
 export interface CloseSidePanelMessage extends Message {

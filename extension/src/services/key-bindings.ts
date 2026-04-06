@@ -1,5 +1,6 @@
 import {
     OpenAsbplayerSettingsMessage,
+    OpenStatisticsMessage,
     PlayMode,
     SettingsUpdatedMessage,
     ToggleSubtitlesInListFromVideoMessage,
@@ -244,12 +245,10 @@ export default class KeyBindings {
                 event.preventDefault();
                 event.stopImmediatePropagation();
 
-                // TODO update
-                const command: VideoToExtensionCommand<OpenAsbplayerSettingsMessage> = {
+                const command: VideoToExtensionCommand<OpenStatisticsMessage> = {
                     sender: 'asbplayer-video',
                     message: {
-                        command: 'open-asbplayer-settings',
-                        scrollToId: 'statistics',
+                        command: 'open-statistics',
                     },
                     src: context.video.src,
                 };

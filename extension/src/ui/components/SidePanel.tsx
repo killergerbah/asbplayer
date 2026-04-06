@@ -52,9 +52,8 @@ import { mp3WorkerFactory } from '../../services/mp3-worker-factory';
 import { pgsParserWorkerFactory } from '../../services/pgs-parser-worker-factory';
 import { DictionaryProvider } from '@project/common/dictionary-db';
 import StatisticsDrawer from '@project/common/components/StatisticsDrawer';
-import { useSidePanelAppRequestedLocation } from '../hooks/use-side-panel-app-requested-location';
-import { useHasSubtitles } from '../hooks/use-has-subtitles';
-import { Asbplayer } from '@/services/tab-registry';
+import { useSidePanelRequestedLocation } from '../hooks/use-side-panel-requested-location';
+import { clearExtensionRequestedLocation } from '@/services/side-panel';
 
 interface Props {
     dictionaryProvider: DictionaryProvider;
@@ -173,7 +172,7 @@ export default function SidePanel({ dictionaryProvider, settingsProvider, settin
         });
     }, [extension]);
 
-    const { appRequestedLocation } = useSidePanelAppRequestedLocation();
+    const { appRequestedLocation, extensionRequestedLocation } = useSidePanelRequestedLocation();
 
     useEffect(() => {
         extension.sidePanelAppRequestedLocation = appRequestedLocation;
@@ -408,7 +407,10 @@ export default function SidePanel({ dictionaryProvider, settingsProvider, settin
         await refreshCopyHistory();
         setShowCopyHistory(true);
     }, [refreshCopyHistory]);
-    const handleCloseCopyHistory = useCallback(() => setShowCopyHistory(false), []);
+    const handleCloseCopyHistory = useCallback(() => {
+        setShowCopyHistory(false);
+        void clearExtensionRequestedLocation();
+    }, []);
     const handleClipAudio = useCallback(
         async (item: CopyHistoryItem) => {
             if (viewingAsbplayerId) {
@@ -542,7 +544,10 @@ export default function SidePanel({ dictionaryProvider, settingsProvider, settin
     // TODO should highlight statistics are ready?
     const [statisticsOpen, setStatisticsOpen] = useState<boolean>(false);
     const handleShowStatistics = useCallback(() => setStatisticsOpen(true), []);
-    const handleCloseStatistics = useCallback(() => setStatisticsOpen(false), []);
+    const handleCloseStatistics = useCallback(() => {
+        setStatisticsOpen(false);
+        void clearExtensionRequestedLocation();
+    }, []);
     const handleViewAnnotationSettings = useCallback(() => {
         browser.tabs.create({
             url: `${browser.runtime.getURL('/options.html')}#annotation`,
@@ -607,7 +612,7 @@ export default function SidePanel({ dictionaryProvider, settingsProvider, settin
             {!viewingAsbplayerId && (
                 <>
                     <CopyHistory
-                        open={showCopyHistory}
+                        open={showCopyHistory || extensionRequestedLocation === 'mining-history'}
                         items={copyHistoryItems}
                         onClose={handleCloseCopyHistory}
                         onDelete={deleteCopyHistoryItem}
@@ -663,7 +668,7 @@ export default function SidePanel({ dictionaryProvider, settingsProvider, settin
                                 keyBinder={keyBinder}
                             />
                             <StatisticsDrawer
-                                open={statisticsOpen}
+                                open={statisticsOpen || extensionRequestedLocation === 'statistics'}
                                 settings={settings}
                                 showBackButton
                                 hasSubtitles={subtitles !== undefined && subtitles.length > 0}

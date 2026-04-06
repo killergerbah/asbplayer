@@ -5,7 +5,7 @@ import {
     Message,
     ToggleSidePanelMessage,
 } from '@project/common';
-import TabRegistry, { Asbplayer } from '../../services/tab-registry';
+import TabRegistry from '../../services/tab-registry';
 import { setAppRequestedLocation } from '@/services/side-panel';
 import { isFirefoxBuild } from '@/services/build-flags';
 
