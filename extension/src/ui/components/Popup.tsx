@@ -132,6 +132,32 @@ const Popup = ({
         <Paper>
             <Stack direction="column" spacing={1.5} sx={{ padding: theme.spacing(1.5) }}>
                 <ButtonGroup fullWidth variant="contained" color="primary" orientation="horizontal">
+                    {hasSubtitles && (
+                        <>
+                            {statisticsOpen && (
+                                <Button
+                                    size="small"
+                                    variant="contained"
+                                    color="primary"
+                                    startIcon={<SettingsIcon />}
+                                    onClick={handleToggleStatistics}
+                                >
+                                    {t('bar.settings')}
+                                </Button>
+                            )}
+                            {!statisticsOpen && (
+                                <Button
+                                    size="small"
+                                    variant="contained"
+                                    color="primary"
+                                    startIcon={<BarChartIcon />}
+                                    onClick={handleToggleStatistics}
+                                >
+                                    {t('statistics.title')}
+                                </Button>
+                            )}
+                        </>
+                    )}
                     <Button
                         size="small"
                         variant="contained"
@@ -155,28 +181,6 @@ const Popup = ({
                     <Button variant="contained" color="primary" startIcon={<TutorialIcon />} onClick={onOpenUserGuide}>
                         {t('action.userGuide')}
                     </Button>
-                    {hasSubtitles && statisticsOpen && (
-                        <Button
-                            size="small"
-                            variant="contained"
-                            color="primary"
-                            startIcon={<SettingsIcon />}
-                            onClick={handleToggleStatistics}
-                        >
-                            {t('bar.settings')}
-                        </Button>
-                    )}
-                    {hasSubtitles && !statisticsOpen && (
-                        <Button
-                            size="small"
-                            variant="contained"
-                            color="primary"
-                            startIcon={<BarChartIcon />}
-                            onClick={handleToggleStatistics}
-                        >
-                            {t('statistics.title')}
-                        </Button>
-                    )}
                 </ButtonGroup>
                 <Grid
                     item
@@ -230,14 +234,16 @@ const Popup = ({
                                 onSeekRequested={handleMediaRequested}
                                 onMineRequested={handleMineRequested}
                                 mediaInfoFetcher={fetchStatisticsMediaInfo}
-                                sx={{ width: '100%', height: '100%' }}
+                                sx={{ m: 1 }}
                             />
                         </Box>
                     )}
                 </Grid>
-                <Grid item>
-                    <SettingsProfileSelectMenu {...profilesContext} />
-                </Grid>
+                {!statisticsOpen && (
+                    <Grid item>
+                        <SettingsProfileSelectMenu {...profilesContext} />
+                    </Grid>
+                )}
             </Stack>
         </Paper>
     );

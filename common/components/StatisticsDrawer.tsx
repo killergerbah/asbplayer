@@ -1,5 +1,5 @@
 import Drawer from './Drawer';
-import Statistics, { type StatisticsProps } from '@project/common/components/Statistics';
+import Statistics, { type StatisticsProps } from './Statistics';
 
 interface Props extends StatisticsProps {
     open: boolean;
@@ -8,10 +8,10 @@ interface Props extends StatisticsProps {
     onClose: () => void;
 }
 
-const StatisticsDrawer: React.FC<Props> = ({ open, showBackButton, drawerWidth, onClose, ...statisticsProps }) => {
+const StatisticsDrawer: React.FC<Props> = ({ open, showBackButton, drawerWidth, onClose, sx, ...statisticsProps }) => {
     return (
         <Drawer open={open} showBackButton={showBackButton} drawerWidth={drawerWidth} onClose={onClose}>
-            <Statistics {...statisticsProps} sx={{ width: '100%', height: '100%' }} />
+            <Statistics {...statisticsProps} sx={{ width: '100%', ...sx }} />
         </Drawer>
     );
 };

@@ -1388,6 +1388,7 @@ function App({
                                 onViewAnnotationSettings={() => {}}
                                 onClose={handleCloseStatistics}
                                 mediaInfoFetcher={fetchStatisticsMediaInfo}
+                                sx={{ p: 2 }}
                             />
                             {ankiDialogCard && (
                                 <AnkiDialog

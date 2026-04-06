@@ -3,6 +3,7 @@ import MuiDrawer, { type DrawerProps } from '@mui/material/Drawer';
 import Paper from '@mui/material/Paper';
 import IconButton from '@mui/material/IconButton';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import { useAppBarHeight } from '../hooks/use-app-bar-height';
 
 interface Props extends DrawerProps {
     children: React.ReactNode;
@@ -13,13 +14,18 @@ interface Props extends DrawerProps {
 
 const Drawer: React.FC<Props> = ({ children, showBackButton, onClose, drawerWidth, ...rest }) => {
     const width = drawerWidth === undefined ? '100%' : drawerWidth;
+    const appBarHeight = useAppBarHeight();
 
+    console.log('appBarHeight=' + appBarHeight);
     return (
         <MuiDrawer
             variant="persistent"
             anchor="right"
             sx={{
-                maxHeight: '100%',
+                height: '100%',
+                position: 'absolute',
+                top: 0,
+                left: 0,
             }}
             slotProps={{
                 paper: { sx: { width } },
@@ -27,7 +33,18 @@ const Drawer: React.FC<Props> = ({ children, showBackButton, onClose, drawerWidt
             {...rest}
         >
             {showBackButton && (
-                <Paper square>
+                <Paper
+                    square
+                    sx={{
+                        height: appBarHeight === 0 ? 'auto' : appBarHeight,
+                        flexShrink: 0,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        alignItems: 'start',
+                        pl: 1,
+                    }}
+                >
                     <IconButton onClick={onClose}>
                         <ChevronRightIcon />
                     </IconButton>

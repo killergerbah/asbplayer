@@ -576,6 +576,7 @@ export default function SidePanel({ dictionaryProvider, settingsProvider, settin
                     onMineRequested={() => {}}
                     onViewAnnotationSettings={handleViewAnnotationSettings}
                     mediaInfoFetcher={fetchStatisticsMediaInfo}
+                    sx={{ p: 2 }}
                 />
             )}
             {!viewingAsbplayer && (
@@ -647,6 +648,7 @@ export default function SidePanel({ dictionaryProvider, settingsProvider, settin
                                 onMineRequested={() => {}}
                                 onViewAnnotationSettings={handleViewAnnotationSettings}
                                 mediaInfoFetcher={fetchStatisticsMediaInfo}
+                                sx={{ p: 2 }}
                             />
                             <SidePanelTopControls
                                 ref={topControlsRef}

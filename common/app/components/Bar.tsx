@@ -66,7 +66,7 @@ const useStyles = makeStyles<Theme, StyleProps, string>((theme) => ({
         }),
         marginRight: ({ drawerWidth }) => drawerWidth,
     },
-    copyHistoryButton: {
+    drawerButton: {
         transform: 'scaleX(1)',
         width: 48,
         padding: 12,
@@ -75,7 +75,7 @@ const useStyles = makeStyles<Theme, StyleProps, string>((theme) => ({
             duration: theme.transitions.duration.leavingScreen,
         }),
     },
-    copyHistoryButtonShift: {
+    drawerButtonShift: {
         transform: 'scaleX(0)',
         width: 0,
         padding: 5,
@@ -205,9 +205,8 @@ export default function Bar({
                         <IconButton
                             edge="end"
                             color="inherit"
-                            aria-label="menu"
-                            className={clsx(classes.copyHistoryButton, {
-                                [classes.copyHistoryButtonShift]: drawerOpen,
+                            className={clsx(classes.drawerButton, {
+                                [classes.drawerButtonShift]: drawerOpen,
                             })}
                             onClick={onOpenCopyHistory}
                         >
@@ -216,7 +215,14 @@ export default function Bar({
                     </CopyHistoryTooltip>
                     {onOpenStatistics && (
                         <Tooltip title={t('statistics.title')!}>
-                            <IconButton edge="end" color="inherit" onClick={onOpenStatistics}>
+                            <IconButton
+                                edge="end"
+                                color="inherit"
+                                onClick={onOpenStatistics}
+                                className={clsx(classes.drawerButton, {
+                                    [classes.drawerButtonShift]: drawerOpen,
+                                })}
+                            >
                                 <BarChartIcon />
                             </IconButton>
                         </Tooltip>

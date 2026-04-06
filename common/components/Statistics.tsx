@@ -965,7 +965,7 @@ export default function Statistics({
     );
 
     return (
-        <Paper sx={{ display: 'flex', flexDirection: 'column', gap: 2, pb: 2, ...(sx ?? {}) }}>
+        <Paper square sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1, gap: 2, ...(sx ?? {}) }}>
             {!loadingSnapshots && !hasSnapshots && (
                 <Stack
                     spacing={2}
@@ -1011,7 +1011,7 @@ export default function Statistics({
             )}
 
             {hasSnapshots && (
-                <Paper square sx={{ display: 'flex', flexDirection: 'column', p: 1, gap: 1 }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                     {mediaInfo?.sourceString && (
                         <Typography variant="h5" noWrap>
                             {mediaInfo?.sourceString}
@@ -1229,7 +1229,6 @@ export default function Statistics({
                                 <Box
                                     sx={{
                                         display: 'grid',
-                                        gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
                                         gap: 2,
                                     }}
                                 >
@@ -1372,7 +1371,7 @@ export default function Statistics({
                             </Box>
                         );
                     })}
-                </Paper>
+                </Box>
             )}
             {sentenceDialogState !== undefined && (
                 <StatisticsSentenceDetailsDialog

@@ -19,7 +19,7 @@ interface CopyHistoryProps {
 
 export default function CopyHistory(props: CopyHistoryProps) {
     return (
-        <Drawer open={props.open} showBackButton drawerWidth={props.drawerWidth} onClose={props.onClose}>
+        <Drawer showBackButton open={props.open} drawerWidth={props.drawerWidth} onClose={props.onClose}>
             <CopyHistoryList {...props} />
         </Drawer>
     );
