@@ -46,13 +46,18 @@ import Stack from '@mui/material/Stack';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import Link from '@mui/material/Link';
 
-interface Props {
+export interface MediaInfo {
+    sourceString: string;
+}
+
+export interface StatisticsProps {
     dictionaryProvider: DictionaryProvider;
     settings: AsbplayerSettings;
     hasSubtitles: boolean;
     onViewAnnotationSettings: () => void;
     onSeekRequested: (mediaId: string) => void;
     onMineRequested: (mediaId: string) => void;
+    mediaInfoFetcher: (mediaId: string) => Promise<MediaInfo>;
     sx?: SxProps<Theme>;
 }
 
@@ -827,13 +832,15 @@ export default function Statistics({
     dictionaryProvider,
     settings,
     hasSubtitles,
+    mediaInfoFetcher,
     onViewAnnotationSettings,
     onSeekRequested,
     onMineRequested,
     sx,
-}: Props) {
+}: StatisticsProps) {
     const { t } = useTranslation();
     const [mediaId, setMediaId] = useState<string>();
+    const [mediaInfo, setMediaInfo] = useState<MediaInfo>();
     const [statisticsSnapshot, setStatisticsSnapshot] = useState<DictionaryStatisticsSnapshot>();
     const [trackSnapshots, setTrackSnapshots] = useState<DictionaryStatisticsTrackSnapshot[]>();
     const [generationRequested, setGenerationRequested] = useState(false);
@@ -850,7 +857,10 @@ export default function Statistics({
     useEffect(() => {
         const unsubscribeStatistics = dictionaryProvider.onStatisticsSnapshot(
             (snapshot?: DictionaryStatisticsSnapshot) => {
-                setMediaId(snapshot?.mediaId);
+                if (snapshot?.mediaId) {
+                    setMediaId(snapshot.mediaId);
+                    mediaInfoFetcher(snapshot.mediaId).then(setMediaInfo);
+                }
                 setStatisticsSnapshot(snapshot);
                 const nextTrackSnapshots = processDictionaryStatisticsSnapshot(snapshot);
                 setTrackSnapshots(nextTrackSnapshots);
@@ -872,7 +882,7 @@ export default function Statistics({
             unsubscribeStatistics();
             unsubscribeGeneration();
         };
-    }, [dictionaryProvider]);
+    }, [dictionaryProvider, mediaInfoFetcher]);
 
     const handleGenerate = useCallback(() => {
         setGenerationRequested(true);
@@ -1000,356 +1010,370 @@ export default function Statistics({
                 </CenteredBox>
             )}
 
-            {hasSnapshots &&
-                trackSnapshots.map((trackSnapshot) => {
-                    const totalSentences = trackSnapshot.progress.total;
-                    const trackTitle = `${t('settings.subtitleTrackChoice', { trackNumber: trackSnapshot.track + 1 })}`;
-                    const selectedRewatchSnapshot = selectedRewatchSnapshotForTrack(
-                        trackSnapshot,
-                        selectedRewatchesByTrack
-                    );
-                    const maxRewatches = trackSnapshot.rewatchSnapshots.length;
-                    const projectedSentenceBuckets = selectedRewatchSnapshot?.sentenceBuckets ?? emptySentenceBuckets;
-                    const projectedKnownCount = selectedRewatchSnapshot?.numKnownTokens ?? 0;
-                    const projectedGlobalKnownCount = selectedRewatchSnapshot?.numDictionaryKnownTokens ?? 0;
-                    const projectedAverageWordsPerSentence = selectedRewatchSnapshot?.averageWordsPerSentence ?? 0;
-                    const projectedAverageKnownWordsPerSentence =
-                        selectedRewatchSnapshot?.averageKnownWordsPerSentence ?? 0;
-                    const projectedKnownPercent = selectedRewatchSnapshot?.knownPercent ?? 0;
-                    const projectedComprehension = selectedRewatchSnapshot?.comprehensionPercent ?? 0;
-                    const miningEnabled = trackSnapshot.progress.current >= trackSnapshot.progress.total;
-                    const ankiTrackSnapshot = processDictionaryStatisticsAnkiTrackSnapshot(
-                        statisticsSnapshot,
-                        trackSnapshot.track
-                    );
+            {hasSnapshots && (
+                <Paper square sx={{ display: 'flex', flexDirection: 'column', p: 1, gap: 1 }}>
+                    {mediaInfo?.sourceString && (
+                        <Typography variant="h5" noWrap>
+                            {mediaInfo?.sourceString}
+                        </Typography>
+                    )}
+                    {trackSnapshots.map((trackSnapshot) => {
+                        const totalSentences = trackSnapshot.progress.total;
+                        const trackTitle = `${t('settings.subtitleTrackChoice', { trackNumber: trackSnapshot.track + 1 })}`;
+                        const selectedRewatchSnapshot = selectedRewatchSnapshotForTrack(
+                            trackSnapshot,
+                            selectedRewatchesByTrack
+                        );
+                        const maxRewatches = trackSnapshot.rewatchSnapshots.length;
+                        const projectedSentenceBuckets =
+                            selectedRewatchSnapshot?.sentenceBuckets ?? emptySentenceBuckets;
+                        const projectedKnownCount = selectedRewatchSnapshot?.numKnownTokens ?? 0;
+                        const projectedGlobalKnownCount = selectedRewatchSnapshot?.numDictionaryKnownTokens ?? 0;
+                        const projectedAverageWordsPerSentence = selectedRewatchSnapshot?.averageWordsPerSentence ?? 0;
+                        const projectedAverageKnownWordsPerSentence =
+                            selectedRewatchSnapshot?.averageKnownWordsPerSentence ?? 0;
+                        const projectedKnownPercent = selectedRewatchSnapshot?.knownPercent ?? 0;
+                        const projectedComprehension = selectedRewatchSnapshot?.comprehensionPercent ?? 0;
+                        const miningEnabled = trackSnapshot.progress.current >= trackSnapshot.progress.total;
+                        const ankiTrackSnapshot = processDictionaryStatisticsAnkiTrackSnapshot(
+                            statisticsSnapshot,
+                            trackSnapshot.track
+                        );
 
-                    return (
-                        <Paper
-                            key={trackSnapshot.track}
-                            square
-                            sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 2 }}
-                        >
-                            {(!trackSnapshot.progress.current || trackSnapshot.progress.current < totalSentences) && (
-                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
-                                    <Typography variant="caption" color="text.secondary">
-                                        {`${trackSnapshot.progress.current} / ${totalSentences} · ${percentDisplay(trackSnapshot.progressPercent)}`}
-                                    </Typography>
-                                    <LinearProgress
-                                        variant={totalSentences > 0 ? 'determinate' : 'indeterminate'}
-                                        value={trackSnapshot.progressPercent}
-                                        sx={{ height: 6, borderRadius: 999 }}
-                                    />
-                                </Box>
-                            )}
+                        return (
+                            <Box key={trackSnapshot.track} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                                {(!trackSnapshot.progress.current ||
+                                    trackSnapshot.progress.current < totalSentences) && (
+                                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+                                        <Typography variant="caption" color="text.secondary">
+                                            {`${trackSnapshot.progress.current} / ${totalSentences} · ${percentDisplay(trackSnapshot.progressPercent)}`}
+                                        </Typography>
+                                        <LinearProgress
+                                            variant={totalSentences > 0 ? 'determinate' : 'indeterminate'}
+                                            value={trackSnapshot.progressPercent}
+                                            sx={{ height: 6, borderRadius: 999 }}
+                                        />
+                                    </Box>
+                                )}
 
-                            <Box
-                                sx={{
-                                    display: 'flex',
-                                    justifyContent: 'space-between',
-                                    alignItems: 'flex-start',
-                                    gap: 2,
-                                    flexWrap: 'wrap',
-                                }}
-                            >
-                                <Typography variant="h6">{trackTitle}</Typography>
                                 <Box
                                     sx={{
                                         display: 'flex',
-                                        flexDirection: 'column',
-                                        alignItems: 'flex-end',
-                                        ml: 'auto',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'flex-start',
+                                        gap: 2,
+                                        flexWrap: 'wrap',
                                     }}
                                 >
-                                    <StatisticsSectionHeading
-                                        title={t('statistics.globalKnownWords')}
-                                        infoLines={globalKnownInfoLines}
-                                    />
-                                    <Typography variant="h5">{trackSnapshot.numDictionaryKnownTokens}</Typography>
-                                    <Typography color="text.secondary">
-                                        {`${t('settings.dictionaryTokenStateIgnored')}: ${trackSnapshot.numDictionaryIgnoredTokens}`}
-                                    </Typography>
+                                    <Typography variant="h6">{trackTitle}</Typography>
+                                    <Box
+                                        sx={{
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            alignItems: 'flex-end',
+                                            ml: 'auto',
+                                        }}
+                                    >
+                                        <StatisticsSectionHeading
+                                            title={t('statistics.globalKnownWords')}
+                                            infoLines={globalKnownInfoLines}
+                                        />
+                                        <Typography variant="h5">{trackSnapshot.numDictionaryKnownTokens}</Typography>
+                                        <Typography color="text.secondary">
+                                            {`${t('settings.dictionaryTokenStateIgnored')}: ${trackSnapshot.numDictionaryIgnoredTokens}`}
+                                        </Typography>
+                                    </Box>
                                 </Box>
-                            </Box>
 
-                            <Box>
-                                <StatisticsSectionHeading
-                                    title={t('statistics.comprehension')}
-                                    infoLines={comprehensionInfoLines}
+                                <Box>
+                                    <StatisticsSectionHeading
+                                        title={t('statistics.comprehension')}
+                                        infoLines={comprehensionInfoLines}
+                                    />
+                                    <Typography color="text.secondary" sx={{ mb: 1 }}>
+                                        {percentDisplay(trackSnapshot.comprehensionPercent)}
+                                    </Typography>
+                                    <ComprehensionScale value={trackSnapshot.comprehensionPercent} />
+                                </Box>
+
+                                <SentenceComprehensionGraph
+                                    points={trackSnapshot.sentenceComprehensionPoints}
+                                    onOpenSentenceDetails={(point) =>
+                                        setSentenceDialogState({
+                                            title: `${trackTitle} · ${currentWatchTitle} · ${t('statistics.comprehension')}`,
+                                            entries: trackSnapshot.allSentenceEntries,
+                                            totalSentences,
+                                            miningEnabled,
+                                            highlightedSentenceIndex: point.sentence.index,
+                                        })
+                                    }
                                 />
-                                <Typography color="text.secondary" sx={{ mb: 1 }}>
-                                    {percentDisplay(trackSnapshot.comprehensionPercent)}
-                                </Typography>
-                                <ComprehensionScale value={trackSnapshot.comprehensionPercent} />
-                            </Box>
 
-                            <SentenceComprehensionGraph
-                                points={trackSnapshot.sentenceComprehensionPoints}
-                                onOpenSentenceDetails={(point) =>
-                                    setSentenceDialogState({
-                                        title: `${trackTitle} · ${currentWatchTitle} · ${t('statistics.comprehension')}`,
-                                        entries: trackSnapshot.allSentenceEntries,
-                                        totalSentences,
-                                        miningEnabled,
-                                        highlightedSentenceIndex: point.sentence.index,
-                                    })
-                                }
-                            />
+                                <Box
+                                    sx={{
+                                        display: 'grid',
+                                        gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+                                        gap: 2,
+                                    }}
+                                >
+                                    <Box>
+                                        <Typography variant="subtitle2">{t('statistics.totalSentences')}</Typography>
+                                        <Typography variant="h5">{totalSentences}</Typography>
+                                    </Box>
+                                    <Box>
+                                        <Typography variant="subtitle2">{t('statistics.uniqueWords')}</Typography>
+                                        <Typography variant="h5">{trackSnapshot.numUniqueTokens}</Typography>
+                                    </Box>
+                                    <Box>
+                                        <Typography variant="subtitle2">{t('statistics.knownWords')}</Typography>
+                                        <Typography variant="h5">{trackSnapshot.numKnownTokens}</Typography>
+                                        <Typography color="text.secondary">
+                                            {percentDisplay(trackSnapshot.knownPercent)}
+                                        </Typography>
+                                    </Box>
+                                </Box>
 
-                            <Box
-                                sx={{
-                                    display: 'grid',
-                                    gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-                                    gap: 2,
-                                }}
-                            >
-                                <Box>
-                                    <Typography variant="subtitle2">{t('statistics.totalSentences')}</Typography>
-                                    <Typography variant="h5">{totalSentences}</Typography>
-                                </Box>
-                                <Box>
-                                    <Typography variant="subtitle2">{t('statistics.uniqueWords')}</Typography>
-                                    <Typography variant="h5">{trackSnapshot.numUniqueTokens}</Typography>
-                                </Box>
-                                <Box>
-                                    <Typography variant="subtitle2">{t('statistics.knownWords')}</Typography>
-                                    <Typography variant="h5">{trackSnapshot.numKnownTokens}</Typography>
-                                    <Typography color="text.secondary">
-                                        {percentDisplay(trackSnapshot.knownPercent)}
-                                    </Typography>
-                                </Box>
-                            </Box>
-
-                            <Box
-                                sx={{
-                                    display: 'grid',
-                                    gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
-                                    gap: 2,
-                                }}
-                            >
-                                <Box sx={{ gridColumn: '1 / -1' }}>
-                                    <StatisticsSectionHeading
-                                        title={t('statistics.wordDistribution')}
-                                        infoLines={wordDistributionInfoLines}
-                                    />
-                                </Box>
-                                <Box>
-                                    <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                                        {t('statistics.statusDistribution')}
-                                    </Typography>
-                                    {[
-                                        ...statusOrder.map((status) => ({
-                                            key: `${status}`,
-                                            label: statusLabels[status],
-                                            count: trackSnapshot.statusCounts.get(status)!.numUnique,
-                                            occurrences: trackSnapshot.statusCounts.get(status)!.numOccurrences,
-                                            color: trackSnapshot.statusColors[status],
-                                        })),
-                                        {
-                                            key: 'ignored',
-                                            label: t('settings.dictionaryTokenStateIgnored'),
-                                            count: trackSnapshot.numIgnoredTokens,
-                                            occurrences: trackSnapshot.numIgnoredOccurrences,
-                                            color: '#e0e0e0',
-                                        },
-                                    ].map((statusRow) => (
-                                        <Box key={statusRow.key} sx={{ mb: 1 }}>
-                                            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                                                <Typography variant="body2">{statusRow.label}</Typography>
-                                                <Typography variant="body2" color="text.secondary">
-                                                    {countPercentOccurrencesDisplay(
-                                                        statusRow.count,
-                                                        trackSnapshot.numUniqueTokens,
-                                                        statusRow.occurrences
-                                                    )}
-                                                </Typography>
-                                            </Box>
-                                            <StatusDistributionBar
-                                                value={percent(statusRow.count, trackSnapshot.numUniqueTokens)}
-                                                color={statusRow.color}
-                                            />
-                                        </Box>
-                                    ))}
-                                </Box>
-                                <Box>
-                                    <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                                        {t('statistics.frequency')}
-                                    </Typography>
-                                    {trackSnapshot.frequencyBuckets.map((bucket) => {
-                                        const bucketLabel =
-                                            bucket.label === 'Unknown'
-                                                ? statusLabels[TokenStatus.UNKNOWN]
-                                                : bucket.label;
-
-                                        return (
-                                            <Box key={bucket.label} sx={{ mb: 1 }}>
+                                <Box
+                                    sx={{
+                                        display: 'grid',
+                                        gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+                                        gap: 2,
+                                    }}
+                                >
+                                    <Box sx={{ gridColumn: '1 / -1' }}>
+                                        <StatisticsSectionHeading
+                                            title={t('statistics.wordDistribution')}
+                                            infoLines={wordDistributionInfoLines}
+                                        />
+                                    </Box>
+                                    <Box>
+                                        <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                                            {t('statistics.statusDistribution')}
+                                        </Typography>
+                                        {[
+                                            ...statusOrder.map((status) => ({
+                                                key: `${status}`,
+                                                label: statusLabels[status],
+                                                count: trackSnapshot.statusCounts.get(status)!.numUnique,
+                                                occurrences: trackSnapshot.statusCounts.get(status)!.numOccurrences,
+                                                color: trackSnapshot.statusColors[status],
+                                            })),
+                                            {
+                                                key: 'ignored',
+                                                label: t('settings.dictionaryTokenStateIgnored'),
+                                                count: trackSnapshot.numIgnoredTokens,
+                                                occurrences: trackSnapshot.numIgnoredOccurrences,
+                                                color: '#e0e0e0',
+                                            },
+                                        ].map((statusRow) => (
+                                            <Box key={statusRow.key} sx={{ mb: 1 }}>
                                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                                                    <Typography variant="body2">{bucketLabel}</Typography>
+                                                    <Typography variant="body2">{statusRow.label}</Typography>
                                                     <Typography variant="body2" color="text.secondary">
                                                         {countPercentOccurrencesDisplay(
-                                                            bucket.count,
-                                                            trackSnapshot.consideredTokens,
-                                                            bucket.numOccurrences
+                                                            statusRow.count,
+                                                            trackSnapshot.numUniqueTokens,
+                                                            statusRow.occurrences
                                                         )}
                                                     </Typography>
                                                 </Box>
-                                                <FrequencyDistributionBar
-                                                    totalPercent={bucket.percent}
-                                                    count={bucket.count}
-                                                    statusCounts={bucket.statusCounts}
-                                                    statusColors={trackSnapshot.statusColors}
-                                                    statusLabels={statusLabels}
-                                                    totalConsideredCount={trackSnapshot.consideredTokens}
+                                                <StatusDistributionBar
+                                                    value={percent(statusRow.count, trackSnapshot.numUniqueTokens)}
+                                                    color={statusRow.color}
                                                 />
                                             </Box>
-                                        );
-                                    })}
-                                </Box>
-                            </Box>
+                                        ))}
+                                    </Box>
+                                    <Box>
+                                        <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                                            {t('statistics.frequency')}
+                                        </Typography>
+                                        {trackSnapshot.frequencyBuckets.map((bucket) => {
+                                            const bucketLabel =
+                                                bucket.label === 'Unknown'
+                                                    ? statusLabels[TokenStatus.UNKNOWN]
+                                                    : bucket.label;
 
-                            <Box
-                                sx={{
-                                    display: 'grid',
-                                    gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
-                                    gap: 2,
-                                }}
-                            >
-                                <Box sx={{ gridColumn: '1 / -1' }}>
-                                    <StatisticsSectionHeading
-                                        title={t('statistics.sentenceStatistics')}
-                                        infoLines={sentenceStatisticsInfoLines}
-                                    />
-                                </Box>
-                                <Box>
-                                    <SentenceStatsPanel
-                                        title={currentWatchTitle}
-                                        totalSentences={totalSentences}
-                                        sentenceBuckets={trackSnapshot.sentenceBuckets}
-                                        uncollectedLabel={uncollectedLabel}
-                                        uniqueWordsPerSentenceLabel={uniqueWordsPerSentenceLabel}
-                                        uniqueWordsPerSentence={trackSnapshot.averageWordsPerSentence}
-                                        knownWordsPerSentenceLabel={knownWordsPerSentenceLabel}
-                                        knownWordsPerSentence={trackSnapshot.averageKnownWordsPerSentence}
-                                        knownSentencesLabel={t('statistics.knownSentences')}
-                                        knownWordsCount={trackSnapshot.numKnownTokens}
-                                        knownWordsLabel={t('statistics.knownWords')}
-                                        knownWordsPercent={trackSnapshot.knownPercent}
-                                        comprehensionLabel={t('statistics.comprehension')}
-                                        comprehensionPercent={trackSnapshot.comprehensionPercent}
-                                        globalKnownLabel={t('statistics.globalKnownWords')}
-                                        globalKnownCount={trackSnapshot.numDictionaryKnownTokens}
-                                        onOpenSentenceBucketDetails={(bucket) => {
-                                            const bucketData = sentenceDialogBucketData(
-                                                bucket,
-                                                trackSnapshot.sentenceBuckets,
-                                                {
-                                                    knownSentencesLabel: t('statistics.knownSentences'),
-                                                    uncollectedLabel,
-                                                }
+                                            return (
+                                                <Box key={bucket.label} sx={{ mb: 1 }}>
+                                                    <Box
+                                                        sx={{
+                                                            display: 'flex',
+                                                            justifyContent: 'space-between',
+                                                            mb: 0.5,
+                                                        }}
+                                                    >
+                                                        <Typography variant="body2">{bucketLabel}</Typography>
+                                                        <Typography variant="body2" color="text.secondary">
+                                                            {countPercentOccurrencesDisplay(
+                                                                bucket.count,
+                                                                trackSnapshot.consideredTokens,
+                                                                bucket.numOccurrences
+                                                            )}
+                                                        </Typography>
+                                                    </Box>
+                                                    <FrequencyDistributionBar
+                                                        totalPercent={bucket.percent}
+                                                        count={bucket.count}
+                                                        statusCounts={bucket.statusCounts}
+                                                        statusColors={trackSnapshot.statusColors}
+                                                        statusLabels={statusLabels}
+                                                        totalConsideredCount={trackSnapshot.consideredTokens}
+                                                    />
+                                                </Box>
                                             );
-                                            if (!bucketData) return;
-                                            setSentenceDialogState({
-                                                title: `${trackTitle} · ${currentWatchTitle} · ${bucketData.label}`,
-                                                entries: bucketData.entries,
-                                                totalSentences,
-                                                miningEnabled,
-                                            });
-                                        }}
-                                    />
+                                        })}
+                                    </Box>
                                 </Box>
-                                <Box>
-                                    <SentenceStatsPanel
-                                        title={t('statistics.projectedRewatch')}
-                                        totalSentences={totalSentences}
-                                        sentenceBuckets={projectedSentenceBuckets}
-                                        uncollectedLabel={uncollectedLabel}
-                                        uniqueWordsPerSentenceLabel={uniqueWordsPerSentenceLabel}
-                                        uniqueWordsPerSentence={projectedAverageWordsPerSentence}
-                                        knownWordsPerSentenceLabel={knownWordsPerSentenceLabel}
-                                        knownWordsPerSentence={projectedAverageKnownWordsPerSentence}
-                                        knownSentencesLabel={t('statistics.knownSentences')}
-                                        knownWordsCount={projectedKnownCount}
-                                        knownWordsLabel={t('statistics.knownWords')}
-                                        knownWordsPercent={projectedKnownPercent}
-                                        comprehensionLabel={t('statistics.comprehension')}
-                                        comprehensionPercent={projectedComprehension}
-                                        globalKnownLabel={t('statistics.globalKnownWords')}
-                                        globalKnownCount={projectedGlobalKnownCount}
-                                        headerAction={
-                                            selectedRewatchSnapshot !== undefined ? (
-                                                <TextField
-                                                    select
-                                                    size="small"
-                                                    label={t('statistics.rewatchSelect')}
-                                                    value={selectedRewatchSnapshot.rewatch}
-                                                    sx={{ minWidth: 160 }}
-                                                    onChange={(event) =>
-                                                        handleSelectedRewatchChanged(
-                                                            trackSnapshot.track,
-                                                            Number(event.target.value)
-                                                        )
-                                                    }
-                                                >
-                                                    {trackSnapshot.rewatchSnapshots.map((rewatchSnapshot) => (
-                                                        <MenuItem
-                                                            key={rewatchSnapshot.rewatch}
-                                                            value={rewatchSnapshot.rewatch}
-                                                        >
-                                                            {t('statistics.rewatchOption', {
-                                                                rewatch: rewatchSnapshot.rewatch,
-                                                            })}
-                                                        </MenuItem>
-                                                    ))}
-                                                </TextField>
-                                            ) : undefined
-                                        }
-                                        emptyMessage={maxRewatches === 0 ? t('statistics.noMoreRewatches') : undefined}
-                                        onOpenSentenceBucketDetails={(bucket) => {
-                                            if (selectedRewatchSnapshot === undefined) return;
-                                            const bucketData = sentenceDialogBucketData(
-                                                bucket,
-                                                selectedRewatchSnapshot.sentenceBuckets,
-                                                {
-                                                    knownSentencesLabel: t('statistics.knownSentences'),
-                                                    uncollectedLabel,
-                                                }
-                                            );
-                                            if (!bucketData) return;
-                                            setSentenceDialogState({
-                                                title: `${trackTitle} · ${t('statistics.projectedRewatch')} · ${t(
-                                                    'statistics.rewatchOption',
+
+                                <Box
+                                    sx={{
+                                        display: 'grid',
+                                        gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+                                        gap: 2,
+                                    }}
+                                >
+                                    <Box sx={{ gridColumn: '1 / -1' }}>
+                                        <StatisticsSectionHeading
+                                            title={t('statistics.sentenceStatistics')}
+                                            infoLines={sentenceStatisticsInfoLines}
+                                        />
+                                    </Box>
+                                    <Box>
+                                        <SentenceStatsPanel
+                                            title={currentWatchTitle}
+                                            totalSentences={totalSentences}
+                                            sentenceBuckets={trackSnapshot.sentenceBuckets}
+                                            uncollectedLabel={uncollectedLabel}
+                                            uniqueWordsPerSentenceLabel={uniqueWordsPerSentenceLabel}
+                                            uniqueWordsPerSentence={trackSnapshot.averageWordsPerSentence}
+                                            knownWordsPerSentenceLabel={knownWordsPerSentenceLabel}
+                                            knownWordsPerSentence={trackSnapshot.averageKnownWordsPerSentence}
+                                            knownSentencesLabel={t('statistics.knownSentences')}
+                                            knownWordsCount={trackSnapshot.numKnownTokens}
+                                            knownWordsLabel={t('statistics.knownWords')}
+                                            knownWordsPercent={trackSnapshot.knownPercent}
+                                            comprehensionLabel={t('statistics.comprehension')}
+                                            comprehensionPercent={trackSnapshot.comprehensionPercent}
+                                            globalKnownLabel={t('statistics.globalKnownWords')}
+                                            globalKnownCount={trackSnapshot.numDictionaryKnownTokens}
+                                            onOpenSentenceBucketDetails={(bucket) => {
+                                                const bucketData = sentenceDialogBucketData(
+                                                    bucket,
+                                                    trackSnapshot.sentenceBuckets,
                                                     {
-                                                        rewatch: selectedRewatchSnapshot.rewatch,
+                                                        knownSentencesLabel: t('statistics.knownSentences'),
+                                                        uncollectedLabel,
                                                     }
-                                                )} · ${bucketData.label}`,
-                                                entries: bucketData.entries,
-                                                totalSentences,
-                                                miningEnabled,
-                                            });
-                                        }}
-                                    />
+                                                );
+                                                if (!bucketData) return;
+                                                setSentenceDialogState({
+                                                    title: `${trackTitle} · ${currentWatchTitle} · ${bucketData.label}`,
+                                                    entries: bucketData.entries,
+                                                    totalSentences,
+                                                    miningEnabled,
+                                                });
+                                            }}
+                                        />
+                                    </Box>
+                                    <Box>
+                                        <SentenceStatsPanel
+                                            title={t('statistics.projectedRewatch')}
+                                            totalSentences={totalSentences}
+                                            sentenceBuckets={projectedSentenceBuckets}
+                                            uncollectedLabel={uncollectedLabel}
+                                            uniqueWordsPerSentenceLabel={uniqueWordsPerSentenceLabel}
+                                            uniqueWordsPerSentence={projectedAverageWordsPerSentence}
+                                            knownWordsPerSentenceLabel={knownWordsPerSentenceLabel}
+                                            knownWordsPerSentence={projectedAverageKnownWordsPerSentence}
+                                            knownSentencesLabel={t('statistics.knownSentences')}
+                                            knownWordsCount={projectedKnownCount}
+                                            knownWordsLabel={t('statistics.knownWords')}
+                                            knownWordsPercent={projectedKnownPercent}
+                                            comprehensionLabel={t('statistics.comprehension')}
+                                            comprehensionPercent={projectedComprehension}
+                                            globalKnownLabel={t('statistics.globalKnownWords')}
+                                            globalKnownCount={projectedGlobalKnownCount}
+                                            headerAction={
+                                                selectedRewatchSnapshot !== undefined ? (
+                                                    <TextField
+                                                        select
+                                                        size="small"
+                                                        label={t('statistics.rewatchSelect')}
+                                                        value={selectedRewatchSnapshot.rewatch}
+                                                        sx={{ minWidth: 160 }}
+                                                        onChange={(event) =>
+                                                            handleSelectedRewatchChanged(
+                                                                trackSnapshot.track,
+                                                                Number(event.target.value)
+                                                            )
+                                                        }
+                                                    >
+                                                        {trackSnapshot.rewatchSnapshots.map((rewatchSnapshot) => (
+                                                            <MenuItem
+                                                                key={rewatchSnapshot.rewatch}
+                                                                value={rewatchSnapshot.rewatch}
+                                                            >
+                                                                {t('statistics.rewatchOption', {
+                                                                    rewatch: rewatchSnapshot.rewatch,
+                                                                })}
+                                                            </MenuItem>
+                                                        ))}
+                                                    </TextField>
+                                                ) : undefined
+                                            }
+                                            emptyMessage={
+                                                maxRewatches === 0 ? t('statistics.noMoreRewatches') : undefined
+                                            }
+                                            onOpenSentenceBucketDetails={(bucket) => {
+                                                if (selectedRewatchSnapshot === undefined) return;
+                                                const bucketData = sentenceDialogBucketData(
+                                                    bucket,
+                                                    selectedRewatchSnapshot.sentenceBuckets,
+                                                    {
+                                                        knownSentencesLabel: t('statistics.knownSentences'),
+                                                        uncollectedLabel,
+                                                    }
+                                                );
+                                                if (!bucketData) return;
+                                                setSentenceDialogState({
+                                                    title: `${trackTitle} · ${t('statistics.projectedRewatch')} · ${t(
+                                                        'statistics.rewatchOption',
+                                                        {
+                                                            rewatch: selectedRewatchSnapshot.rewatch,
+                                                        }
+                                                    )} · ${bucketData.label}`,
+                                                    entries: bucketData.entries,
+                                                    totalSentences,
+                                                    miningEnabled,
+                                                });
+                                            }}
+                                        />
+                                    </Box>
                                 </Box>
-                            </Box>
 
-                            <AnkiStatisticsSection
-                                snapshot={ankiTrackSnapshot}
-                                statusLabels={statusLabels}
-                                statusColors={trackSnapshot.statusColors}
-                                title={ankiStatisticsTitle}
-                                infoLines={ankiStatisticsInfoLines}
-                                dueByTodayLabel={dueByTodayLabel}
-                                dueByTomorrowLabel={dueByTomorrowLabel}
-                                dueByWeekLabel={dueByWeekLabel}
-                                suspendedCardsLabel={suspendedCardsLabel}
-                                deckFrequencyBreakdownLabel={deckFrequencyBreakdownLabel}
-                                modelBreakdownLabel={modelBreakdownLabel}
-                                uniqueWordsLabel={deckUniqueWordsLabel}
-                                frequencyLabel={t('statistics.frequency')}
-                                unavailableMessage={ankiUnavailableMessage}
-                                emptyDeckBreakdownMessage={emptyDeckBreakdownMessage}
-                            />
-                        </Paper>
-                    );
-                })}
+                                <AnkiStatisticsSection
+                                    snapshot={ankiTrackSnapshot}
+                                    statusLabels={statusLabels}
+                                    statusColors={trackSnapshot.statusColors}
+                                    title={ankiStatisticsTitle}
+                                    infoLines={ankiStatisticsInfoLines}
+                                    dueByTodayLabel={dueByTodayLabel}
+                                    dueByTomorrowLabel={dueByTomorrowLabel}
+                                    dueByWeekLabel={dueByWeekLabel}
+                                    suspendedCardsLabel={suspendedCardsLabel}
+                                    deckFrequencyBreakdownLabel={deckFrequencyBreakdownLabel}
+                                    modelBreakdownLabel={modelBreakdownLabel}
+                                    uniqueWordsLabel={deckUniqueWordsLabel}
+                                    frequencyLabel={t('statistics.frequency')}
+                                    unavailableMessage={ankiUnavailableMessage}
+                                    emptyDeckBreakdownMessage={emptyDeckBreakdownMessage}
+                                />
+                            </Box>
+                        );
+                    })}
+                </Paper>
+            )}
             {sentenceDialogState !== undefined && (
                 <StatisticsSentenceDetailsDialog
                     open

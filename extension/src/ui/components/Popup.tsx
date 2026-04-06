@@ -119,6 +119,10 @@ const Popup = ({
         if (hasSubtitles) setStatisticsOpen(true);
     }, [hasSubtitles]);
     const handleToggleStatistics = useCallback(() => setStatisticsOpen((v) => !v), []);
+    const fetchStatisticsMediaInfo = useCallback(async (mediaId: string) => {
+        const sourceString = (await uiTabRegistry.activeVideoElements()).find((v) => v.src === mediaId)?.title;
+        return { sourceString: sourceString ?? '' };
+    }, []);
 
     if (!i18nInitialized) {
         return null;
@@ -225,6 +229,7 @@ const Popup = ({
                                 onViewAnnotationSettings={handleViewAnnotationSettings}
                                 onSeekRequested={handleMediaRequested}
                                 onMineRequested={handleMineRequested}
+                                mediaInfoFetcher={fetchStatisticsMediaInfo}
                                 sx={{ width: '100%', height: '100%' }}
                             />
                         </Box>

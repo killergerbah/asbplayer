@@ -526,6 +526,11 @@ export default function SidePanel({ dictionaryProvider, settingsProvider, settin
         });
     }, []);
 
+    const fetchStatisticsMediaInfo = useCallback(async (_: string) => {
+        // Side panel statistics can only show the current media - no need to display redundant information like the source string
+        return { sourceString: '' };
+    }, []);
+
     if (!i18nInitialized) {
         return null;
     }
@@ -570,6 +575,7 @@ export default function SidePanel({ dictionaryProvider, settingsProvider, settin
                     onSeekRequested={() => {}} // TODO
                     onMineRequested={() => {}}
                     onViewAnnotationSettings={handleViewAnnotationSettings}
+                    mediaInfoFetcher={fetchStatisticsMediaInfo}
                 />
             )}
             {!viewingAsbplayer && (
@@ -640,6 +646,7 @@ export default function SidePanel({ dictionaryProvider, settingsProvider, settin
                                 onSeekRequested={() => {}}
                                 onMineRequested={() => {}}
                                 onViewAnnotationSettings={handleViewAnnotationSettings}
+                                mediaInfoFetcher={fetchStatisticsMediaInfo}
                             />
                             <SidePanelTopControls
                                 ref={topControlsRef}

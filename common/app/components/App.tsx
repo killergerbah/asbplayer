@@ -1262,6 +1262,11 @@ function App({
         );
     }, [keyBinder, ankiDialogOpen, supportsDictionaryStatistics, handleOpenStatistics]);
 
+    const fetchStatisticsMediaInfo = useCallback(async (_: string) => {
+        // In-app statistics can only show the current media - no need to display redundant information like the source string
+        return { sourceString: '' };
+    }, []);
+
     const mp3Encoder = useCallback(async (blob: Blob, extension: string) => {
         return await Mp3Encoder.encode(blob, () => new mp3WorkerFactory());
     }, []);
@@ -1382,6 +1387,7 @@ function App({
                                 onMineRequested={() => {}}
                                 onViewAnnotationSettings={() => {}}
                                 onClose={handleCloseStatistics}
+                                mediaInfoFetcher={fetchStatisticsMediaInfo}
                             />
                             {ankiDialogCard && (
                                 <AnkiDialog
