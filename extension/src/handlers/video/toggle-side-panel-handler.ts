@@ -5,8 +5,9 @@ import {
     Message,
     ToggleSidePanelMessage,
 } from '@project/common';
-import TabRegistry from '../../services/tab-registry';
+import TabRegistry, { Asbplayer } from '../../services/tab-registry';
 import { setAppRequestedLocation } from '@/services/side-panel';
+import { isFirefoxBuild } from '@/services/build-flags';
 
 export default class ToggleSidePanelHandler {
     private readonly _tabRegistry: TabRegistry;
@@ -22,18 +23,25 @@ export default class ToggleSidePanelHandler {
         return 'toggle-side-panel';
     }
 
+    /**
+     * If a location is not specified, toggles the side panel open or closed.
+     * Otherwise, sets the app-requested location state, which will update the side panel's location.
+     */
     handle(command: Command<Message>, sender: Browser.runtime.MessageSender) {
         const toggleSidePanelMessage = command.message as ToggleSidePanelMessage;
-        const newLocation = toggleSidePanelMessage.location;
+
+        // Currently we do not support the extension specifying a location inside the side panel.
+        // Only the app can specify a location.
+        const appRequestedLocation =
+            command.sender === 'asbplayer-video-tab' ? undefined : toggleSidePanelMessage.location;
 
         let sidePanelOpen = false;
-        let locationChanged = false;
 
         this._tabRegistry.publishCommandToAsbplayers({
             commandFactory: (asbplayer) => {
                 if (asbplayer.sidePanel) {
                     sidePanelOpen = true;
-                    if (newLocation === undefined || asbplayer.sidePanelAppRequestedLocation === newLocation) {
+                    if (appRequestedLocation === undefined) {
                         const command: ExtensionToAsbPlayerCommand<CloseSidePanelMessage> = {
                             sender: 'asbplayer-extension-to-player',
                             message: {
@@ -42,24 +50,26 @@ export default class ToggleSidePanelHandler {
                         };
                         return command;
                     }
-                    locationChanged = true;
                 }
 
                 return undefined;
             },
         });
 
-        if (sidePanelOpen && locationChanged) {
-            // Side panel is open, and we just want to change its location
-            void setAppRequestedLocation(newLocation!);
+        if (sidePanelOpen) {
+            // Side panel is open, we can change its location
+            void setAppRequestedLocation(appRequestedLocation!);
         } else if (!sidePanelOpen) {
-            void setAppRequestedLocation(newLocation!);
-            browser.windows
-                // @ts-ignore
-                .getLastFocused((w) => {
-                    const windowId = w.id;
-                    browser.sidePanel.open({ windowId: windowId! });
-                });
+            // Open the side panel at the app-requested location
+            void setAppRequestedLocation(appRequestedLocation!);
+            if (!isFirefoxBuild) {
+                browser.windows
+                    // @ts-ignore
+                    .getLastFocused((w) => {
+                        const windowId = w.id;
+                        browser.sidePanel.open({ windowId: windowId! });
+                    });
+            }
         }
 
         return false;

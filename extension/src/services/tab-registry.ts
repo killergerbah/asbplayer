@@ -321,6 +321,7 @@ export default class TabRegistry {
                 sidePanel: asbplayer.sidePanel ?? false,
                 timestamp: asbplayer.timestamp,
                 videoPlayer: asbplayer.videoPlayer,
+                loadedSubtitles: asbplayer.loadedSubtitles ?? false,
             });
         }
 

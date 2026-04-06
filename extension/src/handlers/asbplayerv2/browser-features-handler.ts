@@ -1,3 +1,4 @@
+import { isFirefoxBuild } from '@/services/build-flags';
 import { Command, Message } from '@project/common';
 
 export default class BrowserFeaturesHandler {
@@ -11,7 +12,7 @@ export default class BrowserFeaturesHandler {
 
     handle(command: Command<Message>, sender: Browser.runtime.MessageSender, sendResponse: (response?: any) => void) {
         sendResponse({
-            sidePanel: browser.sidePanel !== undefined,
+            sidePanel: browser.sidePanel !== undefined || isFirefoxBuild,
         });
         return false;
     }

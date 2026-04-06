@@ -250,7 +250,7 @@ export default class ChromeExtension {
     get supportsSidePanel() {
         return (
             this.installed &&
-            this.browserFeatures?.sidePanel &&
+            (this.browserFeatures?.sidePanel ?? false) &&
             ((!isFirefox && !isMobile && gte(this.version, '1.0.0')) ||
                 (isFirefox && !isMobile && gte(this.version, '1.14.0')))
         );
@@ -372,7 +372,7 @@ export default class ChromeExtension {
         window.postMessage(command);
     }
 
-    toggleSidePanel(location: SidePanelLocation) {
+    toggleSidePanel(location?: SidePanelLocation) {
         const command: AsbPlayerCommand<ToggleSidePanelMessage> = {
             sender: 'asbplayerv2',
             message: {

@@ -17,7 +17,7 @@ import {
     DownloadAudioMessage,
     CardExportedMessage,
 } from '@project/common';
-import type { AsbplayerInstance, Message } from '@project/common';
+import type { Message } from '@project/common';
 import type { BulkExportStartedPayload } from '../../controllers/bulk-export-controller';
 import { AsbplayerSettings, SettingsProvider } from '@project/common/settings';
 import { AudioClip } from '@project/common/audio-clip';
@@ -66,7 +66,6 @@ interface Props {
 const sameVideoTab = (a: VideoTabModel, b: VideoTabModel) => {
     return a.id === b.id && a.src === b.src && a.synced === b.synced && a.syncedTimestamp === b.syncedTimestamp;
 };
-const alwaysFilterOut = (_: any) => false;
 
 const emptyArray: VideoTabModel[] = [];
 const miningContext = new MiningContext();
@@ -95,6 +94,7 @@ export default function SidePanel({ dictionaryProvider, settingsProvider, settin
     const [syncedVideoTab, setSyncedVideoElement] = useState<VideoTabModel>();
     const [recordingAudio, setRecordingAudio] = useState<boolean>(false);
     const [viewingAsbplayerId, setViewingAsbplayerId] = useState<string>();
+    const [viewingAsbplayerHasSubtitles, setViewingAsbplayerHasSubtitles] = useState<boolean>(false);
 
     const keyBinder = useAppKeyBinder(settings.keyBindSet, extension);
     const currentTabId = useCurrentTabId();
@@ -200,6 +200,7 @@ export default function SidePanel({ dictionaryProvider, settingsProvider, settin
     useEffect(() => {
         if (currentTabId === undefined) {
             setViewingAsbplayerId(undefined);
+            setViewingAsbplayerHasSubtitles(false);
             return;
         }
 
@@ -207,6 +208,7 @@ export default function SidePanel({ dictionaryProvider, settingsProvider, settin
             const asbplayers = extension.asbplayers?.filter((a) => a.tabId === currentTabId);
             if (asbplayers === undefined || asbplayers.length === 0) {
                 setViewingAsbplayerId(undefined);
+                setViewingAsbplayerHasSubtitles(false);
                 return;
             }
 
@@ -222,7 +224,9 @@ export default function SidePanel({ dictionaryProvider, settingsProvider, settin
                 return 0;
             });
 
-            setViewingAsbplayerId(asbplayers[asbplayers.length - 1].id);
+            const asbplayer = asbplayers[asbplayers.length - 1];
+            setViewingAsbplayerId(asbplayer.id);
+            setViewingAsbplayerHasSubtitles(asbplayer.loadedSubtitles);
         });
     }, [currentTabId, extension]);
 
@@ -551,12 +555,6 @@ export default function SidePanel({ dictionaryProvider, settingsProvider, settin
         return { sourceString: '' };
     }, []);
 
-    const viewingAsbplayerFilter = useCallback((a: Asbplayer) => a.id === viewingAsbplayerId, [viewingAsbplayerId]);
-    const viewingAsbplayerHasSubtitles = useHasSubtitles({
-        whereAsbplayer: viewingAsbplayerFilter,
-        whereVideoElement: alwaysFilterOut,
-    });
-
     if (!i18nInitialized) {
         return null;
     }
@@ -576,20 +574,21 @@ export default function SidePanel({ dictionaryProvider, settingsProvider, settin
             <Alert open={alertOpen} onClose={handleAlertClosed} autoHideDuration={3000} severity={alertSeverity}>
                 {alert}
             </Alert>
-            {viewingAsbplayerId && appRequestedLocation === 'mining-history' && (
-                <CopyHistoryList
-                    open={true}
-                    items={copyHistoryItems}
-                    forceShowDownloadOptions={true}
-                    onClose={handleCloseCopyHistory}
-                    onDelete={deleteCopyHistoryItem}
-                    onDeleteAll={deleteAllCopyHistoryItems}
-                    onAnki={handleAnki}
-                    onClipAudio={handleClipAudio}
-                    onDownloadImage={handleDownloadImage}
-                    onSelect={handleJumpToSubtitle}
-                />
-            )}
+            {viewingAsbplayerId &&
+                (appRequestedLocation === 'mining-history' || appRequestedLocation === undefined) && (
+                    <CopyHistoryList
+                        open={true}
+                        items={copyHistoryItems}
+                        forceShowDownloadOptions={true}
+                        onClose={handleCloseCopyHistory}
+                        onDelete={deleteCopyHistoryItem}
+                        onDeleteAll={deleteAllCopyHistoryItems}
+                        onAnki={handleAnki}
+                        onClipAudio={handleClipAudio}
+                        onDownloadImage={handleDownloadImage}
+                        onSelect={handleJumpToSubtitle}
+                    />
+                )}
             {viewingAsbplayerId && appRequestedLocation === 'statistics' && (
                 <StatisticsDrawer
                     open

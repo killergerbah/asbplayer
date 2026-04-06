@@ -68,6 +68,7 @@ import { StyledEngineProvider } from '@mui/material/styles';
 import { useServiceWorker } from '../hooks/use-service-worker';
 import NeedRefreshDialog from './NeedRefreshDialog';
 import { DictionaryProvider } from '../../dictionary-db';
+import { isFirefox } from '../../browser-detection';
 
 const latestExtensionVersion = '1.15.0';
 const extensionUrl =
@@ -314,6 +315,7 @@ function App({
     const [disableKeyEvents, setDisableKeyEvents] = useState<boolean>(false);
     const [tab, setTab] = useState<VideoTabModel>();
     const [availableTabs, setAvailableTabs] = useState<VideoTabModel[]>();
+    const [isSidePanelOpen, setIsSidePanelOpen] = useState<boolean>(false);
     const [lastError, setLastError] = useState<any>();
     const fileInputRef = useRef<HTMLInputElement>(null);
     const { subtitleFiles } = sources;
@@ -530,22 +532,46 @@ function App({
     );
 
     const handleOpenCopyHistory = useCallback(async () => {
-        if (extension.supportsSidePanel) {
-            extension.toggleSidePanel('mining-history');
-        } else {
+        const toggleInAppCopyHistory = async () => {
             await refreshCopyHistory();
             setCopyHistoryOpen((copyHistoryOpen) => !copyHistoryOpen);
             setVideoFullscreen(false);
-        }
-    }, [extension, refreshCopyHistory]);
-    const handleOpenStatistics = useCallback(() => {
-        if (extension.supportsSidePanel && extension.supportsDictionaryStatistics) {
-            extension.toggleSidePanel('statistics');
+        };
+        if (isFirefox) {
+            // Firefox doesn't support opening the side panel with a button from the app.
+            // So update the side panel state if it happens to be open,
+            // otherwise open the in-app drawer.
+            if (extension.supportsSidePanel && isSidePanelOpen) {
+                extension.toggleSidePanel('mining-history');
+            } else {
+                await toggleInAppCopyHistory();
+            }
+        } else if (extension.supportsSidePanel) {
+            extension.toggleSidePanel('mining-history');
         } else {
+            await toggleInAppCopyHistory();
+        }
+    }, [extension, refreshCopyHistory, isSidePanelOpen]);
+    const handleOpenStatistics = useCallback(() => {
+        const toggleInAppStatistics = () => {
             setStatisticsOpen((statisticsOpen) => !statisticsOpen);
             setVideoFullscreen(false);
+        };
+        if (isFirefox) {
+            // Firefox doesn't support opening the side panel with a button from the app.
+            // So update the side panel state if it happens to be open,
+            // otherwise open the in-app drawer.
+            if (extension.supportsSidePanel && isSidePanelOpen) {
+                extension.toggleSidePanel('statistics');
+            } else {
+                toggleInAppStatistics();
+            }
+        } else if (extension.supportsSidePanel) {
+            extension.toggleSidePanel('statistics');
+        } else {
+            toggleInAppStatistics();
         }
-    }, []);
+    }, [extension, isSidePanelOpen]);
     const handleCloseCopyHistory = useCallback(() => setCopyHistoryOpen(false), []);
     const handleAppBarToggle = useCallback(() => {
         const newValue = !playbackPreferences.theaterMode;
@@ -773,6 +799,9 @@ function App({
                 setTab(undefined);
                 handleError(t('error.lostTabConnection', { tabName: tab!.id + ' ' + tab!.title }));
             }
+
+            const isSidePanelOpen = extension.asbplayers?.find((a) => a.sidePanel) !== undefined;
+            setIsSidePanelOpen(isSidePanelOpen);
         }
 
         return extension.subscribeTabs(onTabs);
@@ -1242,12 +1271,20 @@ function App({
     useEffect(() => {
         return keyBinder?.bindToggleSidePanel(
             () => {
-                handleOpenCopyHistory();
+                if (extension.supportsSidePanel) {
+                    extension.toggleSidePanel();
+                } else if (copyHistoryOpen) {
+                    handleOpenCopyHistory();
+                } else if (statisticsOpen) {
+                    handleOpenStatistics();
+                } else {
+                    handleOpenCopyHistory();
+                }
             },
             () => ankiDialogOpen || !extension.supportsSidePanel,
             false
         );
-    }, [extension, keyBinder, handleOpenCopyHistory, ankiDialogOpen]);
+    }, [extension, keyBinder, handleOpenCopyHistory, handleOpenStatistics, ankiDialogOpen]);
 
     useEffect(() => {
         return keyBinder?.bindOpenStatistics(
