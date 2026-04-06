@@ -112,7 +112,12 @@ const Popup = ({
         },
         [handleMediaRequested]
     );
-    const handleViewAnnotationSettings = useCallback(() => {}, []);
+
+    const [scrollToId, setScrollToId] = useState<string>();
+    const handleViewAnnotationSettings = useCallback(() => {
+        setScrollToId('annotation');
+        setStatisticsOpen(false);
+    }, []);
 
     const [statisticsOpen, setStatisticsOpen] = useState<boolean>(false);
     useEffect(() => {
@@ -222,6 +227,7 @@ const Popup = ({
                             onUnlockLocalFonts={handleUnlockLocalFonts}
                             inAnnotationTutorial={inAnnotationTutorial}
                             onAnnotationTutorialSeen={handleAnnotationTutorialSeen}
+                            scrollToId={scrollToId}
                         />
                     )}
                     {statisticsOpen && (
