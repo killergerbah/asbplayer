@@ -11,6 +11,7 @@ import Paper from '@mui/material/Paper';
 import ThemeProvider from '@mui/material/styles/ThemeProvider';
 import CssBaseline from '@mui/material/CssBaseline';
 import { useEffect, useCallback, useMemo } from 'react';
+import { uiTabRegistry } from '../hooks/use-has-subtitles';
 
 const dictionaryProvider = new DictionaryProvider(new ExtensionDictionaryStorage());
 const settingsProvider = new SettingsProvider(new ExtensionSettingsStorage());
@@ -54,9 +55,8 @@ const StatisticsUi = () => {
                     dictionaryProvider={dictionaryProvider}
                     settings={settings}
                     hasSubtitles
-                    mediaInfoFetcher={async (_) => ({ sourceString: '' })}
-                    onSeekRequested={() => {}} // TODO
-                    onMineRequested={() => {}}
+                    onSeekWasRequested={uiTabRegistry.focusTabForMediaId}
+                    onMineWasRequested={uiTabRegistry.focusTabForMediaId}
                     onViewAnnotationSettings={handleViewAnnotationSettings}
                     sx={{ m: 2, width: '100%', flexGrow: 1 }}
                 />

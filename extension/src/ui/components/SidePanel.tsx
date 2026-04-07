@@ -54,6 +54,7 @@ import { DictionaryProvider } from '@project/common/dictionary-db';
 import StatisticsDrawer from '@project/common/components/StatisticsDrawer';
 import { useSidePanelRequestedLocation } from '../hooks/use-side-panel-requested-location';
 import { clearExtensionRequestedLocation } from '@/services/side-panel';
+import { uiTabRegistry } from '../hooks/use-has-subtitles';
 
 interface Props {
     dictionaryProvider: DictionaryProvider;
@@ -532,8 +533,6 @@ export default function SidePanel({ dictionaryProvider, settingsProvider, settin
 
     const { initialized: i18nInitialized } = useI18n({ language: settings.language });
 
-    // TODO Should open automatically sometimes?
-    // TODO should highlight statistics are ready?
     const [statisticsOpen, setStatisticsOpen] = useState<boolean>(false);
     const handleShowStatistics = useCallback(() => setStatisticsOpen(true), []);
     const handleCloseStatistics = useCallback(() => {
@@ -545,11 +544,6 @@ export default function SidePanel({ dictionaryProvider, settingsProvider, settin
             url: `${browser.runtime.getURL('/options.html')}#annotation`,
             active: true,
         });
-    }, []);
-
-    const fetchStatisticsMediaInfo = useCallback(async (_: string) => {
-        // Side panel statistics can only show the current media - no need to display redundant information like the source string
-        return { sourceString: '' };
     }, []);
 
     if (!i18nInitialized) {
@@ -593,11 +587,8 @@ export default function SidePanel({ dictionaryProvider, settingsProvider, settin
                     settings={settings}
                     showBackButton={false}
                     dictionaryProvider={dictionaryProvider}
-                    onClose={() => {}}
-                    onSeekRequested={() => {}} // TODO
-                    onMineRequested={() => {}}
+                    onClose={noOp} // Cannot close when in-app
                     onViewAnnotationSettings={handleViewAnnotationSettings}
-                    mediaInfoFetcher={fetchStatisticsMediaInfo}
                     sx={{ p: 2 }}
                 />
             )}
@@ -666,10 +657,8 @@ export default function SidePanel({ dictionaryProvider, settingsProvider, settin
                                 hasSubtitles={subtitles !== undefined && subtitles.length > 0}
                                 dictionaryProvider={dictionaryProvider}
                                 onClose={handleCloseStatistics}
-                                onSeekRequested={() => {}}
-                                onMineRequested={() => {}}
+                                onMineWasRequested={uiTabRegistry.focusTabForMediaId}
                                 onViewAnnotationSettings={handleViewAnnotationSettings}
-                                mediaInfoFetcher={fetchStatisticsMediaInfo}
                                 sx={{ p: 2 }}
                             />
                             <SidePanelTopControls

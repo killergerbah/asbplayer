@@ -594,4 +594,31 @@ export default class TabRegistry {
 
         setTimeout(() => this._anyAsbplayerTab(resolve, reject, attempt + 1, maxAttempts, filter), 1000);
     }
+
+    async focusTabForMediaId(mediaId: string) {
+        if (!mediaId) {
+            return;
+        }
+        try {
+            const videoElements = await this.activeVideoElements();
+            let tabId = videoElements.find((videoElement) => videoElement.src === mediaId)?.id;
+            if (tabId === undefined) {
+                tabId = (await this.findAsbplayerTab({ filter: (asbplayer) => asbplayer.id === mediaId }))?.id;
+            }
+            if (tabId === undefined) return;
+
+            const targetTab = await browser.tabs.get(tabId);
+            if (targetTab.windowId !== undefined) {
+                const targetWindow = await browser.windows.get(targetTab.windowId);
+                if (!targetWindow.focused) {
+                    await browser.windows.update(targetTab.windowId, { focused: true });
+                }
+            }
+            if (!targetTab.active) {
+                await browser.tabs.update(tabId, { active: true });
+            }
+        } catch {
+            // Best effort only
+        }
+    }
 }

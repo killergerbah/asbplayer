@@ -55,9 +55,9 @@ export interface StatisticsProps {
     settings: AsbplayerSettings;
     hasSubtitles: boolean;
     onViewAnnotationSettings: () => void;
-    onSeekRequested: (mediaId: string) => void;
-    onMineRequested: (mediaId: string) => void;
-    mediaInfoFetcher: (mediaId: string) => Promise<MediaInfo>;
+    onSeekWasRequested?: (mediaId: string) => Promise<void>;
+    onMineWasRequested?: (mediaId: string) => Promise<void>;
+    mediaInfoFetcher?: (mediaId: string) => Promise<MediaInfo>;
     sx?: SxProps<Theme>;
 }
 
@@ -835,8 +835,8 @@ export default function Statistics({
     hasSubtitles,
     mediaInfoFetcher,
     onViewAnnotationSettings,
-    onSeekRequested,
-    onMineRequested,
+    onSeekWasRequested,
+    onMineWasRequested,
     sx,
 }: StatisticsProps) {
     const { t } = useTranslation();
@@ -860,7 +860,9 @@ export default function Statistics({
             (snapshot?: DictionaryStatisticsSnapshot) => {
                 if (snapshot?.mediaId) {
                     setMediaId(snapshot.mediaId);
-                    mediaInfoFetcher(snapshot.mediaId).then(setMediaInfo);
+                    if (mediaInfoFetcher) {
+                        mediaInfoFetcher(snapshot.mediaId).then(setMediaInfo);
+                    }
                 }
                 setStatisticsSnapshot(snapshot);
                 const nextTrackSnapshots = processDictionaryStatisticsSnapshot(snapshot);
@@ -907,19 +909,19 @@ export default function Statistics({
         (sentence: DictionaryStatisticsSentence) => {
             if (mediaId === undefined) return;
             void dictionaryProvider.requestStatisticsSeek(mediaId, sentence.start);
-            onSeekRequested?.(mediaId);
+            onSeekWasRequested?.(mediaId);
         },
-        [dictionaryProvider, mediaId, onSeekRequested]
+        [dictionaryProvider, mediaId, onSeekWasRequested]
     );
     const handleMineSentence = useCallback(
         async (sentence: DictionaryStatisticsSentence) => {
             if (mediaId === undefined) return;
             const trackSnapshot = trackSnapshots?.find((candidate) => candidate.track === sentence.track);
             if (!trackSnapshot || trackSnapshot.progress.current < trackSnapshot.progress.total) return;
+            await onMineWasRequested?.(mediaId);
             await Promise.resolve(dictionaryProvider.requestStatisticsMineSentences(mediaId, [sentence.index]));
-            onMineRequested?.(mediaId);
         },
-        [dictionaryProvider, onMineRequested, trackSnapshots, mediaId]
+        [dictionaryProvider, onMineWasRequested, trackSnapshots, mediaId]
     );
     const statusLabels = useMemo(
         () => ({

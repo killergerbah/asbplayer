@@ -1329,7 +1329,10 @@ function App({
         onOfflineReady: handleOfflineReady,
     });
     const handleCloseStatistics = useCallback(() => setStatisticsOpen(false), []);
-
+    const handleViewAnnotationSettings = useCallback(() => {
+        setSettingsDialogScrollToId('annotation');
+        setSettingsDialogOpen(true);
+    }, []);
     if (!i18nInitialized) {
         return null;
     }
@@ -1420,9 +1423,7 @@ function App({
                                 hasSubtitles={subtitles !== undefined && subtitles.length > 0}
                                 showBackButton
                                 drawerWidth={drawerWidth}
-                                onSeekRequested={() => {}} // TODO
-                                onMineRequested={() => {}}
-                                onViewAnnotationSettings={() => {}}
+                                onViewAnnotationSettings={handleViewAnnotationSettings}
                                 onClose={handleCloseStatistics}
                                 mediaInfoFetcher={fetchStatisticsMediaInfo}
                                 sx={{ p: 2 }}

@@ -87,32 +87,6 @@ const Popup = ({
     const theme = useTheme();
     const { handleAnnotationTutorialSeen, inAnnotationTutorial } = useAnnotationTutorial({ globalStateProvider });
     const hasSubtitles = useHasSubtitles();
-    const handleMediaRequested = useCallback(async (mediaId: string) => {
-        try {
-            const videoElements = await uiTabRegistry.activeVideoElements();
-            let tabId = videoElements.find((videoElement) => videoElement.src === mediaId)?.id;
-            if (tabId === undefined) {
-                tabId = (await uiTabRegistry.findAsbplayerTab({ filter: (asbplayer) => asbplayer.id === mediaId }))?.id;
-            }
-            if (tabId === undefined) return;
-
-            const targetTab = await browser.tabs.get(tabId);
-            if (targetTab.windowId !== undefined) {
-                await browser.windows.update(targetTab.windowId, { focused: true });
-            }
-            await browser.tabs.update(tabId, { active: true });
-        } catch {
-            // Best effort only
-        }
-    }, []);
-    const handleMineRequested = useCallback(
-        async (mediaId: string) => {
-            await handleMediaRequested(mediaId);
-            window.close();
-        },
-        [handleMediaRequested]
-    );
-
     const [scrollToId, setScrollToId] = useState<string>();
     const handleViewAnnotationSettings = useCallback(() => {
         setScrollToId('annotation');
@@ -237,8 +211,8 @@ const Popup = ({
                                 settings={settings}
                                 hasSubtitles={hasSubtitles}
                                 onViewAnnotationSettings={handleViewAnnotationSettings}
-                                onSeekRequested={handleMediaRequested}
-                                onMineRequested={handleMineRequested}
+                                onSeekWasRequested={uiTabRegistry.focusTabForMediaId}
+                                onMineWasRequested={uiTabRegistry.focusTabForMediaId}
                                 mediaInfoFetcher={fetchStatisticsMediaInfo}
                                 sx={{ m: 1 }}
                             />
