@@ -1,10 +1,9 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
     DictionaryStatisticsSentence,
     DictionaryStatisticsSentenceBucketEntry,
     DictionaryStatisticsSentenceSort,
     DictionaryStatisticsSentenceSortState,
-    defaultDictionaryStatisticsSentenceSortDirection,
     defaultDictionaryStatisticsSentenceSortState,
     dictionaryStatisticsComprehensionBands,
     nextDictionaryStatisticsSentenceSortCategory,
@@ -17,7 +16,6 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogContent from '@mui/material/DialogContent';
-import DialogTitle from '@mui/material/DialogTitle';
 import IconButton from '@mui/material/IconButton';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
