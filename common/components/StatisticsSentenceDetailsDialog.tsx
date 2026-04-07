@@ -175,14 +175,9 @@ export default function StatisticsSentenceDetailsDialog({
                                 <Box sx={{ display: 'flex', direction: 'row', flexWrap: 'wrap' }}>
                                     {subtitles.map((subtitle, i) => {
                                         if (i === subtitles.length - 1) {
-                                            return <Subtitle>{subtitle}</Subtitle>;
+                                            return <Subtitle key={i}>{subtitle}</Subtitle>;
                                         }
-                                        return (
-                                            <>
-                                                <Subtitle>{subtitle}</Subtitle>
-                                                <Subtitle>&nbsp;·&nbsp;</Subtitle>
-                                            </>
-                                        );
+                                        return <Subtitle key={i}>{subtitle}&nbsp;·&nbsp;</Subtitle>;
                                     })}
                                 </Box>
                             )}

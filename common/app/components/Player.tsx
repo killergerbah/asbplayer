@@ -86,6 +86,14 @@ function trackLength(
     return Math.max(videoLength, subtitlesLength);
 }
 
+function pause(clock: Clock, mediaAdapter: MediaAdapter, forwardToMedia: boolean) {
+    clock.stop();
+
+    if (forwardToMedia) {
+        mediaAdapter.pause();
+    }
+}
+
 export interface MediaSources {
     subtitleFiles: File[];
     flattenSubtitleFiles?: boolean;
@@ -752,9 +760,28 @@ const Player = React.memo(function Player({
             }),
         [channel, clock]
     );
+    const play = useCallback(
+        (clock: Clock, mediaAdapter: MediaAdapter, forwardToMedia: boolean) => {
+            if (
+                (playModesRef.current.has(PlayMode.repeat) || playModesRef.current.has(PlayMode.autoPause)) &&
+                pendingAutoRepeatTargetTimestamp.current > 0
+            ) {
+                seek(pendingAutoRepeatTargetTimestamp.current, clock, forwardToMedia);
+                resetPendingAutoRepeatTargetTimestamp();
+            }
+
+            clock.start();
+
+            if (forwardToMedia) {
+                mediaAdapter.play();
+            }
+        },
+        [seek, resetPendingAutoRepeatTargetTimestamp]
+    );
+
     useEffect(
         () => channel?.onPlay((forwardToMedia) => play(clock, mediaAdapter, forwardToMedia)),
-        [channel, mediaAdapter, clock]
+        [channel, mediaAdapter, clock, play]
     );
     useEffect(
         () => channel?.onPause((forwardToMedia) => pause(clock, mediaAdapter, forwardToMedia)),
@@ -864,29 +891,6 @@ const Player = React.memo(function Player({
         [channel]
     );
     useEffect(() => channel?.onLoadFiles(() => onLoadFiles?.()), [channel, onLoadFiles]);
-    const play = (clock: Clock, mediaAdapter: MediaAdapter, forwardToMedia: boolean) => {
-        if (
-            (playModesRef.current.has(PlayMode.repeat) || playModesRef.current.has(PlayMode.autoPause)) &&
-            pendingAutoRepeatTargetTimestamp.current > 0
-        ) {
-            seek(pendingAutoRepeatTargetTimestamp.current, clock, forwardToMedia);
-            resetPendingAutoRepeatTargetTimestamp();
-        }
-
-        clock.start();
-
-        if (forwardToMedia) {
-            mediaAdapter.play();
-        }
-    };
-
-    function pause(clock: Clock, mediaAdapter: MediaAdapter, forwardToMedia: boolean) {
-        clock.stop();
-
-        if (forwardToMedia) {
-            mediaAdapter.pause();
-        }
-    }
 
     useEffect(() => {
         return miningContext.onEvent('stopped-mining', () => {
@@ -904,7 +908,7 @@ const Player = React.memo(function Player({
                     break;
             }
         });
-    }, [miningContext, settings, wasPlayingWhenMiningStarted, clock, mediaAdapter]);
+    }, [miningContext, settings, wasPlayingWhenMiningStarted, clock, mediaAdapter, play]);
 
     useEffect(() => {
         return miningContext.onEvent('started-mining', () => {
@@ -1006,7 +1010,7 @@ const Player = React.memo(function Player({
         setLastJumpToTopTimestamp(Date.now());
     }, [videoPopOut, channelId, videoFileUrl, videoFrameRef, videoChannelRef, origin]);
 
-    const handlePlay = useCallback(() => play(clock, mediaAdapter, true), [clock, mediaAdapter]);
+    const handlePlay = useCallback(() => play(clock, mediaAdapter, true), [clock, mediaAdapter, play]);
     const handlePause = useCallback(() => pause(clock, mediaAdapter, true), [clock, mediaAdapter]);
     const handleSeek = useCallback(
         async (progress: number) => {
@@ -1038,7 +1042,7 @@ const Player = React.memo(function Player({
                 play(clock, mediaAdapter, true);
             }
         },
-        [clock, seek, mediaAdapter]
+        [clock, seek, play, mediaAdapter]
     );
 
     const handleCopyFromSubtitlePlayer = useCallback(
@@ -1098,7 +1102,7 @@ const Player = React.memo(function Player({
                 play(clock, mediaAdapter, true);
             }
         },
-        [channel, clock, mediaAdapter, seek]
+        [channel, clock, mediaAdapter, seek, play]
     );
 
     const handleOffsetChange = useCallback(
@@ -1180,7 +1184,7 @@ const Player = React.memo(function Player({
         );
 
         return () => unbind();
-    }, [keyBinder, clock, mediaAdapter, disableKeyEvents]);
+    }, [keyBinder, clock, mediaAdapter, disableKeyEvents, play]);
 
     useEffect(() => {
         return keyBinder.bindAdjustPlaybackRate(

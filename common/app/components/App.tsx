@@ -608,7 +608,7 @@ function App({
     const handleOpenSettings = useCallback(() => {
         setDisableKeyEvents(true);
         setSettingsDialogOpen(true);
-    }, [subtitles.length]);
+    }, []);
     const handleAlertClosed = useCallback(() => setAlertOpen(false), []);
     const handleCloseSettings = useCallback(() => {
         setSettingsDialogOpen(false);
@@ -1284,7 +1284,15 @@ function App({
             () => ankiDialogOpen || !extension.supportsSidePanel,
             false
         );
-    }, [extension, keyBinder, handleOpenCopyHistory, handleOpenStatistics, ankiDialogOpen]);
+    }, [
+        extension,
+        keyBinder,
+        copyHistoryOpen,
+        statisticsOpen,
+        handleOpenCopyHistory,
+        handleOpenStatistics,
+        ankiDialogOpen,
+    ]);
 
     useEffect(() => {
         return keyBinder?.bindOpenStatistics(

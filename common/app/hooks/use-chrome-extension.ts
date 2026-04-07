@@ -38,7 +38,7 @@ const listenForVersion = (callback: (extension: ChromeExtension) => void) => {
 };
 
 const unbindInitialListener = listenForVersion((extension) => (realExtension = extension));
-export type AsbplayerComponent = 'sidePanel' | 'videoPlayer' | 'application';
+export type AsbplayerComponent = 'sidePanel' | 'videoPlayer' | 'application' | 'statisticsPopup';
 
 export interface ChromeExtensionOptions {
     component: AsbplayerComponent;

@@ -184,7 +184,7 @@ export default function SidePanel({ dictionaryProvider, settingsProvider, settin
         extension.sidePanelAppRequestedLocation = appRequestedLocation;
         // Force restarts the heartbeat so that the tab registry can immediately receive the new location
         extension.startHeartbeat();
-    }, [appRequestedLocation]);
+    }, [extension, appRequestedLocation]);
 
     useEffect(() => {
         if (currentTabId === undefined || syncedVideoTab === undefined) {
