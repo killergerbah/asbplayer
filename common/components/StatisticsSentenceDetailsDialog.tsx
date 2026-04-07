@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { createRef, RefObject, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
     DictionaryStatisticsSentence,
     DictionaryStatisticsSentenceBucketEntry,
@@ -51,6 +51,158 @@ const Subtitle: React.FC<{ children: React.ReactNode }> = ({ children }) => (
     </Typography>
 );
 
+interface SentenceProps {
+    entry: DictionaryStatisticsSentenceBucketEntry;
+    ref: RefObject<HTMLDivElement | null>;
+    small: boolean;
+    highlighted: boolean;
+    mineTooltip: string;
+    miningEnabled: boolean;
+    maximumDisplayedTimestamp: number;
+    onSeekToSentence: (sentence: DictionaryStatisticsSentence) => void;
+    onMineSentence: (sentence: DictionaryStatisticsSentence) => void;
+}
+
+const Sentence: React.FC<SentenceProps> = React.memo(function Sentence({
+    entry,
+    ref,
+    small,
+    highlighted,
+    miningEnabled,
+    mineTooltip,
+    maximumDisplayedTimestamp,
+    onSeekToSentence,
+    onMineSentence,
+}) {
+    const { t } = useTranslation();
+    const sentence = entry.sentence;
+    const comprehensionBand =
+        dictionaryStatisticsComprehensionBands[entry.comprehensionBandIndex] ??
+        dictionaryStatisticsComprehensionBands[dictionaryStatisticsComprehensionBands.length - 1];
+    return (
+        <Paper
+            key={sentence.index}
+            variant="outlined"
+            ref={ref}
+            sx={{
+                display: 'flex',
+                alignItems: 'stretch',
+                overflow: 'hidden',
+                transition: (theme) =>
+                    theme.transitions.create(['background-color', 'border-color'], {
+                        duration: 1000,
+                    }),
+                backgroundColor: (theme) => (highlighted ? alpha(theme.palette.primary.main, 0.16) : 'transparent'),
+                borderColor: (theme) => (highlighted ? theme.palette.primary.main : undefined),
+            }}
+        >
+            <Box
+                role="button"
+                tabIndex={0}
+                sx={{
+                    flex: 1,
+                    minWidth: 0,
+                    px: 2,
+                    py: 1.5,
+                    cursor: 'pointer',
+                    '&:hover': { backgroundColor: 'action.hover' },
+                }}
+                onClick={() => onSeekToSentence(sentence)}
+                onKeyDown={(event) => {
+                    if (event.key !== 'Enter' && event.key !== ' ') return;
+                    event.preventDefault();
+                    onSeekToSentence(sentence);
+                }}
+            >
+                <Box
+                    sx={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        gap: 2,
+                        alignItems: 'flex-start',
+                    }}
+                >
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 0.5,
+                            flexShrink: 0,
+                            minWidth: small ? 'auto' : 72,
+                        }}
+                    >
+                        <Typography variant="body2" color="text.secondary">
+                            {`#${sentence.index + 1}`}
+                        </Typography>
+                        <Tooltip title={t('statistics.comprehension')}>
+                            <Typography
+                                variant="caption"
+                                sx={{
+                                    color: comprehensionBand.color,
+                                    lineHeight: 1.2,
+                                    fontWeight: 600,
+                                    width: 'fit-content',
+                                }}
+                            >
+                                {percentDisplay(entry.comprehensionPercent)}
+                            </Typography>
+                        </Tooltip>
+                    </Box>
+                    <Box
+                        sx={{
+                            flex: 1,
+                            minWidth: 0,
+                            overflowWrap: 'anywhere',
+                            whiteSpace: 'pre-wrap',
+                            '& .asb-frequency rt': { fontSize: '0.5em' },
+                            '& .asb-frequency-hover rt': { fontSize: '0.5em' },
+                        }}
+                    >
+                        <span
+                            dangerouslySetInnerHTML={{
+                                __html: sentence.richText ?? sentence.text,
+                            }}
+                        />
+                    </Box>
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'flex-end',
+                            flexShrink: 0,
+                            ml: 'auto',
+                        }}
+                    >
+                        <Tooltip title={mineTooltip!}>
+                            <span>
+                                <IconButton
+                                    disabled={!miningEnabled}
+                                    onClick={(event) => {
+                                        event.preventDefault();
+                                        event.stopPropagation();
+                                        onMineSentence(sentence);
+                                    }}
+                                >
+                                    <NoteAddIcon />
+                                </IconButton>
+                            </span>
+                        </Tooltip>
+                        {!small && (
+                            <Typography
+                                variant="body2"
+                                color="text.secondary"
+                                sx={{ whiteSpace: 'nowrap', pl: 0.5, textAlign: 'right' }}
+                            >
+                                {timeDurationDisplay(sentence.start, maximumDisplayedTimestamp, true)}
+                            </Typography>
+                        )}
+                    </Box>
+                </Box>
+            </Box>
+        </Paper>
+    );
+});
+
 export default function StatisticsSentenceDetailsDialog({
     open,
     title,
@@ -69,7 +221,13 @@ export default function StatisticsSentenceDetailsDialog({
         defaultDictionaryStatisticsSentenceSortState()
     );
     const [activeHighlightedSentenceIndex, setActiveHighlightedSentenceIndex] = useState<number>();
-    const entryRefs = useRef<Record<number, HTMLDivElement | null>>({});
+    const entryRefs = useMemo(() => {
+        const refs: Record<number, RefObject<HTMLDivElement | null>> = {};
+        for (const entry of entries) {
+            refs[entry.sentence.index] = createRef<HTMLDivElement | null>();
+        }
+        return refs;
+    }, [entries]);
     const mineTooltip = miningEnabled ? t('action.mine') : (miningDisabledReason ?? t('action.mine'));
     const maximumDisplayedTimestamp = useMemo(
         () => entries.reduce((maximum, entry) => Math.max(maximum, entry.sentence.end), 0),
@@ -84,7 +242,7 @@ export default function StatisticsSentenceDetailsDialog({
 
         setActiveHighlightedSentenceIndex(highlightedSentenceIndex);
         const scrollTimeout = window.setTimeout(() => {
-            entryRefs.current[highlightedSentenceIndex]?.scrollIntoView({
+            entryRefs[highlightedSentenceIndex].current?.scrollIntoView({
                 block: 'center',
                 behavior: 'smooth',
             });
@@ -99,7 +257,7 @@ export default function StatisticsSentenceDetailsDialog({
             window.clearTimeout(scrollTimeout);
             window.clearTimeout(highlightTimeout);
         };
-    }, [open, highlightedSentenceIndex]);
+    }, [open, entryRefs, highlightedSentenceIndex]);
 
     const sortedEntries = useMemo(() => {
         return sortDictionaryStatisticsSentenceBucketEntries(entries, sortState);
@@ -211,142 +369,20 @@ export default function StatisticsSentenceDetailsDialog({
                 ) : (
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                         {sortedEntries.map((entry) => {
-                            const sentence = entry.sentence;
-                            const comprehensionBand =
-                                dictionaryStatisticsComprehensionBands[entry.comprehensionBandIndex] ??
-                                dictionaryStatisticsComprehensionBands[
-                                    dictionaryStatisticsComprehensionBands.length - 1
-                                ];
-                            const isHighlighted = activeHighlightedSentenceIndex === sentence.index;
+                            const isHighlighted = activeHighlightedSentenceIndex === entry.sentence.index;
                             return (
-                                <Paper
-                                    key={sentence.index}
-                                    variant="outlined"
-                                    ref={(node: HTMLDivElement | null) => {
-                                        entryRefs.current[sentence.index] = node;
-                                    }}
-                                    sx={{
-                                        display: 'flex',
-                                        alignItems: 'stretch',
-                                        overflow: 'hidden',
-                                        transition: (theme) =>
-                                            theme.transitions.create(['background-color', 'border-color'], {
-                                                duration: 1000,
-                                            }),
-                                        backgroundColor: (theme) =>
-                                            isHighlighted ? alpha(theme.palette.primary.main, 0.16) : 'transparent',
-                                        borderColor: (theme) =>
-                                            isHighlighted ? theme.palette.primary.main : undefined,
-                                    }}
-                                >
-                                    <Box
-                                        role="button"
-                                        tabIndex={0}
-                                        sx={{
-                                            flex: 1,
-                                            minWidth: 0,
-                                            px: 2,
-                                            py: 1.5,
-                                            cursor: 'pointer',
-                                            '&:hover': { backgroundColor: 'action.hover' },
-                                        }}
-                                        onClick={() => onSeekToSentence(sentence)}
-                                        onKeyDown={(event) => {
-                                            if (event.key !== 'Enter' && event.key !== ' ') return;
-                                            event.preventDefault();
-                                            onSeekToSentence(sentence);
-                                        }}
-                                    >
-                                        <Box
-                                            sx={{
-                                                display: 'flex',
-                                                justifyContent: 'space-between',
-                                                gap: 2,
-                                                alignItems: 'flex-start',
-                                            }}
-                                        >
-                                            <Box
-                                                sx={{
-                                                    display: 'flex',
-                                                    flexDirection: 'column',
-                                                    gap: 0.5,
-                                                    flexShrink: 0,
-                                                    minWidth: smallScreen ? 'auto' : 72,
-                                                }}
-                                            >
-                                                <Typography variant="body2" color="text.secondary">
-                                                    {`#${sentence.index + 1}`}
-                                                </Typography>
-                                                <Tooltip title={t('statistics.comprehension')}>
-                                                    <Typography
-                                                        variant="caption"
-                                                        sx={{
-                                                            color: comprehensionBand.color,
-                                                            lineHeight: 1.2,
-                                                            fontWeight: 600,
-                                                            width: 'fit-content',
-                                                        }}
-                                                    >
-                                                        {percentDisplay(entry.comprehensionPercent)}
-                                                    </Typography>
-                                                </Tooltip>
-                                            </Box>
-                                            <Box
-                                                sx={{
-                                                    flex: 1,
-                                                    minWidth: 0,
-                                                    overflowWrap: 'anywhere',
-                                                    whiteSpace: 'pre-wrap',
-                                                    '& .asb-frequency rt': { fontSize: '0.5em' },
-                                                    '& .asb-frequency-hover rt': { fontSize: '0.5em' },
-                                                }}
-                                            >
-                                                <span
-                                                    dangerouslySetInnerHTML={{
-                                                        __html: sentence.richText ?? sentence.text,
-                                                    }}
-                                                />
-                                            </Box>
-                                            <Box
-                                                sx={{
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'flex-end',
-                                                    flexShrink: 0,
-                                                    ml: 'auto',
-                                                }}
-                                            >
-                                                <Tooltip title={mineTooltip!}>
-                                                    <span>
-                                                        <IconButton
-                                                            disabled={!miningEnabled}
-                                                            onClick={(event) => {
-                                                                event.preventDefault();
-                                                                event.stopPropagation();
-                                                                onMineSentence(sentence);
-                                                            }}
-                                                        >
-                                                            <NoteAddIcon />
-                                                        </IconButton>
-                                                    </span>
-                                                </Tooltip>
-                                                {!smallScreen && (
-                                                    <Typography
-                                                        variant="body2"
-                                                        color="text.secondary"
-                                                        sx={{ whiteSpace: 'nowrap', pl: 0.5, textAlign: 'right' }}
-                                                    >
-                                                        {timeDurationDisplay(
-                                                            sentence.start,
-                                                            maximumDisplayedTimestamp,
-                                                            true
-                                                        )}
-                                                    </Typography>
-                                                )}
-                                            </Box>
-                                        </Box>
-                                    </Box>
-                                </Paper>
+                                <Sentence
+                                    key={entry.sentence.index}
+                                    ref={entryRefs[entry.sentence.index]}
+                                    entry={entry}
+                                    small={smallScreen}
+                                    highlighted={isHighlighted}
+                                    maximumDisplayedTimestamp={maximumDisplayedTimestamp}
+                                    mineTooltip={mineTooltip!}
+                                    miningEnabled={miningEnabled}
+                                    onMineSentence={onMineSentence}
+                                    onSeekToSentence={onSeekToSentence}
+                                />
                             );
                         })}
                         <Box sx={{ height: bottomOffset }} />
