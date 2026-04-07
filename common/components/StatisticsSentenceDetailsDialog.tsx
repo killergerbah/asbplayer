@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
     DictionaryStatisticsSentence,
     DictionaryStatisticsSentenceBucketEntry,
@@ -7,7 +7,8 @@ import {
     defaultDictionaryStatisticsSentenceSortDirection,
     defaultDictionaryStatisticsSentenceSortState,
     dictionaryStatisticsComprehensionBands,
-    nextDictionaryStatisticsSentenceSortState,
+    nextDictionaryStatisticsSentenceSortCategory,
+    nextDictionaryStatisticsSentenceSortDirection,
     percentDisplay,
     sortDictionaryStatisticsSentenceBucketEntries,
 } from '@project/common/dictionary-statistics';
@@ -24,13 +25,18 @@ import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import CloseIcon from '@mui/icons-material/Close';
 import NoteAddIcon from '@mui/icons-material/NoteAdd';
-import { alpha } from '@mui/material/styles';
+import { alpha, useTheme } from '@mui/material/styles';
 import Tooltip from './Tooltip';
 import { useTranslation } from 'react-i18next';
+import useMediaQuery from '@mui/material/useMediaQuery';
+import ButtonGroup from '@mui/material/ButtonGroup';
+import SortIcon from '@mui/icons-material/Sort';
+import Toolbar from '@mui/material/Toolbar';
 
 interface Props {
     open: boolean;
     title: string;
+    subtitles: string[];
     entries: DictionaryStatisticsSentenceBucketEntry[];
     totalSentences: number;
     miningEnabled: boolean;
@@ -41,9 +47,16 @@ interface Props {
     onMineSentence: (sentence: DictionaryStatisticsSentence) => void;
 }
 
+const Subtitle: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+    <Typography noWrap variant={'subtitle2'}>
+        {children}
+    </Typography>
+);
+
 export default function StatisticsSentenceDetailsDialog({
     open,
     title,
+    subtitles,
     entries,
     totalSentences,
     miningEnabled,
@@ -101,60 +114,105 @@ export default function StatisticsSentenceDetailsDialog({
         { sort: 'occurrences', label: t('statistics.occurrences') },
     ];
 
+    const [bottomOffset, setBottomOffset] = useState<number>(0);
+    const handleCaptionBoxRef = useCallback((div: HTMLDivElement | null) => {
+        if (!div) {
+            setBottomOffset(0);
+            return;
+        }
+        setBottomOffset(div.getBoundingClientRect().height);
+    }, []);
+    const theme = useTheme();
+    const smallScreen = useMediaQuery(theme.breakpoints.down(450));
+    const sortLabel = sortOptions.find((s) => s.sort === sortState.sort)!.label;
+    const ArrowIcon = sortState.direction === 'asc' ? ArrowUpwardIcon : ArrowDownwardIcon;
+
     return (
         <Dialog fullWidth maxWidth="md" open={open} onClose={onClose}>
-            <DialogTitle sx={{ pr: 7 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2 }}>
-                    <Box>
-                        <Typography variant="h6">{title}</Typography>
-                        <Typography color="text.secondary">
-                            {`${t('statistics.matchingSentences')}: ${entries.length}/${totalSentences}`}
-                        </Typography>
-                        {!miningEnabled && miningDisabledReason !== undefined && (
-                            <Typography color="text.secondary">{miningDisabledReason}</Typography>
-                        )}
-                    </Box>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0.75 }}>
-                        <Typography variant="caption" color="text.secondary">
-                            {t('statistics.sortBy')}
-                        </Typography>
-                        <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'flex-end', gap: 1 }}>
-                            {sortOptions.map(({ sort, label }) => {
-                                const isActive = sortState.sort === sort;
-                                const direction = isActive
-                                    ? sortState.direction
-                                    : defaultDictionaryStatisticsSentenceSortDirection(sort);
-                                const ArrowIcon = direction === 'asc' ? ArrowUpwardIcon : ArrowDownwardIcon;
+            <Toolbar>
+                <div style={{ flexGrow: 1 }}>
+                    <Typography variant="h6">{title}</Typography>
+                </div>
+                <IconButton aria-label={t('action.cancel')} onClick={onClose} edge="end">
+                    <CloseIcon />
+                </IconButton>
+            </Toolbar>
 
-                                return (
-                                    <Button
-                                        key={sort}
-                                        size="small"
-                                        variant={isActive ? 'contained' : 'outlined'}
-                                        color={isActive ? 'primary' : 'inherit'}
-                                        endIcon={<ArrowIcon fontSize="small" />}
-                                        onClick={() =>
-                                            setSortState((current) =>
-                                                nextDictionaryStatisticsSentenceSortState(current, sort)
-                                            )
+            <DialogContent>
+                <Box
+                    ref={handleCaptionBoxRef}
+                    sx={{
+                        position: 'absolute',
+                        bottom: 0,
+                        left: 0,
+                        width: '100%',
+                        p: 1.5,
+                    }}
+                >
+                    <Box
+                        sx={{
+                            position: 'relative',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            width: '100%',
+                            gap: 1.5,
+                            zIndex: (theme) => theme.zIndex.modal + 1,
+                            p: 1.5,
+                            borderRadius: 2,
+                            background: (theme) => alpha(theme.palette.background.paper, 0.7),
+                            alignItems: 'center',
+                            flexWrap: 'wrap',
+                        }}
+                    >
+                        <Box
+                            sx={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                flexGrow: 1,
+                            }}
+                        >
+                            {subtitles.length > 0 && (
+                                <Box sx={{ display: 'flex', direction: 'row', flexWrap: 'wrap' }}>
+                                    {subtitles.map((subtitle, i) => {
+                                        if (i === subtitles.length - 1) {
+                                            return <Subtitle>{subtitle}</Subtitle>;
                                         }
-                                    >
-                                        {label}
-                                    </Button>
-                                );
-                            })}
+                                        return (
+                                            <>
+                                                <Subtitle>{subtitle}</Subtitle>
+                                                <Subtitle>&nbsp;·&nbsp;</Subtitle>
+                                            </>
+                                        );
+                                    })}
+                                </Box>
+                            )}
+                            <Typography noWrap variant="caption" color="text.secondary">
+                                {t('statistics.matchingSentences', { number: `${entries.length}/${totalSentences}` })}
+                            </Typography>
+                        </Box>
+                        <Box sx={{ display: 'flex', justifyContent: 'end', minWidth: 200, flexGrow: 1 }}>
+                            <ButtonGroup fullWidth>
+                                <Button
+                                    size="small"
+                                    variant="contained"
+                                    color="primary"
+                                    startIcon={<SortIcon fontSize="small" />}
+                                    fullWidth
+                                    onClick={() => setSortState(nextDictionaryStatisticsSentenceSortCategory)}
+                                >
+                                    {sortLabel}
+                                </Button>
+                                <Button
+                                    size="small"
+                                    variant="contained"
+                                    sx={{ '& .MuiButton-startIcon': { margin: 0 }, maxWidth: 48 }}
+                                    startIcon={<ArrowIcon fontSize="small" />}
+                                    onClick={() => setSortState(nextDictionaryStatisticsSentenceSortDirection)}
+                                />
+                            </ButtonGroup>
                         </Box>
                     </Box>
                 </Box>
-                <IconButton
-                    aria-label={t('action.cancel')}
-                    onClick={onClose}
-                    sx={{ position: 'absolute', right: 8, top: 8 }}
-                >
-                    <CloseIcon />
-                </IconButton>
-            </DialogTitle>
-            <DialogContent dividers>
                 {sortedEntries.length === 0 ? (
                     <Typography color="text.secondary">{t('statistics.sentenceDetailsEmpty')}</Typography>
                 ) : (
@@ -220,7 +278,7 @@ export default function StatisticsSentenceDetailsDialog({
                                                     flexDirection: 'column',
                                                     gap: 0.5,
                                                     flexShrink: 0,
-                                                    minWidth: 72,
+                                                    minWidth: smallScreen ? 'auto' : 72,
                                                 }}
                                             >
                                                 <Typography variant="body2" color="text.secondary">
@@ -279,23 +337,26 @@ export default function StatisticsSentenceDetailsDialog({
                                                         </IconButton>
                                                     </span>
                                                 </Tooltip>
-                                                <Typography
-                                                    variant="body2"
-                                                    color="text.secondary"
-                                                    sx={{ whiteSpace: 'nowrap', pl: 0.5, textAlign: 'right' }}
-                                                >
-                                                    {timeDurationDisplay(
-                                                        sentence.start,
-                                                        maximumDisplayedTimestamp,
-                                                        true
-                                                    )}
-                                                </Typography>
+                                                {!smallScreen && (
+                                                    <Typography
+                                                        variant="body2"
+                                                        color="text.secondary"
+                                                        sx={{ whiteSpace: 'nowrap', pl: 0.5, textAlign: 'right' }}
+                                                    >
+                                                        {timeDurationDisplay(
+                                                            sentence.start,
+                                                            maximumDisplayedTimestamp,
+                                                            true
+                                                        )}
+                                                    </Typography>
+                                                )}
                                             </Box>
                                         </Box>
                                     </Box>
                                 </Paper>
                             );
                         })}
+                        <Box sx={{ height: bottomOffset }} />
                     </Box>
                 )}
             </DialogContent>

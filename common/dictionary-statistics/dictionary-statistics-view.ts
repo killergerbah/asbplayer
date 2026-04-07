@@ -37,7 +37,10 @@ export const dictionaryStatisticsComprehensionBands = [
 ] as const;
 
 export type DictionaryStatisticsSentenceSort = 'index' | 'frequency' | 'occurrences' | 'comprehension';
+const sortCategories: DictionaryStatisticsSentenceSort[] = ['index', 'frequency', 'occurrences', 'comprehension'];
+
 export type DictionaryStatisticsSentenceSortDirection = 'asc' | 'desc';
+const sortDirections: DictionaryStatisticsSentenceSortDirection[] = ['asc', 'desc'];
 
 export interface DictionaryStatisticsSentenceSortState {
     sort: DictionaryStatisticsSentenceSort;
@@ -894,18 +897,20 @@ export function defaultDictionaryStatisticsSentenceSortState(
     };
 }
 
-export function nextDictionaryStatisticsSentenceSortState(
-    current: DictionaryStatisticsSentenceSortState,
-    sort: DictionaryStatisticsSentenceSort
+export function nextDictionaryStatisticsSentenceSortCategory(
+    current: DictionaryStatisticsSentenceSortState
 ): DictionaryStatisticsSentenceSortState {
-    if (current.sort === sort) {
-        return {
-            sort,
-            direction: current.direction === 'asc' ? 'desc' : 'asc',
-        };
-    }
+    const index = sortCategories.findIndex((s) => s === current.sort);
+    const nextSort = sortCategories[(index + 1) % sortCategories.length];
+    return { sort: nextSort, direction: current.direction };
+}
 
-    return defaultDictionaryStatisticsSentenceSortState(sort);
+export function nextDictionaryStatisticsSentenceSortDirection(
+    current: DictionaryStatisticsSentenceSortState
+): DictionaryStatisticsSentenceSortState {
+    const index = sortDirections.findIndex((d) => d === current.direction);
+    const nextDirection = sortDirections[(index + 1) % sortDirections.length];
+    return { sort: current.sort, direction: nextDirection };
 }
 
 export function uncollectedSentenceBucketLabel(

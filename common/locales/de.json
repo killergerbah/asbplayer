@@ -567,7 +567,7 @@
         "rewatchOption": "Rewatch #{{rewatch}}",
         "miningDisabledUntilComplete": "Mining is available after statistics for this track finish generating.",
         "sortBy": "Sort by",
-        "matchingSentences": "Matching sentences",
+        "matchingSentences": "{{number}} matching sentences",
         "sentenceDetailsEmpty": "No sentences matched this bucket.",
         "noMoreRewatches": "There will be no more mining after all i+1 sentences this session.",
         "totalSentences": "Total sentences",

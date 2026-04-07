@@ -81,6 +81,7 @@ const CenteredBox: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
 interface SentenceDialogState {
     title: string;
+    subtitles: string[];
     entries: DictionaryStatisticsSentenceBucketEntry[];
     totalSentences: number;
     miningEnabled: boolean;
@@ -1106,7 +1107,8 @@ export default function Statistics({
                                     points={trackSnapshot.sentenceComprehensionPoints}
                                     onOpenSentenceDetails={(point) =>
                                         setSentenceDialogState({
-                                            title: `${trackTitle} · ${currentWatchTitle} · ${t('statistics.comprehension')}`,
+                                            title: t('statistics.comprehension'),
+                                            subtitles: [currentWatchTitle, t('statistics.comprehension')],
                                             entries: trackSnapshot.allSentenceEntries,
                                             totalSentences,
                                             miningEnabled,
@@ -1273,7 +1275,8 @@ export default function Statistics({
                                                 );
                                                 if (!bucketData) return;
                                                 setSentenceDialogState({
-                                                    title: `${trackTitle} · ${currentWatchTitle} · ${bucketData.label}`,
+                                                    title: bucketData.label,
+                                                    subtitles: [currentWatchTitle, bucketData.label],
                                                     entries: bucketData.entries,
                                                     totalSentences,
                                                     miningEnabled,
@@ -1342,12 +1345,14 @@ export default function Statistics({
                                                 );
                                                 if (!bucketData) return;
                                                 setSentenceDialogState({
-                                                    title: `${trackTitle} · ${t('statistics.projectedRewatch')} · ${t(
-                                                        'statistics.rewatchOption',
-                                                        {
+                                                    title: bucketData.label,
+                                                    subtitles: [
+                                                        t('statistics.projectedRewatch'),
+                                                        t('statistics.rewatchOption', {
                                                             rewatch: selectedRewatchSnapshot.rewatch,
-                                                        }
-                                                    )} · ${bucketData.label}`,
+                                                        }),
+                                                        bucketData.label,
+                                                    ],
                                                     entries: bucketData.entries,
                                                     totalSentences,
                                                     miningEnabled,
@@ -1383,6 +1388,7 @@ export default function Statistics({
                 <StatisticsSentenceDetailsDialog
                     open
                     title={sentenceDialogState.title}
+                    subtitles={sentenceDialogState.subtitles}
                     entries={sentenceDialogState.entries}
                     totalSentences={sentenceDialogState.totalSentences}
                     miningEnabled={sentenceDialogState.miningEnabled}
