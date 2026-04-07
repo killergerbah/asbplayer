@@ -550,8 +550,8 @@ export class Yomitan {
                 this.supportsMecab = false;
                 this.supportsMecabLemma = false;
             }
-            // this.supportsTokenizeFrequency = true;
-            // this.supportsTermEntriesBulk = true;
+            this.supportsTokenizeFrequency = true;
+            this.supportsTermEntriesBulk = true;
             return version;
         }
         const semver = coerce(version)?.version;
@@ -564,14 +564,13 @@ export class Yomitan {
             this.supportsMecab = false;
             this.supportsMecabLemma = false;
         }
-        // if (gte(semver, '26.3.10')) { // TODO: Use actual version
-        //     this.supportsTokenizeFrequency = true;
-        //     this.supportsTermEntriesBulk = true;
-        // }
-        // else {
-        //     this.supportsTokenizeFrequency = false;
-        //     this.supportsTermEntriesBulk = false;
-        // }
+        if (gte(semver, '26.4.6')) {
+            this.supportsTokenizeFrequency = true;
+            this.supportsTermEntriesBulk = true;
+        } else {
+            this.supportsTokenizeFrequency = false;
+            this.supportsTermEntriesBulk = false;
+        }
         return version;
     }
 
