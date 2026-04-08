@@ -27,6 +27,14 @@ const minimumComprehensionStatus = TokenStatus.UNKNOWN;
 const fullyKnownTokenStatus = getFullyKnownTokenStatus();
 const comprehensionStatusRange = fullyKnownTokenStatus - minimumComprehensionStatus;
 
+export type DictionaryComprehensionBand = {
+    min: number;
+    max: number;
+    label: string;
+    color: string;
+    textColor: string;
+};
+
 export const dictionaryStatisticsComprehensionBands = [
     { min: 0, max: 60, label: '<60', color: '#c62828', textColor: '#ffffff' },
     { min: 60, max: 70, label: '60+', color: '#ef6c00', textColor: '#ffffff' },
@@ -34,7 +42,7 @@ export const dictionaryStatisticsComprehensionBands = [
     { min: 80, max: 90, label: '80+', color: '#2e7d32', textColor: '#ffffff' },
     { min: 90, max: 95, label: '90+', color: '#1565c0', textColor: '#ffffff' },
     { min: 95, max: 100, label: '95+', color: 'primary.main', textColor: 'primary.contrastText' },
-] as const;
+] as DictionaryComprehensionBand[];
 
 export type DictionaryStatisticsSentenceSort = 'index' | 'frequency' | 'occurrences' | 'comprehension';
 const sortCategories: DictionaryStatisticsSentenceSort[] = ['index', 'frequency', 'occurrences', 'comprehension'];

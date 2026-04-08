@@ -36,7 +36,7 @@ import LinearProgress from '@mui/material/LinearProgress';
 import MenuItem from '@mui/material/MenuItem';
 import Paper from '@mui/material/Paper';
 import TextField from '@mui/material/TextField';
-import Typography from '@mui/material/Typography';
+import Typography, { type TypographyProps } from '@mui/material/Typography';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded';
 import Tooltip from '@mui/material/Tooltip';
@@ -116,11 +116,9 @@ function ComprehensionScale({ value }: { value: number }) {
                 <Box
                     sx={{
                         display: 'flex',
-                        height: 18,
+                        height: 28,
                         overflow: 'hidden',
-                        borderRadius: 999,
-                        border: '1px solid',
-                        borderColor: 'divider',
+                        borderRadius: 2,
                     }}
                 >
                     {dictionaryStatisticsComprehensionBands.map((band) => (
@@ -129,51 +127,28 @@ function ComprehensionScale({ value }: { value: number }) {
                             sx={{
                                 width: `${band.max - band.min}%`,
                                 backgroundColor: band.color,
+                                textAlign: 'center',
+                                alignItems: 'center',
+                                height: '100%',
                             }}
-                        />
+                        >
+                            <Typography variant="caption" sx={{ color: 'inherit', fontSize: 10, lineHeight: 1 }}>
+                                {band.label}
+                            </Typography>
+                        </Box>
                     ))}
                 </Box>
                 <Box
                     sx={{
                         position: 'absolute',
-                        top: -3,
+                        top: 0,
                         bottom: -3,
                         left: `${clampedValue}%`,
                         width: 3,
                         transform: 'translateX(-50%)',
-                        borderRadius: 999,
                         backgroundColor: 'text.primary',
-                        boxShadow: '0 0 0 1px rgba(255, 255, 255, 0.65)',
                     }}
                 />
-            </Box>
-            <Box
-                sx={{
-                    display: 'grid',
-                    gridTemplateColumns: dictionaryStatisticsComprehensionBands
-                        .map((band) => `${band.max - band.min}fr`)
-                        .join(' '),
-                    gap: 0.5,
-                    mt: 0.75,
-                }}
-            >
-                {dictionaryStatisticsComprehensionBands.map((band) => (
-                    <Box
-                        key={band.label}
-                        sx={{
-                            px: 0.5,
-                            py: 0.25,
-                            borderRadius: 0.5,
-                            backgroundColor: band.color,
-                            color: band.textColor,
-                            textAlign: 'center',
-                        }}
-                    >
-                        <Typography variant="caption" sx={{ color: 'inherit', lineHeight: 1.2 }}>
-                            {band.label}
-                        </Typography>
-                    </Box>
-                ))}
             </Box>
         </Box>
     );
@@ -454,6 +429,14 @@ function StatisticsSectionHeading({ title, infoLines }: { title: string; infoLin
     );
 }
 
+function StatisticsSectionSubHeading({ children }: { children: React.ReactNode }) {
+    return (
+        <Typography variant="body1" sx={{ mb: 1, fontWeight: 500 }}>
+            {children}
+        </Typography>
+    );
+}
+
 interface SentenceStatsPanelProps {
     title: string;
     totalSentences: number;
@@ -474,6 +457,22 @@ interface SentenceStatsPanelProps {
     onOpenSentenceBucketDetails: (bucket: DictionaryStatisticsSentenceDialogBucket) => void;
     headerAction?: ReactNode;
     emptyMessage?: string;
+}
+
+interface SentenceStatProps {
+    fieldName: string;
+    value: string;
+    typographyVariant?: TypographyProps['variant'];
+    sx?: SxProps<Theme>;
+}
+
+function SentenceStat({ fieldName, value, sx, typographyVariant }: SentenceStatProps) {
+    return (
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', ...(sx ?? {}) }}>
+            <Typography variant={typographyVariant ?? 'body2'}>{fieldName}</Typography>
+            <Typography variant={typographyVariant ?? 'body2'}>{value}</Typography>
+        </Box>
+    );
 }
 
 function SentenceStatsPanel({
@@ -515,11 +514,11 @@ function SentenceStatsPanel({
             count: number,
             entries: DictionaryStatisticsSentenceBucketEntry[]
         ) => {
-            const content = `${label} · ${count} · ${percentDisplay(percent(count, totalSentences))}`;
             const canOpen = entries.length > 0;
-            if (!canOpen) return <Typography color="text.secondary">{content}</Typography>;
+
             return (
                 <ButtonBase
+                    disabled={!canOpen}
                     sx={{
                         width: '100%',
                         justifyContent: 'space-between',
@@ -529,7 +528,7 @@ function SentenceStatsPanel({
                         py: 0.75,
                         border: '1px solid',
                         borderColor: 'divider',
-                        color: 'text.primary',
+                        color: canOpen ? 'text.primary' : 'text.disabled',
                         textAlign: 'left',
                         transition: (theme) => theme.transitions.create(['background-color', 'border-color']),
                         '&:hover': {
@@ -539,8 +538,15 @@ function SentenceStatsPanel({
                     }}
                     onClick={() => onOpenSentenceBucketDetails(bucket)}
                 >
-                    <Typography color="inherit">{content}</Typography>
-                    <ChevronRightRoundedIcon sx={{ color: 'text.secondary', fontSize: 20, flexShrink: 0 }} />
+                    <SentenceStat
+                        fieldName={label}
+                        value={`${count} · ${percentDisplay(percent(count, totalSentences))}`}
+                        sx={{ width: '100%' }}
+                        typographyVariant="body2"
+                    />
+                    {canOpen && (
+                        <ChevronRightRoundedIcon sx={{ color: 'text.secondary', fontSize: 20, flexShrink: 0 }} />
+                    )}
                 </ButtonBase>
             );
         },
@@ -550,7 +556,7 @@ function SentenceStatsPanel({
     return (
         <Box
             sx={{
-                p: 2,
+                p: 1.5,
                 borderRadius: 1,
                 border: '1px solid',
                 borderColor: 'divider',
@@ -559,37 +565,42 @@ function SentenceStatsPanel({
         >
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, height: '100%' }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 1, alignItems: 'flex-start' }}>
-                    <Typography variant="subtitle2">{title}</Typography>
-                    <Box
-                        sx={{
-                            minWidth: 160,
-                            minHeight: 40,
-                            display: 'flex',
-                            justifyContent: 'flex-end',
-                            alignItems: 'flex-start',
-                            flexShrink: 0,
-                        }}
-                    >
-                        {headerAction}
-                    </Box>
+                    <StatisticsSectionSubHeading>{title}</StatisticsSectionSubHeading>
+                    {headerAction && (
+                        <Box
+                            sx={{
+                                minWidth: 160,
+                                minHeight: 40,
+                                display: 'flex',
+                                justifyContent: 'flex-end',
+                                alignItems: 'flex-start',
+                                flexShrink: 0,
+                            }}
+                        >
+                            {headerAction}
+                        </Box>
+                    )}
                 </Box>
                 {emptyMessage ? (
-                    <Typography color="text.secondary">{emptyMessage}</Typography>
+                    <Typography typography="body2" color="text.secondary">
+                        {emptyMessage}
+                    </Typography>
                 ) : (
                     <>
-                        <Typography color="text.secondary">
-                            {`${comprehensionLabel}: ${percentDisplay(comprehensionPercent)}`}
-                        </Typography>
-                        <Typography color="text.secondary">
-                            {`${knownWordsLabel}: ${knownWordsCount} · ${percentDisplay(knownWordsPercent)}`}
-                        </Typography>
-                        <Typography color="text.secondary">{`${globalKnownLabel}: ${globalKnownCount}`}</Typography>
-                        <Typography color="text.secondary">
-                            {`${uniqueWordsPerSentenceLabel}: ${averageDisplay(uniqueWordsPerSentence)}`}
-                        </Typography>
-                        <Typography color="text.secondary">
-                            {`${knownWordsPerSentenceLabel}: ${averageDisplay(knownWordsPerSentence)}`}
-                        </Typography>
+                        <SentenceStat fieldName={comprehensionLabel} value={percentDisplay(comprehensionPercent)} />
+                        <SentenceStat
+                            fieldName={knownWordsLabel}
+                            value={`${knownWordsCount} · ${percentDisplay(knownWordsPercent)}`}
+                        />
+                        <SentenceStat fieldName={globalKnownLabel} value={`${globalKnownCount}`} />
+                        <SentenceStat
+                            fieldName={uniqueWordsPerSentenceLabel}
+                            value={averageDisplay(uniqueWordsPerSentence)}
+                        />
+                        <SentenceStat
+                            fieldName={knownWordsPerSentenceLabel}
+                            value={averageDisplay(knownWordsPerSentence)}
+                        />
                         {renderSentenceBucketRow(
                             { kind: 'allKnown' },
                             knownSentencesLabel,
@@ -663,7 +674,7 @@ function AnkiStatisticsSection({
             ) : (
                 <>
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                        <Typography variant="subtitle2">{deckFrequencyBreakdownLabel}</Typography>
+                        <StatisticsSectionSubHeading>{deckFrequencyBreakdownLabel}</StatisticsSectionSubHeading>
                         {snapshot.deckSnapshots.length === 0 ? (
                             <Typography color="text.secondary">{emptyDeckBreakdownMessage}</Typography>
                         ) : (
@@ -843,7 +854,11 @@ function TrackSnapshotSelector({
         <Box sx={{ display: 'flex', gap: 2 }}>
             {new Array(count).fill(0).map((_, i) => {
                 return (
-                    <Button variant={selectedIndex === i ? 'contained' : 'outlined'} startIcon={<BarChartIcon/>} onClick={() => onSelectedIndex(i)}>
+                    <Button
+                        variant={selectedIndex === i ? 'contained' : 'outlined'}
+                        startIcon={<BarChartIcon />}
+                        onClick={() => onSelectedIndex(i)}
+                    >
                         {t('settings.subtitleTrackChoice', { trackNumber: i + 1 })}
                     </Button>
                 );
@@ -953,7 +968,7 @@ function TrackSnapshot({
                         title={t('statistics.globalKnownWords')}
                         infoLines={globalKnownInfoLines}
                     />
-                    <Typography variant="h5">{trackSnapshot.numDictionaryKnownTokens}</Typography>
+                    <Typography variant="h6">{trackSnapshot.numDictionaryKnownTokens}</Typography>
                     <Typography color="text.secondary">
                         {`${t('settings.dictionaryTokenStateIgnored')}: ${trackSnapshot.numDictionaryIgnoredTokens}`}
                     </Typography>
@@ -962,7 +977,7 @@ function TrackSnapshot({
 
             <Box>
                 <StatisticsSectionHeading title={t('statistics.comprehension')} infoLines={comprehensionInfoLines} />
-                <Typography color="text.secondary" sx={{ mb: 1 }}>
+                <Typography variant="h6" sx={{ mb: 1 }}>
                     {percentDisplay(trackSnapshot.comprehensionPercent)}
                 </Typography>
                 <ComprehensionScale value={trackSnapshot.comprehensionPercent} />
@@ -1018,9 +1033,7 @@ function TrackSnapshot({
                     />
                 </Box>
                 <Box>
-                    <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                        {t('statistics.statusDistribution')}
-                    </Typography>
+                    <StatisticsSectionSubHeading>{t('statistics.statusDistribution')}</StatisticsSectionSubHeading>
                     {[
                         ...statusOrder.map((status) => ({
                             key: `${status}`,
@@ -1056,9 +1069,7 @@ function TrackSnapshot({
                     ))}
                 </Box>
                 <Box>
-                    <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                        {t('statistics.frequency')}
-                    </Typography>
+                    <StatisticsSectionSubHeading>{t('statistics.frequency')}</StatisticsSectionSubHeading>
                     {trackSnapshot.frequencyBuckets.map((bucket) => {
                         const bucketLabel =
                             bucket.label === 'Unknown' ? statusLabels[TokenStatus.UNKNOWN] : bucket.label;
@@ -1329,45 +1340,6 @@ export default function Statistics({
         },
         [dictionaryProvider, onMineWasRequested, trackSnapshots, mediaId]
     );
-    const statusLabels = useMemo(
-        () => ({
-            [TokenStatus.UNCOLLECTED]: t('settings.dictionaryTokenStatus0'),
-            [TokenStatus.UNKNOWN]: t('settings.dictionaryTokenStatus1'),
-            [TokenStatus.LEARNING]: t('settings.dictionaryTokenStatus2'),
-            [TokenStatus.GRADUATED]: t('settings.dictionaryTokenStatus3'),
-            [TokenStatus.YOUNG]: t('settings.dictionaryTokenStatus4'),
-            [TokenStatus.MATURE]: t('settings.dictionaryTokenStatus5'),
-        }),
-        [t]
-    );
-    const comprehensionInfoLines = useMemo(() => [t('statistics.info.comprehension')], [t]);
-    const globalKnownInfoLines = useMemo(() => [t('statistics.info.globalKnownWords')], [t]);
-    const wordDistributionInfoLines = useMemo(
-        () => [t('statistics.info.wordDistribution'), t('statistics.info.occurrences'), t('statistics.info.frequency')],
-        [t]
-    );
-    const sentenceStatisticsInfoLines = useMemo(
-        () => [
-            t('statistics.info.sentenceStatistics'),
-            `${t('statistics.projectedRewatch')}: ${t('statistics.info.projectedRewatch')}`,
-        ],
-        [t]
-    );
-    const uniqueWordsPerSentenceLabel = t('statistics.uniqueWordsPerSentence');
-    const knownWordsPerSentenceLabel = t('statistics.knownWordsPerSentence');
-    const uncollectedLabel = statusLabels[TokenStatus.UNCOLLECTED];
-    const currentWatchTitle = t('statistics.currentWatch');
-    const ankiStatisticsTitle = t('statistics.anki.ankiStatistics');
-    const ankiStatisticsInfoLines = useMemo(() => [t('statistics.anki.info.ankiStatistics')], [t]);
-    const dueByTodayLabel = t('statistics.anki.dueByToday');
-    const dueByTomorrowLabel = t('statistics.anki.dueByTomorrow');
-    const dueByWeekLabel = t('statistics.anki.dueByWeek');
-    const suspendedCardsLabel = t('statistics.anki.suspended');
-    const deckFrequencyBreakdownLabel = t('statistics.anki.deckBreakdown');
-    const modelBreakdownLabel = t('statistics.anki.modelBreakdown');
-    const ankiUnavailableMessage = t('statistics.anki.ankiNeedsToBeRunning');
-    const emptyDeckBreakdownMessage = t('statistics.anki.noDeckBreakdown');
-    const deckUniqueWordsLabel = useCallback((count: number) => `${count} ${t('statistics.uniqueWords')}`, [t]);
     const canGenerateStatistics = useMemo(
         () => settings.dictionaryTracks.some((dt) => dictionaryTrackEnabled(dt)),
         [settings]
@@ -1431,7 +1403,7 @@ export default function Statistics({
             )}
 
             {hasSnapshots && (
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                     {mediaInfo?.sourceString && <Typography variant="h5">{mediaInfo?.sourceString}</Typography>}
                     {trackSnapshots.length > 0 && (
                         <TrackSnapshotSelector
