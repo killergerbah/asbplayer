@@ -28,6 +28,7 @@ interface CopyHistoryListProps {
     open: boolean;
     forceShowDownloadOptions?: boolean;
     items: CopyHistoryItem[];
+    title?: string;
     onClose: () => void;
     onDelete: (item: CopyHistoryItem) => void;
     onDeleteAll: () => void;
@@ -72,6 +73,9 @@ const useStyles = makeStyles<Theme>((theme) => ({
         textAlign: 'center',
         height: '100%',
         padding: 15,
+    },
+    title: {
+        padding: theme.spacing(2, 2, 0),
     },
     text: {
         flexGrow: 1,
@@ -237,6 +241,7 @@ export default function CopyHistoryList({
     open,
     items,
     forceShowDownloadOptions,
+    title,
     onSelect,
     onClipAudio,
     onDownloadImage,
@@ -372,6 +377,11 @@ export default function CopyHistoryList({
 
         content = (
             <Paper className={classes.listContainer} ref={listContainerRef}>
+                {title && (
+                    <Typography variant="h6" className={classes.title}>
+                        {title}
+                    </Typography>
+                )}
                 <List className={classes.list}>{elements}</List>
                 <Button
                     variant="contained"
@@ -387,6 +397,11 @@ export default function CopyHistoryList({
     } else {
         content = (
             <Paper className={classes.emptyState}>
+                {title && (
+                    <Typography variant="h6" gutterBottom>
+                        {title}
+                    </Typography>
+                )}
                 <Typography variant="h6">{t('copyHistory.miningHistoryEmpty')}</Typography>
             </Paper>
         );

@@ -528,6 +528,7 @@ export default function SidePanel({ dictionaryProvider, settingsProvider, settin
                 <CopyHistoryList
                     open={true}
                     items={copyHistoryItems}
+                    title={`${t('bar.miningHistory')} (${copyHistoryItems.length})`}
                     forceShowDownloadOptions={true}
                     onClose={handleCloseCopyHistory}
                     onDelete={deleteCopyHistoryItem}
@@ -553,6 +554,7 @@ export default function SidePanel({ dictionaryProvider, settingsProvider, settin
                         <SidePanelHome
                             extension={extension}
                             videoElementCount={videoElementCount}
+                            miningHistoryCount={copyHistoryItems.length}
                             onLoadSubtitles={handleLoadSubtitles}
                             onShowMiningHistory={handleShowCopyHistory}
                             onOpenUserGuide={handleOpenUserGuide}
@@ -604,6 +606,7 @@ export default function SidePanel({ dictionaryProvider, settingsProvider, settin
                                 onBulkExportSubtitles={handleBulkExportSubtitles}
                                 disableBulkExport={recordingAudio}
                                 onShowMiningHistory={handleShowCopyHistory}
+                                miningHistoryCount={copyHistoryItems.length}
                             />
                             <SidePanelBottomControls
                                 disabled={currentTabId !== syncedVideoTab?.id}
