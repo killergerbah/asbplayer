@@ -334,6 +334,8 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
         this.anki = undefined;
         this.trackStates.forEach(resetYomitan);
         this.trackStates = [];
+        this.showingSubtitles = undefined;
+        this.showingNeedsRefreshCount = 0;
         this.dictionaryStatistics.reset();
         this.statisticsBatchProcessedIndex = 0;
         this.statisticsProcessedSubtitleIndexesByTrack.clear();
@@ -343,6 +345,7 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
         this.ankiRecentlyModifiedFirstCheck = true;
         this.ankiStatisticsRefreshAll = false;
         this.ankiStatisticsRefreshNew = false;
+        this.annotationsLastRefresh = Date.now();
         this._subtitles.forEach(untokenize);
         this.buildLowerThreshold = 0;
         this.buildUpperThreshold = 0;
@@ -385,6 +388,8 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
             this.subtitleAnnotationsUpdated(subtitlesToReset, settings.dictionaryTracks);
         }
         this._resetCache();
+        const { annotationsStartIndex, annotationsEndIndex } = this._getAnnotationsIndexes(true);
+        void this._buildAnnotations(annotationsStartIndex, annotationsEndIndex, true);
     }
 
     tokensWereModified(modifiedTokens: string[]) {
@@ -501,6 +506,7 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
     }
 
     private async _refreshAnkiStatistics(cardIdsMap: Map<number, boolean>, fields: string[], decks: string[]) {
+        if (this.statisticsBatchProcessedIndex < this._subtitles.length) return; // Will need to re-query anki as tokens are processed.
         let refreshNewOnly = true;
         if (this.ankiStatisticsRefreshAll) {
             this.ankiStatisticsRefreshAll = false;
@@ -900,10 +906,17 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
                 { batchSize: TOKEN_CACHE_BATCH_SIZE }
             );
 
-            for (const track of statisticsTracksToUpdate) {
-                const indexes = this.statisticsProcessedSubtitleIndexesByTrack.get(track)!;
-                if (this.dictionaryStatistics.updateProgress(track, indexes.size)) {
-                    tokenCacheRefreshInterval = TOKEN_CACHE_DEFAULT_REFRESH_INTERVAL; // Reset after the first track finishes
+            if (statisticsTracksToUpdate.size) {
+                for (const track of statisticsTracksToUpdate) {
+                    const indexes = this.statisticsProcessedSubtitleIndexesByTrack.get(track)!;
+                    this.dictionaryStatistics.updateProgress(track, indexes.size);
+                }
+                if (
+                    Array.from(this.statisticsProcessedSubtitleIndexesByTrack).every(
+                        ([track, indexes]) => indexes.size >= (this.totalSubtitlesPerTrack.get(track) ?? 0)
+                    )
+                ) {
+                    tokenCacheRefreshInterval = TOKEN_CACHE_DEFAULT_REFRESH_INTERVAL;
                 }
             }
             if (tokensRefreshed.length && generatingStatistics) {
@@ -925,7 +938,10 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
                 this.initialized = true;
                 if (statisticsBatching) {
                     this.statisticsBatchProcessedIndex = annotationsEndIndex;
-                    if (annotationsEndIndex >= this.subtitles.length) this.generateStatisticsRequested = false;
+                    if (annotationsEndIndex >= this.subtitles.length) {
+                        this.generateStatisticsRequested = false;
+                        this.ankiRefreshTrigger = true;
+                    }
                 }
             }
             if (updateThresholds && !init) {
@@ -1289,7 +1305,7 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
             : ts.dt.dictionaryTokenFrequencyAnnotation;
         if (ano === TokenFrequencyAnnotation.NEVER) return;
         if (ano === TokenFrequencyAnnotation.UNCOLLECTED_ONLY && token.status !== TokenStatus.UNCOLLECTED) return;
-        if (this.initialized || ts.yt.getSupportsBulkFrequency(ts.dt)) {
+        if (this.initialized || ts.yt.getSupportsBulkFrequency()) {
             token.frequency = await ts.yt.frequency(trimmedToken);
         } else {
             this.refreshCache.add(index);

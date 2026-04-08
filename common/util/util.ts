@@ -672,12 +672,9 @@ export class AsyncSemaphore {
                 this.permits--;
                 resolve(this._acquire());
             } else {
-                let queue = this.waiting.get(priority);
-                if (!queue) {
-                    queue = [];
-                    this.waiting.set(priority, queue);
-                }
-                queue.push(resolve);
+                const queue = this.waiting.get(priority);
+                if (queue) queue.push(resolve);
+                else this.waiting.set(priority, [resolve]);
             }
         });
     }

@@ -113,8 +113,8 @@ export class Yomitan {
         return this.supportsMecabLemma;
     }
 
-    getSupportsBulkFrequency(dt: DictionaryTrack): boolean {
-        if (dt.dictionaryYomitanParser === 'scanning-parser') return this.supportsTokenizeFrequency;
+    getSupportsBulkFrequency(): boolean {
+        if (this.dt.dictionaryYomitanParser === 'scanning-parser') return this.supportsTokenizeFrequency;
         return this.supportsTermEntriesBulk;
     }
 

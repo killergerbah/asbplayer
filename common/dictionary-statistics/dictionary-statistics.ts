@@ -114,13 +114,12 @@ export class DictionaryStatistics {
         });
     }
 
-    updateProgress(track: number, current: number): boolean {
+    updateProgress(track: number, current: number): void {
         const startTime = Date.now();
         const ts = this.rawTrackSnapshots.get(track);
         if (!ts) throw new Error(`Track ${track} not initialized for dictionary statistics`);
         ts.progress.current = current;
         void this._publish(this._snapshot(), startTime);
-        return ts.progress.current >= ts.progress.total;
     }
 
     replaceAnkiSnapshot(anki: DictionaryStatisticsAnkiSnapshot): void {
