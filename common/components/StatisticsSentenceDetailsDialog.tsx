@@ -314,7 +314,7 @@ export default function StatisticsSentenceDetailsDialog({
                             gap: 1.5,
                             zIndex: (theme) => theme.zIndex.modal + 1,
                             p: 1.5,
-                            borderRadius: 2,
+                            borderRadius: 1,
                             background: (theme) => alpha(theme.palette.background.paper, 0.7),
                             alignItems: 'center',
                             flexWrap: 'wrap',

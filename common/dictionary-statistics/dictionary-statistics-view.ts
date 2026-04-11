@@ -1191,3 +1191,38 @@ export function processDictionaryStatisticsAnkiTrackSnapshot(
             .sort((left, right) => left.deckName.localeCompare(right.deckName)),
     };
 }
+
+export interface DictionarySimplifiedStatisticsTrackSnapshot {
+    comprehensionPercent: number;
+    sentenceBuckets: DictionaryStatisticsSentenceBuckets;
+    progress: Progress;
+}
+
+export function processSimplifiedDictionaryStatistics(
+    snapshot?: DictionaryStatisticsSnapshot
+): DictionarySimplifiedStatisticsTrackSnapshot[] {
+    return (
+        snapshot?.snapshots?.map((trackSnapshot) =>
+            processSimplifiedDictionaryStatisticsTrackSnapshot(trackSnapshot)
+        ) ?? []
+    );
+}
+
+function processSimplifiedDictionaryStatisticsTrackSnapshot(
+    trackSnapshot: DictionaryStatisticsRawTrackSnapshot
+): DictionarySimplifiedStatisticsTrackSnapshot {
+    const tokens: ProcessedTokenSnapshots = new Map();
+    const { sentences } = trackSnapshot.stats;
+    const sentenceSnapshots = processSentenceSnapshots(sentences);
+    for (const { tokens: sentenceTokens } of sentenceSnapshots) {
+        for (const [k, token] of sentenceTokens.entries()) tokens.set(k, mergeTokenSnapshot(tokens.get(k), token));
+    }
+    const { statusCounts } = statusCountsAndFrequencies(tokens);
+    const evaluatedSentenceSnapshots = sentenceSnapshots.map((sentenceSnapshot) =>
+        evaluateSentenceSnapshot(sentenceSnapshot)
+    );
+    const sentenceBuckets = buildSentenceBucketData(evaluatedSentenceSnapshots, tokens);
+    const comprehensionPercent = comprehensionFromStatusOccurrences(statusCounts);
+    const progress = trackSnapshot.progress;
+    return { comprehensionPercent, sentenceBuckets, progress };
+}

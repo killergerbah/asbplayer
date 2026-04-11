@@ -69,6 +69,7 @@ import { useServiceWorker } from '../hooks/use-service-worker';
 import NeedRefreshDialog from './NeedRefreshDialog';
 import { DictionaryProvider } from '../../dictionary-db';
 import { isFirefox } from '../../browser-detection';
+import StatisticsOverlay, { StatisticsOverlayProps } from '../../components/StatisticsOverlay';
 
 const latestExtensionVersion = '1.15.0';
 const extensionUrl =
@@ -212,6 +213,20 @@ function Content(props: ContentProps) {
     );
 }
 
+function AppStatisticsOverlay(props: StatisticsOverlayProps) {
+    return (
+        <StatisticsOverlay
+            {...props}
+            sx={{
+                position: 'absolute',
+                top: `72px`,
+                left: '50%',
+                transform: 'translateX(-50%)',
+            }}
+        />
+    );
+}
+
 interface Props {
     origin: string;
     logoUrl: string;
@@ -316,6 +331,7 @@ function App({
     const [tab, setTab] = useState<VideoTabModel>();
     const [availableTabs, setAvailableTabs] = useState<VideoTabModel[]>();
     const [isSidePanelOpen, setIsSidePanelOpen] = useState<boolean>(false);
+    const [statisticsOverlayOpen, setStatisticsOverlayOpen] = useState<boolean>(true);
     const [lastError, setLastError] = useState<any>();
     const fileInputRef = useRef<HTMLInputElement>(null);
     const { subtitleFiles } = sources;
@@ -572,6 +588,8 @@ function App({
             toggleInAppStatistics();
         }
     }, [extension, isSidePanelOpen]);
+    const handleOpenStatisticsOverlay = useCallback(() => setStatisticsOverlayOpen(true), []);
+    const handleCloseStatisticsOverlay = useCallback(() => setStatisticsOverlayOpen(false), []);
     const handleCloseCopyHistory = useCallback(() => setCopyHistoryOpen(false), []);
     const handleAppBarToggle = useCallback(() => {
         const newValue = !playbackPreferences.theaterMode;
@@ -1341,6 +1359,7 @@ function App({
         setSettingsDialogScrollToId('annotation');
         setSettingsDialogOpen(true);
     }, []);
+
     if (!i18nInitialized) {
         return null;
     }
@@ -1514,6 +1533,13 @@ function App({
                                         loading={loading}
                                     />
                                 </Paper>
+                                <AppStatisticsOverlay
+                                    open={statisticsOverlayOpen}
+                                    dictionaryProvider={dictionaryProvider}
+                                    onOpenStatistics={handleOpenStatistics}
+                                    onOpen={handleOpenStatisticsOverlay}
+                                    onClose={handleCloseStatisticsOverlay}
+                                />
                                 <Player
                                     origin={origin}
                                     subtitleReader={subtitleReader}

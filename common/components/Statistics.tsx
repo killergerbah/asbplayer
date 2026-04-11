@@ -460,17 +460,56 @@ interface SentenceStatsPanelProps {
 }
 
 interface SentenceStatProps {
-    fieldName: string;
-    value: string;
+    label: string;
+    value: string | number;
     typographyVariant?: TypographyProps['variant'];
     sx?: SxProps<Theme>;
 }
 
-function SentenceStat({ fieldName, value, sx, typographyVariant }: SentenceStatProps) {
+function StatRow({ label: fieldName, value, sx, typographyVariant }: SentenceStatProps) {
     return (
         <Box sx={{ display: 'flex', justifyContent: 'space-between', ...(sx ?? {}) }}>
             <Typography variant={typographyVariant ?? 'body2'}>{fieldName}</Typography>
             <Typography variant={typographyVariant ?? 'body2'}>{value}</Typography>
+        </Box>
+    );
+}
+
+interface Stat {
+    label: string;
+    value: string | number;
+}
+
+interface StatBoxesProps {
+    keyPrefix: string;
+    stats: Stat[];
+}
+
+function StatBoxes({ keyPrefix, stats }: StatBoxesProps) {
+    return (
+        <Box
+            sx={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
+                gap: 1,
+            }}
+        >
+            {stats.map(({ label, value }) => (
+                <Box
+                    key={`${keyPrefix}-${label}`}
+                    sx={{
+                        p: 1,
+                        borderRadius: 1,
+                        border: '1px solid',
+                        borderColor: 'divider',
+                    }}
+                >
+                    <Typography variant="caption" color="text.secondary">
+                        {label}
+                    </Typography>
+                    <Typography variant="subtitle1">{value}</Typography>
+                </Box>
+            ))}
         </Box>
     );
 }
@@ -538,8 +577,8 @@ function SentenceStatsPanel({
                     }}
                     onClick={() => onOpenSentenceBucketDetails(bucket)}
                 >
-                    <SentenceStat
-                        fieldName={label}
+                    <StatRow
+                        label={label}
                         value={`${count} · ${percentDisplay(percent(count, totalSentences))}`}
                         sx={{ width: '100%' }}
                         typographyVariant="body2"
@@ -566,41 +605,22 @@ function SentenceStatsPanel({
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, height: '100%' }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 1, alignItems: 'flex-start' }}>
                     <StatisticsSectionSubHeading>{title}</StatisticsSectionSubHeading>
-                    {headerAction && (
-                        <Box
-                            sx={{
-                                minWidth: 160,
-                                minHeight: 40,
-                                display: 'flex',
-                                justifyContent: 'flex-end',
-                                alignItems: 'flex-start',
-                                flexShrink: 0,
-                            }}
-                        >
-                            {headerAction}
-                        </Box>
-                    )}
                 </Box>
+                {headerAction && <Box sx={{ mb: 1.5 }}>{headerAction}</Box>}
                 {emptyMessage ? (
                     <Typography typography="body2" color="text.secondary">
                         {emptyMessage}
                     </Typography>
                 ) : (
                     <>
-                        <SentenceStat fieldName={comprehensionLabel} value={percentDisplay(comprehensionPercent)} />
-                        <SentenceStat
-                            fieldName={knownWordsLabel}
+                        <StatRow label={comprehensionLabel} value={percentDisplay(comprehensionPercent)} />
+                        <StatRow
+                            label={knownWordsLabel}
                             value={`${knownWordsCount} · ${percentDisplay(knownWordsPercent)}`}
                         />
-                        <SentenceStat fieldName={globalKnownLabel} value={`${globalKnownCount}`} />
-                        <SentenceStat
-                            fieldName={uniqueWordsPerSentenceLabel}
-                            value={averageDisplay(uniqueWordsPerSentence)}
-                        />
-                        <SentenceStat
-                            fieldName={knownWordsPerSentenceLabel}
-                            value={averageDisplay(knownWordsPerSentence)}
-                        />
+                        <StatRow label={globalKnownLabel} value={`${globalKnownCount}`} />
+                        <StatRow label={uniqueWordsPerSentenceLabel} value={averageDisplay(uniqueWordsPerSentence)} />
+                        <StatRow label={knownWordsPerSentenceLabel} value={averageDisplay(knownWordsPerSentence)} />
                         {renderSentenceBucketRow(
                             { kind: 'allKnown' },
                             knownSentencesLabel,
@@ -650,6 +670,7 @@ function AnkiStatisticsSection({
     unavailableMessage: string;
     emptyDeckBreakdownMessage: string;
 }) {
+    const { t } = useTranslation();
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             <StatisticsSectionHeading title={title} infoLines={infoLines} />
@@ -674,7 +695,6 @@ function AnkiStatisticsSection({
             ) : (
                 <>
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                        <StatisticsSectionSubHeading>{deckFrequencyBreakdownLabel}</StatisticsSectionSubHeading>
                         {snapshot.deckSnapshots.length === 0 ? (
                             <Typography color="text.secondary">{emptyDeckBreakdownMessage}</Typography>
                         ) : (
@@ -688,56 +708,23 @@ function AnkiStatisticsSection({
                                         borderColor: 'divider',
                                         display: 'flex',
                                         flexDirection: 'column',
-                                        gap: 1,
+                                        gap: 1.5,
                                     }}
                                 >
-                                    <Box
-                                        sx={{
-                                            display: 'flex',
-                                            justifyContent: 'space-between',
-                                            alignItems: 'center',
-                                            gap: 1,
-                                            flexWrap: 'wrap',
-                                        }}
-                                    >
-                                        <Typography variant="subtitle2">{deckSnapshot.deckName}</Typography>
-                                    </Box>
+                                    <StatisticsSectionSubHeading>{deckSnapshot.deckName}</StatisticsSectionSubHeading>
 
-                                    <Box
-                                        sx={{
-                                            display: 'grid',
-                                            gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
-                                            gap: 1,
-                                        }}
-                                    >
-                                        {[
-                                            { label: dueByTodayLabel, count: deckSnapshot.dueCounts.today },
-                                            { label: dueByTomorrowLabel, count: deckSnapshot.dueCounts.tomorrow },
-                                            { label: dueByWeekLabel, count: deckSnapshot.dueCounts.week },
-                                            { label: suspendedCardsLabel, count: deckSnapshot.suspendedCards },
-                                        ].map((dueBucket) => (
-                                            <Box
-                                                key={`${deckSnapshot.deckName}-${dueBucket.label}`}
-                                                sx={{
-                                                    p: 1,
-                                                    borderRadius: 1,
-                                                    border: '1px solid',
-                                                    borderColor: 'divider',
-                                                }}
-                                            >
-                                                <Typography variant="caption" color="text.secondary">
-                                                    {dueBucket.label}
-                                                </Typography>
-                                                <Typography variant="subtitle1">{dueBucket.count}</Typography>
-                                            </Box>
-                                        ))}
-                                    </Box>
+                                    <StatBoxes
+                                        keyPrefix={deckSnapshot.deckName}
+                                        stats={[
+                                            { label: dueByTodayLabel, value: deckSnapshot.dueCounts.today },
+                                            { label: dueByTomorrowLabel, value: deckSnapshot.dueCounts.tomorrow },
+                                            { label: dueByWeekLabel, value: deckSnapshot.dueCounts.week },
+                                            { label: suspendedCardsLabel, value: deckSnapshot.suspendedCards },
+                                        ]}
+                                    />
 
                                     {deckSnapshot.modelSnapshots.length > 0 && (
                                         <Box>
-                                            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                                                {modelBreakdownLabel}
-                                            </Typography>
                                             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
                                                 {deckSnapshot.modelSnapshots.map((modelSnapshot) => (
                                                     <Box
@@ -752,29 +739,15 @@ function AnkiStatisticsSection({
                                                             gap: 1,
                                                         }}
                                                     >
-                                                        <Box
-                                                            sx={{
-                                                                display: 'flex',
-                                                                justifyContent: 'space-between',
-                                                                alignItems: 'center',
-                                                                gap: 1,
-                                                                flexWrap: 'wrap',
-                                                            }}
-                                                        >
-                                                            <Typography variant="subtitle2">
-                                                                {modelSnapshot.modelName}
-                                                            </Typography>
-                                                            <Typography color="text.secondary">
-                                                                {uniqueWordsLabel(modelSnapshot.uniqueWords)}
-                                                            </Typography>
-                                                        </Box>
-
+                                                        <StatisticsSectionSubHeading>
+                                                            {modelSnapshot.modelName}
+                                                        </StatisticsSectionSubHeading>
+                                                        <StatRow
+                                                            label={t('statistics.uniqueWords')}
+                                                            value={modelSnapshot.uniqueWords}
+                                                        />
                                                         <Box>
-                                                            <Typography
-                                                                variant="body2"
-                                                                color="text.secondary"
-                                                                sx={{ mb: 1 }}
-                                                            >
+                                                            <Typography variant="subtitle2" sx={{ mb: 1 }}>
                                                                 {frequencyLabel}
                                                             </Typography>
                                                             {modelSnapshot.frequencyBuckets
@@ -1174,10 +1147,9 @@ function TrackSnapshot({
                             selectedRewatchSnapshot !== undefined ? (
                                 <TextField
                                     select
+                                    fullWidth
                                     size="small"
-                                    label={t('statistics.rewatchSelect')}
                                     value={selectedRewatchSnapshot.rewatch}
-                                    sx={{ minWidth: 160 }}
                                     onChange={(event) =>
                                         onSelectedRewatchChanged(trackSnapshot.track, Number(event.target.value))
                                     }

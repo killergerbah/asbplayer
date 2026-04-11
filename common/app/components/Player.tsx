@@ -30,6 +30,7 @@ import Controls, { Point } from './Controls';
 import Grid from '@mui/material/Grid';
 import MediaAdapter, { MediaElement } from '../services/media-adapter';
 import SubtitlePlayer, { DisplaySubtitleModel, minSubtitlePlayerWidth } from './SubtitlePlayer';
+import StatisticsOverlay from '@project/common/components/StatisticsOverlay';
 import VideoChannel from '../services/video-channel';
 import ChromeExtension from '../services/chrome-extension';
 import PlaybackPreferences from '../services/playback-preferences';
