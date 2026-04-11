@@ -588,7 +588,15 @@ function App({
             toggleInAppStatistics();
         }
     }, [extension, isSidePanelOpen]);
-    const handleOpenStatisticsOverlay = useCallback(() => setStatisticsOverlayOpen(true), []);
+    const handleReceivedStatisticsSnapshot = useCallback(
+        (mediaId: string) => {
+            if (mediaId !== extension.id) {
+                return;
+            }
+            setStatisticsOverlayOpen(true);
+        },
+        [extension]
+    );
     const handleCloseStatisticsOverlay = useCallback(() => setStatisticsOverlayOpen(false), []);
     const handleCloseCopyHistory = useCallback(() => setCopyHistoryOpen(false), []);
     const handleAppBarToggle = useCallback(() => {
@@ -1537,7 +1545,7 @@ function App({
                                     open={statisticsOverlayOpen}
                                     dictionaryProvider={dictionaryProvider}
                                     onOpenStatistics={handleOpenStatistics}
-                                    onOpen={handleOpenStatisticsOverlay}
+                                    onReceivedSnapshot={handleReceivedStatisticsSnapshot}
                                     onClose={handleCloseStatisticsOverlay}
                                 />
                                 <Player

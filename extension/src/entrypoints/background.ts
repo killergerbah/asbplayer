@@ -54,7 +54,7 @@ import { bindWebSocketClient, unbindWebSocketClient } from '@/services/web-socke
 import { isFirefoxBuild } from '@/services/build-flags';
 import { CaptureStreamAudioRecorder, OffscreenAudioRecorder } from '@/services/audio-recorder-delegate';
 import RequestModelHandler from '@/handlers/mobile-overlay/request-model-handler';
-import CurrentTabHandler from '@/handlers/mobile-overlay/current-tab-handler';
+import CurrentTabHandler from '@/handlers/current-tab-handler';
 import UpdateMobileOverlayModelHandler from '@/handlers/video/update-mobile-overlay-model-handler';
 import { isMobile } from '@project/common/device-detection/mobile';
 import { enqueueUpdateAlert } from '@/services/update-alert';
@@ -75,6 +75,7 @@ import { lt as semverLt } from 'semver';
 import { AnnotationTutorialState } from '@project/common/global-state';
 import BrowserFeaturesHandler from '@/handlers/asbplayerv2/browser-features-handler';
 import OpenStatisticsHandler from '@/handlers/video/open-statistics-handler';
+import StatisticsOverlayForwarderHandler from '@/handlers/statistics-overlay/statistics-overlay-forwarder-handler';
 
 export default defineBackground(() => {
     if (!isFirefoxBuild) {
@@ -219,6 +220,7 @@ export default defineBackground(() => {
         new RequestModelHandler(),
         new CurrentTabHandler(),
         new MobileOverlayForwarderHandler(),
+        new StatisticsOverlayForwarderHandler(),
     ];
 
     browser.runtime.onMessage.addListener((request: Command<Message>, sender, sendResponse) => {

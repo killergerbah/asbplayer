@@ -993,3 +993,19 @@ export interface DictionaryRequestStatisticsMineSentencesMessage extends Message
     readonly mediaId: string;
     readonly indexes: number[];
 }
+
+export interface OpenStatisticsOverlayMessage extends Message {
+    readonly command: 'open';
+}
+
+export interface CloseStatisticsOverlayMessage extends Message {
+    readonly command: 'close';
+}
+
+export interface FullscreenStatisticsOverlayMessage extends Message {
+    readonly command: 'fullscreen';
+}
+
+export interface RestoreStatisticsOverlayMessage extends Message {
+    readonly command: 'restore';
+}

@@ -113,6 +113,7 @@ export default defineConfig({
                         'video-select-ui.js',
                         'notification-ui.js',
                         'mobile-video-overlay-ui.html',
+                        'statistics-overlay-ui.html',
                         'page-favicons/*',
                     ],
                     matches: ['<all_urls>'],

@@ -832,7 +832,7 @@ function TrackSnapshotSelector({
             <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap', flexGrow: 1 }}>
                 {new Array(count).fill(0).map((_, i) => {
                     return (
-                        <div>
+                        <div key={i}>
                             <Button
                                 variant={selectedIndex === i ? 'contained' : 'outlined'}
                                 startIcon={<BarChartIcon />}

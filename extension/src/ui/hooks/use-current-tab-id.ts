@@ -23,7 +23,7 @@ export const useCurrentTabId = () => {
     useEffect(() => {
         browser.windows.onFocusChanged.addListener(refresh);
         return () => browser.windows.onFocusChanged.removeListener(refresh);
-    }, []);
+    }, [refresh]);
 
     return currentTabId;
 };

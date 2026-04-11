@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState, useMemo } from 'react';
+import React, { useCallback, useEffect, useState, useMemo, useRef } from 'react';
 import { DictionaryProvider } from '../dictionary-db';
 import {
     DictionarySimplifiedStatisticsTrackSnapshot,
@@ -12,11 +12,12 @@ import Paper from '@mui/material/Paper';
 import { alpha, SxProps, Theme } from '@mui/material/styles';
 import { useTranslation } from 'react-i18next';
 import BarChartIcon from '@mui/icons-material/BarChart';
-import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import CloseIcon from '@mui/icons-material/Close';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import StatisticsSentenceDetailsDialog from './StatisticsSentenceDetailsDialog';
+import LogoIcon from './LogoIcon';
+import LinearProgress from '@mui/material/LinearProgress';
 
 interface StatisticProps {
     label: string;
@@ -46,8 +47,10 @@ const Statistic: React.FC<StatisticProps> = ({ label, value, onClick }) => {
             }}
             onClick={onClick}
         >
-            <Typography>{label}</Typography>
-            <Typography sx={{ textDecoration }}>{value}</Typography>
+            <Typography variant="subtitle2">{label}</Typography>
+            <Typography variant="subtitle2" sx={{ textDecoration }}>
+                {value}
+            </Typography>
         </Box>
     );
 };
@@ -56,8 +59,10 @@ export interface StatisticsOverlayProps {
     dictionaryProvider: DictionaryProvider;
     open: boolean;
     onOpenStatistics: () => void;
-    onOpen: () => void;
+    onReceivedSnapshot: (mediaId: string) => void;
     onClose: () => void;
+    onSentenceDetailsWereOpened?: () => void;
+    onSentenceDetailsWereClosed?: () => void;
     sx?: SxProps<Theme>;
 }
 
@@ -65,20 +70,27 @@ const StatisticsOverlay: React.FC<StatisticsOverlayProps> = ({
     dictionaryProvider,
     open,
     onOpenStatistics,
-    onOpen,
+    onReceivedSnapshot,
     onClose,
+    onSentenceDetailsWereOpened,
+    onSentenceDetailsWereClosed,
     sx,
 }) => {
     const { t } = useTranslation();
     const [trackSnapshots, setTrackSnapshots] = useState<DictionarySimplifiedStatisticsTrackSnapshot[]>();
     const [sentenceDetailsOpen, setSentenceDetailsOpen] = useState<boolean>(false);
     const [mediaId, setMediaId] = useState<string>();
+    const onReceivedSnapshotRef = useRef<(mediaId: string) => void>(onReceivedSnapshot);
+    onReceivedSnapshotRef.current = onReceivedSnapshot;
     useEffect(() => {
         const unsubscribeStatistics = dictionaryProvider.onStatisticsSnapshot(
             (snapshot?: DictionaryStatisticsSnapshot) => {
                 const nextTrackSnapshots = processSimplifiedDictionaryStatistics(snapshot);
                 setMediaId(snapshot?.mediaId);
                 setTrackSnapshots(nextTrackSnapshots);
+                if (snapshot?.mediaId !== undefined) {
+                    onReceivedSnapshotRef.current?.(snapshot.mediaId);
+                }
             }
         );
         void dictionaryProvider.requestStatisticsSnapshot();
@@ -103,8 +115,14 @@ const StatisticsOverlay: React.FC<StatisticsOverlayProps> = ({
     const iPlusOneSentenceCount = iPlusOneSentenceBucket?.entries?.length ?? 0;
     const iPlusOneLabel = `1 ${t('settings.dictionaryTokenStatus0')}`;
 
-    const handleOpenSentenceDetails = useCallback(() => setSentenceDetailsOpen(true), []);
-    const handleCloseSentenceDetails = useCallback(() => setSentenceDetailsOpen(false), []);
+    const handleOpenSentenceDetails = useCallback(() => {
+        setSentenceDetailsOpen(true);
+        onSentenceDetailsWereOpened?.();
+    }, [onSentenceDetailsWereOpened]);
+    const handleCloseSentenceDetails = useCallback(() => {
+        setSentenceDetailsOpen(false);
+        onSentenceDetailsWereClosed?.();
+    }, [onSentenceDetailsWereClosed]);
     const handleSeekToSentence = useCallback(
         (timestamp: number) => {
             if (!mediaId) {
@@ -131,11 +149,12 @@ const StatisticsOverlay: React.FC<StatisticsOverlayProps> = ({
                     background: (theme) => alpha(theme.palette.background.paper, 0.7),
                     zIndex: (theme) => theme.zIndex.modal,
                     p: 1,
+                    position: 'relative',
                     ...(sx ?? {}),
                 }}
             >
                 <Box sx={{ display: 'flex', gap: 1 }}>
-                    <BarChartIcon color="primary" />
+                    <LogoIcon sx={{ m: 0.5 }} />
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
                         {bestTrackSnapshot && (
                             <Statistic
@@ -150,14 +169,21 @@ const StatisticsOverlay: React.FC<StatisticsOverlayProps> = ({
                         />
                     </Box>
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <IconButton size="small" onClick={onOpenStatistics}>
-                            <OpenInNewIcon />
+                        <IconButton onClick={onOpenStatistics}>
+                            <BarChartIcon />
                         </IconButton>
-                        <IconButton size="small" onClick={onClose}>
+                        <IconButton onClick={onClose}>
                             <CloseIcon />
                         </IconButton>
                     </Box>
                 </Box>
+                {bestTrackSnapshot && bestTrackSnapshot.progress.current < bestTrackSnapshot.progress.total && (
+                    <LinearProgress
+                        variant={bestTrackSnapshot.progress.current > 0 ? 'determinate' : 'indeterminate'}
+                        value={(bestTrackSnapshot.progress.current / bestTrackSnapshot.progress.total) * 100}
+                        sx={{ position: 'absolute', width: '100%', left: 0, bottom: -1, borderRadius: 0, height: 2 }}
+                    />
+                )}
                 {iPlusOneSentenceBucket && bestTrackSnapshot && (
                     <StatisticsSentenceDetailsDialog
                         open={sentenceDetailsOpen}

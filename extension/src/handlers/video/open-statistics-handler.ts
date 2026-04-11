@@ -12,7 +12,7 @@ export default class OpenStatisticsHandler {
     }
 
     get sender() {
-        return ['asbplayer-video'];
+        return ['asbplayer-video', 'asbplayer-video-tab'];
     }
 
     get command() {
