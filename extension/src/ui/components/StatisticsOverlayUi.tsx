@@ -16,6 +16,7 @@ import {
     FullscreenStatisticsOverlayMessage,
     OpenStatisticsMessage,
     OpenStatisticsOverlayMessage,
+    ResizeStatisticsOverlayMessage,
     RestoreStatisticsOverlayMessage,
     StatisticsOverlayCommand,
     StatisticsOverlayToTabCommand,
@@ -43,6 +44,7 @@ const useThisTabId = () => {
 
 const StatisticsOverlayUi = () => {
     const [settings, setSettings] = useState<AsbplayerSettings>();
+    const [mediaId, setMediaId] = useState<string>();
     const theme = useMemo(() => settings && createTheme(settings.themeType), [settings]);
     const extension = useChromeExtension({ component: 'statisticsPopup' });
 
@@ -68,6 +70,41 @@ const StatisticsOverlayUi = () => {
         browser.runtime.sendMessage(command);
     }, []);
 
+    const overlayRef = useRef<HTMLDivElement | null>(null);
+    const publishOverlaySize = () => {
+        if (!overlayRef.current) {
+            return;
+        }
+        const command: StatisticsOverlayToTabCommand<ResizeStatisticsOverlayMessage> = {
+            sender: 'asbplayer-statistics-overlay-to-tab',
+            message: {
+                command: 'resize',
+                width: overlayRef.current.getBoundingClientRect().width,
+                height: overlayRef.current.getBoundingClientRect().height,
+            },
+        };
+        browser.runtime.sendMessage(command);
+    };
+    const resizeObserver = useMemo(() => {
+        return new ResizeObserver(() => publishOverlaySize());
+    }, []);
+
+    const handleOverlayRef = useCallback(
+        (elm: HTMLDivElement | null) => {
+            if (!elm) {
+                return;
+            }
+
+            if (overlayRef.current) {
+                resizeObserver.unobserve(overlayRef.current);
+            }
+            overlayRef.current = elm;
+            publishOverlaySize();
+            resizeObserver.observe(elm);
+        },
+        [resizeObserver]
+    );
+
     const thisTabId = useThisTabId();
 
     const handleReceivedSnapshot = useCallback(
@@ -80,10 +117,12 @@ const StatisticsOverlayUi = () => {
             if (thisTabId !== videoElement?.id) {
                 return;
             }
+            setMediaId(mediaId);
             const command: StatisticsOverlayToTabCommand<OpenStatisticsOverlayMessage> = {
                 sender: 'asbplayer-statistics-overlay-to-tab',
                 message: {
                     command: 'open',
+                    mediaId,
                 },
             };
             browser.runtime.sendMessage(command);
@@ -91,14 +130,18 @@ const StatisticsOverlayUi = () => {
         [thisTabId]
     );
     const handleCloseStatisticsOverlay = useCallback(() => {
+        if (mediaId === undefined) {
+            return;
+        }
         const command: StatisticsOverlayToTabCommand<CloseStatisticsOverlayMessage> = {
             sender: 'asbplayer-statistics-overlay-to-tab',
             message: {
                 command: 'close',
+                mediaId,
             },
         };
         browser.runtime.sendMessage(command);
-    }, []);
+    }, [mediaId]);
     const handleSentenceDetailsWereOpened = useCallback(() => {
         const command: StatisticsOverlayToTabCommand<FullscreenStatisticsOverlayMessage> = {
             sender: 'asbplayer-statistics-overlay-to-tab',
@@ -137,6 +180,7 @@ const StatisticsOverlayUi = () => {
                 }}
             >
                 <StatisticsOverlay
+                    ref={handleOverlayRef}
                     open
                     dictionaryProvider={dictionaryProvider}
                     onOpenStatistics={handleOpenStatistics}

@@ -996,10 +996,18 @@ export interface DictionaryRequestStatisticsMineSentencesMessage extends Message
 
 export interface OpenStatisticsOverlayMessage extends Message {
     readonly command: 'open';
+    readonly mediaId: string;
+}
+
+export interface ResizeStatisticsOverlayMessage extends Message {
+    readonly command: 'resize';
+    readonly width: number;
+    readonly height: number;
 }
 
 export interface CloseStatisticsOverlayMessage extends Message {
     readonly command: 'close';
+    readonly mediaId: string;
 }
 
 export interface FullscreenStatisticsOverlayMessage extends Message {

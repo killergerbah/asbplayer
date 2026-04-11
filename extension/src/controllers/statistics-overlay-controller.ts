@@ -1,6 +1,12 @@
 import { CachingElementOverlay, OffsetAnchor } from '@/services/element-overlay';
 import { frameColorScheme } from '@/services/frame-color-scheme';
-import { Message, StatisticsOverlayToTabCommand } from '@project/common';
+import {
+    CloseStatisticsOverlayMessage,
+    Message,
+    OpenStatisticsOverlayMessage,
+    ResizeStatisticsOverlayMessage,
+    StatisticsOverlayToTabCommand,
+} from '@project/common';
 
 type State = 'open' | 'fullscreen' | 'closed';
 
@@ -12,8 +18,11 @@ export class StatisticsOverlayController {
     ) => void;
     private _overlay?: CachingElementOverlay;
     private _height?: string;
+    private _restoreWidth?: string;
+    private _width?: string;
     private _state: State = 'closed';
     private _restoreTimeout?: NodeJS.Timeout;
+    private _lastClosedMediaId?: string;
 
     unbind() {
         if (this._messageListener !== undefined) {
@@ -44,6 +53,8 @@ export class StatisticsOverlayController {
                     if (this._state !== 'fullscreen') {
                         this._state = 'fullscreen';
                         this._setHeight('100vh');
+                        this._restoreWidth = this._width;
+                        this._setWidth('100vw');
                     }
                     break;
                 case 'restore':
@@ -55,20 +66,28 @@ export class StatisticsOverlayController {
                         if (this._state === 'fullscreen') {
                             this._state = 'open';
                             this._setHeight('68px');
+                            this._setWidth(this._restoreWidth ?? '100%');
                         }
                     }, 500);
                     break;
                 case 'open':
-                    if (this._state === 'closed') {
+                    const openMessage = command.message as OpenStatisticsOverlayMessage;
+                    if (this._state === 'closed' && this._lastClosedMediaId !== openMessage.mediaId) {
                         this._state = 'open';
                         this._setHeight('68px');
                     }
                     break;
                 case 'close':
+                    const closeMessage = command.message as CloseStatisticsOverlayMessage;
                     if (this._state !== 'closed') {
                         this._state = 'closed';
                         this._setHeight('0px');
+                        this._lastClosedMediaId = closeMessage.mediaId;
                     }
+                    break;
+                case 'resize':
+                    const resizeMessage = command.message as ResizeStatisticsOverlayMessage;
+                    this._setWidth(`${resizeMessage.width + 50}px`);
                     break;
             }
         };
@@ -81,6 +100,16 @@ export class StatisticsOverlayController {
         if (this._overlay !== undefined) {
             for (const elm of this._overlay.displayingElements()) {
                 (elm as HTMLIFrameElement).style.setProperty('height', height, 'important');
+            }
+            this._overlay.refresh();
+        }
+    }
+
+    private _setWidth(width: string) {
+        this._width = width;
+        if (this._overlay !== undefined) {
+            for (const elm of this._overlay.displayingElements()) {
+                (elm as HTMLIFrameElement).style.setProperty('width', width, 'important');
             }
             this._overlay.refresh();
         }
@@ -102,6 +131,7 @@ export class StatisticsOverlayController {
             onMouseOver: () => {},
             onContainerStyles: (container) => {
                 container.style.setProperty('height', this._height ?? null, 'important');
+                container.style.setProperty('width', this._width ?? '100%', 'important');
             },
         });
         const colorScheme = frameColorScheme();

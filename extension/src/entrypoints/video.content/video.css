@@ -250,12 +250,12 @@
 }
 
 .asbplayer-statistics-overlay-container {
-    display: block !important;
     position: fixed !important;
     bottom: 8px !important;
-    left: 0px !important;
+    transform: translateX(-50%) !important;
     width: 100vw !important;
     top: auto !important;
     z-index: 2147483647 !important;
     pointer-events: auto !important;
+    text-align: center !important;
 }

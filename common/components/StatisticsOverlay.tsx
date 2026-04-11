@@ -66,16 +66,19 @@ export interface StatisticsOverlayProps {
     sx?: SxProps<Theme>;
 }
 
-const StatisticsOverlay: React.FC<StatisticsOverlayProps> = ({
-    dictionaryProvider,
-    open,
-    onOpenStatistics,
-    onReceivedSnapshot,
-    onClose,
-    onSentenceDetailsWereOpened,
-    onSentenceDetailsWereClosed,
-    sx,
-}) => {
+const StatisticsOverlay = React.forwardRef<HTMLDivElement, StatisticsOverlayProps>(function StatisticsOverlay(
+    {
+        dictionaryProvider,
+        open,
+        onOpenStatistics,
+        onReceivedSnapshot,
+        onClose,
+        onSentenceDetailsWereOpened,
+        onSentenceDetailsWereClosed,
+        sx,
+    },
+    ref
+) {
     const { t } = useTranslation();
     const [trackSnapshots, setTrackSnapshots] = useState<DictionarySimplifiedStatisticsTrackSnapshot[]>();
     const [sentenceDetailsOpen, setSentenceDetailsOpen] = useState<boolean>(false);
@@ -141,9 +144,11 @@ const StatisticsOverlay: React.FC<StatisticsOverlayProps> = ({
         },
         [mediaId, dictionaryProvider]
     );
+
     return (
         <Fade in={bestTrackSnapshot !== undefined && open} timeout={250}>
             <Paper
+                ref={ref}
                 variant="elevation"
                 sx={{
                     background: (theme) => alpha(theme.palette.background.paper, 0.7),
@@ -181,7 +186,14 @@ const StatisticsOverlay: React.FC<StatisticsOverlayProps> = ({
                     <LinearProgress
                         variant={bestTrackSnapshot.progress.current > 0 ? 'determinate' : 'indeterminate'}
                         value={(bestTrackSnapshot.progress.current / bestTrackSnapshot.progress.total) * 100}
-                        sx={{ position: 'absolute', width: '100%', left: 0, bottom: -1, borderRadius: 0, height: 2 }}
+                        sx={{
+                            position: 'absolute',
+                            width: '100%',
+                            left: 0,
+                            bottom: -1,
+                            borderRadius: 0,
+                            height: 2,
+                        }}
                     />
                 )}
                 {iPlusOneSentenceBucket && bestTrackSnapshot && (
@@ -200,6 +212,6 @@ const StatisticsOverlay: React.FC<StatisticsOverlayProps> = ({
             </Paper>
         </Fade>
     );
-};
+});
 
 export default StatisticsOverlay;
