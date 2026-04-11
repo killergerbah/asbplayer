@@ -44,6 +44,7 @@ import { timeDurationDisplay } from '@project/common/util/util';
 import { SxProps, type Theme } from '@mui/material/styles';
 import Stack from '@mui/material/Stack';
 import BarChartIcon from '@mui/icons-material/BarChart';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import Link from '@mui/material/Link';
 
 export interface MediaInfo {
@@ -54,6 +55,7 @@ export interface StatisticsProps {
     dictionaryProvider: DictionaryProvider;
     settings: AsbplayerSettings;
     hasSubtitles: boolean;
+    onOpenInNewWindow?: () => void;
     onViewAnnotationSettings: () => void;
     onSeekWasRequested?: (mediaId: string) => Promise<void>;
     onMineWasRequested?: (mediaId: string) => Promise<void>;
@@ -816,26 +818,41 @@ function AnkiStatisticsSection({
 function TrackSnapshotSelector({
     selectedIndex,
     onSelectedIndex,
+    onOpenInNewWindow,
     count,
 }: {
     selectedIndex: number;
     onSelectedIndex: (index: number) => void;
+    onOpenInNewWindow?: () => void;
     count: number;
 }) {
     const { t } = useTranslation();
     return (
         <Box sx={{ display: 'flex', gap: 2 }}>
-            {new Array(count).fill(0).map((_, i) => {
-                return (
-                    <Button
-                        variant={selectedIndex === i ? 'contained' : 'outlined'}
-                        startIcon={<BarChartIcon />}
-                        onClick={() => onSelectedIndex(i)}
-                    >
-                        {t('settings.subtitleTrackChoice', { trackNumber: i + 1 })}
-                    </Button>
-                );
-            })}
+            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap', flexGrow: 1 }}>
+                {new Array(count).fill(0).map((_, i) => {
+                    return (
+                        <div>
+                            <Button
+                                variant={selectedIndex === i ? 'contained' : 'outlined'}
+                                startIcon={<BarChartIcon />}
+                                onClick={() => onSelectedIndex(i)}
+                                size="small"
+                            >
+                                {t('settings.subtitleTrackChoice', { trackNumber: i + 1 })}
+                            </Button>
+                        </div>
+                    );
+                })}
+            </Box>
+
+            {onOpenInNewWindow && (
+                <Box sx={{ alignItems: 'flex-start' }}>
+                    <IconButton>
+                        <OpenInNewIcon onClick={onOpenInNewWindow} />
+                    </IconButton>
+                </Box>
+            )}
         </Box>
     );
 }
@@ -1220,6 +1237,7 @@ export default function Statistics({
     settings,
     hasSubtitles,
     mediaInfoFetcher,
+    onOpenInNewWindow,
     onViewAnnotationSettings,
     onSeekWasRequested,
     onMineWasRequested,
@@ -1381,6 +1399,7 @@ export default function Statistics({
                         <TrackSnapshotSelector
                             selectedIndex={selectedTrackSnapshotIndex}
                             onSelectedIndex={setSelectedTrackSnapshotIndex}
+                            onOpenInNewWindow={onOpenInNewWindow}
                             count={trackSnapshots.length}
                         />
                     )}

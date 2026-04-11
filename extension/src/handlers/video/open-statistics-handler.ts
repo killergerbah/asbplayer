@@ -2,18 +2,7 @@ import { Command, Message } from '@project/common';
 import TabRegistry from '../../services/tab-registry';
 import { setExtensionRequestedLocation } from '@/services/side-panel';
 import { isFirefoxBuild } from '@/services/build-flags';
-
-const createStatisticsPopup = () => {
-    browser.windows.getLastFocused((window) => {
-        browser.windows.create({
-            type: 'popup',
-            focused: true,
-            width: window.width === undefined ? 800 : Math.floor(window.width / 2),
-            height: window.height === undefined ? 800 : Math.floor((window.height * 3) / 4),
-            url: browser.runtime.getURL('/statistics-ui.html'),
-        });
-    });
-};
+import { createStatisticsPopup } from '@/services/statistics-util';
 
 export default class OpenStatisticsHandler {
     private readonly _tabRegistry: TabRegistry;

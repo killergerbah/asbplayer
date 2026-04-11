@@ -55,6 +55,7 @@ import StatisticsDrawer from '@project/common/components/StatisticsDrawer';
 import { useSidePanelRequestedLocation } from '../hooks/use-side-panel-requested-location';
 import { clearExtensionRequestedLocation } from '@/services/side-panel';
 import { uiTabRegistry } from '../hooks/use-has-subtitles';
+import { createStatisticsPopup } from '@/services/statistics-util';
 
 interface Props {
     dictionaryProvider: DictionaryProvider;
@@ -589,6 +590,7 @@ export default function SidePanel({ dictionaryProvider, settingsProvider, settin
                     dictionaryProvider={dictionaryProvider}
                     onClose={noOp} // Cannot close when in-app
                     onViewAnnotationSettings={handleViewAnnotationSettings}
+                    onOpenInNewWindow={createStatisticsPopup}
                     sx={{ p: 2 }}
                 />
             )}
@@ -659,6 +661,7 @@ export default function SidePanel({ dictionaryProvider, settingsProvider, settin
                                 onClose={handleCloseStatistics}
                                 onMineWasRequested={uiTabRegistry.focusTabForMediaId}
                                 onViewAnnotationSettings={handleViewAnnotationSettings}
+                                onOpenInNewWindow={createStatisticsPopup}
                                 sx={{ p: 2 }}
                             />
                             <SidePanelTopControls
