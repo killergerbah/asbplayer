@@ -1,4 +1,5 @@
 import {
+    DictionaryBuildAnkiCacheState,
     DictionaryBuildAnkiCacheStateError,
     DictionaryBuildAnkiCacheStateType,
     Fetcher,
@@ -396,6 +397,22 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
         for (const token of modifiedTokens) this.tokensForRefresh.add(token);
     }
 
+    buildAnkiCacheStateChange(state: DictionaryBuildAnkiCacheState) {
+        this.tokensWereModified(state.body?.modifiedTokens ?? []);
+        if (state.type === DictionaryBuildAnkiCacheStateType.error) {
+            const body = state.body as DictionaryBuildAnkiCacheStateError;
+            if (body) {
+                console.error(
+                    `Dictionary Anki cache build error (${body.code} - ${body.msg}): ${JSON.stringify(body.data ?? {})}`
+                );
+            } else {
+                console.error(`Dictionary Anki cache build error: Unknown error`);
+            }
+            this.ankiRecentlyModifiedCardIds.clear();
+            this.ankiRecentlyModifiedFirstCheck = false;
+        }
+    }
+
     ankiCardWasModified() {
         this.ankiRefreshTrigger = true;
     }
@@ -607,15 +624,9 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
 
     bind() {
         if (this.removeBuildAnkiCacheStateChangeCB) this.removeBuildAnkiCacheStateChangeCB();
-        this.removeBuildAnkiCacheStateChangeCB = this.dictionaryProvider.onBuildAnkiCacheStateChange((state) => {
-            this.tokensWereModified(state.body?.modifiedTokens ?? []);
-            if (state.type === DictionaryBuildAnkiCacheStateType.error) {
-                const body = state.body as DictionaryBuildAnkiCacheStateError;
-                console.error(`Dictionary Anki cache build error: ${body.msg}`);
-                this.ankiRecentlyModifiedCardIds.clear();
-                this.ankiRecentlyModifiedFirstCheck = false;
-            }
-        });
+        this.removeBuildAnkiCacheStateChangeCB = this.dictionaryProvider.onBuildAnkiCacheStateChange((state) =>
+            this.buildAnkiCacheStateChange(state)
+        );
         if (this.removeAnkiCardModifiedCB) this.removeAnkiCardModifiedCB();
         this.removeAnkiCardModifiedCB = this.dictionaryProvider.onAnkiCardModified(() => this.ankiCardWasModified());
         if (this.removeRequestStatisticsSnapshotCB) this.removeRequestStatisticsSnapshotCB();

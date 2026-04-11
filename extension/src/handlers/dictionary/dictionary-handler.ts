@@ -96,16 +96,26 @@ export default class DictionaryHandler {
                 const message = command.message as DictionaryBuildAnkiCacheMessage;
                 this.dictionaryDB
                     .buildAnkiCache(message.profile, message.settings, async (state: DictionaryBuildAnkiCacheState) => {
-                        const message: ExtensionToAsbPlayerCommand<DictionaryBuildAnkiCacheStateMessage> = {
+                        const playerMessage: ExtensionToAsbPlayerCommand<DictionaryBuildAnkiCacheStateMessage> = {
                             sender: 'asbplayer-extension-to-player',
                             message: { command: 'dictionary-build-anki-cache-state', ...state },
                         };
-                        void this._relayToExtensionContexts(message);
+                        void this._relayToExtensionContexts(playerMessage);
                         await this.tabRegistry.publishCommandToAsbplayers({
                             commandFactory: (asbplayer) => {
                                 if (asbplayer.sidePanel) return;
-                                return message;
+                                return playerMessage;
                             },
+                        });
+                        await this.tabRegistry.publishCommandToVideoElements((videoElement) => {
+                            return {
+                                sender: 'asbplayer-extension-to-video',
+                                src: videoElement.src,
+                                message: {
+                                    command: 'dictionary-build-anki-cache-state',
+                                    ...state,
+                                },
+                            } satisfies ExtensionToVideoCommand<DictionaryBuildAnkiCacheStateMessage>;
                         });
                     })
                     .then((result) => sendResponse(result));
