@@ -182,6 +182,7 @@ export class CachingElementOverlay implements ElementOverlay {
         const toggle = () => {
             if (document.fullscreenElement) {
                 container.style.setProperty('display', 'none', 'important');
+                this._transferChildren(container, this._fullscreenContainerElement());
             } else {
                 container.style.display = '';
 
@@ -227,6 +228,7 @@ export class CachingElementOverlay implements ElementOverlay {
                 }
             } else if (!document.fullscreenElement) {
                 container.style.setProperty('display', 'none', 'important');
+                this._transferChildren(container, this._nonFullscreenContainerElement());
             }
         };
 
