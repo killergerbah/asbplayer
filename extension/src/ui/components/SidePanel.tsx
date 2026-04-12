@@ -17,7 +17,7 @@ import {
     DownloadAudioMessage,
     CardExportedMessage,
 } from '@project/common';
-import type { Message } from '@project/common';
+import type { Command, Message, OpenStatisticsOverlayMessage } from '@project/common';
 import type { BulkExportStartedPayload } from '../../controllers/bulk-export-controller';
 import { AsbplayerSettings, SettingsProvider } from '@project/common/settings';
 import { AudioClip } from '@project/common/audio-clip';
@@ -540,6 +540,23 @@ export default function SidePanel({ dictionaryProvider, settingsProvider, settin
         setStatisticsOpen(false);
         void clearExtensionRequestedLocation();
     }, []);
+    const handleOpenStatisticsOverlay = useCallback(
+        (mediaId: string) => {
+            if (currentTabId === undefined) {
+                return;
+            }
+            const command: Command<OpenStatisticsOverlayMessage> = {
+                sender: 'asbplayerv2',
+                message: {
+                    command: 'open-statistics-overlay',
+                    mediaId,
+                    force: true,
+                },
+            };
+            browser.runtime.sendMessage(command);
+        },
+        [currentTabId]
+    );
     const handleViewAnnotationSettings = useCallback(() => {
         browser.tabs.create({
             url: `${browser.runtime.getURL('/options.html')}#annotation`,
@@ -590,6 +607,7 @@ export default function SidePanel({ dictionaryProvider, settingsProvider, settin
                     dictionaryProvider={dictionaryProvider}
                     onClose={noOp} // Cannot close when in-app
                     onViewAnnotationSettings={handleViewAnnotationSettings}
+                    onOpenOverlay={handleOpenStatisticsOverlay}
                     onOpenInNewWindow={createStatisticsPopup}
                     sx={{ p: 2 }}
                 />
@@ -661,6 +679,7 @@ export default function SidePanel({ dictionaryProvider, settingsProvider, settin
                                 onClose={handleCloseStatistics}
                                 onMineWasRequested={uiTabRegistry.focusTabForMediaId}
                                 onViewAnnotationSettings={handleViewAnnotationSettings}
+                                onOpenOverlay={handleOpenStatisticsOverlay}
                                 onOpenInNewWindow={createStatisticsPopup}
                                 sx={{ p: 2 }}
                             />

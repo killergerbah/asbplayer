@@ -45,6 +45,7 @@ import { SxProps, type Theme } from '@mui/material/styles';
 import Stack from '@mui/material/Stack';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import PictureInPictureAltIcon from '@mui/icons-material/PictureInPictureAlt';
 import Link from '@mui/material/Link';
 
 export interface MediaInfo {
@@ -56,6 +57,7 @@ export interface StatisticsProps {
     settings: AsbplayerSettings;
     hasSubtitles: boolean;
     onOpenInNewWindow?: () => void;
+    onOpenOverlay: (mediaId: string) => void;
     onViewAnnotationSettings: () => void;
     onSeekWasRequested?: (mediaId: string) => Promise<void>;
     onMineWasRequested?: (mediaId: string) => Promise<void>;
@@ -1226,6 +1228,7 @@ export default function Statistics({
     hasSubtitles,
     mediaInfoFetcher,
     onOpenInNewWindow,
+    onOpenOverlay,
     onViewAnnotationSettings,
     onSeekWasRequested,
     onMineWasRequested,
@@ -1393,13 +1396,27 @@ export default function Statistics({
                                 />
                             )}
                         </Box>
-                        {onOpenInNewWindow && (
-                            <Box sx={{ alignItems: 'center' }}>
-                                <IconButton>
-                                    <OpenInNewIcon onClick={onOpenInNewWindow} />
-                                </IconButton>
-                            </Box>
-                        )}
+                        <Box
+                            sx={{
+                                display: 'flex',
+                                flexDirection: mediaInfo?.sourceString ? 'row-reverse' : 'column',
+                            }}
+                        >
+                            {onOpenInNewWindow && (
+                                <Box>
+                                    <IconButton>
+                                        <OpenInNewIcon onClick={onOpenInNewWindow} />
+                                    </IconButton>
+                                </Box>
+                            )}
+                            {mediaId && (
+                                <Box>
+                                    <IconButton>
+                                        <PictureInPictureAltIcon onClick={() => onOpenOverlay(mediaId)} />
+                                    </IconButton>
+                                </Box>
+                            )}
+                        </Box>
                     </Box>
                     {trackSnapshot && statisticsSnapshot && (
                         <TrackSnapshot

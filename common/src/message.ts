@@ -995,25 +995,26 @@ export interface DictionaryRequestStatisticsMineSentencesMessage extends Message
 }
 
 export interface OpenStatisticsOverlayMessage extends Message {
-    readonly command: 'open';
+    readonly command: 'open-statistics-overlay';
     readonly mediaId: string;
+    readonly force: boolean;
 }
 
 export interface ResizeStatisticsOverlayMessage extends Message {
-    readonly command: 'resize';
+    readonly command: 'resize-statistics-overlay';
     readonly width: number;
     readonly height: number;
 }
 
 export interface CloseStatisticsOverlayMessage extends Message {
-    readonly command: 'close';
+    readonly command: 'close-statistics-overlay';
     readonly mediaId: string;
 }
 
 export interface FullscreenStatisticsOverlayMessage extends Message {
-    readonly command: 'fullscreen';
+    readonly command: 'fullscreen-statistics-overlay';
 }
 
 export interface RestoreStatisticsOverlayMessage extends Message {
-    readonly command: 'restore';
+    readonly command: 'restore-statistics-overlay';
 }

@@ -76,6 +76,7 @@ import { AnnotationTutorialState } from '@project/common/global-state';
 import BrowserFeaturesHandler from '@/handlers/asbplayerv2/browser-features-handler';
 import OpenStatisticsHandler from '@/handlers/video/open-statistics-handler';
 import StatisticsOverlayForwarderHandler from '@/handlers/statistics-overlay/statistics-overlay-forwarder-handler';
+import OpenStatisticsOverlayHandler from '@/handlers/open-statistics-overlay-handler';
 
 export default defineBackground(() => {
     if (!isFirefoxBuild) {
@@ -182,6 +183,7 @@ export default defineBackground(() => {
         new HttpPostHandler(),
         new ToggleSidePanelHandler(tabRegistry),
         new OpenStatisticsHandler(tabRegistry),
+        new OpenStatisticsOverlayHandler(tabRegistry),
         new OpenAsbplayerSettingsHandler(),
         new CopyToClipboardHandler(),
         new EncodeMp3Handler(),

@@ -2,6 +2,7 @@ import { CachingElementOverlay, OffsetAnchor } from '@/services/element-overlay'
 import { frameColorScheme } from '@/services/frame-color-scheme';
 import {
     CloseStatisticsOverlayMessage,
+    Command,
     Message,
     OpenStatisticsOverlayMessage,
     ResizeStatisticsOverlayMessage,
@@ -42,57 +43,75 @@ export class StatisticsOverlayController {
             sender: Browser.runtime.MessageSender,
             sendResponse: (response?: any) => void
         ) => {
-            if (message.sender !== 'asbplayer-statistics-overlay-to-tab') {
-                return;
-            }
-
-            const command = message as StatisticsOverlayToTabCommand<Message>;
-
-            switch (command.message.command) {
-                case 'fullscreen':
-                    if (this._state !== 'fullscreen') {
-                        this._state = 'fullscreen';
-                        this._setHeight('100vh');
-                        this._restoreWidth = this._width;
-                        this._setWidth('100vw');
-                    }
-                    break;
-                case 'restore':
-                    // Hack: delay to let sentence dialog animate closed
-                    if (this._restoreTimeout !== undefined) {
-                        clearTimeout(this._restoreTimeout);
-                    }
-                    this._restoreTimeout = setTimeout(() => {
-                        if (this._state === 'fullscreen') {
-                            this._state = 'open';
-                            this._setHeight('68px');
-                            this._setWidth(this._restoreWidth ?? '100%');
-                        }
-                    }, 500);
-                    break;
-                case 'open':
-                    const openMessage = command.message as OpenStatisticsOverlayMessage;
-                    if (this._state === 'closed' && this._lastClosedMediaId !== openMessage.mediaId) {
-                        this._state = 'open';
-                        this._setHeight('68px');
-                    }
-                    break;
-                case 'close':
-                    const closeMessage = command.message as CloseStatisticsOverlayMessage;
-                    if (this._state !== 'closed') {
-                        this._state = 'closed';
-                        this._setHeight('0px');
-                        this._lastClosedMediaId = closeMessage.mediaId;
-                    }
-                    break;
-                case 'resize':
-                    const resizeMessage = command.message as ResizeStatisticsOverlayMessage;
-                    this._setWidth(`${resizeMessage.width + 50}px`);
-                    break;
+            if (message.sender === 'asbplayer-statistics-overlay-to-tab') {
+                this._handleMessageFromOverlay(message);
+            } else {
+                this._handleMessage(message);
             }
         };
         this._ensureOverlay();
         browser.runtime.onMessage.addListener(this._messageListener);
+    }
+
+    private _handleMessageFromOverlay(message: any) {
+        const command = message as StatisticsOverlayToTabCommand<Message>;
+
+        switch (command.message.command) {
+            case 'fullscreen-statistics-overlay':
+                if (this._state !== 'fullscreen') {
+                    this._state = 'fullscreen';
+                    this._setHeight('100vh');
+                    this._restoreWidth = this._width;
+                    this._setWidth('100vw');
+                }
+                break;
+            case 'restore-statistics-overlay':
+                // Hack: delay to let sentence dialog animate closed
+                if (this._restoreTimeout !== undefined) {
+                    clearTimeout(this._restoreTimeout);
+                }
+                this._restoreTimeout = setTimeout(() => {
+                    if (this._state === 'fullscreen') {
+                        this._state = 'open';
+                        this._setHeight('68px');
+                        this._setWidth(this._restoreWidth ?? '100%');
+                    }
+                }, 500);
+                break;
+            case 'open-statistics-overlay':
+                const openMessage = command.message as OpenStatisticsOverlayMessage;
+                if (
+                    this._state === 'closed' &&
+                    (openMessage.force || this._lastClosedMediaId !== openMessage.mediaId)
+                ) {
+                    this._state = 'open';
+                    this._setHeight('68px');
+                }
+                break;
+            case 'close-statistics-overlay':
+                const closeMessage = command.message as CloseStatisticsOverlayMessage;
+                if (this._state !== 'closed') {
+                    this._state = 'closed';
+                    this._setHeight('0px');
+                    this._lastClosedMediaId = closeMessage.mediaId;
+                }
+                break;
+            case 'resize-statistics-overlay':
+                const resizeMessage = command.message as ResizeStatisticsOverlayMessage;
+                this._setWidth(`${resizeMessage.width + 50}px`);
+                break;
+        }
+    }
+
+    private _handleMessage(message: any) {
+        const command = message as Command<Message>;
+        if (command.message.command === 'open-statistics-overlay') {
+            const openMessage = (command as Command<OpenStatisticsOverlayMessage>).message;
+            if (this._state === 'closed' && (openMessage.force || this._lastClosedMediaId !== openMessage.mediaId)) {
+                this._state = 'open';
+                this._setHeight('68px');
+            }
+        }
     }
 
     private _setHeight(height: string) {

@@ -331,7 +331,7 @@ function App({
     const [tab, setTab] = useState<VideoTabModel>();
     const [availableTabs, setAvailableTabs] = useState<VideoTabModel[]>();
     const [isSidePanelOpen, setIsSidePanelOpen] = useState<boolean>(false);
-    const [statisticsOverlayOpen, setStatisticsOverlayOpen] = useState<boolean>(true);
+    const [statisticsOverlayOpen, setStatisticsOverlayOpen] = useState<boolean>(false);
     const [lastError, setLastError] = useState<any>();
     const fileInputRef = useRef<HTMLInputElement>(null);
     const { subtitleFiles } = sources;
@@ -589,15 +589,16 @@ function App({
         }
     }, [extension, isSidePanelOpen]);
     const handleReceivedStatisticsSnapshot = useCallback(
-        (mediaId: string) => {
+        (mediaId: string, trackIndex: number) => {
             if (mediaId !== extension.id) {
                 return;
             }
-            setStatisticsOverlayOpen(true);
+            setStatisticsOverlayOpen(settings.dictionaryTracks[trackIndex].dictionaryAutoGenerateStatistics);
         },
-        [extension]
+        [extension, settings.dictionaryTracks]
     );
     const handleCloseStatisticsOverlay = useCallback(() => setStatisticsOverlayOpen(false), []);
+    const handleOpenStatisticsOverlay = useCallback(() => setStatisticsOverlayOpen(true), []);
     const handleCloseCopyHistory = useCallback(() => setCopyHistoryOpen(false), []);
     const handleAppBarToggle = useCallback(() => {
         const newValue = !playbackPreferences.theaterMode;
@@ -1033,6 +1034,9 @@ function App({
                 setSettingsDialogOpen(true);
             } else if (message.data.command === 'show-anki-ui') {
                 handleAnki(message.data as ShowAnkiUiMessage);
+            } else if (message.data.command === 'open-statistics-overlay') {
+                console.log(message);
+                setStatisticsOverlayOpen(true);
             }
         }
 
@@ -1459,6 +1463,7 @@ function App({
                                 showBackButton
                                 drawerWidth={drawerWidth}
                                 onViewAnnotationSettings={handleViewAnnotationSettings}
+                                onOpenOverlay={handleOpenStatisticsOverlay}
                                 onClose={handleCloseStatistics}
                                 mediaInfoFetcher={fetchStatisticsMediaInfo}
                                 sx={{ p: 2 }}

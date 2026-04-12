@@ -59,12 +59,30 @@ export interface StatisticsOverlayProps {
     dictionaryProvider: DictionaryProvider;
     open: boolean;
     onOpenStatistics: () => void;
-    onReceivedSnapshot: (mediaId: string) => void;
+    onReceivedSnapshot: (mediaId: string, trackIndex: number) => void;
     onClose: () => void;
     onSentenceDetailsWereOpened?: () => void;
     onSentenceDetailsWereClosed?: () => void;
     sx?: SxProps<Theme>;
 }
+
+const calculateBestTrackSnapshot = (
+    trackSnapshots: DictionarySimplifiedStatisticsTrackSnapshot[]
+): [DictionarySimplifiedStatisticsTrackSnapshot | undefined, number] => {
+    if (trackSnapshots === undefined || trackSnapshots.length === 0) {
+        return [undefined, -1];
+    }
+    let best = trackSnapshots[0];
+    let bestIndex = 0;
+    for (let i = 0; i < trackSnapshots.length; ++i) {
+        const s = trackSnapshots[i];
+        if (s.comprehensionPercent > best.comprehensionPercent) {
+            best = s;
+            bestIndex = i;
+        }
+    }
+    return [best, bestIndex];
+};
 
 const StatisticsOverlay = React.forwardRef<HTMLDivElement, StatisticsOverlayProps>(function StatisticsOverlay(
     {
@@ -80,19 +98,20 @@ const StatisticsOverlay = React.forwardRef<HTMLDivElement, StatisticsOverlayProp
     ref
 ) {
     const { t } = useTranslation();
-    const [trackSnapshots, setTrackSnapshots] = useState<DictionarySimplifiedStatisticsTrackSnapshot[]>();
+    const [bestTrackSnapshot, setBestTrackSnapshot] = useState<DictionarySimplifiedStatisticsTrackSnapshot>();
     const [sentenceDetailsOpen, setSentenceDetailsOpen] = useState<boolean>(false);
     const [mediaId, setMediaId] = useState<string>();
-    const onReceivedSnapshotRef = useRef<(mediaId: string) => void>(onReceivedSnapshot);
+    const onReceivedSnapshotRef = useRef<(mediaId: string, trackIndex: number) => void>(onReceivedSnapshot);
     onReceivedSnapshotRef.current = onReceivedSnapshot;
     useEffect(() => {
         const unsubscribeStatistics = dictionaryProvider.onStatisticsSnapshot(
             (snapshot?: DictionaryStatisticsSnapshot) => {
                 const nextTrackSnapshots = processSimplifiedDictionaryStatistics(snapshot);
                 setMediaId(snapshot?.mediaId);
-                setTrackSnapshots(nextTrackSnapshots);
-                if (snapshot?.mediaId !== undefined) {
-                    onReceivedSnapshotRef.current?.(snapshot.mediaId);
+                const [bestSnapshot, bestIndex] = calculateBestTrackSnapshot(nextTrackSnapshots);
+                if (bestSnapshot !== undefined) {
+                    setBestTrackSnapshot(bestSnapshot);
+                    onReceivedSnapshotRef.current?.(snapshot!.mediaId, bestIndex);
                 }
             }
         );
@@ -102,18 +121,6 @@ const StatisticsOverlay = React.forwardRef<HTMLDivElement, StatisticsOverlayProp
         };
     }, [dictionaryProvider]);
 
-    const bestTrackSnapshot = useMemo(() => {
-        if (trackSnapshots === undefined || trackSnapshots.length === 0) {
-            return undefined;
-        }
-        let best = trackSnapshots[0];
-        for (const s of trackSnapshots) {
-            if (s.comprehensionPercent > best.comprehensionPercent) {
-                best = s;
-            }
-        }
-        return best;
-    }, [trackSnapshots]);
     const iPlusOneSentenceBucket = bestTrackSnapshot?.sentenceBuckets.uncollected.find((b) => b.tokenCount === 1);
     const iPlusOneSentenceCount = iPlusOneSentenceBucket?.entries?.length ?? 0;
     const iPlusOneLabel = `1 ${t('settings.dictionaryTokenStatus0')}`;
