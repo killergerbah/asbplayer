@@ -97,6 +97,9 @@ document.addEventListener('asbplayer-netflix-enabled', (e) => {
 document.dispatchEvent(new CustomEvent('asbplayer-query-netflix'));
 
 const youtube = /(m|www)\.youtube\.com/.test(window.location.host);
+const disneyPlus = window.location.host === 'www.disneyplus.com';
+const requestDisneyPlusMseOffsetEventName = 'asbplayer-get-disney-plus-mse-offset';
+const disneyPlusMseOffsetEventName = 'asbplayer-disney-plus-mse-offset';
 
 enum RecordingState {
     requested,
@@ -185,6 +188,7 @@ export default class Binding {
     private videoChangeListener?: EventListener;
     private canPlayListener?: EventListener;
     private mouseMoveListener?: (event: MouseEvent) => void;
+    private disneyPlusMseOffsetListener?: EventListener;
     private listener?: (
         message: any,
         sender: Browser.runtime.MessageSender,
@@ -201,6 +205,7 @@ export default class Binding {
 
     private readonly frameId?: string;
     private _mseBaseOffsetMs: number = 0;
+    private _pageScriptMseBaseOffsetMs?: number;
 
     constructor(video: HTMLMediaElement, hasPageScript: boolean, frameId?: string) {
         this.video = video;
@@ -482,6 +487,7 @@ export default class Binding {
     }
 
     _bind() {
+        this._installDisneyPlusMseOffsetListener();
         this._notifyReady();
         this._mseBaseOffsetMs = this._detectMseBaseOffset();
         this.subtitleController.mseBaseOffsetMs = this._mseBaseOffsetMs;
@@ -1119,6 +1125,11 @@ export default class Binding {
             this.mouseMoveListener = undefined;
         }
 
+        if (this.disneyPlusMseOffsetListener) {
+            document.removeEventListener(disneyPlusMseOffsetEventName, this.disneyPlusMseOffsetListener);
+            this.disneyPlusMseOffsetListener = undefined;
+        }
+
         if (this.heartbeatInterval) {
             clearInterval(this.heartbeatInterval);
             this.heartbeatInterval = undefined;
@@ -1600,7 +1611,50 @@ export default class Binding {
         this.mobileVideoOverlayController.disposeOverlay();
     }
 
+    private _installDisneyPlusMseOffsetListener() {
+        if (!disneyPlus || !this.hasPageScript || this.disneyPlusMseOffsetListener !== undefined) {
+            return;
+        }
+
+        this.disneyPlusMseOffsetListener = (event) => {
+            const offsetMs = (event as CustomEvent).detail?.mseBaseOffsetMs;
+
+            if (typeof offsetMs !== 'number' || !Number.isFinite(offsetMs)) {
+                return;
+            }
+
+            const previousMseBaseOffsetMs = this._mseBaseOffsetMs;
+            this._pageScriptMseBaseOffsetMs = offsetMs;
+            this._mseBaseOffsetMs = offsetMs;
+            this.subtitleController.mseBaseOffsetMs = offsetMs;
+
+            const subtitles = this.subtitleController.subtitles;
+
+            if (subtitles.length > 0) {
+                const currentOffset = subtitles[0].start - subtitles[0].originalStart;
+                const userOffset = currentOffset - previousMseBaseOffsetMs;
+                this.subtitleController.offset(userOffset + offsetMs, true);
+            }
+        };
+        document.addEventListener(disneyPlusMseOffsetEventName, this.disneyPlusMseOffsetListener);
+    }
+
+    private _requestDisneyPlusMseBaseOffset() {
+        if (!disneyPlus || !this.hasPageScript) {
+            return this._pageScriptMseBaseOffsetMs;
+        }
+
+        document.dispatchEvent(new CustomEvent(requestDisneyPlusMseOffsetEventName));
+        return this._pageScriptMseBaseOffsetMs;
+    }
+
     private _detectMseBaseOffset(): number {
+        const pageScriptOffsetMs = this._requestDisneyPlusMseBaseOffset();
+
+        if (pageScriptOffsetMs !== undefined) {
+            return pageScriptOffsetMs;
+        }
+
         if (!this.video.src.startsWith('blob:') || (isFinite(this.video.duration) && !isNaN(this.video.duration))) {
             return 0;
         }
