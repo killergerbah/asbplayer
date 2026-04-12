@@ -104,6 +104,7 @@ export default class SubtitleController {
     dictionaryTrackSettings?: DictionaryTrack[];
 
     readonly autoPauseContext: AutoPauseContext = new AutoPauseContext();
+    mseBaseOffsetMs: number = 0;
 
     onNextToShow?: (subtitle: SubtitleModel) => void;
     onSlice?: (subtitle: SubtitleSlice<IndexedSubtitleModel>) => void;
@@ -657,7 +658,7 @@ export default class SubtitleController {
 
         this.settings.getSingle('rememberSubtitleOffset').then((rememberSubtitleOffset) => {
             if (rememberSubtitleOffset) {
-                this.settings.set({ lastSubtitleOffset: offset });
+                this.settings.set({ lastSubtitleOffset: offset - this.mseBaseOffsetMs });
             }
         });
     }

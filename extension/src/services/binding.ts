@@ -88,6 +88,7 @@ import { pgsParserWorkerFactory } from './pgs-parser-worker-factory';
 import { DictionaryProvider } from '@project/common/dictionary-db/dictionary-provider';
 import { ExtensionDictionaryStorage } from './extension-dictionary-storage';
 import { HoveredToken } from '@project/common/subtitle-coloring';
+import { createVideoChangeHandler } from './video-change-handler';
 
 let netflix = false;
 document.addEventListener('asbplayer-netflix-enabled', (e) => {
@@ -199,6 +200,7 @@ export default class Binding {
     private currentAudioRecordingRequestId?: string;
 
     private readonly frameId?: string;
+    private _mseBaseOffsetMs: number = 0;
 
     constructor(video: HTMLMediaElement, hasPageScript: boolean, frameId?: string) {
         this.video = video;
@@ -481,6 +483,8 @@ export default class Binding {
 
     _bind() {
         this._notifyReady();
+        this._mseBaseOffsetMs = this._detectMseBaseOffset();
+        this.subtitleController.mseBaseOffsetMs = this._mseBaseOffsetMs;
         this._subscribe();
         this._refreshSettings().then(() => {
             this.videoDataSyncController.requestSubtitles();
@@ -641,10 +645,12 @@ export default class Binding {
         this.subtitleController.onMouseOut = (mouseEvent: MouseEvent) => this.hoveredToken.handleMouseOut(mouseEvent);
 
         if (this.hasPageScript) {
-            this.videoChangeListener = () => {
+            this.videoChangeListener = createVideoChangeHandler(this.video, () => {
+                this._mseBaseOffsetMs = this._detectMseBaseOffset();
+                this.subtitleController.mseBaseOffsetMs = this._mseBaseOffsetMs;
                 this.videoDataSyncController.requestSubtitles();
                 this._resetSubtitles();
-            };
+            });
             this.video.addEventListener('loadedmetadata', this.videoChangeListener);
         }
 
@@ -1505,7 +1511,8 @@ export default class Binding {
                     convertNetflixRuby: convertNetflixRuby,
                     pgsParserWorkerFactory: pgsParserWorkerFactory,
                 });
-                const offset = rememberSubtitleOffset ? lastSubtitleOffset : 0;
+                const userOffset = rememberSubtitleOffset ? lastSubtitleOffset : 0;
+                const offset = userOffset + this._mseBaseOffsetMs;
                 const subtitles = await reader.subtitles(files, flatten);
 
                 // Order is important: sync with tab first, then update our subtitle controller
@@ -1591,6 +1598,20 @@ export default class Binding {
         this._synced = false;
         this._syncedTimestamp = undefined;
         this.mobileVideoOverlayController.disposeOverlay();
+    }
+
+    private _detectMseBaseOffset(): number {
+        if (!this.video.src.startsWith('blob:') || (isFinite(this.video.duration) && !isNaN(this.video.duration))) {
+            return 0;
+        }
+        if (this.video.seekable.length === 0) {
+            return 0;
+        }
+        const offsetSeconds = this.video.currentTime - this.video.seekable.start(0);
+        if (offsetSeconds > 0.5 && offsetSeconds < 86400) {
+            return Math.round(offsetSeconds * 1000);
+        }
+        return 0;
     }
 
     private _captureStream(): Promise<MediaStream> {
