@@ -1,12 +1,12 @@
 import Grid from '@mui/material/Grid';
-import { HttpPostMessage, PopupToExtensionCommand } from '@project/common';
+import { Command, HttpPostMessage, OpenStatisticsOverlayMessage, PopupToExtensionCommand } from '@project/common';
 import { AsbplayerSettings, Profile, chromeCommandBindsToKeyBinds } from '@project/common/settings';
 import SettingsForm from '@project/common/components/SettingsForm';
 import PanelIcon from '@project/common/components/PanelIcon';
 import LaunchIcon from '@mui/icons-material/Launch';
 import SettingsIcon from '@mui/icons-material/Settings';
 import { useCallback, useMemo } from 'react';
-import Button from '@mui/material/Button';
+import Button, { type ButtonProps } from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import { useTranslation } from 'react-i18next';
 import { Fetcher } from '@project/common/src/fetcher';
@@ -29,6 +29,7 @@ import { uiTabRegistry, useHasSubtitles } from '../hooks/use-has-subtitles';
 import Statistics from '@project/common/components/Statistics';
 import Box from '@mui/material/Box';
 import { createStatisticsPopup } from '@/services/statistics-util';
+import Tooltip from '@project/common/components/Tooltip';
 
 const globalStateProvider = new ExtensionGlobalStateProvider();
 
@@ -63,6 +64,30 @@ class ExtensionFetcher implements Fetcher {
     }
 }
 
+const NavButton: React.FC<ButtonProps & { label: string }> = ({ label, ...buttonProps }) => {
+    const [isOverflowing, setIsOverflowing] = useState<boolean>();
+    return (
+        <Tooltip title={label} disabled={!isOverflowing}>
+            <Button size="small" variant="contained" color="primary" {...buttonProps}>
+                <span
+                    ref={(ref) => {
+                        setIsOverflowing(ref !== null && ref.scrollWidth > ref.clientWidth);
+                    }}
+                    style={{
+                        display: 'block',
+                        maxWidth: '100%',
+                        overflow: 'hidden',
+                        whiteSpace: 'nowrap',
+                        textOverflow: 'ellipsis',
+                    }}
+                >
+                    {label}
+                </span>
+            </Button>
+        </Tooltip>
+    );
+};
+
 const Popup = ({
     dictionaryProvider,
     settings,
@@ -93,6 +118,17 @@ const Popup = ({
         setScrollToId('annotation');
         setStatisticsOpen(false);
     }, []);
+    const handleOpenStatisticsOverlay = useCallback((mediaId: string) => {
+        const command: Command<OpenStatisticsOverlayMessage> = {
+            sender: 'asbplayer-popup',
+            message: {
+                command: 'open-statistics-overlay',
+                mediaId,
+                force: true,
+            },
+        };
+        browser.runtime.sendMessage(command);
+    }, []);
 
     const [statisticsOpen, setStatisticsOpen] = useState<boolean>(false);
     useEffect(() => {
@@ -111,56 +147,45 @@ const Popup = ({
     return (
         <Paper>
             <Stack direction="column" spacing={1.5} sx={{ padding: theme.spacing(1.5) }}>
-                <ButtonGroup fullWidth variant="contained" color="primary" orientation="horizontal">
+                <ButtonGroup
+                    fullWidth
+                    size="small"
+                    variant="contained"
+                    color="primary"
+                    orientation="horizontal"
+                    sx={{
+                        '& .MuiButton-root': {
+                            height: '36px',
+                        },
+                    }}
+                >
                     {hasSubtitles && (
                         <>
                             {statisticsOpen && (
-                                <Button
-                                    size="small"
-                                    variant="contained"
-                                    color="primary"
+                                <NavButton
                                     startIcon={<SettingsIcon />}
                                     onClick={handleToggleStatistics}
-                                >
-                                    {t('bar.settings')}
-                                </Button>
+                                    label={t('bar.settings')}
+                                />
                             )}
                             {!statisticsOpen && (
-                                <Button
-                                    size="small"
-                                    variant="contained"
-                                    color="primary"
+                                <NavButton
                                     startIcon={<BarChartIcon />}
                                     onClick={handleToggleStatistics}
-                                >
-                                    {t('statistics.title')}
-                                </Button>
+                                    label={t('statistics.title')}
+                                />
                             )}
                         </>
                     )}
-                    <Button
-                        size="small"
-                        variant="contained"
-                        color="primary"
-                        startIcon={<LaunchIcon />}
-                        onClick={onOpenApp}
-                    >
-                        {t('action.openApp')}
-                    </Button>
+                    <NavButton startIcon={<LaunchIcon />} onClick={onOpenApp} label={t('action.openApp')} />
                     {!isMobile && (
-                        <Button
-                            size="small"
-                            variant="contained"
-                            color="primary"
+                        <NavButton
                             startIcon={<PanelIcon />}
                             onClick={onOpenSidePanel}
-                        >
-                            {t('action.openSidePanel')}
-                        </Button>
+                            label={t('action.openSidePanel')}
+                        />
                     )}
-                    <Button variant="contained" color="primary" startIcon={<TutorialIcon />} onClick={onOpenUserGuide}>
-                        {t('action.userGuide')}
-                    </Button>
+                    <NavButton startIcon={<TutorialIcon />} onClick={onOpenUserGuide} label={t('action.userGuide')} />
                 </ButtonGroup>
                 <Grid
                     item
@@ -212,6 +237,7 @@ const Popup = ({
                                 settings={settings}
                                 hasSubtitles={hasSubtitles}
                                 onViewAnnotationSettings={handleViewAnnotationSettings}
+                                onOpenOverlay={handleOpenStatisticsOverlay}
                                 onSeekWasRequested={uiTabRegistry.focusTabForMediaId}
                                 onMineWasRequested={uiTabRegistry.focusTabForMediaId}
                                 onOpenInNewWindow={createStatisticsPopup}
