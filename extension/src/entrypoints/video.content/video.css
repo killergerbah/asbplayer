@@ -258,5 +258,4 @@
     /* +1 more than mobile overlay */
     z-index: 2147483647 !important;
     pointer-events: auto !important;
-    text-align: center !important;
 }

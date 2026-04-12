@@ -28,6 +28,7 @@ import { ExtensionGlobalStateProvider } from '@/services/extension-global-state-
 import { uiTabRegistry, useHasSubtitles } from '../hooks/use-has-subtitles';
 import Statistics from '@project/common/components/Statistics';
 import Box from '@mui/material/Box';
+import { createStatisticsPopup } from '@/services/statistics-util';
 
 const globalStateProvider = new ExtensionGlobalStateProvider();
 
@@ -213,6 +214,7 @@ const Popup = ({
                                 onViewAnnotationSettings={handleViewAnnotationSettings}
                                 onSeekWasRequested={uiTabRegistry.focusTabForMediaId}
                                 onMineWasRequested={uiTabRegistry.focusTabForMediaId}
+                                onOpenInNewWindow={createStatisticsPopup}
                                 mediaInfoFetcher={fetchStatisticsMediaInfo}
                                 sx={{ m: 1 }}
                             />

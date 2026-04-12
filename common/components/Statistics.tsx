@@ -818,41 +818,29 @@ function AnkiStatisticsSection({
 function TrackSnapshotSelector({
     selectedIndex,
     onSelectedIndex,
-    onOpenInNewWindow,
     count,
 }: {
     selectedIndex: number;
     onSelectedIndex: (index: number) => void;
-    onOpenInNewWindow?: () => void;
     count: number;
 }) {
     const { t } = useTranslation();
     return (
-        <Box sx={{ display: 'flex', gap: 2 }}>
-            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap', flexGrow: 1 }}>
-                {new Array(count).fill(0).map((_, i) => {
-                    return (
-                        <div key={i}>
-                            <Button
-                                variant={selectedIndex === i ? 'contained' : 'outlined'}
-                                startIcon={<BarChartIcon />}
-                                onClick={() => onSelectedIndex(i)}
-                                size="small"
-                            >
-                                {t('settings.subtitleTrackChoice', { trackNumber: i + 1 })}
-                            </Button>
-                        </div>
-                    );
-                })}
-            </Box>
-
-            {onOpenInNewWindow && (
-                <Box sx={{ alignItems: 'flex-start' }}>
-                    <IconButton>
-                        <OpenInNewIcon onClick={onOpenInNewWindow} />
-                    </IconButton>
-                </Box>
-            )}
+        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
+            {new Array(count).fill(0).map((_, i) => {
+                return (
+                    <div key={i}>
+                        <Button
+                            variant={selectedIndex === i ? 'contained' : 'outlined'}
+                            startIcon={<BarChartIcon />}
+                            onClick={() => onSelectedIndex(i)}
+                            size="small"
+                        >
+                            {t('settings.subtitleTrackChoice', { trackNumber: i + 1 })}
+                        </Button>
+                    </div>
+                );
+            })}
         </Box>
     );
 }
@@ -1394,16 +1382,25 @@ export default function Statistics({
 
             {hasSnapshots && (
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                    {mediaInfo?.sourceString && <Typography variant="h5">{mediaInfo?.sourceString}</Typography>}
-                    {trackSnapshots.length > 0 && (
-                        <TrackSnapshotSelector
-                            selectedIndex={selectedTrackSnapshotIndex}
-                            onSelectedIndex={setSelectedTrackSnapshotIndex}
-                            onOpenInNewWindow={onOpenInNewWindow}
-                            count={trackSnapshots.length}
-                        />
-                    )}
-
+                    <Box sx={{ display: 'flex', flexDirection: 'row' }}>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, pt: 0.5, flexGrow: 1 }}>
+                            {mediaInfo?.sourceString && <Typography variant="h5">{mediaInfo?.sourceString}</Typography>}
+                            {trackSnapshots.length > 0 && (
+                                <TrackSnapshotSelector
+                                    selectedIndex={selectedTrackSnapshotIndex}
+                                    onSelectedIndex={setSelectedTrackSnapshotIndex}
+                                    count={trackSnapshots.length}
+                                />
+                            )}
+                        </Box>
+                        {onOpenInNewWindow && (
+                            <Box sx={{ alignItems: 'center' }}>
+                                <IconButton>
+                                    <OpenInNewIcon onClick={onOpenInNewWindow} />
+                                </IconButton>
+                            </Box>
+                        )}
+                    </Box>
                     {trackSnapshot && statisticsSnapshot && (
                         <TrackSnapshot
                             trackSnapshot={trackSnapshot}
