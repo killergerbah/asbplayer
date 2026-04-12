@@ -30,12 +30,13 @@ import Controls, { Point } from './Controls';
 import Grid from '@mui/material/Grid';
 import MediaAdapter, { MediaElement } from '../services/media-adapter';
 import SubtitlePlayer, { DisplaySubtitleModel, minSubtitlePlayerWidth } from './SubtitlePlayer';
+import StatisticsOverlay from '@project/common/components/StatisticsOverlay';
 import VideoChannel from '../services/video-channel';
 import ChromeExtension from '../services/chrome-extension';
 import PlaybackPreferences from '../services/playback-preferences';
 import PlayModeManager from '../services/play-mode-manager';
 import { useWindowSize } from '../hooks/use-window-size';
-import { useAppBarHeight } from '../hooks/use-app-bar-height';
+import { useAppBarHeight } from '../../hooks/use-app-bar-height';
 import { createBlobUrl } from '../../blob-url';
 import { MiningContext } from '../services/mining-context';
 import { SeekTimestampCommand, WebSocketClient } from '../../web-socket-client';
@@ -84,6 +85,14 @@ function trackLength(
 
     const videoLength = video && video.duration ? 1000 * video.duration : 0;
     return Math.max(videoLength, subtitlesLength);
+}
+
+function pause(clock: Clock, mediaAdapter: MediaAdapter, forwardToMedia: boolean) {
+    clock.stop();
+
+    if (forwardToMedia) {
+        mediaAdapter.pause();
+    }
 }
 
 export interface MediaSources {
@@ -546,7 +555,7 @@ const Player = React.memo(function Player({
                     // We should probably have a hash or ID associated with the subtitle file this color update is for.
                     const updatedText = (s as TokenizedSubtitleModel).originalText ?? s.text;
                     const prevText =
-                        (allSubtitles[s.index] as TokenizedSubtitleModel).originalText ?? allSubtitles[s.index].text;
+                        (allSubtitles[s.index] as TokenizedSubtitleModel)?.originalText ?? allSubtitles[s.index]?.text;
                     if (updatedText === prevText) {
                         allSubtitles[s.index] = {
                             ...allSubtitles[s.index],
@@ -752,9 +761,28 @@ const Player = React.memo(function Player({
             }),
         [channel, clock]
     );
+    const play = useCallback(
+        (clock: Clock, mediaAdapter: MediaAdapter, forwardToMedia: boolean) => {
+            if (
+                (playModesRef.current.has(PlayMode.repeat) || playModesRef.current.has(PlayMode.autoPause)) &&
+                pendingAutoRepeatTargetTimestamp.current > 0
+            ) {
+                seek(pendingAutoRepeatTargetTimestamp.current, clock, forwardToMedia);
+                resetPendingAutoRepeatTargetTimestamp();
+            }
+
+            clock.start();
+
+            if (forwardToMedia) {
+                mediaAdapter.play();
+            }
+        },
+        [seek, resetPendingAutoRepeatTargetTimestamp]
+    );
+
     useEffect(
         () => channel?.onPlay((forwardToMedia) => play(clock, mediaAdapter, forwardToMedia)),
-        [channel, mediaAdapter, clock]
+        [channel, mediaAdapter, clock, play]
     );
     useEffect(
         () => channel?.onPause((forwardToMedia) => pause(clock, mediaAdapter, forwardToMedia)),
@@ -864,29 +892,6 @@ const Player = React.memo(function Player({
         [channel]
     );
     useEffect(() => channel?.onLoadFiles(() => onLoadFiles?.()), [channel, onLoadFiles]);
-    const play = (clock: Clock, mediaAdapter: MediaAdapter, forwardToMedia: boolean) => {
-        if (
-            (playModesRef.current.has(PlayMode.repeat) || playModesRef.current.has(PlayMode.autoPause)) &&
-            pendingAutoRepeatTargetTimestamp.current > 0
-        ) {
-            seek(pendingAutoRepeatTargetTimestamp.current, clock, forwardToMedia);
-            resetPendingAutoRepeatTargetTimestamp();
-        }
-
-        clock.start();
-
-        if (forwardToMedia) {
-            mediaAdapter.play();
-        }
-    };
-
-    function pause(clock: Clock, mediaAdapter: MediaAdapter, forwardToMedia: boolean) {
-        clock.stop();
-
-        if (forwardToMedia) {
-            mediaAdapter.pause();
-        }
-    }
 
     useEffect(() => {
         return miningContext.onEvent('stopped-mining', () => {
@@ -904,7 +909,7 @@ const Player = React.memo(function Player({
                     break;
             }
         });
-    }, [miningContext, settings, wasPlayingWhenMiningStarted, clock, mediaAdapter]);
+    }, [miningContext, settings, wasPlayingWhenMiningStarted, clock, mediaAdapter, play]);
 
     useEffect(() => {
         return miningContext.onEvent('started-mining', () => {
@@ -1006,7 +1011,7 @@ const Player = React.memo(function Player({
         setLastJumpToTopTimestamp(Date.now());
     }, [videoPopOut, channelId, videoFileUrl, videoFrameRef, videoChannelRef, origin]);
 
-    const handlePlay = useCallback(() => play(clock, mediaAdapter, true), [clock, mediaAdapter]);
+    const handlePlay = useCallback(() => play(clock, mediaAdapter, true), [clock, mediaAdapter, play]);
     const handlePause = useCallback(() => pause(clock, mediaAdapter, true), [clock, mediaAdapter]);
     const handleSeek = useCallback(
         async (progress: number) => {
@@ -1038,7 +1043,7 @@ const Player = React.memo(function Player({
                 play(clock, mediaAdapter, true);
             }
         },
-        [clock, seek, mediaAdapter]
+        [clock, seek, play, mediaAdapter]
     );
 
     const handleCopyFromSubtitlePlayer = useCallback(
@@ -1098,7 +1103,7 @@ const Player = React.memo(function Player({
                 play(clock, mediaAdapter, true);
             }
         },
-        [channel, clock, mediaAdapter, seek]
+        [channel, clock, mediaAdapter, seek, play]
     );
 
     const handleOffsetChange = useCallback(
@@ -1180,7 +1185,7 @@ const Player = React.memo(function Player({
         );
 
         return () => unbind();
-    }, [keyBinder, clock, mediaAdapter, disableKeyEvents]);
+    }, [keyBinder, clock, mediaAdapter, disableKeyEvents, play]);
 
     useEffect(() => {
         return keyBinder.bindAdjustPlaybackRate(

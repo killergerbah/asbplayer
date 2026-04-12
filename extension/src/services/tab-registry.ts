@@ -6,6 +6,7 @@ import {
     ExtensionToAsbPlayerCommandTabsCommand,
     ExtensionToVideoCommand,
     Message,
+    SidePanelLocation,
     VideoHeartbeatMessage,
     VideoTabModel,
 } from '@project/common';
@@ -22,6 +23,7 @@ export interface Asbplayer {
     id: string;
     tab?: SlimTab;
     sidePanel?: boolean;
+    sidePanelAppRequestedLocation?: SidePanelLocation;
     timestamp: number;
     receivedTabs?: VideoTabModel[];
     videoPlayer: boolean;
@@ -187,6 +189,7 @@ export default class TabRegistry {
             id: asbplayerId,
             videoPlayer,
             sidePanel,
+            sidePanelAppRequestedLocation,
             receivedTabs,
             loadedSubtitles,
             syncedVideoElement,
@@ -197,6 +200,7 @@ export default class TabRegistry {
             asbplayerId,
             videoPlayer,
             sidePanel ?? false,
+            sidePanelAppRequestedLocation,
             loadedSubtitles ?? false,
             receivedTabs,
             syncedVideoElement
@@ -225,13 +229,22 @@ export default class TabRegistry {
 
     async onAsbplayerAckTabs(
         tab: Browser.tabs.Tab | undefined,
-        { id: asbplayerId, videoPlayer, sidePanel, loadedSubtitles, receivedTabs, syncedVideoElement }: AckTabsMessage
+        {
+            id: asbplayerId,
+            videoPlayer,
+            sidePanel,
+            sidePanelAppRequestedLocation,
+            loadedSubtitles,
+            receivedTabs,
+            syncedVideoElement,
+        }: AckTabsMessage
     ) {
         this._updateAsbplayers(
             tab,
             asbplayerId,
             videoPlayer,
             sidePanel ?? false,
+            sidePanelAppRequestedLocation,
             loadedSubtitles ?? false,
             receivedTabs,
             syncedVideoElement
@@ -243,6 +256,7 @@ export default class TabRegistry {
         asbplayerId: string,
         videoPlayer: boolean,
         sidePanel: boolean,
+        sidePanelAppRequestedLocation: SidePanelLocation | undefined,
         loadedSubtitles: boolean,
         receivedTabs: VideoTabModel[] | undefined,
         syncedVideoElement: VideoTabModel | undefined
@@ -263,11 +277,22 @@ export default class TabRegistry {
                 timestamp: Date.now(),
                 receivedTabs,
                 sidePanel,
+                sidePanelAppRequestedLocation,
                 loadedSubtitles,
                 videoPlayer,
                 syncedVideoElement,
             };
             return true;
+        });
+    }
+
+    async onAsbplayerRemoved(id: string) {
+        await this._asbplayers((asbplayers) => {
+            if (id in asbplayers) {
+                delete asbplayers[id];
+                return true;
+            }
+            return false;
         });
     }
 
@@ -306,6 +331,7 @@ export default class TabRegistry {
                 sidePanel: asbplayer.sidePanel ?? false,
                 timestamp: asbplayer.timestamp,
                 videoPlayer: asbplayer.videoPlayer,
+                loadedSubtitles: asbplayer.loadedSubtitles ?? false,
             });
         }
 
@@ -567,5 +593,32 @@ export default class TabRegistry {
         }
 
         setTimeout(() => this._anyAsbplayerTab(resolve, reject, attempt + 1, maxAttempts, filter), 1000);
+    }
+
+    async focusTabForMediaId(mediaId: string) {
+        if (!mediaId) {
+            return;
+        }
+        try {
+            const videoElements = await this.activeVideoElements();
+            let tabId = videoElements.find((videoElement) => videoElement.src === mediaId)?.id;
+            if (tabId === undefined) {
+                tabId = (await this.findAsbplayerTab({ filter: (asbplayer) => asbplayer.id === mediaId }))?.id;
+            }
+            if (tabId === undefined) return;
+
+            const targetTab = await browser.tabs.get(tabId);
+            if (targetTab.windowId !== undefined) {
+                const targetWindow = await browser.windows.get(targetTab.windowId);
+                if (!targetWindow.focused) {
+                    await browser.windows.update(targetTab.windowId, { focused: true });
+                }
+            }
+            if (!targetTab.active) {
+                await browser.tabs.update(tabId, { active: true });
+            }
+        } catch {
+            // Best effort only
+        }
     }
 }

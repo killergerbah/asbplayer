@@ -112,7 +112,6 @@ export default function SettingsDialog({
                     extensionSupportsExportCardBind={extension.supportsExportCardBind}
                     extensionSupportsPageSettings={extension.supportsPageSettings}
                     extensionSupportsDictionary={extension.supportsDictionary}
-                    extensionSupportsDictionaryStatistics={extension.supportsDictionaryStatistics}
                     extensionSupportsDictionaryTokenStatusDisplayAlpha={
                         extension.supportsDictionaryTokenStatusDisplayAlpha
                     }
@@ -136,7 +135,6 @@ export default function SettingsDialog({
                     onUnlockLocalFonts={handleUnlockLocalFonts}
                     inAnnotationTutorial={inAnnotationTutorial}
                     onAnnotationTutorialSeen={handleAnnotationTutorialSeen}
-                    onMineRequested={onClose}
                 />
             </DialogContent>
             {(!extension.installed || extension.supportsSettingsProfiles) && (

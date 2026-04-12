@@ -54,7 +54,7 @@ import { bindWebSocketClient, unbindWebSocketClient } from '@/services/web-socke
 import { isFirefoxBuild } from '@/services/build-flags';
 import { CaptureStreamAudioRecorder, OffscreenAudioRecorder } from '@/services/audio-recorder-delegate';
 import RequestModelHandler from '@/handlers/mobile-overlay/request-model-handler';
-import CurrentTabHandler from '@/handlers/mobile-overlay/current-tab-handler';
+import CurrentTabHandler from '@/handlers/current-tab-handler';
 import UpdateMobileOverlayModelHandler from '@/handlers/video/update-mobile-overlay-model-handler';
 import { isMobile } from '@project/common/device-detection/mobile';
 import { enqueueUpdateAlert } from '@/services/update-alert';
@@ -73,6 +73,10 @@ import SaveTokenLocalHandler from '@/handlers/asbplayerv2/save-token-local-handl
 import { ExtensionGlobalStateProvider } from '@/services/extension-global-state-provider';
 import { lt as semverLt } from 'semver';
 import { AnnotationTutorialState } from '@project/common/global-state';
+import BrowserFeaturesHandler from '@/handlers/asbplayerv2/browser-features-handler';
+import OpenStatisticsHandler from '@/handlers/video/open-statistics-handler';
+import StatisticsOverlayForwarderHandler from '@/handlers/statistics-overlay/statistics-overlay-forwarder-handler';
+import OpenStatisticsOverlayHandler from '@/handlers/open-statistics-overlay-handler';
 
 export default defineBackground(() => {
     if (!isFirefoxBuild) {
@@ -178,6 +182,8 @@ export default defineBackground(() => {
         new SyncHandler(tabRegistry),
         new HttpPostHandler(),
         new ToggleSidePanelHandler(tabRegistry),
+        new OpenStatisticsHandler(tabRegistry),
+        new OpenStatisticsOverlayHandler(tabRegistry),
         new OpenAsbplayerSettingsHandler(),
         new CopyToClipboardHandler(),
         new EncodeMp3Handler(),
@@ -210,11 +216,13 @@ export default defineBackground(() => {
         new OpenExtensionShortcutsHandler(),
         new ExtensionCommandsHandler(),
         new PageConfigHandler(),
+        new BrowserFeaturesHandler(),
         new AsbplayerV2ToVideoCommandForwardingHandler(),
         new CaptureVisibleTabHandler(),
         new RequestModelHandler(),
         new CurrentTabHandler(),
         new MobileOverlayForwarderHandler(),
+        new StatisticsOverlayForwarderHandler(),
     ];
 
     browser.runtime.onMessage.addListener((request: Command<Message>, sender, sendResponse) => {
@@ -454,6 +462,12 @@ export default defineBackground(() => {
     updateWebSocketClientState();
     tabRegistry.onAsbplayerInstance(updateWebSocketClientState);
     tabRegistry.onSyncedElement(updateWebSocketClientState);
+    browser.runtime.onConnect.addListener((port) => {
+        const asbplayerId = /asbplayer-side-panel-(.+)/.exec(port.name)?.[1];
+        if (asbplayerId) {
+            port.onDisconnect.addListener(() => tabRegistry.onAsbplayerRemoved(asbplayerId));
+        }
+    });
 
     const action = browser.action || browser.browserAction;
 

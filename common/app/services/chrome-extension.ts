@@ -46,6 +46,9 @@ import {
     CardUpdatedDialogMessage,
     CardExportedDialogMessage,
     SaveTokenLocalFromAppMessage,
+    SidePanelLocation,
+    AckTabsMessage,
+    BrowserFeatures,
 } from '@project/common';
 import { DictionaryStatisticsSnapshot } from '@project/common/dictionary-statistics';
 import {
@@ -87,11 +90,13 @@ export default class ChromeExtension {
     readonly version: string;
     readonly extensionCommands: { [key: string]: string | undefined };
     readonly pageConfig?: { [K in keyof PageSettings]: SettingsFormPageConfig };
+    readonly browserFeatures?: BrowserFeatures;
 
     tabs: VideoTabModel[] | undefined;
     asbplayers: AsbplayerInstance[] | undefined;
     installed: boolean;
     sidePanel: boolean;
+    sidePanelAppRequestedLocation?: SidePanelLocation;
     videoPlayer: boolean | undefined;
     syncedVideoElement: VideoTabModel | undefined;
     loadedSubtitles: boolean = false;
@@ -105,7 +110,8 @@ export default class ChromeExtension {
     constructor(
         version?: string,
         extensionCommands?: { [key: string]: string | undefined },
-        pageConfig?: { [K in keyof PageSettings]: SettingsFormPageConfig }
+        pageConfig?: { [K in keyof PageSettings]: SettingsFormPageConfig },
+        browserFeatures?: BrowserFeatures
     ) {
         this.onMessageCallbacks = [];
         this.onTabsCallbacks = [];
@@ -113,6 +119,7 @@ export default class ChromeExtension {
         this.version = version ?? '';
         this.extensionCommands = extensionCommands ?? {};
         this.pageConfig = pageConfig;
+        this.browserFeatures = browserFeatures;
         this.sidePanel = false;
         this.windowEventListener = (event: MessageEvent) => {
             if (event.source !== window) {
@@ -146,14 +153,19 @@ export default class ChromeExtension {
                 }
 
                 if (tabsCommand.message.ackRequested) {
+                    let ackTabsMessage: AckTabsMessage = {
+                        command: 'ackTabs',
+                        id: id,
+                        receivedTabs: this.tabs,
+                        sidePanel: this.sidePanel,
+                        sidePanelAppRequestedLocation: this.sidePanelAppRequestedLocation,
+                        loadedSubtitles: this.loadedSubtitles,
+                        syncedVideoElement: this.syncedVideoElement,
+                        videoPlayer: this.videoPlayer ?? false,
+                    };
                     window.postMessage({
                         sender: 'asbplayerv2',
-                        message: {
-                            command: 'ackTabs',
-                            id: id,
-                            receivedTabs: this.tabs,
-                            sidePanel: this.sidePanel,
-                        },
+                        message: ackTabsMessage,
                     });
                 }
             } else {
@@ -238,6 +250,7 @@ export default class ChromeExtension {
     get supportsSidePanel() {
         return (
             this.installed &&
+            (this.browserFeatures?.sidePanel ?? false) &&
             ((!isFirefox && !isMobile && gte(this.version, '1.0.0')) ||
                 (isFirefox && !isMobile && gte(this.version, '1.14.0')))
         );
@@ -305,6 +318,7 @@ export default class ChromeExtension {
             receivedTabs: fromVideoPlayer ? [] : this.tabs,
             videoPlayer: fromVideoPlayer,
             sidePanel: this.sidePanel,
+            sidePanelAppRequestedLocation: this.sidePanelAppRequestedLocation,
             loadedSubtitles,
             syncedVideoElement,
         };
@@ -358,11 +372,12 @@ export default class ChromeExtension {
         window.postMessage(command);
     }
 
-    toggleSidePanel() {
+    toggleSidePanel(location?: SidePanelLocation) {
         const command: AsbPlayerCommand<ToggleSidePanelMessage> = {
             sender: 'asbplayerv2',
             message: {
                 command: 'toggle-side-panel',
+                location,
             },
         };
         window.postMessage(command);

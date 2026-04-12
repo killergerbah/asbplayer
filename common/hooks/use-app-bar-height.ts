@@ -20,9 +20,9 @@ export const useAppBarHeight = () => {
             observer.observe(appBar, { attributes: true, attributeFilter: ['class'] });
         }
 
-        window.addEventListener('resize', handleResize);
+        window.addEventListener('resize-statistics-overlay', handleResize);
         return () => {
-            window.removeEventListener('resize', handleResize);
+            window.removeEventListener('resize-statistics-overlay', handleResize);
             observer.disconnect();
         };
     }, []);

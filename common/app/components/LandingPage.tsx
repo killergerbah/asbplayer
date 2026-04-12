@@ -8,7 +8,7 @@ import Link from '@mui/material/Link';
 import Typography from '@mui/material/Typography';
 import ChromeExtension from '../services/chrome-extension';
 import { type Theme } from '@mui/material';
-import { useAppBarHeight } from '../hooks/use-app-bar-height';
+import { useAppBarHeight } from '../../hooks/use-app-bar-height';
 import { VideoTabModel } from '../..';
 import VideoElementSelector from './VideoElementSelector';
 

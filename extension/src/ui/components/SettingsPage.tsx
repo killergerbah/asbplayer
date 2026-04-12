@@ -18,7 +18,8 @@ import { AsbplayerSettings, Profile, testCard } from '@project/common/settings';
 import { useTheme, type Theme } from '@mui/material/styles';
 import { settingsPageConfigs } from '@/services/pages';
 import { DictionaryProvider } from '@project/common/dictionary-db';
-import { uiTabRegistry, useHasSubtitles } from '../hooks/use-has-subtitles';
+import { uiTabRegistry } from '../hooks/use-has-subtitles';
+import { useLocationHash } from '@project/common/hooks/use-location-hash';
 
 const useStyles = makeStyles<Theme>((theme) => ({
     root: {
@@ -86,48 +87,15 @@ const SettingsPage = ({
     }, [updateLocalFontsPermission, updateLocalFonts]);
 
     const commands = useCommandKeyBinds();
-    const hasSubtitles = useHasSubtitles();
 
     const handleOpenExtensionShortcuts = useCallback(() => {
         browser.tabs.create({ active: true, url: 'chrome://extensions/shortcuts' });
     }, []);
 
-    const handleMediaRequested = useCallback(async (mediaId: string) => {
-        try {
-            const videoElements = await uiTabRegistry.activeVideoElements();
-            let tabId = videoElements.find((videoElement) => videoElement.src === mediaId)?.id;
-            if (tabId === undefined) {
-                tabId = (await uiTabRegistry.findAsbplayerTab({ filter: (asbplayer) => asbplayer.id === mediaId }))?.id;
-            }
-            if (tabId === undefined) return;
-
-            const targetTab = await browser.tabs.get(tabId);
-            if (targetTab.windowId !== undefined) {
-                await browser.windows.update(targetTab.windowId, { focused: true });
-            }
-            await browser.tabs.update(tabId, { active: true });
-        } catch {
-            // Best effort only
-        }
-    }, []);
-
     const { initialized: i18nInitialized } = useI18n({ language: settings?.language ?? 'en' });
-    const section = useMemo(() => {
-        if (location.hash && location.hash.startsWith('#')) {
-            return location.hash.substring(1, location.hash.length);
-        }
-
-        return hasSubtitles ? 'statistics' : undefined;
-    }, [hasSubtitles]);
     const { supportedLanguages } = useSupportedLanguages();
 
-    useEffect(
-        () =>
-            dictionaryProvider.onRequestStatisticsMineSentences((mediaId) => {
-                void handleMediaRequested(mediaId);
-            }),
-        [dictionaryProvider, handleMediaRequested]
-    );
+    const { hash: scrollToId } = useLocationHash();
 
     if (!settings || !anki || !commands || !i18nInitialized) {
         return null;
@@ -152,7 +120,6 @@ const SettingsPage = ({
                         extensionSupportsExportCardBind
                         extensionSupportsPageSettings
                         extensionSupportsDictionary
-                        extensionSupportsDictionaryStatistics
                         extensionSupportsDictionaryTokenStatusDisplayAlpha
                         extensionSupportsDictionaryYomitanMecab
                         chromeKeyBinds={commands}
@@ -168,13 +135,11 @@ const SettingsPage = ({
                         localFontFamilies={localFontFamilies}
                         supportedLanguages={supportedLanguages}
                         onUnlockLocalFonts={handleUnlockLocalFonts}
-                        scrollToId={section}
                         inTutorial={inTutorial}
                         inAnnotationTutorial={inAnnotationTutorial}
                         onAnnotationTutorialSeen={onAnnotationTutorialSeen}
-                        onSeekRequested={handleMediaRequested}
-                        onMineRequested={handleMediaRequested}
                         testCard={extensionTestCard}
+                        scrollToId={scrollToId}
                     />
                 </DialogContent>
                 <Box style={{ marginBottom: theme.spacing(2) }} className={classes.profilesContainer}>

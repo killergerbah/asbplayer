@@ -1236,6 +1236,11 @@ export default class Binding {
             await this._prepareScreenshot();
         }
 
+        if (this.recordMedia && this.recordingMedia) {
+            // In case recording state changed during the await above
+            return;
+        }
+
         if (this.recordMedia) {
             this.recordingState = RecordingState.requested;
             this.recordingPostMineAction = postMineAction;

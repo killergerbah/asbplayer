@@ -27,6 +27,14 @@ const minimumComprehensionStatus = TokenStatus.UNKNOWN;
 const fullyKnownTokenStatus = getFullyKnownTokenStatus();
 const comprehensionStatusRange = fullyKnownTokenStatus - minimumComprehensionStatus;
 
+export type DictionaryComprehensionBand = {
+    min: number;
+    max: number;
+    label: string;
+    color: string;
+    textColor: string;
+};
+
 export const dictionaryStatisticsComprehensionBands = [
     { min: 0, max: 60, label: '<60', color: '#c62828', textColor: '#ffffff' },
     { min: 60, max: 70, label: '60+', color: '#ef6c00', textColor: '#ffffff' },
@@ -34,10 +42,13 @@ export const dictionaryStatisticsComprehensionBands = [
     { min: 80, max: 90, label: '80+', color: '#2e7d32', textColor: '#ffffff' },
     { min: 90, max: 95, label: '90+', color: '#1565c0', textColor: '#ffffff' },
     { min: 95, max: 100, label: '95+', color: 'primary.main', textColor: 'primary.contrastText' },
-] as const;
+] as DictionaryComprehensionBand[];
 
 export type DictionaryStatisticsSentenceSort = 'index' | 'frequency' | 'occurrences' | 'comprehension';
+const sortCategories: DictionaryStatisticsSentenceSort[] = ['index', 'frequency', 'occurrences', 'comprehension'];
+
 export type DictionaryStatisticsSentenceSortDirection = 'asc' | 'desc';
+const sortDirections: DictionaryStatisticsSentenceSortDirection[] = ['asc', 'desc'];
 
 export interface DictionaryStatisticsSentenceSortState {
     sort: DictionaryStatisticsSentenceSort;
@@ -328,8 +339,9 @@ export function sentenceComprehensionXAxisLabels(points: DictionaryStatisticsSen
     const total = points.length;
     if (total <= 0) return [{ value: 1, position: 0 }];
 
+    const increment = Math.max(50, Math.ceil(total / 10));
     const values = new Set<number>([1, total]);
-    for (let value = 50; value < total; value += 50) values.add(value);
+    for (let value = increment; value < total; value += increment) values.add(value);
 
     const denominator = Math.max(total - 1, 1);
     return Array.from(values)
@@ -894,18 +906,20 @@ export function defaultDictionaryStatisticsSentenceSortState(
     };
 }
 
-export function nextDictionaryStatisticsSentenceSortState(
-    current: DictionaryStatisticsSentenceSortState,
-    sort: DictionaryStatisticsSentenceSort
+export function nextDictionaryStatisticsSentenceSortCategory(
+    current: DictionaryStatisticsSentenceSortState
 ): DictionaryStatisticsSentenceSortState {
-    if (current.sort === sort) {
-        return {
-            sort,
-            direction: current.direction === 'asc' ? 'desc' : 'asc',
-        };
-    }
+    const index = sortCategories.findIndex((s) => s === current.sort);
+    const nextSort = sortCategories[(index + 1) % sortCategories.length];
+    return { sort: nextSort, direction: current.direction };
+}
 
-    return defaultDictionaryStatisticsSentenceSortState(sort);
+export function nextDictionaryStatisticsSentenceSortDirection(
+    current: DictionaryStatisticsSentenceSortState
+): DictionaryStatisticsSentenceSortState {
+    const index = sortDirections.findIndex((d) => d === current.direction);
+    const nextDirection = sortDirections[(index + 1) % sortDirections.length];
+    return { sort: current.sort, direction: nextDirection };
 }
 
 export function uncollectedSentenceBucketLabel(
@@ -1176,4 +1190,39 @@ export function processDictionaryStatisticsAnkiTrackSnapshot(
             .filter((deckSnapshot) => deckSnapshot.modelSnapshots.length > 0)
             .sort((left, right) => left.deckName.localeCompare(right.deckName)),
     };
+}
+
+export interface DictionarySimplifiedStatisticsTrackSnapshot {
+    comprehensionPercent: number;
+    sentenceBuckets: DictionaryStatisticsSentenceBuckets;
+    progress: Progress;
+}
+
+export function processSimplifiedDictionaryStatistics(
+    snapshot?: DictionaryStatisticsSnapshot
+): DictionarySimplifiedStatisticsTrackSnapshot[] {
+    return (
+        snapshot?.snapshots?.map((trackSnapshot) =>
+            processSimplifiedDictionaryStatisticsTrackSnapshot(trackSnapshot)
+        ) ?? []
+    );
+}
+
+function processSimplifiedDictionaryStatisticsTrackSnapshot(
+    trackSnapshot: DictionaryStatisticsRawTrackSnapshot
+): DictionarySimplifiedStatisticsTrackSnapshot {
+    const tokens: ProcessedTokenSnapshots = new Map();
+    const { sentences } = trackSnapshot.stats;
+    const sentenceSnapshots = processSentenceSnapshots(sentences);
+    for (const { tokens: sentenceTokens } of sentenceSnapshots) {
+        for (const [k, token] of sentenceTokens.entries()) tokens.set(k, mergeTokenSnapshot(tokens.get(k), token));
+    }
+    const { statusCounts } = statusCountsAndFrequencies(tokens);
+    const evaluatedSentenceSnapshots = sentenceSnapshots.map((sentenceSnapshot) =>
+        evaluateSentenceSnapshot(sentenceSnapshot)
+    );
+    const sentenceBuckets = buildSentenceBucketData(evaluatedSentenceSnapshots, tokens);
+    const comprehensionPercent = comprehensionFromStatusOccurrences(statusCounts);
+    const progress = trackSnapshot.progress;
+    return { comprehensionPercent, sentenceBuckets, progress };
 }

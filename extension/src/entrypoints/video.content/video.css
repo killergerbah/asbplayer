@@ -232,7 +232,7 @@
     position: absolute !important;
     transform: translate(-50%) !important;
     display: inline-block !important;
-    z-index: 2147483647 !important;
+    z-index: 2147483646 !important;
     text-align: center !important;
     pointer-events: auto !important;
 }
@@ -241,10 +241,21 @@
     position: absolute !important;
     transform: translate(-50%, -100%) !important;
     display: inline-block !important;
-    z-index: 2147483647 !important;
+    z-index: 2147483646 !important;
     text-align: center !important;
     pointer-events: auto !important;
 }
 
 .asbplayer-mobile-video-overlay {
+}
+
+.asbplayer-statistics-overlay-container {
+    position: fixed !important;
+    bottom: 8px !important;
+    transform: translateX(-50%) !important;
+    width: 100vw !important;
+    top: auto !important;
+    /* +1 more than mobile overlay */
+    z-index: 2147483647 !important;
+    pointer-events: auto !important;
 }

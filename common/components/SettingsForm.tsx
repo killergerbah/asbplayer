@@ -17,7 +17,6 @@ import { TutorialStep } from './settings-model';
 import AnkiSettingsTab from './AnkiSettingsTab';
 import MiningSettingsTab from './MiningSettingsTab';
 import DictionarySettingsTab from './DictionarySettingsTab';
-import StatisticsSettingsTab from './StatisticsSettingsTab';
 import SubtitleAppearanceSettingsTab from './SubtitleAppearanceSettingsTab';
 import KeyboardShortcutsSettingsTab from './KeyboardShortcutsSettingsTab';
 import StreamingVideoSettingsTab from './StreamingVideoSettingsTab';
@@ -181,7 +180,6 @@ interface Props {
     extensionSupportsExportCardBind: boolean;
     extensionSupportsPageSettings: boolean;
     extensionSupportsDictionary: boolean;
-    extensionSupportsDictionaryStatistics: boolean;
     extensionSupportsDictionaryTokenStatusDisplayAlpha: boolean;
     extensionSupportsDictionaryYomitanMecab: boolean;
     insideApp?: boolean;
@@ -206,8 +204,6 @@ interface Props {
     onSettingsChanged: (settings: Partial<AsbplayerSettings>) => void;
     onOpenChromeExtensionShortcuts: () => void;
     onUnlockLocalFonts: () => void;
-    onSeekRequested?: (mediaId: string) => void;
-    onMineRequested?: (mediaId: string) => void;
 }
 
 // Filter out keys that look like '0', '1', ... as those are invalid
@@ -232,7 +228,6 @@ export default function SettingsForm({
     extensionSupportsExportCardBind,
     extensionSupportsPageSettings,
     extensionSupportsDictionary,
-    extensionSupportsDictionaryStatistics,
     extensionSupportsDictionaryTokenStatusDisplayAlpha,
     extensionSupportsDictionaryYomitanMecab,
     insideApp,
@@ -252,11 +247,8 @@ export default function SettingsForm({
     onSettingsChanged,
     onOpenChromeExtensionShortcuts,
     onUnlockLocalFonts,
-    onSeekRequested,
-    onMineRequested,
 }: Props) {
     const supportsDictionary = !extensionInstalled || extensionSupportsDictionary;
-    const supportsDictionaryStatistics = !extensionInstalled || extensionSupportsDictionaryStatistics;
     const supportsDictionaryTokenStatusDisplayAlpha =
         !extensionInstalled || extensionSupportsDictionaryTokenStatusDisplayAlpha;
     const supportsDictionaryYomitanMecab = !extensionInstalled || extensionSupportsDictionaryYomitanMecab;
@@ -278,7 +270,6 @@ export default function SettingsForm({
             'subtitle-appearance',
             'keyboard-shortcuts',
             'annotation',
-            'statistics',
             'streaming-video',
             'misc-settings',
             'about',
@@ -286,10 +277,9 @@ export default function SettingsForm({
 
         if (!extensionSupportsAppIntegration) tabs.splice(tabs.indexOf('streaming-video'), 1);
         if (!supportsDictionary) tabs.splice(tabs.indexOf('annotation'), 1);
-        if (!supportsDictionaryStatistics) tabs.splice(tabs.indexOf('statistics'), 1);
 
         return Object.fromEntries(tabs.map((tab, i) => [tab, i]));
-    }, [extensionSupportsAppIntegration, supportsDictionary, supportsDictionaryStatistics]);
+    }, [extensionSupportsAppIntegration, supportsDictionary]);
 
     useEffect(() => {
         if (!scrollToId) {
@@ -418,33 +408,20 @@ export default function SettingsForm({
                 {supportsDictionary && (
                     <Tab ref={handleAnnotationTabRef} tabIndex={4} label={t('settings.annotation')} id="annotation" />
                 )}
-                {supportsDictionaryStatistics && (
-                    <Tab tabIndex={5 + Number(supportsDictionary)} label={t('statistics.title')} id="statistics" />
-                )}
                 {extensionSupportsAppIntegration && (
                     <Tab
-                        tabIndex={4 + Number(supportsDictionary) + Number(supportsDictionaryStatistics)}
+                        tabIndex={4 + Number(supportsDictionary)}
                         label={t('settings.streamingVideo')}
                         id="streaming-video"
                     />
                 )}
                 <Tab
-                    tabIndex={
-                        4 +
-                        Number(supportsDictionary) +
-                        Number(supportsDictionaryStatistics) +
-                        Number(extensionSupportsAppIntegration)
-                    }
+                    tabIndex={4 + Number(supportsDictionary) + Number(extensionSupportsAppIntegration)}
                     label={t('settings.misc')}
                     id="misc-settings"
                 />
                 <Tab
-                    tabIndex={
-                        5 +
-                        Number(supportsDictionary) +
-                        Number(supportsDictionaryStatistics) +
-                        Number(extensionSupportsAppIntegration)
-                    }
+                    tabIndex={5 + Number(supportsDictionary) + Number(extensionSupportsAppIntegration)}
                     label={t('about.title')}
                     id="about"
                 />
@@ -493,15 +470,6 @@ export default function SettingsForm({
                     }}
                 />
             </TabPanel>
-            {supportsDictionaryStatistics && (
-                <TabPanel value={tabIndex} index={tabIndicesById['statistics']} tabsOrientation={tabsOrientation}>
-                    <StatisticsSettingsTab
-                        dictionaryProvider={dictionaryProvider}
-                        onSeekRequested={onSeekRequested}
-                        onMineRequested={onMineRequested}
-                    />
-                </TabPanel>
-            )}
             <TabPanel value={tabIndex} index={tabIndicesById['subtitle-appearance']} tabsOrientation={tabsOrientation}>
                 <SubtitleAppearanceSettingsTab
                     settings={settings}
