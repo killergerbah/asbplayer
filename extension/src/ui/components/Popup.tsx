@@ -1,6 +1,11 @@
 import Grid from '@mui/material/Grid';
 import { Command, HttpPostMessage, OpenStatisticsOverlayMessage, PopupToExtensionCommand } from '@project/common';
-import { AsbplayerSettings, Profile, chromeCommandBindsToKeyBinds } from '@project/common/settings';
+import {
+    AsbplayerSettings,
+    Profile,
+    chromeCommandBindsToKeyBinds,
+    dictionaryTrackEnabled,
+} from '@project/common/settings';
 import SettingsForm from '@project/common/components/SettingsForm';
 import PanelIcon from '@project/common/components/PanelIcon';
 import LaunchIcon from '@mui/icons-material/Launch';
@@ -131,9 +136,16 @@ const Popup = ({
     }, []);
 
     const [statisticsOpen, setStatisticsOpen] = useState<boolean>(false);
+
+    const settingsRef = useRef<AsbplayerSettings>(settings);
+    settingsRef.current = settings;
+
     useEffect(() => {
-        if (hasSubtitles) setStatisticsOpen(true);
+        const annotationsEnabled =
+            settingsRef.current?.dictionaryTracks.some((dt) => dictionaryTrackEnabled(dt)) ?? false;
+        setStatisticsOpen(hasSubtitles && annotationsEnabled);
     }, [hasSubtitles]);
+
     const handleToggleStatistics = useCallback(() => setStatisticsOpen((v) => !v), []);
     const fetchStatisticsMediaInfo = useCallback(async (mediaId: string) => {
         const sourceString = (await uiTabRegistry.activeVideoElements()).find((v) => v.src === mediaId)?.title;
