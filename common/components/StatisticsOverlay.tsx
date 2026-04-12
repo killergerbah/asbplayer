@@ -188,8 +188,8 @@ const StatisticsOverlay = React.forwardRef<HTMLDivElement, StatisticsOverlayProp
                         value={(bestTrackSnapshot.progress.current / bestTrackSnapshot.progress.total) * 100}
                         sx={{
                             position: 'absolute',
-                            width: '100%',
-                            left: 0,
+                            width: (theme) => `calc(100% - ${theme.spacing(0.5)})`,
+                            left: (theme) => theme.spacing(0.25),
                             bottom: -1,
                             borderRadius: 0,
                             height: 2,

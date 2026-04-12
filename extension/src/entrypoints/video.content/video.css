@@ -232,7 +232,7 @@
     position: absolute !important;
     transform: translate(-50%) !important;
     display: inline-block !important;
-    z-index: 2147483647 !important;
+    z-index: 2147483646 !important;
     text-align: center !important;
     pointer-events: auto !important;
 }
@@ -241,7 +241,7 @@
     position: absolute !important;
     transform: translate(-50%, -100%) !important;
     display: inline-block !important;
-    z-index: 2147483647 !important;
+    z-index: 2147483646 !important;
     text-align: center !important;
     pointer-events: auto !important;
 }
@@ -255,6 +255,7 @@
     transform: translateX(-50%) !important;
     width: 100vw !important;
     top: auto !important;
+    /* +1 more than mobile overlay */
     z-index: 2147483647 !important;
     pointer-events: auto !important;
     text-align: center !important;
