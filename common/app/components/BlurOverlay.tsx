@@ -61,6 +61,7 @@ interface BlurOverlayProps {
 
 export default function BlurOverlay({ containerRef }: BlurOverlayProps) {
     const classes = useStyles();
+    const overlayRef = useRef<HTMLDivElement | null>(null);
 
     // Position/size of the overlay within the container
     const [pos, setPos] = useState<Position>({ x: 50, y: 300 });
@@ -68,27 +69,24 @@ export default function BlurOverlay({ containerRef }: BlurOverlayProps) {
     const [showHandles, setShowHandles] = useState<boolean>(true);
 
     // Mutable refs used during drag/resize so we don't re-render on every mousemove
-    const dragging = useRef(false);
-    const resizing = useRef<ResizeDir | null>(null);
+    const isDraggingRef = useRef(false);
+    const activeResizeDirRef = useRef<ResizeDir | null>(null);
     const dragStart = useRef<Position>({ x: 0, y: 0 });
     const posStart = useRef<Position>({ x: 0, y: 0 });
     const sizeStart = useRef<Size>({ width: 0, height: 0 });
-    const lastActivityTimestamp = useRef<number>(Date.now());
     const autoHideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     // Show handles immediately, then hide them if idle for 2 seconds
     const resetAutoHideTimer = useCallback(() => {
-        lastActivityTimestamp.current = Date.now();
         setShowHandles(true);
         if (autoHideTimeoutRef.current) {
             clearTimeout(autoHideTimeoutRef.current);
         }
         // Only set auto-hide timer if not currently dragging or resizing
-        if (!dragging.current && !resizing.current) {
+        if (!isDraggingRef.current && !activeResizeDirRef.current) {
             autoHideTimeoutRef.current = setTimeout(() => {
                 // Hide handles and border after 2 seconds of inactivity
-                const now = Date.now();
-                if (now - lastActivityTimestamp.current >= 2000 && !dragging.current && !resizing.current) {
+                if (!isDraggingRef.current && !activeResizeDirRef.current) {
                     setShowHandles(false);
                 }
             }, 2000);
@@ -113,20 +111,23 @@ export default function BlurOverlay({ containerRef }: BlurOverlayProps) {
     );
 
     // Begin drag: remember start positions for delta calculations
-    const onMouseDownDrag = useCallback((e: React.MouseEvent) => {
-        e.preventDefault();
-        dragging.current = true;
-        dragStart.current = { x: e.clientX, y: e.clientY };
-        posStart.current = { ...pos };
-        resetAutoHideTimer();
-    }, [pos, resetAutoHideTimer]);
+    const onMouseDownDrag = useCallback(
+        (e: React.MouseEvent) => {
+            e.preventDefault();
+            isDraggingRef.current = true;
+            dragStart.current = { x: e.clientX, y: e.clientY };
+            posStart.current = { ...pos };
+            resetAutoHideTimer();
+        },
+        [pos, resetAutoHideTimer]
+    );
 
     // Begin resize: store starting box and which edge/corner is active
     const onMouseDownResize = useCallback(
         (dir: ResizeDir) => (e: React.MouseEvent) => {
             e.preventDefault();
             e.stopPropagation();
-            resizing.current = dir;
+            activeResizeDirRef.current = dir;
             dragStart.current = { x: e.clientX, y: e.clientY };
             posStart.current = { ...pos };
             sizeStart.current = { ...size };
@@ -140,20 +141,21 @@ export default function BlurOverlay({ containerRef }: BlurOverlayProps) {
         resetAutoHideTimer();
 
         const onMouseMove = (e: MouseEvent) => {
-            const dx = e.clientX - dragStart.current.x;
-            const dy = e.clientY - dragStart.current.y;
+            const bounds = containerBounds();
+            const clientX = bounds ? Math.min(Math.max(e.clientX, bounds.left), bounds.right) : e.clientX;
+            const clientY = bounds ? Math.min(Math.max(e.clientY, bounds.top), bounds.bottom) : e.clientY;
+            const dx = clientX - dragStart.current.x;
+            const dy = clientY - dragStart.current.y;
 
-            if (dragging.current) {
-                setPos(() => {
-                    const nx = posStart.current.x + dx;
-                    const ny = posStart.current.y + dy;
-                    return clampPos(nx, ny, size.width, size.height);
-                });
+            if (isDraggingRef.current) {
+                const nx = posStart.current.x + dx;
+                const ny = posStart.current.y + dy;
+                setPos(clampPos(nx, ny, size.width, size.height));
                 return;
             }
 
-            if (resizing.current) {
-                const dir = resizing.current;
+            if (activeResizeDirRef.current) {
+                const dir = activeResizeDirRef.current;
                 let nx = posStart.current.x;
                 let ny = posStart.current.y;
                 let nw = sizeStart.current.width;
@@ -178,10 +180,10 @@ export default function BlurOverlay({ containerRef }: BlurOverlayProps) {
         };
 
         const onMouseUp = () => {
-            const wasDragging = dragging.current;
-            const wasResizing = resizing.current;
-            dragging.current = false;
-            resizing.current = null;
+            const wasDragging = isDraggingRef.current;
+            const wasResizing = activeResizeDirRef.current;
+            isDraggingRef.current = false;
+            activeResizeDirRef.current = null;
 
             // Restart auto-hide timer if we just finished dragging or resizing
             if (wasDragging || wasResizing) {
@@ -192,7 +194,7 @@ export default function BlurOverlay({ containerRef }: BlurOverlayProps) {
         const onGlobalClick = (e: MouseEvent) => {
             // Hide handles if clicking outside the overlay
             const target = e.target as Element;
-            const overlayElement = document.querySelector('[data-blur-overlay="true"]');
+            const overlayElement = overlayRef.current;
             if (overlayElement && !overlayElement.contains(target)) {
                 setShowHandles(false);
                 if (autoHideTimeoutRef.current) {
@@ -222,7 +224,7 @@ export default function BlurOverlay({ containerRef }: BlurOverlayProps) {
 
     return (
         <div
-            data-blur-overlay="true"
+            ref={overlayRef}
             className={classes.overlay}
             style={{
                 left: pos.x,
@@ -230,29 +232,30 @@ export default function BlurOverlay({ containerRef }: BlurOverlayProps) {
                 width: size.width,
                 height: size.height,
                 border: showHandles ? '2px dashed rgba(255,255,255,0.35)' : 'none',
-                cursor: showHandles ? 'move' : 'default'
+                cursor: showHandles ? 'move' : 'default',
             }}
             onMouseDown={onMouseDownDrag}
             onClick={handleMouseClick}
         >
-            {showHandles && resizeHandles.map(({ dir, style }) => {
-                // Calculate handle dimensions based on overlay size
-                const handleWidth = dir === 'n' || dir === 's' ? Math.min(size.width * 0.5, 120) : HANDLE_SIZE;
-                const handleHeight = dir === 'e' || dir === 'w' ? Math.min(size.height * 0.5, 120) : HANDLE_SIZE;
+            {showHandles &&
+                resizeHandles.map(({ dir, style }) => {
+                    // Calculate handle dimensions based on overlay size
+                    const handleWidth = dir === 'n' || dir === 's' ? Math.min(size.width * 0.5, 120) : HANDLE_SIZE;
+                    const handleHeight = dir === 'e' || dir === 'w' ? Math.min(size.height * 0.5, 120) : HANDLE_SIZE;
 
-                return (
-                    <div
-                        key={dir}
-                        className={classes.handle}
-                        style={{
-                            ...style,
-                            width: handleWidth,
-                            height: handleHeight,
-                        }}
-                        onMouseDown={onMouseDownResize(dir)}
-                    />
-                );
-            })}
+                    return (
+                        <div
+                            key={dir}
+                            className={classes.handle}
+                            style={{
+                                ...style,
+                                width: handleWidth,
+                                height: handleHeight,
+                            }}
+                            onMouseDown={onMouseDownResize(dir)}
+                        />
+                    );
+                })}
         </div>
     );
 }
