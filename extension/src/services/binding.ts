@@ -88,6 +88,7 @@ import { pgsParserWorkerFactory } from './pgs-parser-worker-factory';
 import { DictionaryProvider } from '@project/common/dictionary-db/dictionary-provider';
 import { ExtensionDictionaryStorage } from './extension-dictionary-storage';
 import { HoveredToken } from '@project/common/subtitle-coloring';
+import { createVideoChangeHandler } from './video-change-handler';
 
 let netflix = false;
 document.addEventListener('asbplayer-netflix-enabled', (e) => {
@@ -96,6 +97,9 @@ document.addEventListener('asbplayer-netflix-enabled', (e) => {
 document.dispatchEvent(new CustomEvent('asbplayer-query-netflix'));
 
 const youtube = /(m|www)\.youtube\.com/.test(window.location.host);
+const disneyPlus = window.location.host === 'www.disneyplus.com';
+const requestDisneyPlusMseOffsetEventName = 'asbplayer-get-disney-plus-mse-offset';
+const disneyPlusMseOffsetEventName = 'asbplayer-disney-plus-mse-offset';
 
 enum RecordingState {
     requested,
@@ -184,6 +188,7 @@ export default class Binding {
     private videoChangeListener?: EventListener;
     private canPlayListener?: EventListener;
     private mouseMoveListener?: (event: MouseEvent) => void;
+    private disneyPlusMseOffsetListener?: EventListener;
     private listener?: (
         message: any,
         sender: Browser.runtime.MessageSender,
@@ -199,6 +204,8 @@ export default class Binding {
     private currentAudioRecordingRequestId?: string;
 
     private readonly frameId?: string;
+    private _mseBaseOffsetMs: number = 0;
+    private _pageScriptMseBaseOffsetMs?: number;
 
     constructor(video: HTMLMediaElement, hasPageScript: boolean, frameId?: string) {
         this.video = video;
@@ -480,7 +487,10 @@ export default class Binding {
     }
 
     _bind() {
+        this._installDisneyPlusMseOffsetListener();
         this._notifyReady();
+        this._mseBaseOffsetMs = this._detectMseBaseOffset();
+        this.subtitleController.mseBaseOffsetMs = this._mseBaseOffsetMs;
         this._subscribe();
         this._refreshSettings().then(() => {
             this.videoDataSyncController.requestSubtitles();
@@ -641,10 +651,12 @@ export default class Binding {
         this.subtitleController.onMouseOut = (mouseEvent: MouseEvent) => this.hoveredToken.handleMouseOut(mouseEvent);
 
         if (this.hasPageScript) {
-            this.videoChangeListener = () => {
+            this.videoChangeListener = createVideoChangeHandler(this.video, () => {
+                this._mseBaseOffsetMs = this._detectMseBaseOffset();
+                this.subtitleController.mseBaseOffsetMs = this._mseBaseOffsetMs;
                 this.videoDataSyncController.requestSubtitles();
                 this._resetSubtitles();
-            };
+            });
             this.video.addEventListener('loadedmetadata', this.videoChangeListener);
         }
 
@@ -1113,6 +1125,11 @@ export default class Binding {
             this.mouseMoveListener = undefined;
         }
 
+        if (this.disneyPlusMseOffsetListener) {
+            document.removeEventListener(disneyPlusMseOffsetEventName, this.disneyPlusMseOffsetListener);
+            this.disneyPlusMseOffsetListener = undefined;
+        }
+
         if (this.heartbeatInterval) {
             clearInterval(this.heartbeatInterval);
             this.heartbeatInterval = undefined;
@@ -1505,7 +1522,8 @@ export default class Binding {
                     convertNetflixRuby: convertNetflixRuby,
                     pgsParserWorkerFactory: pgsParserWorkerFactory,
                 });
-                const offset = rememberSubtitleOffset ? lastSubtitleOffset : 0;
+                const userOffset = rememberSubtitleOffset ? lastSubtitleOffset : 0;
+                const offset = userOffset + this._mseBaseOffsetMs;
                 const subtitles = await reader.subtitles(files, flatten);
 
                 // Order is important: sync with tab first, then update our subtitle controller
@@ -1591,6 +1609,63 @@ export default class Binding {
         this._synced = false;
         this._syncedTimestamp = undefined;
         this.mobileVideoOverlayController.disposeOverlay();
+    }
+
+    private _installDisneyPlusMseOffsetListener() {
+        if (!disneyPlus || !this.hasPageScript || this.disneyPlusMseOffsetListener !== undefined) {
+            return;
+        }
+
+        this.disneyPlusMseOffsetListener = (event) => {
+            const offsetMs = (event as CustomEvent).detail?.mseBaseOffsetMs;
+
+            if (typeof offsetMs !== 'number' || !Number.isFinite(offsetMs)) {
+                return;
+            }
+
+            const previousMseBaseOffsetMs = this._mseBaseOffsetMs;
+            this._pageScriptMseBaseOffsetMs = offsetMs;
+            this._mseBaseOffsetMs = offsetMs;
+            this.subtitleController.mseBaseOffsetMs = offsetMs;
+
+            const subtitles = this.subtitleController.subtitles;
+
+            if (subtitles.length > 0) {
+                const currentOffset = subtitles[0].start - subtitles[0].originalStart;
+                const userOffset = currentOffset - previousMseBaseOffsetMs;
+                this.subtitleController.offset(userOffset + offsetMs, true);
+            }
+        };
+        document.addEventListener(disneyPlusMseOffsetEventName, this.disneyPlusMseOffsetListener);
+    }
+
+    private _requestDisneyPlusMseBaseOffset() {
+        if (!disneyPlus || !this.hasPageScript) {
+            return this._pageScriptMseBaseOffsetMs;
+        }
+
+        document.dispatchEvent(new CustomEvent(requestDisneyPlusMseOffsetEventName));
+        return this._pageScriptMseBaseOffsetMs;
+    }
+
+    private _detectMseBaseOffset(): number {
+        const pageScriptOffsetMs = this._requestDisneyPlusMseBaseOffset();
+
+        if (pageScriptOffsetMs !== undefined) {
+            return pageScriptOffsetMs;
+        }
+
+        if (!this.video.src.startsWith('blob:') || (isFinite(this.video.duration) && !isNaN(this.video.duration))) {
+            return 0;
+        }
+        if (this.video.seekable.length === 0) {
+            return 0;
+        }
+        const offsetSeconds = this.video.currentTime - this.video.seekable.start(0);
+        if (offsetSeconds > 0.5 && offsetSeconds < 86400) {
+            return Math.round(offsetSeconds * 1000);
+        }
+        return 0;
     }
 
     private _captureStream(): Promise<MediaStream> {
