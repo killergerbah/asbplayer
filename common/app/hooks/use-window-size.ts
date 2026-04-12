@@ -11,12 +11,12 @@ export function useWindowSize(enabled: boolean) {
             }
         }
 
-        window.addEventListener('resize-statistics-overlay', updateSize);
+        window.addEventListener('resize', updateSize);
         screen.orientation.addEventListener('change', updateSize);
         updateSize();
 
         return () => {
-            window.removeEventListener('resize-statistics-overlay', updateSize);
+            window.removeEventListener('resize', updateSize);
             screen.orientation.removeEventListener('change', updateSize);
         };
     }, [enabled]);

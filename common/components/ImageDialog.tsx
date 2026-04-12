@@ -31,10 +31,10 @@ function useWindowSize() {
             setSize([window.innerWidth, window.innerHeight]);
         }
 
-        window.addEventListener('resize-statistics-overlay', updateSize);
+        window.addEventListener('resize', updateSize);
         updateSize();
 
-        return () => window.removeEventListener('resize-statistics-overlay', updateSize);
+        return () => window.removeEventListener('resize', updateSize);
     }, []);
 
     return size;
