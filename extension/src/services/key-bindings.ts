@@ -77,7 +77,7 @@ export default class KeyBindings {
                 event.preventDefault();
                 event.stopImmediatePropagation();
 
-                context.playMode = context.playMode === PlayMode.autoPause ? PlayMode.normal : PlayMode.autoPause;
+                context.togglePlayMode(PlayMode.autoPause);
             },
             () => context.subtitleController.subtitles.length === 0,
             true
@@ -88,7 +88,7 @@ export default class KeyBindings {
                 event.preventDefault();
                 event.stopImmediatePropagation();
 
-                context.playMode = context.playMode === PlayMode.condensed ? PlayMode.normal : PlayMode.condensed;
+                context.togglePlayMode(PlayMode.condensed);
             },
             () => context.subtitleController.subtitles.length === 0,
             true
@@ -101,7 +101,7 @@ export default class KeyBindings {
                 const [currentSubtitle] = context.subtitleController.currentSubtitle();
 
                 if (currentSubtitle) {
-                    context.playMode = context.playMode === PlayMode.repeat ? PlayMode.normal : PlayMode.repeat;
+                    context.togglePlayMode(PlayMode.repeat);
                 }
             },
             () => context.subtitleController.subtitles.length === 0,
@@ -113,7 +113,7 @@ export default class KeyBindings {
                 event.preventDefault();
                 event.stopImmediatePropagation();
 
-                context.playMode = context.playMode === PlayMode.fastForward ? PlayMode.normal : PlayMode.fastForward;
+                context.togglePlayMode(PlayMode.fastForward);
             },
             () => context.subtitleController.subtitles.length === 0,
             true
@@ -295,7 +295,8 @@ export default class KeyBindings {
 
                 const currentSpeed = context.video.playbackRate;
                 const speedOffset = context.speedChangeStep * 10;
-                context.playMode = PlayMode.normal;
+
+                context.togglePlayMode(PlayMode.normal);
                 if (increase) {
                     context.video.playbackRate = Math.min(5, Math.round(currentSpeed * 10 + speedOffset) / 10);
                 } else {

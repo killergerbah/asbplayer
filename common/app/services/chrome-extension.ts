@@ -164,6 +164,14 @@ export default class ChromeExtension {
         window.addEventListener('message', this.windowEventListener);
     }
 
+    get supportsDictionaryYomitanMecab() {
+        return this.installed && gte(this.version, '1.15.0');
+    }
+
+    get supportsDictionaryTokenStatusDisplayAlpha() {
+        return this.installed && gte(this.version, '1.15.0');
+    }
+
     get supportsDictionary() {
         return this.installed && gte(this.version, '1.14.0');
     }

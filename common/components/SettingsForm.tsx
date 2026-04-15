@@ -22,7 +22,13 @@ import KeyboardShortcutsSettingsTab from './KeyboardShortcutsSettingsTab';
 import StreamingVideoSettingsTab from './StreamingVideoSettingsTab';
 import MiscSettingsTab from './MiscSettingsTab';
 import { DictionaryProvider } from '../dictionary-db';
-import TutorialBubble from './TutorialBubble';
+import TutorialBubble, { type TutorialBubbleProps } from './TutorialBubble';
+
+interface AnnotationTutorialPosition {
+    left: number;
+    top: number;
+    placement: TutorialBubbleProps['placement'];
+}
 
 interface StylesProps {
     smallScreen: boolean;
@@ -32,6 +38,7 @@ interface StylesProps {
 const useStyles = makeStyles<Theme, StylesProps>((theme) => ({
     root: ({ smallScreen }) => {
         let styles: any = {
+            position: 'relative',
             maxHeight: '100%',
             height: 'calc(100% - 48px)',
         };
@@ -172,6 +179,8 @@ interface Props {
     extensionSupportsExportCardBind: boolean;
     extensionSupportsPageSettings: boolean;
     extensionSupportsDictionary: boolean;
+    extensionSupportsDictionaryTokenStatusDisplayAlpha: boolean;
+    extensionSupportsDictionaryYomitanMecab: boolean;
     insideApp?: boolean;
     appVersion?: string;
     dictionaryProvider: DictionaryProvider;
@@ -218,6 +227,8 @@ export default function SettingsForm({
     extensionSupportsExportCardBind,
     extensionSupportsPageSettings,
     extensionSupportsDictionary,
+    extensionSupportsDictionaryTokenStatusDisplayAlpha,
+    extensionSupportsDictionaryYomitanMecab,
     insideApp,
     appVersion,
     scrollToId,
@@ -237,6 +248,9 @@ export default function SettingsForm({
     onUnlockLocalFonts,
 }: Props) {
     const supportsDictionary = !extensionInstalled || extensionSupportsDictionary;
+    const supportsDictionaryTokenStatusDisplayAlpha =
+        !extensionInstalled || extensionSupportsDictionaryTokenStatusDisplayAlpha;
+    const supportsDictionaryYomitanMecab = !extensionInstalled || extensionSupportsDictionaryYomitanMecab;
     const theme = useTheme();
     const smallScreen = useMediaQuery(theme.breakpoints.down(500)) && !forceVerticalTabs;
     const classes = useStyles({ smallScreen, heightConstrained });
@@ -303,16 +317,88 @@ export default function SettingsForm({
         }
     }, [tutorialStep]);
 
+    const rootRef = useRef<HTMLDivElement | null>(null);
+    const annotationTabRef = useRef<HTMLDivElement | null>(null);
+
+    const calculateAnnotationTutorialPosition = useCallback(() => {
+        if (!rootRef.current || !annotationTabRef.current) {
+            return;
+        }
+
+        const elm = annotationTabRef.current;
+        const height = elm.getBoundingClientRect().height;
+        const width = elm.getBoundingClientRect().width;
+
+        if (smallScreen) {
+            setAnnotationTutorialPosition({
+                left: Math.min(elm.offsetLeft + width / 2, rootRef.current.clientWidth / 2),
+                top: elm.offsetTop + height,
+                placement: 'bottom',
+            });
+        } else {
+            setAnnotationTutorialPosition({
+                left: elm.offsetLeft + width,
+                top: elm.offsetTop + height / 2,
+                placement: 'right',
+            });
+        }
+    }, [smallScreen]);
+
+    const handleRootRef = useCallback(
+        (ref: HTMLDivElement | null) => {
+            if (!ref) {
+                return;
+            }
+            rootRef.current = ref;
+            calculateAnnotationTutorialPosition();
+        },
+        [calculateAnnotationTutorialPosition]
+    );
+
+    const handleAnnotationTabRef = useCallback(
+        (ref: HTMLDivElement | null) => {
+            if (!ref) {
+                return;
+            }
+            annotationTabRef.current = ref;
+            calculateAnnotationTutorialPosition();
+        },
+        [calculateAnnotationTutorialPosition]
+    );
+
+    const [annotationTutorialPosition, setAnnotationTutorialPosition] = useState<AnnotationTutorialPosition>();
+
     return (
-        <div className={classes.root}>
+        <div ref={handleRootRef} className={classes.root}>
+            {annotationTutorialPosition && (
+                <TutorialBubble
+                    show={inAnnotationTutorial}
+                    placement={annotationTutorialPosition.placement}
+                    text={t('settings.ftueAnnotation')}
+                    onConfirm={handleAnnotationTutorialSeen}
+                >
+                    <div
+                        style={{
+                            position: 'absolute',
+                            left: annotationTutorialPosition.left,
+                            top: annotationTutorialPosition.top,
+                        }}
+                    />
+                </TutorialBubble>
+            )}
             <Tabs
                 orientation={tabsOrientation}
                 variant="scrollable"
                 value={tabIndex}
                 className={classes.tabs}
                 scrollButtons={false}
-                onChange={(event, index) => setTabIndex(index)}
-                style={{
+                onChange={(event, index) => {
+                    setTabIndex(index);
+                    if (supportsDictionary && inAnnotationTutorial && index === 4) {
+                        onAnnotationTutorialSeen?.();
+                    }
+                }}
+                sx={{
                     maxWidth: '100vw',
                     marginLeft: smallScreen ? 'auto' : 0,
                     marginRight: smallScreen ? 'auto' : 0,
@@ -323,22 +409,7 @@ export default function SettingsForm({
                 <Tab tabIndex={2} label={t('settings.subtitleAppearance')} id="subtitle-appearance" />
                 <Tab tabIndex={3} label={t('settings.keyboardShortcuts')} id="keyboard-shortcuts" />
                 {supportsDictionary && (
-                    <TutorialBubble
-                        show={inAnnotationTutorial}
-                        placement="right"
-                        text={t('settings.ftueAnnotation')}
-                        onConfirm={handleAnnotationTutorialSeen}
-                    >
-                        <Tab
-                            onClick={() => {
-                                setTabIndex(4);
-                                handleAnnotationTutorialSeen();
-                            }}
-                            tabIndex={4}
-                            label={t('settings.annotation')}
-                            id="annotation"
-                        />
-                    </TutorialBubble>
+                    <Tab ref={handleAnnotationTabRef} tabIndex={4} label={t('settings.annotation')} id="annotation" />
                 )}
                 {extensionSupportsAppIntegration && (
                     <Tab
@@ -390,6 +461,8 @@ export default function SettingsForm({
                     profiles={profiles}
                     activeProfile={activeProfile}
                     extensionInstalled={extensionInstalled}
+                    supportsDictionaryTokenStatusDisplayAlpha={supportsDictionaryTokenStatusDisplayAlpha}
+                    supportsDictionaryYomitanMecab={supportsDictionaryYomitanMecab}
                     onSettingChanged={handleSettingChanged}
                     onViewKeyboardShortcuts={() => {
                         setTabIndex(tabIndicesById['keyboard-shortcuts']);

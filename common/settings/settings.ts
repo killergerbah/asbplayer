@@ -96,6 +96,39 @@ export function getFullyKnownTokenStatus(): TokenStatus {
     return TokenStatus.MATURE; // If future statuses are optional, this logic may need to change
 }
 
+// Any future field added will likely need to be optional for app/extension version mismatch
+export interface TokenStatusConfig {
+    readonly display: boolean;
+    readonly color: string;
+    readonly alpha: string;
+}
+
+const tokenStatusConfigComparators: {
+    [K in keyof TokenStatusConfig]: (a: TokenStatusConfig[K], b: TokenStatusConfig[K]) => boolean;
+} = {
+    display: (a, b) => a === b,
+    color: (a, b) => a === b,
+    alpha: (a, b) => a === b,
+};
+
+export function compareTokenStatusConfigField<K extends keyof TokenStatusConfig>(
+    key: K,
+    a: TokenStatusConfig,
+    b: TokenStatusConfig
+): boolean {
+    return tokenStatusConfigComparators[key](a[key], b[key]);
+}
+
+export function areTokenStatusConfigsEqual(a: TokenStatusConfig, b: TokenStatusConfig): boolean {
+    if (a === b) return true;
+    for (const key in tokenStatusConfigComparators) {
+        if (!compareTokenStatusConfigField(key as keyof TokenStatusConfig, a, b)) {
+            return false;
+        }
+    }
+    return true;
+}
+
 export enum TokenState {
     IGNORED = 0, // If ever adding more states, they should go last (if adding colors for states, use a separate array from dictionaryTokenStatusColors indexed by TokenState)
 }
@@ -145,6 +178,7 @@ export interface DictionaryTrack {
     readonly dictionaryTokenMatchStrategy: TokenMatchStrategy;
     readonly dictionaryTokenMatchStrategyPriority: TokenMatchStrategyPriority;
     readonly dictionaryYomitanUrl: string;
+    readonly dictionaryYomitanParser: 'scanning-parser' | 'mecab';
     readonly dictionaryYomitanScanLength: number;
     readonly dictionaryTokenReadingAnnotation: TokenReadingAnnotation;
     readonly dictionaryDisplayIgnoredTokenReadings: boolean;
@@ -157,8 +191,9 @@ export interface DictionaryTrack {
     readonly dictionaryAnkiTreatSuspended: TokenStatus | 'NORMAL';
     readonly dictionaryTokenStyling: TokenStyling;
     readonly dictionaryTokenStylingThickness: number;
-    readonly dictionaryColorizeFullyKnownTokens: boolean;
-    readonly dictionaryTokenStatusColors: string[]; // Indexed by TokenStatus (if adding colors for states, use a separate array indexed by TokenState)
+    readonly dictionaryColorizeFullyKnownTokens: boolean; // Deprecated in favor of dictionaryTokenStatusConfig
+    readonly dictionaryTokenStatusColors: string[]; // Deprecated in favor of dictionaryTokenStatusConfig
+    readonly dictionaryTokenStatusConfig: TokenStatusConfig[]; // Indexed by TokenStatus (if adding config for states, use a separate array indexed by TokenState)
 }
 
 export interface DictionarySettings {
@@ -174,6 +209,7 @@ const dictionaryTrackComparators: {
     dictionaryTokenMatchStrategy: (a, b) => a === b,
     dictionaryTokenMatchStrategyPriority: (a, b) => a === b,
     dictionaryYomitanUrl: (a, b) => a === b,
+    dictionaryYomitanParser: (a, b) => a === b,
     dictionaryYomitanScanLength: (a, b) => a === b,
     dictionaryTokenReadingAnnotation: (a, b) => a === b,
     dictionaryDisplayIgnoredTokenReadings: (a, b) => a === b,
@@ -188,6 +224,7 @@ const dictionaryTrackComparators: {
     dictionaryTokenStylingThickness: (a, b) => a === b,
     dictionaryColorizeFullyKnownTokens: (a, b) => a === b,
     dictionaryTokenStatusColors: (a, b) => arrayEquals(a, b),
+    dictionaryTokenStatusConfig: (a, b) => arrayEquals(a, b, areTokenStatusConfigsEqual),
 };
 
 export function compareDTField<K extends keyof DictionaryTrack>(
@@ -497,6 +534,8 @@ export interface PageSettings {
     stremio: Page;
     cijapanese: Page;
     iwanttfc: Page;
+    svtplay: Page;
+    urplay: Page;
 }
 
 export interface StreamingVideoSettings {

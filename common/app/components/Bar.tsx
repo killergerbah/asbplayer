@@ -259,16 +259,6 @@ export default function Bar({
                             </ListItemButton>
                         </ListItem>
                     )}
-                    <Link href="https://github.com/killergerbah/asbplayer#donations">
-                        <ListItem disablePadding>
-                            <ListItemButton>
-                                <ListItemIcon>
-                                    <FavoriteIcon />
-                                </ListItemIcon>
-                                <ListItemText primary={t('bar.donate')!} />
-                            </ListItemButton>
-                        </ListItem>
-                    </Link>
                 </List>
             </Popover>
         </>

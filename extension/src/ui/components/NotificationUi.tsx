@@ -60,6 +60,9 @@ const NotificationUi = ({ bridge }: Props) => {
             }
         });
     }, [bridge, t]);
+
+    useEffect(() => bridge.serverIsReady(), [bridge]);
+
     const [themeType, setThemeType] = useState<PaletteMode>('dark');
     const theme = useMemo(() => createTheme(themeType), [themeType]);
 

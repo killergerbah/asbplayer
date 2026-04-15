@@ -498,7 +498,7 @@ interface ControlsProps {
     closeEnabled?: boolean;
     onClose?: () => void;
     volumeEnabled?: boolean;
-    playMode?: PlayMode;
+    playModes?: Set<PlayMode>;
     playModeEnabled?: boolean;
     onPlayMode?: (playMode: PlayMode) => void;
     subtitlesEnabled?: boolean;
@@ -554,7 +554,7 @@ export default function Controls({
     closeEnabled,
     onClose,
     volumeEnabled,
-    playMode,
+    playModes,
     playModeEnabled,
     onPlayMode,
     subtitlesEnabled,
@@ -768,8 +768,6 @@ export default function Controls({
     const handlePlayModeSelected = useCallback(
         (playMode: PlayMode) => {
             onPlayMode?.(playMode);
-            setPlayModeSelectorAnchorEl(undefined);
-            setPlayModeSelectorOpen(false);
         },
         [onPlayMode]
     );
@@ -1093,7 +1091,7 @@ export default function Controls({
                 <PlayModeSelector
                     open={playModeSelectorOpen && show}
                     anchorEl={playModeSelectorAnchorEl}
-                    selectedPlayMode={playMode}
+                    selectedPlayModes={playModes || new Set()}
                     onClose={handlePlayModeSelectorClosed}
                     onPlayMode={handlePlayModeSelected}
                 />

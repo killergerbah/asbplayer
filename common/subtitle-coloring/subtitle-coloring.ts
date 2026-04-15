@@ -80,7 +80,7 @@ function shouldUseAnyForm(s: TokenMatchStrategy): boolean {
     return s === TokenMatchStrategy.ANY_FORM_COLLECTED;
 }
 
-interface InternalToken extends Token {
+export interface InternalToken extends Token {
     __internal?: boolean;
 }
 
@@ -389,7 +389,7 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
             this.tokensWereModified(state.body?.modifiedTokens ?? []);
             if (state.type === DictionaryBuildAnkiCacheStateType.error) {
                 const body = state.body as DictionaryBuildAnkiCacheStateError;
-                console.warn(`Dictionary Anki cache build error: ${body.msg}`);
+                console.error(`Dictionary Anki cache build error: ${body.msg}`);
                 this.ankiRecentlyModifiedCardIds.clear();
                 this.ankiRecentlyModifiedFirstCheck = false;
             }
@@ -503,13 +503,16 @@ export class SubtitleColoring extends SubtitleCollection<RichSubtitleModel> {
             for (const ts of this.trackStates) {
                 if (!dictionaryTrackEnabled(ts.dt) || ts.yt) continue;
                 try {
-                    const yt = new Yomitan(ts.dt, this.fetcher, (token) => {
-                        for (const index of this.tokenToIndexesCache.get(token) ?? []) this.refreshCache.add(index);
+                    const yt = new Yomitan(ts.dt, this.fetcher, {
+                        lemmaTokenFallback: true,
+                        tokensWereModified: (token) => {
+                            for (const index of this.tokenToIndexesCache.get(token) ?? []) this.refreshCache.add(index);
+                        },
                     });
                     await yt.version();
                     ts.yt = yt;
                 } catch (e) {
-                    console.warn(`YomitanTrack${ts.track + 1} version request failed:`, e);
+                    console.error(`YomitanTrack${ts.track + 1} version request failed:`, e);
                 }
             }
 
@@ -1289,7 +1292,7 @@ const computeRichText = (fullText: string, tokenization: Tokenization, dt?: Dict
             if (token === undefined) {
                 parts.push(fullText.substring(left, right));
             } else {
-                parts.push(applyTokenStyle(fullText, token, dt));
+                parts.push(applyTokenStyle(fullText, token, false, dt));
             }
         }
     );
@@ -1299,8 +1302,12 @@ const computeRichText = (fullText: string, tokenization: Tokenization, dt?: Dict
 const ERROR_STYLE = `style="text-decoration: line-through red 3px;"`;
 const LOGIC_ERROR_STYLE = `style="text-decoration: line-through red 3px double;"`;
 
-const applyTokenStyle = (fullText: string, token: Token, dt?: DictionaryTrack) => {
-    const tokenText = applyFrequencyAnnotation(applyReadingAnnotation(fullText, token, dt), token, dt);
+export const applyTokenStyle = (fullText: string, token: Token, allowAsciiReading: boolean, dt?: DictionaryTrack) => {
+    const tokenText = applyFrequencyAnnotation(
+        applyReadingAnnotation(fullText, token, allowAsciiReading, dt),
+        token,
+        dt
+    );
     if (token.status === null) return `<span ${ERROR_STYLE}>${tokenText}</span>`;
     if (token.status === undefined && dt && dictionaryTrackEnabled(dt)) {
         return `<span ${LOGIC_ERROR_STYLE}>${tokenText}</span>`; // External tokens may flash this on initial load
@@ -1310,9 +1317,10 @@ const applyTokenStyle = (fullText: string, token: Token, dt?: DictionaryTrack) =
     const s = HAS_LETTER_REGEX.test(tokenText)
         ? `<span class="${ASB_TOKEN_CLASS}${dt.dictionaryHighlightOnHover ? ` ${ASB_TOKEN_HIGHLIGHT_CLASS}` : ''}"`
         : '<span';
-    if (!dt.dictionaryColorizeFullyKnownTokens && token.status === getFullyKnownTokenStatus())
-        return `${s}>${tokenText}</span>`;
-    const c = dt.dictionaryTokenStatusColors[token.status!];
+    const config = dt.dictionaryTokenStatusConfig[token.status!];
+    if (!config.display) return `${s}>${tokenText}</span>`;
+
+    const c = `${config.color}${config.alpha}`;
     const t = dt.dictionaryTokenStylingThickness;
     switch (dt.dictionaryTokenStyling) {
         case TokenStyling.TEXT:
@@ -1329,10 +1337,13 @@ const applyTokenStyle = (fullText: string, token: Token, dt?: DictionaryTrack) =
     }
 };
 
-const applyReadingAnnotation = (fullText: string, token: Token, dt?: DictionaryTrack) => {
+const applyReadingAnnotation = (fullText: string, token: Token, allowAsciiReading: boolean, dt?: DictionaryTrack) => {
     const tokenText = fullText.substring(token.pos[0], token.pos[1]);
-    if (!token.readings.length || !HAS_LETTER_REGEX.test(tokenText) || ONLY_ASCII_LETTERS_REGEX.test(tokenText)) {
-        return tokenText; // Prevent 。 -> まる or english words from getting readings
+    if (!token.readings.length || !HAS_LETTER_REGEX.test(tokenText)) {
+        return tokenText; // Prevent 。 -> まる
+    }
+    if (ONLY_ASCII_LETTERS_REGEX.test(tokenText) && !allowAsciiReading) {
+        return tokenText; // Prevent english words from getting readings
     }
 
     // Only apply skip logic for tokens generated by this class i.e. marked __internal: true
