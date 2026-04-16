@@ -98,7 +98,6 @@ export default function AnkiUi({ bridge }: Props) {
             surroundingSubtitles: dialogState.surroundingSubtitles,
             definition: dialogState.definition,
             image: serializedImage,
-            mediaFragment: serializedImage,
             audio: serializedAudio,
             file,
             word: dialogState.word,
@@ -149,7 +148,7 @@ export default function AnkiUi({ bridge }: Props) {
             setUrl(s.url ?? '');
             setDialogRequestedTimestamp(s.dialogRequestedTimestamp);
             setSerializedAudio(s.audio);
-            setSerializedImage(s.mediaFragment ?? s.image);
+            setSerializedImage(s.image);
             setFile(s.file);
             setDisabled(false);
             setSettings(s.settings);
@@ -305,7 +304,6 @@ export default function AnkiUi({ bridge }: Props) {
             subtitle,
             surroundingSubtitles,
             url,
-            mediaFragment: serializedImage,
             audio: serializedAudio,
             image: serializedImage,
             file,

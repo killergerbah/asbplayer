@@ -94,34 +94,6 @@ it('returns true for WebM support when MediaRecorder and captureStream are avail
     expect(isWebmMediaFragmentSupported()).toEqual(true);
 });
 
-it('prefers a saved media fragment over regenerating a WebM clip', async () => {
-    const mediaRecorder: any = function () {};
-    mediaRecorder.isTypeSupported = (mimeType: string) => mimeType === 'video/webm';
-
-    (globalThis as any).MediaRecorder = mediaRecorder;
-    (HTMLCanvasElement.prototype as any).captureStream = () => undefined;
-
-    const mediaFragment = MediaFragment.fromCard(
-        makeCard({
-            file: {
-                name: 'sample.mp4',
-                blobUrl: 'blob:sample',
-            },
-            mediaFragment: {
-                base64: 'dGVzdA==',
-                extension: 'jpeg',
-            },
-        }),
-        0,
-        0,
-        'webm'
-    );
-
-    expect(mediaFragment?.extension).toEqual('jpeg');
-    expect(mediaFragment?.canChangeTimestamp).toEqual(false);
-    await expect(mediaFragment?.base64()).resolves.toEqual('dGVzdA==');
-});
-
 it('still upgrades legacy screenshots to WebM when a source file is available', () => {
     const mediaRecorder: any = function () {};
     mediaRecorder.isTypeSupported = (mimeType: string) => mimeType === 'video/webm';

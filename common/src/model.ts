@@ -78,7 +78,6 @@ export interface CardModel extends CardTextFieldValues {
     readonly subtitleFileName: string;
     readonly url?: string;
     readonly image?: ImageModel;
-    readonly mediaFragment?: MediaFragmentModel;
     readonly audio?: AudioModel;
     readonly file?: FileModel;
     readonly mediaTimestamp: number;
@@ -107,7 +106,6 @@ export interface MediaFragmentModel {
     readonly error?: MediaFragmentErrorCode;
 }
 
-// Backward-compatible aliases while callers migrate from image to mediaFragment naming.
 export const ImageErrorCode = MediaFragmentErrorCode;
 export type ImageErrorCode = MediaFragmentErrorCode;
 export type ImageModel = MediaFragmentModel;
@@ -148,7 +146,6 @@ export interface AnkiUiState extends CardTextFieldValues {
     readonly url?: string;
     readonly source: string;
     readonly image?: ImageModel;
-    readonly mediaFragment?: MediaFragmentModel;
     readonly audio?: AudioModel;
     readonly file?: FileModel;
     readonly dialogRequestedTimestamp: number;
@@ -178,7 +175,6 @@ export interface AnkiUiSavedState {
     text: string;
     definition: string;
     image?: ImageModel;
-    mediaFragment?: MediaFragmentModel;
     audio?: AudioModel;
     file?: FileModel;
     word: string;

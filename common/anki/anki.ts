@@ -193,8 +193,6 @@ export async function exportCard(
                   card.audio.error
               );
 
-    const serializedMediaFragment = card.mediaFragment ?? card.image;
-
     return await anki.export({
         text: card.text ?? extractText(card.subtitle, card.surroundingSubtitles),
         track1: extractText(card.subtitle, card.surroundingSubtitles, 0),
@@ -203,14 +201,14 @@ export async function exportCard(
         definition: card.definition,
         audioClip,
         image:
-            serializedMediaFragment === undefined
+            card.image === undefined
                 ? undefined
                 : MediaFragment.fromBase64(
                       source,
                       card.subtitle.start,
-                      serializedMediaFragment.base64,
-                      serializedMediaFragment.extension,
-                      serializedMediaFragment.error
+                      card.image.base64,
+                      card.image.extension,
+                      card.image.error
                   ),
         word: card.word,
         source: source,

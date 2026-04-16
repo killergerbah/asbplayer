@@ -288,16 +288,6 @@ export default class MediaFragment {
         mediaFragmentTrimEnd: number = 0,
         mediaFragmentMaxClipLength: number = 0
     ) {
-        if (card.mediaFragment) {
-            return MediaFragment.fromBase64(
-                card.subtitleFileName,
-                card.subtitle.start,
-                card.mediaFragment.base64,
-                card.mediaFragment.extension,
-                card.mediaFragment.error
-            );
-        }
-
         if (card.file && mediaFragmentFormat === 'webm' && isWebmMediaFragmentSupported()) {
             const { startTimestamp, endTimestamp } = resolveWebmMediaFragmentRange(
                 card.subtitle.start,
