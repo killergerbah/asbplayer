@@ -1015,21 +1015,13 @@ export default function SubtitlePlayer({
         onResizeEnd,
     });
 
-    const appliedInitialWidthRef = useRef<number | undefined>(undefined);
     useEffect(() => {
         if (!resizable || initialWidth === undefined || maxResizeWidth < minSubtitlePlayerWidth) {
             return;
         }
 
         const clampedInitialWidth = clampSubtitlePlayerWidth(initialWidth, minSubtitlePlayerWidth, maxResizeWidth);
-
-        if (appliedInitialWidthRef.current === clampedInitialWidth) {
-            return;
-        }
-
-        appliedInitialWidthRef.current = clampedInitialWidth;
         setWidth(clampedInitialWidth);
-        lastKnownWidth = clampedInitialWidth;
     }, [resizable, initialWidth, maxResizeWidth, setWidth]);
 
     // Scroll to selected subtitle when layout changes
