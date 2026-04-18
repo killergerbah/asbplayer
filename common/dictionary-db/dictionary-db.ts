@@ -1436,8 +1436,8 @@ export class DictionaryDB {
                                     if (!HAS_LETTER_REGEX.test(trimmedToken)) continue;
                                     let val = tokenCardsMap.get(trimmedToken);
                                     if (!val) {
-                                        const lemmas = await ts.yomitan.lemmatize(trimmedToken);
-                                        if (!lemmas?.length) continue; // Not a valid dictionary entry
+                                        const lemmas = (await ts.yomitan.lemmatize(trimmedToken))!;
+                                        if (!lemmas.length) continue; // Not a valid dictionary entry
                                         val = { lemmas, cardIds: new Set<number>() };
                                         tokenCardsMap.set(trimmedToken, val);
                                     }

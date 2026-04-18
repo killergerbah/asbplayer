@@ -244,7 +244,6 @@ export default function StatisticsSentenceDetailsDialog({
         const scrollTimeout = window.setTimeout(() => {
             entryRefs[highlightedSentenceIndex].current?.scrollIntoView({
                 block: 'center',
-                behavior: 'smooth',
             });
         }, 0);
         const highlightTimeout = window.setTimeout(() => {

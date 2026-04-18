@@ -154,7 +154,6 @@ type TabName =
     | 'anki-settings'
     | 'mining-settings'
     | 'annotation'
-    | 'statistics'
     | 'subtitle-appearance'
     | 'keyboard-shortcuts'
     | 'streaming-video'

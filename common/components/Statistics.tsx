@@ -3,6 +3,7 @@ import {
     averageDisplay,
     clampPercent,
     countPercentOccurrencesDisplay,
+    dictionaryStatisticsComprehensionBandForPercent,
     DictionaryStatisticsAnkiTrackSnapshot,
     DictionaryStatisticsFrequencyBucketStatusCounts,
     dictionaryStatisticsComprehensionBands,
@@ -468,13 +469,16 @@ interface SentenceStatProps {
     value: string | number;
     typographyVariant?: TypographyProps['variant'];
     sx?: SxProps<Theme>;
+    valueSx?: SxProps<Theme>;
 }
 
-function StatRow({ label: fieldName, value, sx, typographyVariant }: SentenceStatProps) {
+function StatRow({ label: fieldName, value, sx, typographyVariant, valueSx }: SentenceStatProps) {
     return (
         <Box sx={{ display: 'flex', justifyContent: 'space-between', ...(sx ?? {}) }}>
             <Typography variant={typographyVariant ?? 'body2'}>{fieldName}</Typography>
-            <Typography variant={typographyVariant ?? 'body2'}>{value}</Typography>
+            <Typography variant={typographyVariant ?? 'body2'} sx={valueSx}>
+                {value}
+            </Typography>
         </Box>
     );
 }
@@ -596,6 +600,8 @@ function SentenceStatsPanel({
         [onOpenSentenceBucketDetails, totalSentences]
     );
 
+    const comprehensionBand = dictionaryStatisticsComprehensionBandForPercent(comprehensionPercent);
+
     return (
         <Box
             sx={{
@@ -617,7 +623,11 @@ function SentenceStatsPanel({
                     </Typography>
                 ) : (
                     <>
-                        <StatRow label={comprehensionLabel} value={percentDisplay(comprehensionPercent)} />
+                        <StatRow
+                            label={comprehensionLabel}
+                            value={percentDisplay(comprehensionPercent)}
+                            valueSx={{ color: comprehensionBand.color, fontWeight: 600 }}
+                        />
                         <StatRow
                             label={knownWordsLabel}
                             value={`${knownWordsCount} · ${percentDisplay(knownWordsPercent)}`}
@@ -913,6 +923,7 @@ function TrackSnapshot({
     const projectedComprehension = selectedRewatchSnapshot?.comprehensionPercent ?? 0;
     const miningEnabled = trackSnapshot.progress.current >= trackSnapshot.progress.total;
     const ankiTrackSnapshot = processDictionaryStatisticsAnkiTrackSnapshot(statisticsSnapshot, trackSnapshot.track);
+    const comprehensionBand = dictionaryStatisticsComprehensionBandForPercent(trackSnapshot.comprehensionPercent);
 
     return (
         <Box key={trackSnapshot.track} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -957,7 +968,7 @@ function TrackSnapshot({
 
             <Box>
                 <StatisticsSectionHeading title={t('statistics.comprehension')} infoLines={comprehensionInfoLines} />
-                <Typography variant="h6" sx={{ mb: 1 }}>
+                <Typography variant="h6" sx={{ mb: 1, color: comprehensionBand.color, fontWeight: 600 }}>
                     {percentDisplay(trackSnapshot.comprehensionPercent)}
                 </Typography>
                 <ComprehensionScale value={trackSnapshot.comprehensionPercent} />
@@ -1254,11 +1265,20 @@ export default function Statistics({
     useEffect(() => {
         const unsubscribeStatistics = dictionaryProvider.onStatisticsSnapshot(
             (snapshot?: DictionaryStatisticsSnapshot) => {
-                if (snapshot?.mediaId) {
-                    setMediaId(snapshot.mediaId);
-                    if (mediaInfoFetcher) {
-                        mediaInfoFetcher(snapshot.mediaId).then(setMediaInfo);
-                    }
+                if (!snapshot) {
+                    setMediaId(undefined);
+                    setMediaInfo(undefined);
+                    setStatisticsSnapshot(undefined);
+                    setTrackSnapshots([]);
+                    setGenerationRequested(false);
+                    return;
+                }
+
+                setMediaId(snapshot.mediaId);
+                if (mediaInfoFetcher) {
+                    mediaInfoFetcher(snapshot.mediaId).then(setMediaInfo);
+                } else {
+                    setMediaInfo(undefined);
                 }
                 setStatisticsSnapshot(snapshot);
                 const nextTrackSnapshots = processDictionaryStatisticsSnapshot(snapshot);
@@ -1399,20 +1419,22 @@ export default function Statistics({
                         <Box
                             sx={{
                                 display: 'flex',
-                                flexDirection: mediaInfo?.sourceString ? 'row-reverse' : 'column',
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                gap: 0.5,
                             }}
                         >
-                            {onOpenInNewWindow && (
-                                <Box>
-                                    <IconButton>
-                                        <OpenInNewIcon onClick={onOpenInNewWindow} />
-                                    </IconButton>
-                                </Box>
-                            )}
                             {mediaId && (
                                 <Box>
                                     <IconButton>
                                         <PictureInPictureAltIcon onClick={() => onOpenOverlay(mediaId)} />
+                                    </IconButton>
+                                </Box>
+                            )}
+                            {onOpenInNewWindow && (
+                                <Box>
+                                    <IconButton>
+                                        <OpenInNewIcon onClick={onOpenInNewWindow} />
                                     </IconButton>
                                 </Box>
                             )}

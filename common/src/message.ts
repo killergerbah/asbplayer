@@ -1006,6 +1006,12 @@ export interface ResizeStatisticsOverlayMessage extends Message {
     readonly height: number;
 }
 
+export interface MoveStatisticsOverlayMessage extends Message {
+    readonly command: 'move-statistics-overlay';
+    readonly deltaX: number;
+    readonly deltaY: number;
+}
+
 export interface CloseStatisticsOverlayMessage extends Message {
     readonly command: 'close-statistics-overlay';
     readonly mediaId: string;

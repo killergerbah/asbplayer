@@ -125,6 +125,7 @@ interface PlayerProps {
     availableTabs: VideoTabModel[];
     miningContext: MiningContext;
     origin: string;
+    statisticsOverlay?: React.ReactNode;
     onError: (error: any) => void;
     onUnloadVideo: (url: string) => void;
     onCopy: (card: CardModel, postMineAction: PostMineAction | undefined, id: string | undefined) => void;
@@ -169,6 +170,7 @@ const Player = React.memo(function Player({
     availableTabs,
     miningContext,
     origin,
+    statisticsOverlay,
     onError,
     onUnloadVideo,
     onCopy,
@@ -1329,9 +1331,11 @@ const Player = React.memo(function Player({
 
     return (
         <div onMouseMove={handleMouseMove} className={classes.root}>
+            {!videoInWindow && statisticsOverlay}
             <Grid container direction="row" wrap="nowrap" className={classes.container}>
                 {videoInWindow && (
-                    <Grid item style={{ flexGrow: 1, minWidth: minVideoPlayerWidth }}>
+                    <Grid item style={{ flexGrow: 1, minWidth: minVideoPlayerWidth, position: 'relative' }}>
+                        {statisticsOverlay}
                         <iframe
                             ref={videoFrameRef}
                             className={classes.videoFrame}

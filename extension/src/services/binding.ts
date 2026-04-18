@@ -194,6 +194,7 @@ export default class Binding {
         sendResponse: (response?: any) => void
     ) => void;
     private heartbeatInterval?: NodeJS.Timeout;
+    private registeredVideoSrc?: string;
 
     // In the case of firefox, we need to avoid capturing the audio stream more than once,
     // so we keep a reference to the first one we capture here.
@@ -237,6 +238,7 @@ export default class Binding {
         this.postMinePlayback = PostMinePlayback.remember;
         this._synced = false;
         this.recordingMediaWithScreenshot = false;
+        this.registeredVideoSrc = video.src || undefined;
         this.frameId = frameId;
     }
 
@@ -649,6 +651,7 @@ export default class Binding {
 
         if (this.hasPageScript) {
             this.videoChangeListener = () => {
+                this._updateRegisteredVideoSrc(this.video.src || undefined);
                 this.videoDataSyncController.requestSubtitles();
                 this._resetSubtitles();
             };
@@ -656,6 +659,10 @@ export default class Binding {
         }
 
         this.heartbeatInterval = setInterval(() => {
+            const src = this.video.src || undefined;
+            this._updateRegisteredVideoSrc(src);
+            if (!src) return;
+
             const command: VideoToExtensionCommand<VideoHeartbeatMessage> = {
                 sender: 'asbplayer-video',
                 message: {
@@ -665,7 +672,7 @@ export default class Binding {
                     syncedTimestamp: this._syncedTimestamp,
                     loadedSubtitles: this.subtitleController.subtitles.length > 0,
                 },
-                src: this.video.src,
+                src,
             };
 
             browser.runtime.sendMessage(command);
@@ -1175,14 +1182,8 @@ export default class Binding {
         this.bulkExportController.unbind();
         this.subscribed = false;
 
-        const command: VideoToExtensionCommand<VideoDisappearedMessage> = {
-            sender: 'asbplayer-video',
-            message: {
-                command: 'video-disappeared',
-            },
-            src: this.video.src,
-        };
-        browser.runtime.sendMessage(command);
+        this._notifyVideoDisappeared(this.registeredVideoSrc ?? (this.video.src || undefined));
+        this.registeredVideoSrc = undefined;
     }
 
     async _takeScreenshot() {
@@ -1630,6 +1631,24 @@ export default class Binding {
         this._synced = false;
         this._syncedTimestamp = undefined;
         this.mobileVideoOverlayController.disposeOverlay();
+    }
+
+    private _updateRegisteredVideoSrc(src: string | undefined) {
+        if (src === this.registeredVideoSrc) return;
+        this._notifyVideoDisappeared(this.registeredVideoSrc);
+        this.registeredVideoSrc = src;
+    }
+
+    private _notifyVideoDisappeared(src: string | undefined) {
+        if (!src) return;
+        const command: VideoToExtensionCommand<VideoDisappearedMessage> = {
+            sender: 'asbplayer-video',
+            message: {
+                command: 'video-disappeared',
+            },
+            src,
+        };
+        browser.runtime.sendMessage(command);
     }
 
     private _captureStream(): Promise<MediaStream> {

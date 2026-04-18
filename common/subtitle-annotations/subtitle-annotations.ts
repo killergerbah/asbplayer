@@ -1,6 +1,7 @@
 import {
     DictionaryBuildAnkiCacheState,
     DictionaryBuildAnkiCacheStateError,
+    DictionaryBuildAnkiCacheStateErrorCode,
     DictionaryBuildAnkiCacheStateType,
     Fetcher,
     RichSubtitleModel,
@@ -408,8 +409,10 @@ export class SubtitleAnnotations extends SubtitleCollection<RichSubtitleModel> {
             } else {
                 console.error(`Dictionary Anki cache build error: Unknown error`);
             }
-            this.ankiRecentlyModifiedCardIds.clear();
-            this.ankiRecentlyModifiedFirstCheck = false;
+            if (body?.code !== DictionaryBuildAnkiCacheStateErrorCode.concurrentBuild) {
+                this.ankiRecentlyModifiedCardIds.clear();
+                this.ankiRecentlyModifiedFirstCheck = false;
+            }
         }
     }
 

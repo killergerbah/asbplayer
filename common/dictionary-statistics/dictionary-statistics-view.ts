@@ -274,6 +274,10 @@ export function percentDisplay(value: number) {
     return `${value.toFixed(fractionDigits)}%`;
 }
 
+export function dictionaryStatisticsComprehensionBandForPercent(value: number) {
+    return dictionaryStatisticsComprehensionBands[comprehensionBandIndexForPercent(value)];
+}
+
 export function averageDisplay(value: number) {
     return value.toFixed(1);
 }

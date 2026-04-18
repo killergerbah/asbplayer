@@ -130,7 +130,7 @@ const DictionaryImport: React.FC<Props> = ({
             }
 
             const entries: ImportClipboardToken[] = [];
-            for (const token of tokenSet) entries.push({ token, lemmas: (await yomitan.lemmatize(token)) ?? [] });
+            for (const token of tokenSet) entries.push({ token, lemmas: (await yomitan.lemmatize(token))! });
             if (entries.length) {
                 setImportClipboardMessage(undefined);
             } else {
@@ -190,7 +190,7 @@ const DictionaryImport: React.FC<Props> = ({
                     continue;
                 }
                 if (!record.lemmas?.length) {
-                    record.lemmas = (await yomitan.lemmatize(record.token)) ?? [];
+                    record.lemmas = (await yomitan.lemmatize(record.token))!;
                 }
                 lemmatizedRecords.push(record);
             }

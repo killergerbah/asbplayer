@@ -3,6 +3,7 @@ import { type Theme } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
 import AppBar from '@mui/material/AppBar';
+import Box from '@mui/material/Box';
 import BugReportIcon from '@mui/icons-material/BugReport';
 import TutorialIcon from '@project/common/components/TutorialIcon';
 import IconButton from '@mui/material/IconButton';
@@ -68,8 +69,8 @@ const useStyles = makeStyles<Theme, StyleProps, string>((theme) => ({
     },
     drawerButton: {
         transform: 'scaleX(1)',
-        width: 48,
-        padding: 12,
+        width: 40,
+        padding: 8,
         transition: theme.transitions.create(['transform', 'padding', 'width'], {
             easing: theme.transitions.easing.sharp,
             duration: theme.transitions.duration.leavingScreen,
@@ -78,7 +79,7 @@ const useStyles = makeStyles<Theme, StyleProps, string>((theme) => ({
     drawerButtonShift: {
         transform: 'scaleX(0)',
         width: 0,
-        padding: 5,
+        padding: 0,
         transition: theme.transitions.create(['transform', 'padding', 'width'], {
             easing: theme.transitions.easing.easeOut,
             duration: theme.transitions.duration.enteringScreen,
@@ -201,32 +202,34 @@ export default function Bar({
                             <SettingsIcon />
                         </IconButton>
                     </Tooltip>
-                    <CopyHistoryTooltip title={t('bar.miningHistory')!} show={!drawerOpen}>
-                        <IconButton
-                            edge="end"
-                            color="inherit"
-                            className={clsx(classes.drawerButton, {
-                                [classes.drawerButtonShift]: drawerOpen,
-                            })}
-                            onClick={onOpenCopyHistory}
-                        >
-                            <HistoryIcon />
-                        </IconButton>
-                    </CopyHistoryTooltip>
-                    {onOpenStatistics && (
-                        <Tooltip title={t('statistics.title')!}>
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <CopyHistoryTooltip title={t('bar.miningHistory')!} show={!drawerOpen}>
                             <IconButton
                                 edge="end"
                                 color="inherit"
-                                onClick={onOpenStatistics}
                                 className={clsx(classes.drawerButton, {
                                     [classes.drawerButtonShift]: drawerOpen,
                                 })}
+                                onClick={onOpenCopyHistory}
                             >
-                                <BarChartIcon />
+                                <HistoryIcon />
                             </IconButton>
-                        </Tooltip>
-                    )}
+                        </CopyHistoryTooltip>
+                        {onOpenStatistics && (
+                            <Tooltip title={t('statistics.title')!}>
+                                <IconButton
+                                    edge="end"
+                                    color="inherit"
+                                    onClick={onOpenStatistics}
+                                    className={clsx(classes.drawerButton, {
+                                        [classes.drawerButtonShift]: drawerOpen,
+                                    })}
+                                >
+                                    <BarChartIcon />
+                                </IconButton>
+                            </Tooltip>
+                        )}
+                    </Box>
                 </Toolbar>
             </AppBar>
             <Popover

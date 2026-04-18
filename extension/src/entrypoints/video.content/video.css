@@ -251,10 +251,10 @@
 
 .asbplayer-statistics-overlay-container {
     position: fixed !important;
-    bottom: 8px !important;
+    top: 8px !important;
+    bottom: auto !important;
     transform: translateX(-50%) !important;
     width: 100vw !important;
-    top: auto !important;
     /* +1 more than mobile overlay */
     z-index: 2147483647 !important;
     pointer-events: auto !important;

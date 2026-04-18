@@ -6,6 +6,7 @@ import { useWindowSize } from '../hooks/use-window-size';
 import { useLocationHash } from '@project/common/hooks/use-location-hash';
 import {
     Image,
+    OpenStatisticsOverlayMessage,
     SubtitleModel,
     VideoTabModel,
     LegacyPlayerSyncMessage,
@@ -214,14 +215,30 @@ function Content(props: ContentProps) {
 }
 
 function AppStatisticsOverlay(props: StatisticsOverlayProps) {
+    const [position, setPosition] = useState({ x: 0, y: 0 });
+
+    useEffect(() => {
+        if (props.open) {
+            setPosition({ x: 0, y: 0 });
+        }
+    }, [props.open]);
+
+    const handleMoveBy = useCallback((deltaX: number, deltaY: number) => {
+        setPosition((current) => ({
+            x: current.x + deltaX,
+            y: Math.max(0, current.y + deltaY),
+        }));
+    }, []);
+
     return (
         <StatisticsOverlay
             {...props}
+            onMoveBy={handleMoveBy}
             sx={{
                 position: 'absolute',
-                top: `72px`,
+                top: 8,
                 left: '50%',
-                transform: 'translateX(-50%)',
+                transform: `translateX(calc(-50% + ${position.x}px)) translateY(${position.y}px)`,
             }}
         />
     );
@@ -332,6 +349,7 @@ function App({
     const [availableTabs, setAvailableTabs] = useState<VideoTabModel[]>();
     const [isSidePanelOpen, setIsSidePanelOpen] = useState<boolean>(false);
     const [statisticsOverlayOpen, setStatisticsOverlayOpen] = useState<boolean>(false);
+    const [statisticsOverlayDismissed, setStatisticsOverlayDismissed] = useState<boolean>(false);
     const [lastError, setLastError] = useState<any>();
     const fileInputRef = useRef<HTMLInputElement>(null);
     const { subtitleFiles } = sources;
@@ -593,12 +611,32 @@ function App({
             if (mediaId !== extension.id) {
                 return;
             }
-            setStatisticsOverlayOpen(settings.dictionaryTracks[trackIndex].dictionaryAutoGenerateStatistics);
+
+            if (settings.dictionaryTracks[trackIndex].dictionaryAutoGenerateStatistics && !statisticsOverlayDismissed) {
+                setStatisticsOverlayOpen(true);
+            }
         },
-        [extension, settings.dictionaryTracks]
+        [extension, settings.dictionaryTracks, statisticsOverlayDismissed]
     );
-    const handleCloseStatisticsOverlay = useCallback(() => setStatisticsOverlayOpen(false), []);
-    const handleOpenStatisticsOverlay = useCallback(() => setStatisticsOverlayOpen(true), []);
+    const handleCloseStatisticsOverlay = useCallback(() => {
+        setStatisticsOverlayOpen(false);
+        setStatisticsOverlayDismissed(true);
+    }, []);
+    const handleStatisticsOverlaySnapshotCleared = useCallback(() => {
+        setStatisticsOverlayOpen(false);
+    }, []);
+    const openStatisticsOverlay = useCallback(() => {
+        setStatisticsOverlayDismissed(false);
+        setStatisticsOverlayOpen(true);
+    }, []);
+    const handleOpenStatisticsOverlay = useCallback(() => {
+        if (statisticsOverlayOpen) {
+            handleCloseStatisticsOverlay();
+            return;
+        }
+
+        openStatisticsOverlay();
+    }, [handleCloseStatisticsOverlay, openStatisticsOverlay, statisticsOverlayOpen]);
     const handleCloseCopyHistory = useCallback(() => setCopyHistoryOpen(false), []);
     const handleAppBarToggle = useCallback(() => {
         const newValue = !playbackPreferences.theaterMode;
@@ -652,6 +690,9 @@ function App({
                 return;
             }
 
+            void dictionaryProvider.publishStatisticsSnapshot(extension.id, undefined);
+            setStatisticsOverlayOpen(false);
+
             setSources((previous) => {
                 revokeBlobUrl(videoFileUrl);
 
@@ -663,7 +704,7 @@ function App({
             });
             setVideoFullscreen(false);
         },
-        [sources]
+        [dictionaryProvider, extension.id, sources]
     );
 
     const handleDownloadAudio = useCallback(
@@ -1035,8 +1076,13 @@ function App({
             } else if (message.data.command === 'show-anki-ui') {
                 handleAnki(message.data as ShowAnkiUiMessage);
             } else if (message.data.command === 'open-statistics-overlay') {
-                console.log(message);
-                setStatisticsOverlayOpen(true);
+                const openMessage = message.data as OpenStatisticsOverlayMessage;
+
+                if (openMessage.force && statisticsOverlayOpen) {
+                    handleCloseStatisticsOverlay();
+                } else {
+                    openStatisticsOverlay();
+                }
             }
         }
 
@@ -1052,10 +1098,13 @@ function App({
         supportsDictionaryStatistics,
         inVideoPlayer,
         sources.videoFileUrl,
+        statisticsOverlayOpen,
         tab,
         handleFiles,
         handleAnki,
+        handleCloseStatisticsOverlay,
         handleUnloadVideo,
+        openStatisticsOverlay,
     ]);
 
     useEffect(() => {
@@ -1546,13 +1595,6 @@ function App({
                                         loading={loading}
                                     />
                                 </Paper>
-                                <AppStatisticsOverlay
-                                    open={statisticsOverlayOpen}
-                                    dictionaryProvider={dictionaryProvider}
-                                    onOpenStatistics={handleOpenStatistics}
-                                    onReceivedSnapshot={handleReceivedStatisticsSnapshot}
-                                    onClose={handleCloseStatisticsOverlay}
-                                />
                                 <Player
                                     origin={origin}
                                     subtitleReader={subtitleReader}
@@ -1577,6 +1619,16 @@ function App({
                                         setSubtitles as React.Dispatch<
                                             React.SetStateAction<DisplaySubtitleModel[] | undefined>
                                         >
+                                    }
+                                    statisticsOverlay={
+                                        <AppStatisticsOverlay
+                                            open={statisticsOverlayOpen}
+                                            dictionaryProvider={dictionaryProvider}
+                                            onOpenStatistics={handleOpenStatistics}
+                                            onReceivedSnapshot={handleReceivedStatisticsSnapshot}
+                                            onSnapshotCleared={handleStatisticsOverlaySnapshotCleared}
+                                            onClose={handleCloseStatisticsOverlay}
+                                        />
                                     }
                                     onLoadFiles={handleFileSelector}
                                     tab={tab}

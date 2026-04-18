@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState, useMemo, useRef } from 'react'
 import { DictionaryProvider } from '../dictionary-db';
 import {
     DictionarySimplifiedStatisticsTrackSnapshot,
+    dictionaryStatisticsComprehensionBandForPercent,
     DictionaryStatisticsSnapshot,
     percentDisplay,
     processSimplifiedDictionaryStatistics,
@@ -23,9 +24,10 @@ interface StatisticProps {
     label: string;
     value: string | number;
     onClick?: () => void;
+    valueSx?: SxProps<Theme>;
 }
 
-const Statistic: React.FC<StatisticProps> = ({ label, value, onClick }) => {
+const Statistic: React.FC<StatisticProps> = ({ label, value, onClick, valueSx }) => {
     const hoverProps: SxProps<Theme> =
         onClick === undefined
             ? {}
@@ -36,6 +38,7 @@ const Statistic: React.FC<StatisticProps> = ({ label, value, onClick }) => {
     const textDecoration = onClick === undefined ? 'auto' : 'underline';
     return (
         <Box
+            data-statistics-overlay-interactive={onClick !== undefined ? 'true' : undefined}
             sx={{
                 display: 'flex',
                 justifyContent: 'space-between',
@@ -48,7 +51,7 @@ const Statistic: React.FC<StatisticProps> = ({ label, value, onClick }) => {
             onClick={onClick}
         >
             <Typography variant="subtitle2">{label}</Typography>
-            <Typography variant="subtitle2" sx={{ textDecoration }}>
+            <Typography variant="subtitle2" sx={{ textDecoration, ...(valueSx ?? {}) }}>
                 {value}
             </Typography>
         </Box>
@@ -60,7 +63,9 @@ export interface StatisticsOverlayProps {
     open: boolean;
     onOpenStatistics: () => void;
     onReceivedSnapshot: (mediaId: string, trackIndex: number) => void;
+    onSnapshotCleared?: () => void;
     onClose: () => void;
+    onMoveBy?: (deltaX: number, deltaY: number) => void;
     onSentenceDetailsWereOpened?: () => void;
     onSentenceDetailsWereClosed?: () => void;
     sx?: SxProps<Theme>;
@@ -90,7 +95,9 @@ const StatisticsOverlay = React.forwardRef<HTMLDivElement, StatisticsOverlayProp
         open,
         onOpenStatistics,
         onReceivedSnapshot,
+        onSnapshotCleared,
         onClose,
+        onMoveBy,
         onSentenceDetailsWereOpened,
         onSentenceDetailsWereClosed,
         sx,
@@ -100,18 +107,34 @@ const StatisticsOverlay = React.forwardRef<HTMLDivElement, StatisticsOverlayProp
     const { t } = useTranslation();
     const [bestTrackSnapshot, setBestTrackSnapshot] = useState<DictionarySimplifiedStatisticsTrackSnapshot>();
     const [sentenceDetailsOpen, setSentenceDetailsOpen] = useState<boolean>(false);
+    const [dragging, setDragging] = useState<boolean>(false);
     const [mediaId, setMediaId] = useState<string>();
+    const dragRef = useRef<{ pointerId: number; clientX: number; clientY: number } | undefined>(undefined);
     const onReceivedSnapshotRef = useRef<(mediaId: string, trackIndex: number) => void>(onReceivedSnapshot);
     onReceivedSnapshotRef.current = onReceivedSnapshot;
+    const onSnapshotClearedRef = useRef<(() => void) | undefined>(onSnapshotCleared);
+    onSnapshotClearedRef.current = onSnapshotCleared;
     useEffect(() => {
         const unsubscribeStatistics = dictionaryProvider.onStatisticsSnapshot(
             (snapshot?: DictionaryStatisticsSnapshot) => {
+                if (!snapshot) {
+                    setMediaId(undefined);
+                    setBestTrackSnapshot(undefined);
+                    setSentenceDetailsOpen(false);
+                    onSnapshotClearedRef.current?.();
+                    return;
+                }
+
                 const nextTrackSnapshots = processSimplifiedDictionaryStatistics(snapshot);
-                setMediaId(snapshot?.mediaId);
+                setMediaId(snapshot.mediaId);
                 const [bestSnapshot, bestIndex] = calculateBestTrackSnapshot(nextTrackSnapshots);
                 if (bestSnapshot !== undefined) {
                     setBestTrackSnapshot(bestSnapshot);
-                    onReceivedSnapshotRef.current?.(snapshot!.mediaId, bestIndex);
+                    onReceivedSnapshotRef.current?.(snapshot.mediaId, bestIndex);
+                } else {
+                    setBestTrackSnapshot(undefined);
+                    setSentenceDetailsOpen(false);
+                    onSnapshotClearedRef.current?.();
                 }
             }
         );
@@ -124,6 +147,9 @@ const StatisticsOverlay = React.forwardRef<HTMLDivElement, StatisticsOverlayProp
     const iPlusOneSentenceBucket = bestTrackSnapshot?.sentenceBuckets.uncollected.find((b) => b.tokenCount === 1);
     const iPlusOneSentenceCount = iPlusOneSentenceBucket?.entries?.length ?? 0;
     const iPlusOneLabel = `1 ${t('settings.dictionaryTokenStatus0')}`;
+    const comprehensionBand = bestTrackSnapshot
+        ? dictionaryStatisticsComprehensionBandForPercent(bestTrackSnapshot.comprehensionPercent)
+        : undefined;
 
     const handleOpenSentenceDetails = useCallback(() => {
         setSentenceDetailsOpen(true);
@@ -151,17 +177,89 @@ const StatisticsOverlay = React.forwardRef<HTMLDivElement, StatisticsOverlayProp
         },
         [mediaId, dictionaryProvider]
     );
+    const handlePointerDown = useCallback(
+        (event: React.PointerEvent<HTMLDivElement>) => {
+            if (onMoveBy === undefined || event.button !== 0) {
+                return;
+            }
+
+            const target = event.target as HTMLElement | null;
+            if (
+                target?.closest(
+                    '[data-statistics-overlay-interactive="true"],button,a,input,textarea,select,[role="button"]'
+                )
+            ) {
+                return;
+            }
+
+            dragRef.current = {
+                pointerId: event.pointerId,
+                clientX: event.clientX,
+                clientY: event.clientY,
+            };
+            setDragging(true);
+            event.currentTarget.setPointerCapture(event.pointerId);
+            event.preventDefault();
+        },
+        [onMoveBy]
+    );
+    const handlePointerMove = useCallback(
+        (event: React.PointerEvent<HTMLDivElement>) => {
+            const drag = dragRef.current;
+
+            if (drag === undefined || drag.pointerId !== event.pointerId || onMoveBy === undefined) {
+                return;
+            }
+
+            const deltaX = event.clientX - drag.clientX;
+            const deltaY = event.clientY - drag.clientY;
+
+            if (deltaX === 0 && deltaY === 0) {
+                return;
+            }
+
+            dragRef.current = {
+                pointerId: event.pointerId,
+                clientX: event.clientX,
+                clientY: event.clientY,
+            };
+            onMoveBy(deltaX, deltaY);
+        },
+        [onMoveBy]
+    );
+    const handlePointerUp = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
+        if (dragRef.current?.pointerId !== event.pointerId) {
+            return;
+        }
+
+        dragRef.current = undefined;
+        setDragging(false);
+        if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+            event.currentTarget.releasePointerCapture(event.pointerId);
+        }
+    }, []);
+    const handlePointerCancel = useCallback(() => {
+        dragRef.current = undefined;
+        setDragging(false);
+    }, []);
 
     return (
         <Fade in={bestTrackSnapshot !== undefined && open} timeout={250}>
             <Paper
                 ref={ref}
                 variant="elevation"
+                onPointerDown={handlePointerDown}
+                onPointerMove={handlePointerMove}
+                onPointerUp={handlePointerUp}
+                onPointerCancel={handlePointerCancel}
                 sx={{
                     background: (theme) => alpha(theme.palette.background.paper, 0.7),
                     zIndex: (theme) => theme.zIndex.modal,
                     p: 1,
                     position: 'relative',
+                    cursor: onMoveBy === undefined ? 'auto' : dragging ? 'grabbing' : 'grab',
+                    touchAction: onMoveBy === undefined ? 'auto' : 'none',
+                    userSelect: dragging ? 'none' : undefined,
                     ...(sx ?? {}),
                 }}
             >
@@ -172,6 +270,7 @@ const StatisticsOverlay = React.forwardRef<HTMLDivElement, StatisticsOverlayProp
                             <Statistic
                                 label={t('statistics.comprehension')}
                                 value={percentDisplay(bestTrackSnapshot.comprehensionPercent)}
+                                valueSx={{ color: comprehensionBand?.color, fontWeight: 600 }}
                             />
                         )}
                         <Statistic
@@ -180,11 +279,11 @@ const StatisticsOverlay = React.forwardRef<HTMLDivElement, StatisticsOverlayProp
                             onClick={iPlusOneSentenceCount > 0 ? handleOpenSentenceDetails : undefined}
                         />
                     </Box>
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <IconButton onClick={onOpenStatistics}>
+                    <Box sx={{ display: 'flex', alignItems: 'center' }} data-statistics-overlay-interactive="true">
+                        <IconButton onClick={onOpenStatistics} data-statistics-overlay-interactive="true">
                             <BarChartIcon />
                         </IconButton>
-                        <IconButton onClick={onClose}>
+                        <IconButton onClick={onClose} data-statistics-overlay-interactive="true">
                             <CloseIcon />
                         </IconButton>
                     </Box>

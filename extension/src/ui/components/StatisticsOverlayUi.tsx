@@ -8,12 +8,14 @@ import { createTheme } from '@project/common/theme';
 import { useI18n } from '../hooks/use-i18n';
 import ThemeProvider from '@mui/material/styles/ThemeProvider';
 import CssBaseline from '@mui/material/CssBaseline';
-import { useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import StatisticsOverlay from '@project/common/components/StatisticsOverlay';
 import {
     CloseStatisticsOverlayMessage,
     CurrentTabMessage,
     FullscreenStatisticsOverlayMessage,
+    Message,
+    MoveStatisticsOverlayMessage,
     OpenStatisticsMessage,
     OpenStatisticsOverlayMessage,
     ResizeStatisticsOverlayMessage,
@@ -45,8 +47,11 @@ const useThisTabId = () => {
 const StatisticsOverlayUi = () => {
     const [settings, setSettings] = useState<AsbplayerSettings>();
     const [mediaId, setMediaId] = useState<string>();
+    const mediaIdRef = useRef<string | undefined>(undefined);
     const theme = useMemo(() => settings && createTheme(settings.themeType), [settings]);
     const extension = useChromeExtension({ component: 'statisticsPopup' });
+
+    mediaIdRef.current = mediaId;
 
     useEffect(() => {
         settingsProvider.getAll().then(setSettings);
@@ -69,9 +74,12 @@ const StatisticsOverlayUi = () => {
         };
         browser.runtime.sendMessage(command);
     }, []);
+    const sendToTab = useCallback((command: StatisticsOverlayToTabCommand<Message>) => {
+        window.parent.postMessage(command, '*');
+    }, []);
 
     const overlayRef = useRef<HTMLDivElement | null>(null);
-    const publishOverlaySize = () => {
+    const publishOverlaySize = useCallback(() => {
         if (!overlayRef.current) {
             return;
         }
@@ -83,11 +91,11 @@ const StatisticsOverlayUi = () => {
                 height: overlayRef.current.getBoundingClientRect().height,
             },
         };
-        browser.runtime.sendMessage(command);
-    };
+        sendToTab(command);
+    }, [sendToTab]);
     const resizeObserver = useMemo(() => {
         return new ResizeObserver(() => publishOverlaySize());
-    }, []);
+    }, [publishOverlaySize]);
 
     const handleOverlayRef = useCallback(
         (elm: HTMLDivElement | null) => {
@@ -102,7 +110,7 @@ const StatisticsOverlayUi = () => {
             publishOverlaySize();
             resizeObserver.observe(elm);
         },
-        [resizeObserver]
+        [publishOverlaySize, resizeObserver]
     );
 
     const thisTabId = useThisTabId();
@@ -127,24 +135,33 @@ const StatisticsOverlayUi = () => {
                         force: false,
                     },
                 };
-                browser.runtime.sendMessage(command);
+                sendToTab(command);
             }
         },
-        [thisTabId, settings]
+        [sendToTab, thisTabId, settings]
     );
-    const handleCloseStatisticsOverlay = useCallback(() => {
-        if (mediaId === undefined) {
-            return;
-        }
-        const command: StatisticsOverlayToTabCommand<CloseStatisticsOverlayMessage> = {
-            sender: 'asbplayer-statistics-overlay-to-tab',
-            message: {
-                command: 'close-statistics-overlay',
-                mediaId,
-            },
-        };
-        browser.runtime.sendMessage(command);
-    }, [mediaId]);
+    const handleCloseStatisticsOverlay = useCallback(
+        (targetMediaId?: string) => {
+            const nextMediaId = targetMediaId ?? mediaIdRef.current;
+
+            if (nextMediaId === undefined) {
+                return;
+            }
+            const command: StatisticsOverlayToTabCommand<CloseStatisticsOverlayMessage> = {
+                sender: 'asbplayer-statistics-overlay-to-tab',
+                message: {
+                    command: 'close-statistics-overlay',
+                    mediaId: nextMediaId,
+                },
+            };
+            sendToTab(command);
+        },
+        [sendToTab]
+    );
+    const handleStatisticsSnapshotCleared = useCallback(() => {
+        handleCloseStatisticsOverlay(mediaIdRef.current);
+        setMediaId(undefined);
+    }, [handleCloseStatisticsOverlay]);
     const handleSentenceDetailsWereOpened = useCallback(() => {
         const command: StatisticsOverlayToTabCommand<FullscreenStatisticsOverlayMessage> = {
             sender: 'asbplayer-statistics-overlay-to-tab',
@@ -152,8 +169,8 @@ const StatisticsOverlayUi = () => {
                 command: 'fullscreen-statistics-overlay',
             },
         };
-        browser.runtime.sendMessage(command);
-    }, []);
+        sendToTab(command);
+    }, [sendToTab]);
     const handleSentenceDetailsWereClosed = useCallback(() => {
         const command: StatisticsOverlayToTabCommand<RestoreStatisticsOverlayMessage> = {
             sender: 'asbplayer-statistics-overlay-to-tab',
@@ -161,8 +178,22 @@ const StatisticsOverlayUi = () => {
                 command: 'restore-statistics-overlay',
             },
         };
-        browser.runtime.sendMessage(command);
-    }, []);
+        sendToTab(command);
+    }, [sendToTab]);
+    const handleMoveOverlayBy = useCallback(
+        (deltaX: number, deltaY: number) => {
+            const command: StatisticsOverlayToTabCommand<MoveStatisticsOverlayMessage> = {
+                sender: 'asbplayer-statistics-overlay-to-tab',
+                message: {
+                    command: 'move-statistics-overlay',
+                    deltaX,
+                    deltaY,
+                },
+            };
+            sendToTab(command);
+        },
+        [sendToTab]
+    );
 
     const { initialized: i18nInitialized } = useI18n({ language: settings?.language ?? 'en' });
 
@@ -178,8 +209,6 @@ const StatisticsOverlayUi = () => {
                     display: 'flex',
                     justifyContent: 'center',
                     width: '100%',
-                    position: 'absolute',
-                    bottom: 0,
                 }}
             >
                 <StatisticsOverlay
@@ -188,10 +217,11 @@ const StatisticsOverlayUi = () => {
                     dictionaryProvider={dictionaryProvider}
                     onOpenStatistics={handleOpenStatistics}
                     onReceivedSnapshot={handleReceivedSnapshot}
+                    onSnapshotCleared={handleStatisticsSnapshotCleared}
                     onClose={handleCloseStatisticsOverlay}
+                    onMoveBy={handleMoveOverlayBy}
                     onSentenceDetailsWereOpened={handleSentenceDetailsWereOpened}
                     onSentenceDetailsWereClosed={handleSentenceDetailsWereClosed}
-                    sx={{ bottom: 1 }}
                 />
             </Box>
         </ThemeProvider>

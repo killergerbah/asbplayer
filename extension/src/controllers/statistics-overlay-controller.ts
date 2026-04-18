@@ -4,6 +4,7 @@ import {
     CloseStatisticsOverlayMessage,
     Command,
     Message,
+    MoveStatisticsOverlayMessage,
     OpenStatisticsOverlayMessage,
     ResizeStatisticsOverlayMessage,
     StatisticsOverlayToTabCommand,
@@ -17,18 +18,26 @@ export class StatisticsOverlayController {
         sender: Browser.runtime.MessageSender,
         sendResponse: (response?: any) => void
     ) => void;
+    private _windowMessageListener?: (event: MessageEvent) => void;
     private _overlay?: CachingElementOverlay;
     private _height?: string;
+    private _mediaId?: string;
     private _restoreWidth?: string;
     private _width?: string;
     private _state: State = 'closed';
     private _restoreTimeout?: NodeJS.Timeout;
     private _lastClosedMediaId?: string;
+    private _xOffset = 0;
+    private _yOffset = 0;
 
     unbind() {
         if (this._messageListener !== undefined) {
             browser.runtime.onMessage.removeListener(this._messageListener);
             this._messageListener = undefined;
+        }
+        if (this._windowMessageListener !== undefined) {
+            window.removeEventListener('message', this._windowMessageListener);
+            this._windowMessageListener = undefined;
         }
         if (this._restoreTimeout !== undefined) {
             clearTimeout(this._restoreTimeout);
@@ -51,6 +60,18 @@ export class StatisticsOverlayController {
         };
         this._ensureOverlay();
         browser.runtime.onMessage.addListener(this._messageListener);
+        this._windowMessageListener = (event: MessageEvent) => {
+            if (event.source === window) {
+                return;
+            }
+
+            if (event.data?.sender !== 'asbplayer-statistics-overlay-to-tab') {
+                return;
+            }
+
+            this._handleMessageFromOverlay(event.data);
+        };
+        window.addEventListener('message', this._windowMessageListener);
     }
 
     private _handleMessageFromOverlay(message: any) {
@@ -75,26 +96,27 @@ export class StatisticsOverlayController {
                         this._state = 'open';
                         this._setHeight('68px');
                         this._setWidth(this._restoreWidth ?? '100%');
+                        this._refreshOverlay();
                     }
                 }, 500);
                 break;
             case 'open-statistics-overlay':
                 const openMessage = command.message as OpenStatisticsOverlayMessage;
-                if (
-                    this._state === 'closed' &&
-                    (openMessage.force || this._lastClosedMediaId !== openMessage.mediaId)
-                ) {
-                    this._state = 'open';
-                    this._setHeight('68px');
+                this._handleOpen(openMessage);
+                break;
+            case 'move-statistics-overlay':
+                if (this._state === 'fullscreen') {
+                    break;
                 }
+
+                const moveMessage = command.message as MoveStatisticsOverlayMessage;
+                this._xOffset += moveMessage.deltaX;
+                this._yOffset = Math.max(0, this._yOffset + moveMessage.deltaY);
+                this._applyCurrentContainerStyles();
                 break;
             case 'close-statistics-overlay':
                 const closeMessage = command.message as CloseStatisticsOverlayMessage;
-                if (this._state !== 'closed') {
-                    this._state = 'closed';
-                    this._setHeight('0px');
-                    this._lastClosedMediaId = closeMessage.mediaId;
-                }
+                this._close(closeMessage.mediaId);
                 break;
             case 'resize-statistics-overlay':
                 const resizeMessage = command.message as ResizeStatisticsOverlayMessage;
@@ -105,13 +127,82 @@ export class StatisticsOverlayController {
 
     private _handleMessage(message: any) {
         const command = message as Command<Message>;
+        if (command.sender !== 'asbplayer-extension-to-video') {
+            return;
+        }
+
         if (command.message.command === 'open-statistics-overlay') {
             const openMessage = (command as Command<OpenStatisticsOverlayMessage>).message;
-            if (this._state === 'closed' && (openMessage.force || this._lastClosedMediaId !== openMessage.mediaId)) {
-                this._state = 'open';
-                this._setHeight('68px');
-            }
+            this._handleOpen(openMessage);
         }
+    }
+
+    private _handleOpen(message: OpenStatisticsOverlayMessage) {
+        if (message.force && this._state !== 'closed' && this._mediaId === message.mediaId) {
+            this._close(message.mediaId);
+            return;
+        }
+
+        if (this._state !== 'closed' && this._mediaId === message.mediaId) {
+            return;
+        }
+
+        if (!message.force && this._state === 'closed' && this._lastClosedMediaId === message.mediaId) {
+            return;
+        }
+
+        this._state = 'open';
+        this._mediaId = message.mediaId;
+        this._resetPosition();
+        this._setWidth('100%');
+        this._setHeight('68px');
+    }
+
+    private _close(mediaId: string) {
+        if (this._state === 'closed') {
+            return;
+        }
+
+        this._state = 'closed';
+        this._mediaId = undefined;
+        this._setWidth(this._restoreWidth ?? '100%');
+        this._setHeight('0px');
+        this._lastClosedMediaId = mediaId;
+    }
+
+    private _resetPosition() {
+        this._xOffset = 0;
+        this._yOffset = 0;
+        this._applyCurrentContainerStyles();
+    }
+
+    private _refreshOverlay() {
+        this._overlay?.refresh();
+    }
+
+    private _applyCurrentContainerStyles() {
+        const container = this._overlay?.containerElement;
+
+        if (container !== undefined) {
+            this._applyOverlayContainerStyles(container);
+        }
+    }
+
+    private _applyOverlayContainerStyles(container: HTMLElement) {
+        if (this._state === 'fullscreen') {
+            container.style.setProperty('top', '0px', 'important');
+            container.style.setProperty('left', '0px', 'important');
+            container.style.setProperty('bottom', 'auto', 'important');
+            container.style.setProperty('transform', 'none', 'important');
+        } else {
+            container.style.setProperty('top', `${8 + this._yOffset}px`, 'important');
+            container.style.setProperty('left', `calc(50% + ${this._xOffset}px)`, 'important');
+            container.style.setProperty('bottom', 'auto', 'important');
+            container.style.setProperty('transform', 'translateX(-50%)', 'important');
+        }
+
+        container.style.setProperty('height', this._height ?? null, 'important');
+        container.style.setProperty('width', this._width ?? '100%', 'important');
     }
 
     private _setHeight(height: string) {
@@ -149,8 +240,7 @@ export class StatisticsOverlayController {
             onMouseOut: () => {},
             onMouseOver: () => {},
             onContainerStyles: (container) => {
-                container.style.setProperty('height', this._height ?? null, 'important');
-                container.style.setProperty('width', this._width ?? '100%', 'important');
+                this._applyOverlayContainerStyles(container);
             },
         });
         const colorScheme = frameColorScheme();

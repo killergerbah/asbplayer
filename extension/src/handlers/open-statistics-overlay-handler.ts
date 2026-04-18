@@ -16,10 +16,16 @@ export default class OpenStatisticsOverlayHandler {
         return 'open-statistics-overlay';
     }
 
-    handle(command: Command<Message>, sender: Browser.runtime.MessageSender, sendResponse: (response?: any) => void) {
+    async handle(
+        command: Command<Message>,
+        sender: Browser.runtime.MessageSender,
+        sendResponse: (response?: any) => void
+    ) {
         const openCommand: Command<OpenStatisticsOverlayMessage> = command as Command<OpenStatisticsOverlayMessage>;
         void this._tabRegistry.publishCommandToAsbplayers({
             commandFactory: (asbplayer) => {
+                if (asbplayer.sidePanel) return;
+
                 if (
                     asbplayer.id === openCommand.message.mediaId ||
                     asbplayer.syncedVideoElement?.src === openCommand.message.mediaId

@@ -15,7 +15,7 @@ import {
     DictionaryRequestStatisticsMineSentencesMessage,
 } from '@project/common';
 import { DictionaryDB } from '@project/common/dictionary-db/dictionary-db';
-import TabRegistry from '@/services/tab-registry';
+import TabRegistry, { Asbplayer, VideoElement } from '@/services/tab-registry';
 import {
     DictionaryGetBulkMessage,
     DictionaryGetByLemmaBulkMessage,
@@ -101,13 +101,11 @@ export default class DictionaryHandler {
                             message: { command: 'dictionary-build-anki-cache-state', ...state },
                         };
                         void this._relayToExtensionContexts(playerMessage);
-                        await this.tabRegistry.publishCommandToAsbplayers({
-                            commandFactory: (asbplayer) => {
-                                if (asbplayer.sidePanel) return;
-                                return playerMessage;
-                            },
+                        void this._relayToAsbplayers((asbplayer) => {
+                            if (asbplayer.sidePanel) return;
+                            return playerMessage;
                         });
-                        await this.tabRegistry.publishCommandToVideoElements((videoElement) => {
+                        void this._relayToVideoElements((videoElement) => {
                             return {
                                 sender: 'asbplayer-extension-to-video',
                                 src: videoElement.src,
@@ -137,23 +135,21 @@ export default class DictionaryHandler {
                     message: command.message as DSM,
                 };
                 void this._relayToExtensionContexts(playerMessage);
-                void this.tabRegistry.publishCommandToAsbplayers({
-                    commandFactory: (asbplayer) => {
-                        if (asbplayer.sidePanel) return;
-                        if (!playerMessage.message.mediaId) return playerMessage; // Messages without mediaId should be sent to all non-sidePanel App instances
-                        if (asbplayer.syncedVideoElement) {
-                            if (asbplayer.syncedVideoElement.src !== playerMessage.message.mediaId) return;
-                            return playerMessage; // Extension controlled media must match the synced video src
-                        }
-                        if (asbplayer.id === playerMessage.message.mediaId) return playerMessage; // App controlled media must match subtitle App instance id
-                        if (!asbplayer.loadedSubtitles && !asbplayer.videoPlayer) return playerMessage; // Idle App instances should receive statistics
-                    },
+                void this._relayToAsbplayers((asbplayer) => {
+                    if (asbplayer.sidePanel) return;
+                    if (!playerMessage.message.mediaId) return playerMessage; // Messages without mediaId should be sent to all non-sidePanel App instances
+                    if (asbplayer.syncedVideoElement) {
+                        if (asbplayer.syncedVideoElement.src !== playerMessage.message.mediaId) return;
+                        return playerMessage; // Extension controlled media must match the synced video src
+                    }
+                    if (asbplayer.id === playerMessage.message.mediaId) return playerMessage; // App controlled media must match subtitle App instance id
+                    if (!asbplayer.loadedSubtitles && !asbplayer.videoPlayer) return playerMessage; // Idle App instances should receive statistics
                 });
                 const videoMessage: ExtensionToVideoCommand<DSM> = {
                     sender: 'asbplayer-extension-to-video',
                     message: command.message as DSM,
                 };
-                void this.tabRegistry.publishCommandToVideoElements((videoElement) => {
+                void this._relayToVideoElements((videoElement) => {
                     if (!videoMessage.message.mediaId) return videoMessage; // Messages without mediaId should be sent to all video elements
                     if (videoElement.src === videoMessage.message.mediaId) return videoMessage;
                 });
@@ -167,6 +163,26 @@ export default class DictionaryHandler {
             await browser.runtime.sendMessage(message);
         } catch {
             // No extension UI is currently listening.
+        }
+    }
+
+    private async _relayToAsbplayers(
+        commandFactory: (asbplayer: Asbplayer) => ExtensionToAsbPlayerCommand<Message> | undefined
+    ) {
+        try {
+            await this.tabRegistry.publishCommandToAsbplayers({ commandFactory });
+        } catch {
+            // No App instances are currently listening.
+        }
+    }
+
+    private async _relayToVideoElements(
+        commandFactory: (videoElement: VideoElement) => ExtensionToVideoCommand<Message> | undefined
+    ) {
+        try {
+            await this.tabRegistry.publishCommandToVideoElements(commandFactory);
+        } catch {
+            // No video elements are currently listening.
         }
     }
 }
