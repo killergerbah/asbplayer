@@ -1,4 +1,4 @@
-import React, { createRef, RefObject, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { createRef, RefObject, useCallback, useEffect, useMemo, useState } from 'react';
 import {
     DictionaryStatisticsSentence,
     DictionaryStatisticsSentenceBucketEntry,
@@ -30,6 +30,7 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import SortIcon from '@mui/icons-material/Sort';
 import Toolbar from '@mui/material/Toolbar';
+import '../app/components/subtitles.css';
 
 interface Props {
     open: boolean;

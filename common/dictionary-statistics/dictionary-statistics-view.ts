@@ -344,7 +344,7 @@ export function sentenceComprehensionXAxisLabels(points: DictionaryStatisticsSen
     if (total <= 0) return [{ value: 1, position: 0 }];
 
     const increment = Math.max(50, Math.ceil(total / 10));
-    const values = new Set<number>([1, total]);
+    const values = new Set<number>([1]);
     for (let value = increment; value < total; value += increment) values.add(value);
 
     const denominator = Math.max(total - 1, 1);

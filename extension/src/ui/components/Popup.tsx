@@ -117,7 +117,7 @@ const Popup = ({
     const { localFontsAvailable, localFontsPermission, localFontFamilies } = useLocalFontFamilies();
     const theme = useTheme();
     const { handleAnnotationTutorialSeen, inAnnotationTutorial } = useAnnotationTutorial({ globalStateProvider });
-    const hasSubtitles = useHasSubtitles();
+    const hasSubtitles = useHasSubtitles({ whereAsbplayer: (asbplayer) => !asbplayer.syncedVideoElement }); // Only care about owners
     const [scrollToId, setScrollToId] = useState<string>();
     const handleViewAnnotationSettings = useCallback(() => {
         setScrollToId('annotation');
