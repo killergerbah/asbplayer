@@ -16,7 +16,13 @@ import {
     TokenizedSubtitleModel,
     VideoTabModel,
 } from '@project/common';
-import { ApplyStrategy, AsbplayerSettings, SettingsProvider, TokenState } from '@project/common/settings';
+import {
+    ApplyStrategy,
+    AsbplayerSettings,
+    SettingsProvider,
+    TokenState,
+    VideoSubtitleSplitBehavior,
+} from '@project/common/settings';
 import { DictionaryProvider } from '@project/common/dictionary-db';
 import { SubtitleCollection } from '@project/common/subtitle-collection';
 import { renderRichTextOntoSubtitles, HoveredToken, SubtitleAnnotations } from '@project/common/subtitle-annotations';
@@ -41,6 +47,7 @@ import { createBlobUrl } from '../../blob-url';
 import { MiningContext } from '../services/mining-context';
 import { SeekTimestampCommand, WebSocketClient } from '../../web-socket-client';
 import { ensureStoragePersisted } from '../../util';
+import { resolveVideoSubtitleSplitLayout, useVideoAspectRatio } from './video-subtitle-split';
 
 const minVideoPlayerWidth = 300;
 
@@ -267,7 +274,16 @@ const Player = React.memo(function Player({
     );
 
     const handleSubtitlePlayerResizeStart = useCallback(() => setSubtitlePlayerResizing(true), []);
-    const handleSubtitlePlayerResizeEnd = useCallback(() => setSubtitlePlayerResizing(false), []);
+    const handleSubtitlePlayerResizeEnd = useCallback(
+        (width: number) => {
+            setSubtitlePlayerResizing(false);
+
+            if (settings.videoSubtitleSplitBehavior === VideoSubtitleSplitBehavior.rememberSplitPosition) {
+                playbackPreferences.subtitlePlayerWidth = width;
+            }
+        },
+        [playbackPreferences, settings.videoSubtitleSplitBehavior]
+    );
 
     const handleOnStartedShowingSubtitle = useCallback(() => {
         if (
@@ -1319,10 +1335,24 @@ const Player = React.memo(function Player({
         };
     }, [webSocketClient, extension, seek, clock]);
 
-    const [windowWidth] = useWindowSize(true);
+    const [windowWidth, windowHeight] = useWindowSize(true);
 
+    const videoInWindow = Boolean(videoFileUrl && !videoPopOut);
+    const shouldLoadVideoAspectRatio =
+        videoInWindow && settings.videoSubtitleSplitBehavior !== VideoSubtitleSplitBehavior.rememberSplitPosition;
+    const videoAspectRatio = useVideoAspectRatio(videoFileUrl, shouldLoadVideoAspectRatio);
     const loaded = videoFileUrl || subtitles;
-    const videoInWindow = Boolean(loaded && videoFileUrl && !videoPopOut);
+    const playerHeight = appBarHidden ? windowHeight : Math.max(0, windowHeight - appBarHeight);
+    const aspectFitVideoWidth = videoAspectRatio
+        ? Math.max(minVideoPlayerWidth, Math.round(playerHeight * videoAspectRatio))
+        : undefined;
+    const autoSubtitlePlayerInitialWidth =
+        videoInWindow && aspectFitVideoWidth !== undefined ? Math.max(0, windowWidth - aspectFitVideoWidth) : undefined;
+    const subtitlePlayerInitialWidth = resolveVideoSubtitleSplitLayout({
+        behavior: settings.videoSubtitleSplitBehavior,
+        persistedWidth: playbackPreferences.subtitlePlayerWidth,
+        autoWidth: autoSubtitlePlayerInitialWidth,
+    });
     const subtitlePlayerMaxResizeWidth = Math.max(0, windowWidth - minVideoPlayerWidth);
     const notEnoughSpaceForSubtitlePlayer = subtitlePlayerMaxResizeWidth < minSubtitlePlayerWidth;
     const actuallyHideSubtitlePlayer =
@@ -1360,6 +1390,7 @@ const Player = React.memo(function Player({
                     hidden={actuallyHideSubtitlePlayer}
                     style={{
                         flexGrow: videoInWindow ? 0 : 1,
+                        flexShrink: 0,
                         width: 'auto',
                     }}
                 >
@@ -1427,6 +1458,7 @@ const Player = React.memo(function Player({
                         settings={settings}
                         keyBinder={keyBinder}
                         webSocketClient={webSocketClient}
+                        initialWidth={subtitlePlayerInitialWidth}
                     />
                 </Grid>
             </Grid>

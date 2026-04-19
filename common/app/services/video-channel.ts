@@ -632,6 +632,7 @@ export default class VideoChannel {
     miscSettings(settings: MiscSettings) {
         const {
             themeType,
+            videoSubtitleSplitBehavior,
             copyToClipboardOnMine,
             autoPausePreference,
             seekDuration,
@@ -658,6 +659,7 @@ export default class VideoChannel {
             command: 'miscSettings',
             value: {
                 themeType,
+                videoSubtitleSplitBehavior,
                 copyToClipboardOnMine,
                 autoPausePreference,
                 seekDuration,

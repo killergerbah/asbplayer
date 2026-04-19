@@ -58,6 +58,10 @@
         "inNotOut": "Aktif",
         "inAndOut": "Aktif dengan lanjut otomatis"
     },
+    "videoSubtitleSplitBehavior": {
+        "rememberSplitPosition": "Remember my split position",
+        "autoMaximizeVideo": "Auto-maximize video"
+    },
     "ankiDialog": {
         "applySelection": "Terapkan Pilihan",
         "audio": "Audio",
@@ -439,6 +443,7 @@
         "theme": "Tema",
         "themeDark": "Gelap",
         "themeLight": "Terang",
+        "videoSubtitleSplitBehavior": "Video-Subtitle Split Behavior",
         "title": "Pengaturan",
         "unlockLocalFonts": "Klik untuk membuka menu font",
         "unboundBind": "Tidak Terikat",

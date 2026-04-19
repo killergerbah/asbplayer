@@ -7,8 +7,14 @@ export enum PauseOnHoverMode {
     inNotOut = 2,
 }
 
+export enum VideoSubtitleSplitBehavior {
+    rememberSplitPosition = 'rememberSplitPosition',
+    autoMaximizeVideo = 'autoMaximizeVideo',
+}
+
 export interface MiscSettings {
     readonly themeType: 'dark' | 'light';
+    readonly videoSubtitleSplitBehavior: VideoSubtitleSplitBehavior;
     readonly copyToClipboardOnMine: boolean;
     readonly autoPausePreference: AutoPausePreference;
     readonly seekDuration: number;

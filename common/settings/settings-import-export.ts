@@ -404,6 +404,9 @@ const settingsSchema = {
         themeType: {
             type: 'string',
         },
+        videoSubtitleSplitBehavior: {
+            type: 'string',
+        },
         copyToClipboardOnMine: {
             type: 'boolean',
         },

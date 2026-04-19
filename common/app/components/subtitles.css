@@ -1,3 +1,7 @@
+body {
+    overflow: hidden;
+}
+
 .asbplayer-offscreen {
     position: fixed !important;
     left: 100% !important;

@@ -5,6 +5,7 @@ import {
     TokenStyling,
     TokenReadingAnnotation,
     TokenFrequencyAnnotation,
+    VideoSubtitleSplitBehavior,
 } from './settings';
 import { validateSettings } from './settings-import-export';
 import { defaultSettings } from './settings-provider';
@@ -129,6 +130,7 @@ it('validates exported settings', () => {
         clickToMineDefaultAction: 1,
         postMiningPlaybackState: 0,
         themeType: 'dark',
+        videoSubtitleSplitBehavior: VideoSubtitleSplitBehavior.rememberSplitPosition,
         copyToClipboardOnMine: false,
         rememberSubtitleOffset: true,
         lastSubtitleOffset: 0,

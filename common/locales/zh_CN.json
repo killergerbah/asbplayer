@@ -58,6 +58,10 @@
         "inNotOut": "已启用",
         "inAndOut": "已启用（移开后自动恢复播放）"
     },
+    "videoSubtitleSplitBehavior": {
+        "rememberSplitPosition": "Remember my split position",
+        "autoMaximizeVideo": "Auto-maximize video"
+    },
     "ankiDialog": {
         "applySelection": "应用选中时间段",
         "audio": "音频",
@@ -439,6 +443,7 @@
         "theme": "界面主题",
         "themeDark": "深色主题",
         "themeLight": "浅色主题",
+        "videoSubtitleSplitBehavior": "Video-Subtitle Split Behavior",
         "title": "设置",
         "unlockLocalFonts": "点击解锁本地字体菜单",
         "unboundBind": "未绑定",

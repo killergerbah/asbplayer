@@ -41,6 +41,7 @@ import { MineSubtitleParams } from '../hooks/use-app-web-socket-client';
 import { isMobile } from 'react-device-detect';
 import ChromeExtension, { ExtensionMessage } from '../services/chrome-extension';
 import { MineSubtitleCommand, WebSocketClient } from '../../web-socket-client';
+import { clampSubtitlePlayerWidth } from './video-subtitle-split';
 import './subtitles.css';
 
 let lastKnownWidth: number | undefined;
@@ -362,7 +363,7 @@ interface SubtitlePlayerProps {
     onMouseOver: (e: React.MouseEvent) => void;
     onMouseOut: (e: React.MouseEvent) => void;
     onResizeStart?: () => void;
-    onResizeEnd?: () => void;
+    onResizeEnd?: (width: number) => void;
     autoPauseContext: AutoPauseContext;
     subtitles?: DisplaySubtitleModel[];
     subtitleCollection: SubtitleAnnotations | SubtitleCollection<DisplaySubtitleModel>;
@@ -383,6 +384,7 @@ interface SubtitlePlayerProps {
     settings: AsbplayerSettings;
     keyBinder: KeyBinder;
     maxResizeWidth: number;
+    initialWidth?: number;
     webSocketClient?: WebSocketClient;
 }
 
@@ -418,6 +420,7 @@ export default function SubtitlePlayer({
     settings,
     keyBinder,
     maxResizeWidth,
+    initialWidth,
     webSocketClient,
 }: SubtitlePlayerProps) {
     const { t } = useTranslation();
@@ -1013,17 +1016,26 @@ export default function SubtitlePlayer({
     });
 
     useEffect(() => {
-        lastKnownWidth = width;
-    }, [width, maxResizeWidth]);
+        if (!resizable || initialWidth === undefined || maxResizeWidth < minSubtitlePlayerWidth) {
+            return;
+        }
+
+        const clampedInitialWidth = clampSubtitlePlayerWidth(initialWidth, minSubtitlePlayerWidth, maxResizeWidth);
+        setWidth(clampedInitialWidth);
+    }, [resizable, initialWidth, maxResizeWidth, setWidth]);
+
+    // Scroll to selected subtitle when layout changes
+    useEffect(() => {
+        // Small delay to allow layout to settle
+        const timer = setTimeout(() => {
+            scrollToCurrentSubtitle();
+        }, 50);
+        return () => clearTimeout(timer);
+    }, [width, scrollToCurrentSubtitle]);
 
     useEffect(() => {
-        const listener = () => {
-            lastKnownWidth = undefined;
-            setWidth(calculateInitialWidth());
-        };
-        screen.orientation.addEventListener('change', listener);
-        return () => screen.orientation.removeEventListener('change', listener);
-    }, [setWidth]);
+        lastKnownWidth = width;
+    }, [width, maxResizeWidth]);
 
     const { dragging, draggingStartLocation, draggingCurrentLocation } = useDragging({ holdToDragMs: 750 });
 
