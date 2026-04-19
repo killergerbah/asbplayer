@@ -22,7 +22,7 @@ import {
     extractText,
 } from '@project/common/util';
 import { SubtitleCollection } from '@project/common/subtitle-collection';
-import { SubtitleColoring } from '@project/common/subtitle-coloring';
+import { SubtitleAnnotations } from '@project/common/subtitle-annotations';
 import { KeyBinder } from '@project/common/key-binder';
 import SubtitleTextImage from '@project/common/components/SubtitleTextImage';
 import NoteAddIcon from '@mui/icons-material/NoteAdd';
@@ -36,7 +36,7 @@ import TableRow, { TableRowProps } from '@mui/material/TableRow';
 import Tooltip from '../../components/Tooltip';
 import Typography from '@mui/material/Typography';
 import Clock from '../services/clock';
-import { useAppBarHeight } from '../hooks/use-app-bar-height';
+import { useAppBarHeight } from '../../hooks/use-app-bar-height';
 import { MineSubtitleParams } from '../hooks/use-app-web-socket-client';
 import { isMobile } from 'react-device-detect';
 import ChromeExtension, { ExtensionMessage } from '../services/chrome-extension';
@@ -365,7 +365,7 @@ interface SubtitlePlayerProps {
     onResizeEnd?: () => void;
     autoPauseContext: AutoPauseContext;
     subtitles?: DisplaySubtitleModel[];
-    subtitleCollection: SubtitleColoring | SubtitleCollection<DisplaySubtitleModel>;
+    subtitleCollection: SubtitleAnnotations | SubtitleCollection<DisplaySubtitleModel>;
     length: number;
     jumpToSubtitle?: SubtitleModel;
     compressed: boolean;
@@ -442,7 +442,7 @@ export default function SubtitlePlayer({
         subtitleRefsRef.current.length = 0;
     }
 
-    const subtitleCollectionRef = useRef<SubtitleColoring | SubtitleCollection<DisplaySubtitleModel>>(
+    const subtitleCollectionRef = useRef<SubtitleAnnotations | SubtitleCollection<DisplaySubtitleModel>>(
         subtitleCollection
     );
     subtitleCollectionRef.current = subtitleCollection;

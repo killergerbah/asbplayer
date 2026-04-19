@@ -96,6 +96,10 @@ export function getFullyKnownTokenStatus(): TokenStatus {
     return TokenStatus.MATURE; // If future statuses are optional, this logic may need to change
 }
 
+export function isTokenStatusKnown(status: TokenStatus): boolean {
+    return status >= TokenStatus.LEARNING;
+}
+
 // Any future field added will likely need to be optional for app/extension version mismatch
 export interface TokenStatusConfig {
     readonly display: boolean;
@@ -156,6 +160,7 @@ export enum TokenFrequencyAnnotation {
 export function dictionaryTrackEnabled(dt: DictionaryTrack): boolean {
     return (
         dt.dictionaryColorizeSubtitles ||
+        dt.dictionaryAutoGenerateStatistics ||
         dt.dictionaryTokenReadingAnnotation !== TokenReadingAnnotation.NEVER ||
         dt.dictionaryDisplayIgnoredTokenReadings ||
         dt.dictionaryTokenFrequencyAnnotation !== TokenFrequencyAnnotation.NEVER
@@ -165,6 +170,7 @@ export function dictionaryTrackEnabled(dt: DictionaryTrack): boolean {
 export function dictionaryStatusCollectionEnabled(dt: DictionaryTrack): boolean {
     return (
         dt.dictionaryColorizeSubtitles ||
+        dt.dictionaryAutoGenerateStatistics ||
         dt.dictionaryTokenReadingAnnotation === TokenReadingAnnotation.LEARNING_OR_BELOW ||
         dt.dictionaryTokenReadingAnnotation === TokenReadingAnnotation.UNKNOWN_OR_BELOW ||
         dt.dictionaryTokenFrequencyAnnotation === TokenFrequencyAnnotation.UNCOLLECTED_ONLY
@@ -173,6 +179,7 @@ export function dictionaryStatusCollectionEnabled(dt: DictionaryTrack): boolean 
 
 export interface DictionaryTrack {
     readonly dictionaryColorizeSubtitles: boolean;
+    readonly dictionaryAutoGenerateStatistics: boolean;
     readonly dictionaryColorizeOnHoverOnly: boolean; // Currently applies to both colorization and reading annotations, named in case we want to separate later
     readonly dictionaryHighlightOnHover: boolean;
     readonly dictionaryTokenMatchStrategy: TokenMatchStrategy;
@@ -204,6 +211,7 @@ const dictionaryTrackComparators: {
     [K in keyof DictionaryTrack]: (a: DictionaryTrack[K], b: DictionaryTrack[K]) => boolean;
 } = {
     dictionaryColorizeSubtitles: (a, b) => a === b,
+    dictionaryAutoGenerateStatistics: (a, b) => a === b,
     dictionaryColorizeOnHoverOnly: (a, b) => a === b,
     dictionaryHighlightOnHover: (a, b) => a === b,
     dictionaryTokenMatchStrategy: (a, b) => a === b,
@@ -463,6 +471,7 @@ export interface KeyBindSet {
     readonly markHoveredToken1: KeyBind;
     readonly markHoveredToken0: KeyBind;
     readonly toggleHoveredTokenIgnored: KeyBind;
+    readonly openStatistics: KeyBind;
 
     // Bound from Chrome if extension is installed
     readonly copySubtitle: KeyBind;

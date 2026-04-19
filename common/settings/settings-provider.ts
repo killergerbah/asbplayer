@@ -40,6 +40,7 @@ const defaultSubtitleTextSettings = {
 
 const defaultDictionaryTrackSettings: DictionaryTrack = {
     dictionaryColorizeSubtitles: false,
+    dictionaryAutoGenerateStatistics: false,
     dictionaryColorizeOnHoverOnly: false,
     dictionaryHighlightOnHover: true,
     dictionaryTokenMatchStrategy: TokenMatchStrategy.ANY_FORM_COLLECTED,
@@ -160,6 +161,7 @@ export const defaultSettings: AsbplayerSettings = {
         markHoveredToken1: { keys: 'Q+1' },
         markHoveredToken0: { keys: 'Q+0' },
         toggleHoveredTokenIgnored: { keys: 'Q+I' },
+        openStatistics: { keys: 'Q+S' },
     },
     recordWithAudioPlayback: true,
     preferMp3: true,
@@ -487,8 +489,11 @@ const ensureDictionaryTracksConsistency = ({ dictionaryTracks }: Partial<Asbplay
             };
         }
 
-        // Default for Yomitan parser
-        if (!dt.dictionaryYomitanParser) (dt as any).dictionaryYomitanParser = 'scanning-parser';
+        // Default for new settings
+        if (!dt.dictionaryYomitanParser) (dt as any).dictionaryYomitanParser = defaultTrack.dictionaryYomitanParser;
+        if (dt.dictionaryAutoGenerateStatistics === undefined) {
+            (dt as any).dictionaryAutoGenerateStatistics = defaultTrack.dictionaryAutoGenerateStatistics;
+        }
     }
     while (dictionaryTracks.length < NUM_DICTIONARY_TRACKS) {
         dictionaryTracks.push(defaultTrack);

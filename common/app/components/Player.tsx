@@ -19,10 +19,10 @@ import {
 import { ApplyStrategy, AsbplayerSettings, SettingsProvider, TokenState } from '@project/common/settings';
 import { DictionaryProvider } from '@project/common/dictionary-db';
 import { SubtitleCollection } from '@project/common/subtitle-collection';
-import { renderRichTextOntoSubtitles, HoveredToken, SubtitleColoring } from '@project/common/subtitle-coloring';
+import { renderRichTextOntoSubtitles, HoveredToken, SubtitleAnnotations } from '@project/common/subtitle-annotations';
 import { SubtitleReader } from '@project/common/subtitle-reader';
 import { KeyBinder } from '@project/common/key-binder';
-import { timeDurationDisplay } from '../services/util';
+import { surroundingSubtitles, timeDurationDisplay } from '@project/common/util';
 import BroadcastChannelVideoProtocol from '../services/broadcast-channel-video-protocol';
 import ChromeTabVideoProtocol from '../services/chrome-tab-video-protocol';
 import Clock from '../services/clock';
@@ -30,12 +30,13 @@ import Controls, { Point } from './Controls';
 import Grid from '@mui/material/Grid';
 import MediaAdapter, { MediaElement } from '../services/media-adapter';
 import SubtitlePlayer, { DisplaySubtitleModel, minSubtitlePlayerWidth } from './SubtitlePlayer';
+import StatisticsOverlay from '@project/common/components/StatisticsOverlay';
 import VideoChannel from '../services/video-channel';
 import ChromeExtension from '../services/chrome-extension';
 import PlaybackPreferences from '../services/playback-preferences';
 import PlayModeManager from '../services/play-mode-manager';
 import { useWindowSize } from '../hooks/use-window-size';
-import { useAppBarHeight } from '../hooks/use-app-bar-height';
+import { useAppBarHeight } from '../../hooks/use-app-bar-height';
 import { createBlobUrl } from '../../blob-url';
 import { MiningContext } from '../services/mining-context';
 import { SeekTimestampCommand, WebSocketClient } from '../../web-socket-client';
@@ -86,6 +87,14 @@ function trackLength(
     return Math.max(videoLength, subtitlesLength);
 }
 
+function pause(clock: Clock, mediaAdapter: MediaAdapter, forwardToMedia: boolean) {
+    clock.stop();
+
+    if (forwardToMedia) {
+        mediaAdapter.pause();
+    }
+}
+
 export interface MediaSources {
     subtitleFiles: File[];
     flattenSubtitleFiles?: boolean;
@@ -96,6 +105,7 @@ export interface MediaSources {
 interface PlayerProps {
     sources?: MediaSources;
     subtitles: DisplaySubtitleModel[];
+    mediaId?: string;
     subtitleReader: SubtitleReader;
     dictionaryProvider: DictionaryProvider;
     settingsProvider: SettingsProvider;
@@ -115,6 +125,7 @@ interface PlayerProps {
     availableTabs: VideoTabModel[];
     miningContext: MiningContext;
     origin: string;
+    statisticsOverlay?: React.ReactNode;
     onError: (error: any) => void;
     onUnloadVideo: (url: string) => void;
     onCopy: (card: CardModel, postMineAction: PostMineAction | undefined, id: string | undefined) => void;
@@ -139,6 +150,7 @@ interface PlayerProps {
 const Player = React.memo(function Player({
     sources,
     subtitles,
+    mediaId,
     subtitleReader,
     dictionaryProvider,
     settingsProvider,
@@ -158,6 +170,7 @@ const Player = React.memo(function Player({
     availableTabs,
     miningContext,
     origin,
+    statisticsOverlay,
     onError,
     onUnloadVideo,
     onCopy,
@@ -188,9 +201,9 @@ const Player = React.memo(function Player({
     const subtitlesRef = useRef<DisplaySubtitleModel[]>(undefined);
     subtitlesRef.current = subtitles;
     const [subtitleCollection, setSubtitleCollection] = useState<
-        SubtitleColoring | SubtitleCollection<DisplaySubtitleModel>
+        SubtitleAnnotations | SubtitleCollection<DisplaySubtitleModel>
     >(SubtitleCollection.empty<DisplaySubtitleModel>());
-    const subtitleCollectionRef = useRef<SubtitleColoring | SubtitleCollection<DisplaySubtitleModel>>(
+    const subtitleCollectionRef = useRef<SubtitleAnnotations | SubtitleCollection<DisplaySubtitleModel>>(
         subtitleCollection
     );
     subtitleCollectionRef.current = subtitleCollection;
@@ -488,11 +501,13 @@ const Player = React.memo(function Player({
             subtitleCollectionRef.current = newCol;
             return; // Handled by extension
         }
+        if (!mediaId) return;
 
-        const subtitleColoring = new SubtitleColoring(
+        const subtitleAnnotations = new SubtitleAnnotations(
             dictionaryProvider,
             settingsProvider,
             options,
+            mediaId,
             (updatedSubtitles, dictionaryTracks) => {
                 renderRichTextOntoSubtitles(updatedSubtitles, dictionaryTracks);
                 channel?.subtitlesUpdated(updatedSubtitles);
@@ -512,15 +527,15 @@ const Player = React.memo(function Player({
             },
             () => clockRef.current.time(calculateLength())
         );
-        if (subtitlesRef.current) subtitleColoring.setSubtitles(subtitlesRef.current);
-        subtitleColoring.bind();
-        setSubtitleCollection(subtitleColoring);
-        subtitleCollectionRef.current = subtitleColoring;
+        if (subtitlesRef.current) subtitleAnnotations.setSubtitles(subtitlesRef.current);
+        subtitleAnnotations.bind();
+        setSubtitleCollection(subtitleAnnotations);
+        subtitleCollectionRef.current = subtitleAnnotations;
         return () => {
-            if (!(subtitleCollectionRef.current instanceof SubtitleColoring)) return;
+            if (!(subtitleCollectionRef.current instanceof SubtitleAnnotations)) return;
             subtitleCollectionRef.current.unbind();
         };
-    }, [channel, dictionaryProvider, settingsProvider, tab, onSubtitles]);
+    }, [channel, dictionaryProvider, settingsProvider, mediaId, tab, onSubtitles]);
 
     useEffect(() => {
         if (!subtitleCollectionRef.current) return;
@@ -528,7 +543,7 @@ const Player = React.memo(function Player({
     }, [subtitles]);
 
     useEffect(() => {
-        if (!(subtitleCollectionRef.current instanceof SubtitleColoring)) return;
+        if (!(subtitleCollectionRef.current instanceof SubtitleAnnotations)) return;
         subtitleCollectionRef.current.settingsUpdated(settings);
     }, [settings]);
 
@@ -542,7 +557,7 @@ const Player = React.memo(function Player({
                     // We should probably have a hash or ID associated with the subtitle file this color update is for.
                     const updatedText = (s as TokenizedSubtitleModel).originalText ?? s.text;
                     const prevText =
-                        (allSubtitles[s.index] as TokenizedSubtitleModel).originalText ?? allSubtitles[s.index].text;
+                        (allSubtitles[s.index] as TokenizedSubtitleModel)?.originalText ?? allSubtitles[s.index]?.text;
                     if (updatedText === prevText) {
                         allSubtitles[s.index] = {
                             ...allSubtitles[s.index],
@@ -625,7 +640,7 @@ const Player = React.memo(function Player({
                 event.preventDefault();
                 event.stopImmediatePropagation();
                 const applyStates = ApplyStrategy.ADD;
-                if (subtitleCollectionRef.current instanceof SubtitleColoring) {
+                if (subtitleCollectionRef.current instanceof SubtitleAnnotations) {
                     void subtitleCollectionRef.current.saveTokenLocal(
                         res.track,
                         res.token,
@@ -652,7 +667,7 @@ const Player = React.memo(function Player({
                 event.stopImmediatePropagation();
                 const states = [TokenState.IGNORED];
                 const applyStates = ApplyStrategy.TOGGLE;
-                if (subtitleCollectionRef.current instanceof SubtitleColoring) {
+                if (subtitleCollectionRef.current instanceof SubtitleAnnotations) {
                     void subtitleCollectionRef.current.saveTokenLocal(res.track, res.token, null, states, applyStates);
                     return;
                 }
@@ -665,7 +680,7 @@ const Player = React.memo(function Player({
 
     useEffect(() => {
         return channel?.onSaveTokenLocal((track, token, status, states, applyStates) => {
-            if (!(subtitleCollectionRef.current instanceof SubtitleColoring)) return;
+            if (!(subtitleCollectionRef.current instanceof SubtitleAnnotations)) return;
             subtitleCollectionRef.current.saveTokenLocal(track, token, status, states, applyStates);
         });
     }, [channel]);
@@ -748,9 +763,28 @@ const Player = React.memo(function Player({
             }),
         [channel, clock]
     );
+    const play = useCallback(
+        (clock: Clock, mediaAdapter: MediaAdapter, forwardToMedia: boolean) => {
+            if (
+                (playModesRef.current.has(PlayMode.repeat) || playModesRef.current.has(PlayMode.autoPause)) &&
+                pendingAutoRepeatTargetTimestamp.current > 0
+            ) {
+                seek(pendingAutoRepeatTargetTimestamp.current, clock, forwardToMedia);
+                resetPendingAutoRepeatTargetTimestamp();
+            }
+
+            clock.start();
+
+            if (forwardToMedia) {
+                mediaAdapter.play();
+            }
+        },
+        [seek, resetPendingAutoRepeatTargetTimestamp]
+    );
+
     useEffect(
         () => channel?.onPlay((forwardToMedia) => play(clock, mediaAdapter, forwardToMedia)),
-        [channel, mediaAdapter, clock]
+        [channel, mediaAdapter, clock, play]
     );
     useEffect(
         () => channel?.onPause((forwardToMedia) => pause(clock, mediaAdapter, forwardToMedia)),
@@ -860,29 +894,6 @@ const Player = React.memo(function Player({
         [channel]
     );
     useEffect(() => channel?.onLoadFiles(() => onLoadFiles?.()), [channel, onLoadFiles]);
-    const play = (clock: Clock, mediaAdapter: MediaAdapter, forwardToMedia: boolean) => {
-        if (
-            (playModesRef.current.has(PlayMode.repeat) || playModesRef.current.has(PlayMode.autoPause)) &&
-            pendingAutoRepeatTargetTimestamp.current > 0
-        ) {
-            seek(pendingAutoRepeatTargetTimestamp.current, clock, forwardToMedia);
-            resetPendingAutoRepeatTargetTimestamp();
-        }
-
-        clock.start();
-
-        if (forwardToMedia) {
-            mediaAdapter.play();
-        }
-    };
-
-    function pause(clock: Clock, mediaAdapter: MediaAdapter, forwardToMedia: boolean) {
-        clock.stop();
-
-        if (forwardToMedia) {
-            mediaAdapter.pause();
-        }
-    }
 
     useEffect(() => {
         return miningContext.onEvent('stopped-mining', () => {
@@ -900,7 +911,7 @@ const Player = React.memo(function Player({
                     break;
             }
         });
-    }, [miningContext, settings, wasPlayingWhenMiningStarted, clock, mediaAdapter]);
+    }, [miningContext, settings, wasPlayingWhenMiningStarted, clock, mediaAdapter, play]);
 
     useEffect(() => {
         return miningContext.onEvent('started-mining', () => {
@@ -1002,7 +1013,7 @@ const Player = React.memo(function Player({
         setLastJumpToTopTimestamp(Date.now());
     }, [videoPopOut, channelId, videoFileUrl, videoFrameRef, videoChannelRef, origin]);
 
-    const handlePlay = useCallback(() => play(clock, mediaAdapter, true), [clock, mediaAdapter]);
+    const handlePlay = useCallback(() => play(clock, mediaAdapter, true), [clock, mediaAdapter, play]);
     const handlePause = useCallback(() => pause(clock, mediaAdapter, true), [clock, mediaAdapter]);
     const handleSeek = useCallback(
         async (progress: number) => {
@@ -1034,7 +1045,7 @@ const Player = React.memo(function Player({
                 play(clock, mediaAdapter, true);
             }
         },
-        [clock, seek, mediaAdapter]
+        [clock, seek, play, mediaAdapter]
     );
 
     const handleCopyFromSubtitlePlayer = useCallback(
@@ -1094,7 +1105,7 @@ const Player = React.memo(function Player({
                 play(clock, mediaAdapter, true);
             }
         },
-        [channel, clock, mediaAdapter, seek]
+        [channel, clock, mediaAdapter, seek, play]
     );
 
     const handleOffsetChange = useCallback(
@@ -1176,7 +1187,7 @@ const Player = React.memo(function Player({
         );
 
         return () => unbind();
-    }, [keyBinder, clock, mediaAdapter, disableKeyEvents]);
+    }, [keyBinder, clock, mediaAdapter, disableKeyEvents, play]);
 
     useEffect(() => {
         return keyBinder.bindAdjustPlaybackRate(
@@ -1270,6 +1281,35 @@ const Player = React.memo(function Player({
     }, [clock, rewindSubtitle?.start, mediaAdapter, seek]);
 
     useEffect(() => {
+        const unsubscribeSeek = dictionaryProvider.onRequestStatisticsSeek((timestamp) => {
+            void seek(timestamp, clock, true);
+        });
+        const unsubscribeMine = dictionaryProvider.onRequestStatisticsMineSentences((_mediaId, indexes) => {
+            const subtitleIndex = indexes[0];
+            if (subtitleIndex === undefined) return;
+            const subtitles = subtitlesRef.current;
+            const subtitle = subtitles?.[subtitleIndex];
+            if (!subtitle) return;
+            void handleCopyFromSubtitlePlayer(
+                subtitle,
+                surroundingSubtitles(
+                    subtitles,
+                    subtitle.index,
+                    settings.surroundingSubtitlesCountRadius,
+                    settings.surroundingSubtitlesTimeRadius
+                ),
+                settings.clickToMineDefaultAction,
+                true
+            );
+        });
+
+        return () => {
+            unsubscribeSeek();
+            unsubscribeMine();
+        };
+    }, [clock, dictionaryProvider, handleCopyFromSubtitlePlayer, seek, settings]);
+
+    useEffect(() => {
         if (!webSocketClient) {
             return;
         }
@@ -1291,9 +1331,11 @@ const Player = React.memo(function Player({
 
     return (
         <div onMouseMove={handleMouseMove} className={classes.root}>
+            {!videoInWindow && statisticsOverlay}
             <Grid container direction="row" wrap="nowrap" className={classes.container}>
                 {videoInWindow && (
-                    <Grid item style={{ flexGrow: 1, minWidth: minVideoPlayerWidth }}>
+                    <Grid item style={{ flexGrow: 1, minWidth: minVideoPlayerWidth, position: 'relative' }}>
+                        {statisticsOverlay}
                         <iframe
                             ref={videoFrameRef}
                             className={classes.videoFrame}
