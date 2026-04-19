@@ -59,8 +59,7 @@
         "inAndOut": "Включено с автовозобновлением"
     },
     "videoSubtitleSplitBehavior": {
-        "rememberSplitPosition": "Remember my split position",
-        "autoMaximizeVideo": "Auto-maximize video"
+        "autoMaximizeVideo": "Auto-maximize local video"
     },
     "ankiDialog": {
         "applySelection": "Применить выбор",
@@ -443,7 +442,6 @@
         "theme": "Тема",
         "themeDark": "Темная",
         "themeLight": "Светлая",
-        "videoSubtitleSplitBehavior": "Video-Subtitle Split Behavior",
         "title": "Настройки",
         "unlockLocalFonts": "Нажмите, чтобы разблокировать меню шрифтов",
         "unboundBind": "Не задано",

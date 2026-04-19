@@ -59,8 +59,7 @@
         "inAndOut": "Aktiviert mit automatischem Fortsetzen"
     },
     "videoSubtitleSplitBehavior": {
-        "rememberSplitPosition": "Remember my split position",
-        "autoMaximizeVideo": "Auto-maximize video"
+        "autoMaximizeVideo": "Auto-maximize local video"
     },
     "ankiDialog": {
         "applySelection": "Auswahl anwenden",
@@ -443,7 +442,6 @@
         "theme": "Farbschema",
         "themeDark": "Dunkel",
         "themeLight": "Hell",
-        "videoSubtitleSplitBehavior": "Video-Subtitle Split Behavior",
         "title": "Einstellungen",
         "unlockLocalFonts": "Click to unlock font menu",
         "unboundBind": "Nicht gesetzt",

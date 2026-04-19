@@ -59,8 +59,7 @@
         "inAndOut": "Käytössä automaattisella jatkamisella"
     },
     "videoSubtitleSplitBehavior": {
-        "rememberSplitPosition": "Remember my split position",
-        "autoMaximizeVideo": "Auto-maximize video"
+        "autoMaximizeVideo": "Auto-maximize local video"
     },
     "ankiDialog": {
         "applySelection": "Käytä valintaa",
@@ -443,7 +442,6 @@
         "theme": "Teema",
         "themeDark": "Tumma",
         "themeLight": "Vaalea",
-        "videoSubtitleSplitBehavior": "Video-Subtitle Split Behavior",
         "title": "Asetukset",
         "unlockLocalFonts": "Klikkaa avataksesi fonttivalikon",
         "unboundBind": "Ei sitoumuksia",

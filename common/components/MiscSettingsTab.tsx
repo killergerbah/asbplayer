@@ -161,47 +161,23 @@ const MiscSettingTab: React.FC<Props> = ({
                         </MenuItem>
                     ))}
                 </SettingsTextField>
-                <FormControl>
-                    <FormLabel>{t('settings.videoSubtitleSplitBehavior')}</FormLabel>
-                    <RadioGroup row={false}>
-                        <LabelWithHoverEffect
-                            control={
-                                <Radio
-                                    checked={
-                                        videoSubtitleSplitBehavior === VideoSubtitleSplitBehavior.rememberSplitPosition
-                                    }
-                                    value={VideoSubtitleSplitBehavior.rememberSplitPosition}
-                                    onChange={(event) =>
-                                        event.target.checked &&
-                                        onSettingChanged(
-                                            'videoSubtitleSplitBehavior',
-                                            VideoSubtitleSplitBehavior.rememberSplitPosition
-                                        )
-                                    }
-                                />
+                <SwitchLabelWithHoverEffect
+                    control={
+                        <Switch
+                            checked={videoSubtitleSplitBehavior === VideoSubtitleSplitBehavior.autoMaximizeVideo}
+                            onChange={(event) =>
+                                onSettingChanged(
+                                    'videoSubtitleSplitBehavior',
+                                    event.target.checked
+                                        ? VideoSubtitleSplitBehavior.autoMaximizeVideo
+                                        : VideoSubtitleSplitBehavior.rememberSplitPosition
+                                )
                             }
-                            label={t('videoSubtitleSplitBehavior.rememberSplitPosition')}
                         />
-                        <LabelWithHoverEffect
-                            control={
-                                <Radio
-                                    checked={
-                                        videoSubtitleSplitBehavior === VideoSubtitleSplitBehavior.autoMaximizeVideo
-                                    }
-                                    value={VideoSubtitleSplitBehavior.autoMaximizeVideo}
-                                    onChange={(event) =>
-                                        event.target.checked &&
-                                        onSettingChanged(
-                                            'videoSubtitleSplitBehavior',
-                                            VideoSubtitleSplitBehavior.autoMaximizeVideo
-                                        )
-                                    }
-                                />
-                            }
-                            label={t('videoSubtitleSplitBehavior.autoMaximizeVideo')}
-                        />
-                    </RadioGroup>
-                </FormControl>
+                    }
+                    label={t('videoSubtitleSplitBehavior.autoMaximizeVideo')}
+                    labelPlacement="start"
+                />
                 <SettingsSection>{t('settings.subtitles')}</SettingsSection>
                 <SwitchLabelWithHoverEffect
                     control={
