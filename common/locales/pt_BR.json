@@ -153,7 +153,7 @@
         "moveTopSubtitlesDown": "Move top subtitles down",
         "markHoveredToken": "Mark hovered word as {{tokenStatus}}",
         "toggleHoveredTokenIgnored": "Toggle hovered word as ignored",
-        "openStatistics": "Open statistics settings"
+        "openStatistics": "Open statistics"
     },
     "controls": {
         "autoPauseMode": "Pausa automática",

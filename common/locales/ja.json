@@ -153,7 +153,7 @@
         "moveTopSubtitlesDown": "上の字幕を下へ移動",
         "markHoveredToken": "マウスカーソルを重ねた単語を「{{tokenStatus}}」として保存する",
         "toggleHoveredTokenIgnored": "マウスカーソルを重ねた単語の「無視」状態をオン／オフ",
-        "openStatistics": "Open statistics settings"
+        "openStatistics": "Open statistics"
     },
     "controls": {
         "autoPauseMode": "自動一時停止",
