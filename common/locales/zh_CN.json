@@ -143,7 +143,7 @@
         "toggleVideoSubtitleTrack2": "切换视频字幕轨道 2",
         "toggleVideoSubtitleTrack3": "切换视频字幕轨道 3",
         "toggleVideoSubtitleTracks": "切换视频字幕轨道",
-        "updateLastCard": "使用新截图或音频更新上一张卡片。",
+        "updateLastCard": "使用新截图或音频更新上一张 Anki 卡片。",
         "exportCard": "导出卡片至 Anki（跳过对话框）。",
         "toggleSidePanel": "显示 / 隐藏侧边栏",
         "toggleRepeat": "切换循环模式",
