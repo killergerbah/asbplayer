@@ -11,6 +11,7 @@ import { SettingsProvider } from '@project/common/settings';
 import { FrameInfoBroadcaster, FrameInfoListener } from '@/services/frame-info';
 import { cropAndResize } from '@project/common/src/image-transformer';
 import { TabAnkiUiController } from '@/controllers/tab-anki-ui-controller';
+import { StatisticsOverlayController } from '@/controllers/statistics-overlay-controller';
 import { ExtensionSettingsStorage } from '@/services/extension-settings-storage';
 import { DefaultKeyBinder } from '@project/common/key-binder';
 import { incrementallyFindShadowRoots, shadowRootHosts } from '@/services/shadow-roots';
@@ -161,9 +162,12 @@ export default defineContentScript({
             videoSelectController.bind();
 
             const ankiUiController = new TabAnkiUiController(settingsProvider);
+            let statisticsOverlayController: StatisticsOverlayController | undefined;
 
             if (isParentDocument) {
                 bindToggleSidePanel();
+                statisticsOverlayController = new StatisticsOverlayController();
+                statisticsOverlayController.bind();
             }
 
             const messageListener = (
@@ -260,6 +264,7 @@ export default defineContentScript({
                 frameInfoListener?.unbind();
                 frameInfoBroadcaster?.unbind();
                 unbindToggleSidePanel?.();
+                statisticsOverlayController?.unbind();
                 browser.runtime.onMessage.removeListener(messageListener);
             });
         };

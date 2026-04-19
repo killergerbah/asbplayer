@@ -498,6 +498,10 @@ const KeyboardShortcutsSettingsTab: React.FC<Props> = ({
                 label: t('binds.toggleHoveredTokenIgnored')!,
                 boundViaBrowser: false,
             },
+            openStatistics: {
+                label: t('binds.openStatistics')!,
+                boundViaBrowser: false,
+            },
         }),
         [
             t,

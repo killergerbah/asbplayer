@@ -65,7 +65,7 @@ import {
     percentToHex2,
 } from '../util';
 import DictionaryImport from './DictionaryImport';
-import { applyTokenStyle, InternalToken } from '../subtitle-coloring';
+import { applyTokenStyle, InternalToken } from '../subtitle-annotations';
 
 const yomitanInstallerUrl = 'https://github.com/yomidevs/yomitan-api';
 const yomitanMecabInstallerUrl = 'https://github.com/yomidevs/yomitan-mecab-installer';
@@ -489,6 +489,23 @@ const DictionarySettingsTab: React.FC<Props> = ({
                         />
                     }
                     label={t('settings.dictionaryColorizeSubtitles')}
+                    labelPlacement="start"
+                />
+                <SwitchLabelWithHoverEffect
+                    control={
+                        <Switch
+                            checked={selectedDictionary.dictionaryAutoGenerateStatistics}
+                            onChange={(e) => {
+                                const newTracks = [...dictionaryTracks];
+                                newTracks[selectedDictionaryTrack] = {
+                                    ...newTracks[selectedDictionaryTrack],
+                                    dictionaryAutoGenerateStatistics: e.target.checked,
+                                };
+                                onSettingChanged('dictionaryTracks', newTracks);
+                            }}
+                        />
+                    }
+                    label={t('settings.dictionaryAutoGenerateStatistics')}
                     labelPlacement="start"
                 />
                 <FormControl>

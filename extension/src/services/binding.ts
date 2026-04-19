@@ -49,14 +49,17 @@ import {
     VideoToExtensionCommand,
     IndexedSubtitleModel,
     SaveTokenLocalMessage,
+    DictionaryBuildAnkiCacheStateMessage,
 } from '@project/common';
 import { adjacentSubtitle } from '@project/common/key-binder';
 import PlayModeManager from '@project/common/app/services/play-mode-manager';
 import {
     extractAnkiSettings,
+    ApplyStrategy,
     PauseOnHoverMode,
     SettingsProvider,
     SubtitleListPreference,
+    TokenStatus,
 } from '@project/common/settings';
 import { SubtitleSlice } from '@project/common/subtitle-collection';
 import { SubtitleReader } from '@project/common/subtitle-reader';
@@ -87,7 +90,7 @@ import { bufferToBase64 } from '@project/common/base64';
 import { pgsParserWorkerFactory } from './pgs-parser-worker-factory';
 import { DictionaryProvider } from '@project/common/dictionary-db/dictionary-provider';
 import { ExtensionDictionaryStorage } from './extension-dictionary-storage';
-import { HoveredToken } from '@project/common/subtitle-coloring';
+import { HoveredToken } from '@project/common/subtitle-annotations';
 
 let netflix = false;
 document.addEventListener('asbplayer-netflix-enabled', (e) => {
@@ -162,6 +165,7 @@ export default class Binding {
     readonly bulkExportController: BulkExportController;
 
     private copyToClipboardOnMine: boolean;
+    private clickToMineDefaultAction: PostMineAction;
     private takeScreenshot: boolean;
     private cleanScreenshot: boolean;
     private audioPaddingStart: number;
@@ -190,6 +194,7 @@ export default class Binding {
         sendResponse: (response?: any) => void
     ) => void;
     private heartbeatInterval?: NodeJS.Timeout;
+    private registeredVideoSrc?: string;
 
     // In the case of firefox, we need to avoid capturing the audio stream more than once,
     // so we keep a reference to the first one we capture here.
@@ -197,6 +202,8 @@ export default class Binding {
     private audioContext?: AudioContext;
     private audioVolumeChangeListener?: () => void;
     private currentAudioRecordingRequestId?: string;
+    private unsubscribeStatisticsSeek?: () => void;
+    private unsubscribeStatisticsSubtitleMine?: () => void;
 
     private readonly frameId?: string;
 
@@ -220,6 +227,7 @@ export default class Binding {
         this.recordMedia = true;
         this.takeScreenshot = true;
         this.cleanScreenshot = true;
+        this.clickToMineDefaultAction = PostMineAction.showAnkiDialog;
         this.audioPaddingStart = 0;
         this.audioPaddingEnd = 500;
         this.maxImageWidth = 0;
@@ -230,6 +238,7 @@ export default class Binding {
         this.postMinePlayback = PostMinePlayback.remember;
         this._synced = false;
         this.recordingMediaWithScreenshot = false;
+        this.registeredVideoSrc = video.src || undefined;
         this.frameId = frameId;
     }
 
@@ -642,6 +651,7 @@ export default class Binding {
 
         if (this.hasPageScript) {
             this.videoChangeListener = () => {
+                this._updateRegisteredVideoSrc(this.video.src || undefined);
                 this.videoDataSyncController.requestSubtitles();
                 this._resetSubtitles();
             };
@@ -649,6 +659,10 @@ export default class Binding {
         }
 
         this.heartbeatInterval = setInterval(() => {
+            const src = this.video.src || undefined;
+            this._updateRegisteredVideoSrc(src);
+            if (!src) return;
+
             const command: VideoToExtensionCommand<VideoHeartbeatMessage> = {
                 sender: 'asbplayer-video',
                 message: {
@@ -658,7 +672,7 @@ export default class Binding {
                     syncedTimestamp: this._syncedTimestamp,
                     loadedSubtitles: this.subtitleController.subtitles.length > 0,
                 },
-                src: this.video.src,
+                src,
             };
 
             browser.runtime.sendMessage(command);
@@ -783,11 +797,11 @@ export default class Binding {
                         switch (cardMessage.command) {
                             case 'card-updated':
                                 locKey = 'info.updatedCard';
-                                this.subtitleController.subtitleColoring.ankiCardWasModified();
+                                this.subtitleController.subtitleAnnotations.ankiCardWasModified();
                                 break;
                             case 'card-exported':
                                 locKey = 'info.exportedCard';
-                                this.subtitleController.subtitleColoring.ankiCardWasModified();
+                                this.subtitleController.subtitleAnnotations.ankiCardWasModified();
                                 break;
                             case 'card-saved':
                                 locKey = 'info.copiedSubtitle2';
@@ -812,17 +826,21 @@ export default class Binding {
                         break;
                     case 'card-updated-dialog':
                     case 'card-exported-dialog':
-                        this.subtitleController.subtitleColoring.ankiCardWasModified();
+                        this.subtitleController.subtitleAnnotations.ankiCardWasModified();
                         break;
                     case 'save-token-local':
                         const { track, token, status, states, applyStates } = request.message as SaveTokenLocalMessage;
-                        this.subtitleController.subtitleColoring.saveTokenLocal(
+                        this.subtitleController.subtitleAnnotations.saveTokenLocal(
                             track,
                             token,
                             status,
                             states,
                             applyStates
                         );
+                        break;
+                    case 'dictionary-build-anki-cache-state':
+                        const state = request.message as DictionaryBuildAnkiCacheStateMessage;
+                        this.subtitleController.subtitleAnnotations.buildAnkiCacheStateChange(state);
                         break;
                     case 'notify-error':
                         const notifyErrorMessage = request.message as NotifyErrorMessage;
@@ -1000,6 +1018,23 @@ export default class Binding {
         };
 
         browser.runtime.onMessage.addListener(this.listener);
+        this.unsubscribeStatisticsSeek = this.dictionary.onRequestStatisticsSeek((timestamp) => {
+            this.seek(timestamp / 1000);
+        });
+        this.unsubscribeStatisticsSubtitleMine = this.dictionary.onRequestStatisticsMineSentences(
+            (_mediaId, indexes) => {
+                const index = indexes[0];
+                if (index === undefined) return;
+                const [resolvedSubtitle, resolvedSurroundingSubtitles] = this.subtitleController.subtitleAtIndex(index);
+                if (resolvedSubtitle === null || resolvedSurroundingSubtitles === null) return;
+                void this._copySubtitle({
+                    command: 'copy-subtitle',
+                    postMineAction: this.clickToMineDefaultAction,
+                    subtitle: resolvedSubtitle,
+                    surroundingSubtitles: resolvedSurroundingSubtitles,
+                });
+            }
+        );
         this.subscribed = true;
     }
 
@@ -1015,6 +1050,7 @@ export default class Binding {
         this.imageDelay = currentSettings.streamingScreenshotDelay;
         this.audioPaddingStart = currentSettings.audioPaddingStart;
         this.audioPaddingEnd = currentSettings.audioPaddingEnd;
+        this.clickToMineDefaultAction = currentSettings.clickToMineDefaultAction;
         this.maxImageWidth = currentSettings.maxImageWidth;
         this.maxImageHeight = currentSettings.maxImageHeight;
         this.copyToClipboardOnMine = currentSettings.copyToClipboardOnMine;
@@ -1038,7 +1074,7 @@ export default class Binding {
         const subtitleHtmlChanged = this.subtitleController.subtitleHtml !== currentSettings.subtitleHtml;
         this.subtitleController.subtitleHtml = currentSettings.subtitleHtml;
 
-        this.subtitleController.subtitleColoring.settingsUpdated(currentSettings);
+        this.subtitleController.subtitleAnnotations.settingsUpdated(currentSettings);
         this.subtitleController.setSubtitleSettings(currentSettings);
 
         if (convertNetflixRubyChanged || subtitleHtmlChanged) {
@@ -1131,6 +1167,11 @@ export default class Binding {
             this.listener = undefined;
         }
 
+        this.unsubscribeStatisticsSeek?.();
+        this.unsubscribeStatisticsSeek = undefined;
+        this.unsubscribeStatisticsSubtitleMine?.();
+        this.unsubscribeStatisticsSubtitleMine = undefined;
+
         this.subtitleController.unbind();
         this.dragController.unbind();
         this.keyBindings.unbind();
@@ -1141,14 +1182,8 @@ export default class Binding {
         this.bulkExportController.unbind();
         this.subscribed = false;
 
-        const command: VideoToExtensionCommand<VideoDisappearedMessage> = {
-            sender: 'asbplayer-video',
-            message: {
-                command: 'video-disappeared',
-            },
-            src: this.video.src,
-        };
-        browser.runtime.sendMessage(command);
+        this._notifyVideoDisappeared(this.registeredVideoSrc ?? (this.video.src || undefined));
+        this.registeredVideoSrc = undefined;
     }
 
     async _takeScreenshot() {
@@ -1200,6 +1235,11 @@ export default class Binding {
 
         if (this.takeScreenshot) {
             await this._prepareScreenshot();
+        }
+
+        if (this.recordMedia && this.recordingMedia) {
+            // In case recording state changed during the await above
+            return;
         }
 
         if (this.recordMedia) {
@@ -1591,6 +1631,24 @@ export default class Binding {
         this._synced = false;
         this._syncedTimestamp = undefined;
         this.mobileVideoOverlayController.disposeOverlay();
+    }
+
+    private _updateRegisteredVideoSrc(src: string | undefined) {
+        if (src === this.registeredVideoSrc) return;
+        this._notifyVideoDisappeared(this.registeredVideoSrc);
+        this.registeredVideoSrc = src;
+    }
+
+    private _notifyVideoDisappeared(src: string | undefined) {
+        if (!src) return;
+        const command: VideoToExtensionCommand<VideoDisappearedMessage> = {
+            sender: 'asbplayer-video',
+            message: {
+                command: 'video-disappeared',
+            },
+            src,
+        };
+        browser.runtime.sendMessage(command);
     }
 
     private _captureStream(): Promise<MediaStream> {
