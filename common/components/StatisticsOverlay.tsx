@@ -64,7 +64,7 @@ export interface StatisticsOverlayProps {
     onOpenStatistics: () => void;
     onReceivedSnapshot: (mediaId: string, trackIndex: number) => void;
     onSnapshotCleared?: () => void;
-    onClose: () => void;
+    onClose: (mediaId?: string) => void;
     onMoveBy?: (deltaX: number, deltaY: number) => void;
     onSentenceDetailsWereOpened?: () => void;
     onSentenceDetailsWereClosed?: () => void;
@@ -223,7 +223,16 @@ const StatisticsOverlay = React.forwardRef<HTMLDivElement, StatisticsOverlayProp
                 clientX: event.clientX,
                 clientY: event.clientY,
             };
-            onMoveBy(deltaX, deltaY);
+
+            // If movement properties are available, use those instead, since event.clientX and event.clientY
+            // changes if the containing window moves (e.g. iframe in the case of the extension), which results
+            // in jittering.
+
+            if (typeof event.movementX === 'number' && typeof event.movementY === 'number') {
+                onMoveBy(event.movementX, event.movementY);
+            } else {
+                onMoveBy(deltaX, deltaY);
+            }
         },
         [onMoveBy]
     );
@@ -283,7 +292,7 @@ const StatisticsOverlay = React.forwardRef<HTMLDivElement, StatisticsOverlayProp
                         <IconButton onClick={onOpenStatistics} data-statistics-overlay-interactive="true">
                             <BarChartIcon />
                         </IconButton>
-                        <IconButton onClick={onClose} data-statistics-overlay-interactive="true">
+                        <IconButton onClick={() => onClose(mediaId)} data-statistics-overlay-interactive="true">
                             <CloseIcon />
                         </IconButton>
                     </Box>

@@ -154,7 +154,7 @@ export class StatisticsOverlayController {
         this._state = 'open';
         this._mediaId = message.mediaId;
         this._resetPosition();
-        this._setWidth('100%');
+        this._setWidth(this._width ?? '100%');
         this._setHeight('68px');
     }
 
