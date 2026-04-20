@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { makeStyles } from '@mui/styles';
 import { type Theme } from '@mui/material/styles';
+import { useOverlayBounds } from '../hooks/use-overlay-bounds';
 
 // Resizable, draggable blur mask that stays within its container and auto-hides its handles when idle
 
@@ -56,10 +57,11 @@ const resizeHandles: { dir: ResizeDir; style: React.CSSProperties }[] = [
 ];
 
 interface BlurOverlayProps {
-    containerRef: React.RefObject<HTMLElement | null>;
+    anchorRef: React.RefObject<HTMLElement | null | undefined>;
+    containerRef: React.RefObject<HTMLElement | null | undefined>;
 }
 
-export default function BlurOverlay({ containerRef }: BlurOverlayProps) {
+export default function BlurOverlay({ anchorRef, containerRef }: BlurOverlayProps) {
     const classes = useStyles();
     const overlayRef = useRef<HTMLDivElement | null>(null);
 
@@ -75,6 +77,17 @@ export default function BlurOverlay({ containerRef }: BlurOverlayProps) {
     const posStart = useRef<Position>({ x: 0, y: 0 });
     const sizeStart = useRef<Size>({ width: 0, height: 0 });
     const autoHideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    const { bounds, boundsRef, containerBounds, clampPos, clampSizeToBounds } = useOverlayBounds({
+        anchorRef,
+        containerRef,
+        pos,
+        size,
+        setPos,
+        setSize,
+        minWidth: MIN_WIDTH,
+        minHeight: MIN_HEIGHT,
+    });
 
     // Show handles immediately, then hide them if idle for 2 seconds
     const resetAutoHideTimer = useCallback(() => {
@@ -92,23 +105,6 @@ export default function BlurOverlay({ containerRef }: BlurOverlayProps) {
             }, 2000);
         }
     }, []);
-
-    const containerBounds = useCallback((): DOMRect | null => {
-        return containerRef.current?.getBoundingClientRect() ?? null;
-    }, [containerRef]);
-
-    // Keep the overlay fully inside the container bounds
-    const clampPos = useCallback(
-        (x: number, y: number, w: number, h: number): Position => {
-            const bounds = containerBounds();
-            if (!bounds) return { x, y };
-            return {
-                x: Math.max(0, Math.min(x, bounds.width - w)),
-                y: Math.max(0, Math.min(y, bounds.height - h)),
-            };
-        },
-        [containerBounds]
-    );
 
     // Begin drag: remember start positions for delta calculations
     const onMouseDownDrag = useCallback(
@@ -141,9 +137,13 @@ export default function BlurOverlay({ containerRef }: BlurOverlayProps) {
         resetAutoHideTimer();
 
         const onMouseMove = (e: MouseEvent) => {
-            const bounds = containerBounds();
-            const clientX = bounds ? Math.min(Math.max(e.clientX, bounds.left), bounds.right) : e.clientX;
-            const clientY = bounds ? Math.min(Math.max(e.clientY, bounds.top), bounds.bottom) : e.clientY;
+            const activeBounds = boundsRef.current ?? containerBounds();
+            const clientX = activeBounds
+                ? Math.min(Math.max(e.clientX, activeBounds.viewportLeft), activeBounds.viewportLeft + activeBounds.width)
+                : e.clientX;
+            const clientY = activeBounds
+                ? Math.min(Math.max(e.clientY, activeBounds.viewportTop), activeBounds.viewportTop + activeBounds.height)
+                : e.clientY;
             const dx = clientX - dragStart.current.x;
             const dy = clientY - dragStart.current.y;
 
@@ -173,9 +173,10 @@ export default function BlurOverlay({ containerRef }: BlurOverlayProps) {
                     ny = posStart.current.y + sizeStart.current.height - nh;
                 }
 
-                const clamped = clampPos(nx, ny, nw, nh);
-                setPos(clamped);
-                setSize({ width: nw, height: nh });
+                const clampedSize = clampSizeToBounds({ width: nw, height: nh }, activeBounds ?? undefined);
+                const clampedPos = clampPos(nx, ny, clampedSize.width, clampedSize.height);
+                setPos(clampedPos);
+                setSize(clampedSize);
             }
         };
 
@@ -214,7 +215,7 @@ export default function BlurOverlay({ containerRef }: BlurOverlayProps) {
                 clearTimeout(autoHideTimeoutRef.current);
             }
         };
-    }, [clampPos, size, resetAutoHideTimer]);
+    }, [clampPos, clampSizeToBounds, size, resetAutoHideTimer, containerBounds, boundsRef]);
 
     // Clicking the overlay restores handles if they were hidden
     const handleMouseClick = useCallback(() => {
@@ -227,8 +228,8 @@ export default function BlurOverlay({ containerRef }: BlurOverlayProps) {
             ref={overlayRef}
             className={classes.overlay}
             style={{
-                left: pos.x,
-                top: pos.y,
+                left: (bounds?.left ?? 0) + pos.x,
+                top: (bounds?.top ?? 0) + pos.y,
                 width: size.width,
                 height: size.height,
                 border: showHandles ? '2px dashed rgba(255,255,255,0.35)' : 'none',

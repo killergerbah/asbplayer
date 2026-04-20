@@ -1785,8 +1785,8 @@ export default function VideoPlayer({
                 src={videoFile}
                 onMouseOver={handleVideoMouseOver}
             />
-            {/* Optional blur mask overlay; constrained to the player container */}
-            {blurOverlayVisible && <BlurOverlay containerRef={containerRef} />}
+            {/* Optional blur mask overlay; constrained to the video bounds within the player container */}
+            {blurOverlayVisible && <BlurOverlay anchorRef={containerRef} containerRef={videoRef} />}
             {topSubtitleElements.length > 0 && (
                 <SubtitleContainer alignment={'top'} subtitleSettings={subtitleSettings} baseOffset={0}>
                     {topSubtitleElements}
