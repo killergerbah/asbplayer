@@ -174,7 +174,9 @@
         "toggleTheaterMode": "Activer/désactiver le mode théâtre",
         "showSubtitlePlayer": "Afficher la liste des sous-titres",
         "hideSubtitlePlayer": "Masquer la liste des sous-titres",
-        "currentTimestamp": "Horodatage actuel"
+        "currentTimestamp": "Horodatage actuel",
+        "showBlurOverlay": "Show Blur Overlay",
+        "hideBlurOverlay": "Hide Blur Overlay"
     },
     "copyHistory": {
         "blank": "Vide",

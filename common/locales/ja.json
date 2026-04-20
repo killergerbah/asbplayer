@@ -174,7 +174,9 @@
         "toggleTheaterMode": "シアターモードオン/オフ",
         "showSubtitlePlayer": "字幕リストを表示",
         "hideSubtitlePlayer": "字幕リストを非表示",
-        "currentTimestamp": "タイムスタンプ"
+        "currentTimestamp": "タイムスタンプ",
+        "showBlurOverlay": "Show Blur Overlay",
+        "hideBlurOverlay": "Hide Blur Overlay"
     },
     "copyHistory": {
         "blank": "空白",

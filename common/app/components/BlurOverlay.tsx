@@ -139,10 +139,16 @@ export default function BlurOverlay({ anchorRef, containerRef }: BlurOverlayProp
         const onMouseMove = (e: MouseEvent) => {
             const activeBounds = boundsRef.current ?? containerBounds();
             const clientX = activeBounds
-                ? Math.min(Math.max(e.clientX, activeBounds.viewportLeft), activeBounds.viewportLeft + activeBounds.width)
+                ? Math.min(
+                      Math.max(e.clientX, activeBounds.viewportLeft),
+                      activeBounds.viewportLeft + activeBounds.width
+                  )
                 : e.clientX;
             const clientY = activeBounds
-                ? Math.min(Math.max(e.clientY, activeBounds.viewportTop), activeBounds.viewportTop + activeBounds.height)
+                ? Math.min(
+                      Math.max(e.clientY, activeBounds.viewportTop),
+                      activeBounds.viewportTop + activeBounds.height
+                  )
                 : e.clientY;
             const dx = clientX - dragStart.current.x;
             const dy = clientY - dragStart.current.y;

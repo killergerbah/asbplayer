@@ -174,7 +174,9 @@
         "toggleTheaterMode": "Vaihda teatteritilaa",
         "showSubtitlePlayer": "Näytä tekstityslista",
         "hideSubtitlePlayer": "Piilota tekstityslista",
-        "currentTimestamp": "Nykyisen aikaleima"
+        "currentTimestamp": "Nykyisen aikaleima",
+        "showBlurOverlay": "Show Blur Overlay",
+        "hideBlurOverlay": "Hide Blur Overlay"
     },
     "copyHistory": {
         "blank": "Tyhjä",

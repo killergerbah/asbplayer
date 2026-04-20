@@ -655,8 +655,8 @@ export default function Controls({
                     (mousePositionRef.current !== undefined &&
                         lastMousePositionRef.current !== undefined &&
                         Math.pow(mousePositionRef.current.x - lastMousePositionRef.current.x, 2) +
-                        Math.pow(mousePositionRef.current.y - lastMousePositionRef.current.y, 2) >
-                        100);
+                            Math.pow(mousePositionRef.current.y - lastMousePositionRef.current.y, 2) >
+                            100);
             } else {
                 currentShow =
                     mousePositionRef.current !== undefined &&
@@ -1057,7 +1057,13 @@ export default function Controls({
                                         </Tooltip>
                                     )}
                                     {onBlurOverlayToggle && (
-                                        <Tooltip title={blurOverlayEnabled ? t('controls.hideBlurOverlay') : t('controls.showBlurOverlay')}>
+                                        <Tooltip
+                                            title={
+                                                blurOverlayEnabled
+                                                    ? t('controls.hideBlurOverlay')
+                                                    : t('controls.showBlurOverlay')
+                                            }
+                                        >
                                             <IconButton color="inherit" onClick={onBlurOverlayToggle}>
                                                 {blurOverlayEnabled ? (
                                                     <BlurOnIcon className={classes.button} />

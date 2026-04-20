@@ -416,7 +416,6 @@ export default function VideoPlayer({
         setAnkiSettings(settings);
     }, [settings]);
 
-
     useEffect(() => {
         setSubtitleAlignments(allSubtitleAlignments(subtitleSettings));
         setBottomSubtitlePositionOffset(subtitleSettings.subtitlePositionOffset);

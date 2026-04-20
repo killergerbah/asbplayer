@@ -174,7 +174,9 @@
         "toggleTheaterMode": "剧场模式",
         "showSubtitlePlayer": "显示字幕列表",
         "hideSubtitlePlayer": "隐藏字幕列表",
-        "currentTimestamp": "当前时间戳"
+        "currentTimestamp": "当前时间戳",
+        "showBlurOverlay": "Show Blur Overlay",
+        "hideBlurOverlay": "Hide Blur Overlay"
     },
     "copyHistory": {
         "blank": "空白的",
