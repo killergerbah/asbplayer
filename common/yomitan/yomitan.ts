@@ -1,9 +1,11 @@
 import { Fetcher, HttpFetcher, Progress } from '@project/common';
 import { DictionaryTrack } from '@project/common/settings';
-import { AsyncSemaphore, fromBatches, HAS_LETTER_REGEX, isKanaOnly } from '@project/common/util';
+import { AsyncSemaphore, fromBatches, HAS_LETTER_REGEX, inBatches, isKanaOnly } from '@project/common/util';
 import { coerce, lt, gte } from 'semver';
 
-const YOMITAN_BATCH_SIZE = 100; // 1k can cause 1.5GB memory on Yomitan for subtitles, Anki cards may be larger too
+const TOKENIZE_BATCH_SIZE = 100; // 1k can cause 1.5GB memory on Yomitan for subtitles, Anki cards may be larger too
+const TERM_ENTRIES_BATCH_SIZE = 10; // 100 is only 10% faster (17s vs 19s for a 23min subtitle)
+const TERM_ENTRIES_DEBOUNCE_MS = 10; // Prevents using too much resources
 
 const YEAR_MONTH_REGEX = /(?<year>20\d{2})(?<month>[01]\d)/;
 
@@ -57,6 +59,12 @@ interface TokenizeResult {
     content: TokenPartResult[][];
 }
 
+interface TermEntriesResult {
+    dictionaryEntries: TermDictionaryEntry[];
+    originalTextLength: number;
+    index: number;
+}
+
 interface TermDictionaryEntry {
     headwords: TermHeadword[];
     frequencies: TermFrequency[];
@@ -74,6 +82,7 @@ export class Yomitan {
     private supportsMecab: boolean;
     private supportsMecabLemma: boolean;
     private supportsTokenizeFrequency: boolean;
+    private supportsTermEntriesBulk: boolean;
     private lastCancelledAt: number;
 
     constructor(
@@ -92,6 +101,7 @@ export class Yomitan {
         this.supportsMecab = false;
         this.supportsMecabLemma = false;
         this.supportsTokenizeFrequency = false;
+        this.supportsTermEntriesBulk = false;
         this.lastCancelledAt = 0;
     }
 
@@ -103,8 +113,9 @@ export class Yomitan {
         return this.supportsMecabLemma;
     }
 
-    getSupportsTokenizeFrequency(): boolean {
-        return this.supportsTokenizeFrequency;
+    getSupportsBulkFrequency(): boolean {
+        if (this.dt.dictionaryYomitanParser === 'scanning-parser') return this.supportsTokenizeFrequency;
+        return this.supportsTermEntriesBulk;
     }
 
     resetCache() {
@@ -160,7 +171,7 @@ export class Yomitan {
             allTexts,
             async (texts) => {
                 const tokensByText: TokenPart[][][] = [];
-                const tokensToFetch: string[] = [];
+                const textsToFetch: string[] = [];
                 const fetchedTextIndices: number[] = [];
                 for (const [index, text] of texts.entries()) {
                     const tokensForText = this.tokenizeCache.get(text);
@@ -168,10 +179,10 @@ export class Yomitan {
                         tokensByText[index] = tokensForText;
                         continue;
                     }
-                    tokensToFetch.push(text);
+                    textsToFetch.push(text);
                     fetchedTextIndices.push(index);
                 }
-                if (!tokensToFetch.length) return tokensByText.flat();
+                if (!textsToFetch.length) return tokensByText.flat();
 
                 if (this.dt.dictionaryYomitanParser === 'mecab' && !this.getSupportsMecab()) {
                     throw new Error('Yomitan is not configured to support MeCab');
@@ -180,7 +191,7 @@ export class Yomitan {
                     await this._executeAction(
                         'tokenize',
                         {
-                            text: tokensToFetch,
+                            text: textsToFetch,
                             scanLength: this.dt.dictionaryYomitanScanLength,
                             parser: this.dt.dictionaryYomitanParser,
                         },
@@ -193,12 +204,29 @@ export class Yomitan {
                 for (const tokenizeResult of tokenizeResults) {
                     const tokensForText: TokenPart[][] = [];
                     this.cacheFromTokenize(tokenizeResult, tokensForText);
-                    this.tokenizeCache.set(tokensToFetch[tokenizeResult.index], tokensForText);
+                    this.tokenizeCache.set(textsToFetch[tokenizeResult.index], tokensForText);
                     tokensByText[fetchedTextIndices[tokenizeResult.index]] = tokensForText;
                 }
+
+                if (this.dt.dictionaryYomitanParser !== 'scanning-parser' && this.supportsTermEntriesBulk) {
+                    const termsToFetch = new Set<string>();
+                    for (const tokenizeResult of tokenizeResults) {
+                        for (const tokenParts of tokenizeResult.content) {
+                            const tokenPart = tokenParts[0];
+                            if (!tokenPart) continue;
+                            const token = tokenParts
+                                .map((p) => p.text)
+                                .join('')
+                                .trim();
+                            termsToFetch.add(token);
+                        }
+                    }
+                    await this.termEntriesBulk(Array.from(termsToFetch), yomitanUrl);
+                }
+
                 return tokensByText.flat();
             },
-            { batchSize: YOMITAN_BATCH_SIZE, statusUpdates }
+            { batchSize: TOKENIZE_BATCH_SIZE, statusUpdates }
         );
     }
 
@@ -283,9 +311,9 @@ export class Yomitan {
         token: string,
         tokenizeHeadwords: TermHeadword[][],
         preferTermSource = true
-    ): number | undefined {
+    ): void {
         if (!this.supportsTokenizeFrequency) return;
-        let minFrequency: number | undefined;
+        let minFrequency: number | null = null;
         for (const headwords of tokenizeHeadwords) {
             for (const headword of headwords) {
                 for (const source of headword.sources) {
@@ -297,17 +325,16 @@ export class Yomitan {
                     for (const f of headword.frequencies) {
                         if (!Number.isFinite(f.frequency) || f.frequency <= 0) continue;
                         if (f.frequencyMode !== 'rank-based') continue;
-                        minFrequency = minFrequency === undefined ? f.frequency : Math.min(minFrequency, f.frequency);
+                        minFrequency = minFrequency === null ? f.frequency : Math.min(minFrequency, f.frequency);
                     }
                     break;
                 }
             }
         }
-        if (minFrequency === undefined && preferTermSource) {
+        if (minFrequency === null && preferTermSource) {
             return this.extractFrequencyFromTokenize(token, tokenizeHeadwords, false);
         }
-        this.frequencyCache.set(token, minFrequency ?? null);
-        return minFrequency;
+        this.frequencyCache.set(token, minFrequency);
     }
 
     /**
@@ -346,67 +373,99 @@ export class Yomitan {
         return lemmas;
     }
 
-    async lemmatize(token: string, yomitanUrl?: string): Promise<string[]> {
-        const lemmas = this.lemmatizeCache.get(token);
+    async lemmatize(token: string, yomitanUrl?: string): Promise<string[] | undefined> {
+        let lemmas = this.lemmatizeCache.get(token);
         if (lemmas) return lemmas;
         if (!HAS_LETTER_REGEX.test(token)) {
             this.lemmatizeCache.set(token, []);
+            this.frequencyCache.set(token, null);
             return [];
         }
-        const entries: TermDictionaryEntry[] = (await this._executeAction('termEntries', { term: token }, yomitanUrl))
-            .dictionaryEntries;
-        return this.extractLemmas(
-            token,
-            entries.map((entry) => entry.headwords)
-        );
+        const now = Date.now();
+        const semaphoreId = await this.asyncSemaphore.acquire(1);
+        try {
+            lemmas = this.lemmatizeCache.get(token);
+            if (lemmas) return lemmas;
+            if (now <= this.lastCancelledAt) return;
+            const entries: TermDictionaryEntry[] = (
+                await this._executeAction('termEntries', { term: token }, yomitanUrl)
+            ).dictionaryEntries;
+            if (!this.frequencyCache.has(token)) this.extractFrequency(token, entries);
+            return this.extractLemmas(
+                token,
+                entries.map((entry) => entry.headwords)
+            );
+        } finally {
+            setTimeout(() => this.asyncSemaphore.release(semaphoreId), TERM_ENTRIES_DEBOUNCE_MS);
+        }
     }
 
     /**
      * Get the minimum frequency for a token in a rank-based frequency dictionary using Yomitan's API.
      * This function will return undefined immediately and asynchronously update the cache if tokensWereModified is provided and the token is not in the cache.
      */
-    async frequency(token: string, yomitanUrl?: string): Promise<number | undefined> {
+    async frequency(token: string, yomitanUrl?: string): Promise<number | undefined | null> {
         const minFrequency = this.frequencyCache.get(token);
-        if (minFrequency !== undefined) return minFrequency ?? undefined;
+        if (minFrequency !== undefined) return minFrequency;
         if (!HAS_LETTER_REGEX.test(token)) {
             this.frequencyCache.set(token, null);
-            return;
+            this.lemmatizeCache.set(token, []);
+            return null;
         }
         if (this.tokensWereModified) {
             void (async () => {
                 const now = Date.now();
                 const semaphoreId = await this.asyncSemaphore.acquire();
                 try {
+                    if (this.frequencyCache.has(token)) return;
                     if (now <= this.lastCancelledAt) {
                         this.tokensWereModified!(token); // May need to reprocess with the new Yomitan instance
                         return;
                     }
-                    if (this.frequencyCache.has(token)) return;
                     const entries: TermDictionaryEntry[] = (
                         await this._executeAction('termEntries', { term: token }, yomitanUrl)
                     ).dictionaryEntries;
                     this.extractFrequency(token, entries);
+                    if (!this.lemmatizeCache.has(token)) {
+                        this.extractLemmas(
+                            token,
+                            entries.map((entry) => entry.headwords)
+                        );
+                    }
                     this.tokensWereModified!(token);
                 } finally {
-                    this.asyncSemaphore.release(semaphoreId);
+                    setTimeout(() => this.asyncSemaphore.release(semaphoreId), TERM_ENTRIES_DEBOUNCE_MS);
                 }
             })();
-            return;
+            return; // undefined means the caller should call again later
         }
-        const entries: TermDictionaryEntry[] = (await this._executeAction('termEntries', { term: token }, yomitanUrl))
-            .dictionaryEntries;
-        return this.extractFrequency(token, entries);
+
+        const now = Date.now();
+        const semaphoreId = await this.asyncSemaphore.acquire();
+        try {
+            const freq = this.frequencyCache.get(token);
+            if (freq !== undefined) return freq;
+            if (now <= this.lastCancelledAt) return;
+            const entries: TermDictionaryEntry[] = (
+                await this._executeAction('termEntries', { term: token }, yomitanUrl)
+            ).dictionaryEntries;
+            if (!this.lemmatizeCache.has(token)) {
+                this.extractLemmas(
+                    token,
+                    entries.map((entry) => entry.headwords)
+                );
+            }
+            return this.extractFrequency(token, entries);
+        } finally {
+            setTimeout(() => this.asyncSemaphore.release(semaphoreId), TERM_ENTRIES_DEBOUNCE_MS);
+        }
     }
 
     /**
      * Extract the minimum frequency for a token in a rank-based frequency dictionary using Yomitan's termEntries API.
      */
-    private extractFrequency(
-        token: string,
-        entries: TermDictionaryEntry[],
-        preferTermSource = true
-    ): number | undefined {
-        let minFrequency: number | undefined;
+    private extractFrequency(token: string, entries: TermDictionaryEntry[], preferTermSource = true): number | null {
+        let minFrequency: number | null = null;
         for (const entry of entries) {
             const matchingHeadwordIndices = new Set<number>();
             for (const [i, headword] of entry.headwords.entries()) {
@@ -424,12 +483,62 @@ export class Yomitan {
                 if (!matchingHeadwordIndices.has(f.headwordIndex)) continue;
                 if (!Number.isFinite(f.frequency) || f.frequency <= 0) continue;
                 if (f.frequencyMode !== 'rank-based' && this.supportsTokenizeFrequency) continue; // Exposed with this.supportsTokenizeFrequency
-                minFrequency = minFrequency === undefined ? f.frequency : Math.min(minFrequency, f.frequency);
+                minFrequency = minFrequency === null ? f.frequency : Math.min(minFrequency, f.frequency);
             }
         }
-        if (minFrequency === undefined && preferTermSource) return this.extractFrequency(token, entries, false);
-        this.frequencyCache.set(token, minFrequency ?? null);
+        if (minFrequency === null && preferTermSource) return this.extractFrequency(token, entries, false);
+        this.frequencyCache.set(token, minFrequency);
         return minFrequency;
+    }
+
+    async termEntriesBulk(tokens: string[], yomitanUrl?: string): Promise<void> {
+        const tokensToFetch = new Set<string>();
+        for (const token of tokens) {
+            if (this.lemmatizeCache.has(token) && this.frequencyCache.has(token)) continue;
+            if (!HAS_LETTER_REGEX.test(token)) {
+                this.lemmatizeCache.set(token, []);
+                this.frequencyCache.set(token, null);
+                continue;
+            }
+            tokensToFetch.add(token);
+        }
+        if (!tokensToFetch.size) return;
+
+        const now = Date.now();
+        const semaphoreId = await this.asyncSemaphore.acquire(2);
+        try {
+            if (now <= this.lastCancelledAt) return;
+            for (const token of tokensToFetch) {
+                if (this.lemmatizeCache.has(token) && this.frequencyCache.has(token)) tokensToFetch.delete(token);
+            }
+            if (!tokensToFetch.size) return;
+
+            await inBatches(
+                Array.from(tokensToFetch),
+                async (terms) => {
+                    const response: TermEntriesResult[] = await this._executeAction(
+                        'termEntries',
+                        { term: terms },
+                        yomitanUrl
+                    );
+                    const dictionaryEntries: TermDictionaryEntry[][] = [];
+                    for (const result of response) dictionaryEntries[result.index] = result.dictionaryEntries;
+                    for (const [index, token] of terms.entries()) {
+                        const entries = dictionaryEntries[index];
+                        if (!this.lemmatizeCache.has(token)) {
+                            this.extractLemmas(
+                                token,
+                                entries.map((entry) => entry.headwords)
+                            );
+                        }
+                        if (!this.frequencyCache.has(token)) this.extractFrequency(token, entries);
+                    }
+                },
+                { batchSize: TERM_ENTRIES_BATCH_SIZE }
+            );
+        } finally {
+            this.asyncSemaphore.release(semaphoreId);
+        }
     }
 
     async version(yomitanUrl?: string) {
@@ -441,7 +550,8 @@ export class Yomitan {
                 this.supportsMecab = false;
                 this.supportsMecabLemma = false;
             }
-            // this.supportsTokenizeFrequency = true;
+            this.supportsTokenizeFrequency = true;
+            this.supportsTermEntriesBulk = true;
             return version;
         }
         const semver = coerce(version)?.version;
@@ -454,8 +564,13 @@ export class Yomitan {
             this.supportsMecab = false;
             this.supportsMecabLemma = false;
         }
-        // if (gte(semver, '26.3.10')) this.supportsTokenizeFrequency = true; // TODO: Use actual version
-        // else this.supportsTokenizeFrequency = false;
+        if (gte(semver, '26.4.6')) {
+            this.supportsTokenizeFrequency = true;
+            this.supportsTermEntriesBulk = true;
+        } else {
+            this.supportsTokenizeFrequency = false;
+            this.supportsTermEntriesBulk = false;
+        }
         return version;
     }
 

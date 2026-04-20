@@ -58,6 +58,9 @@
         "inNotOut": "有効",
         "inAndOut": "有効。マウスカーソルを外すと自動再生。"
     },
+    "videoSubtitleSplitBehavior": {
+        "autoMaximizeVideo": "Auto-maximize video"
+    },
     "ankiDialog": {
         "applySelection": "選択範囲を適用する",
         "audio": "音声",
@@ -152,7 +155,8 @@
         "moveTopSubtitlesUp": "上の字幕を上へ移動",
         "moveTopSubtitlesDown": "上の字幕を下へ移動",
         "markHoveredToken": "マウスカーソルを重ねた単語を「{{tokenStatus}}」として保存する",
-        "toggleHoveredTokenIgnored": "マウスカーソルを重ねた単語の「無視」状態をオン／オフ"
+        "toggleHoveredTokenIgnored": "マウスカーソルを重ねた単語の「無視」状態をオン／オフ",
+        "openStatistics": "Open statistics"
     },
     "controls": {
         "autoPauseMode": "自動一時停止",
@@ -465,6 +469,7 @@
         "dictionaryLocalWordDatabase": "ローカルの単語データベース",
         "dictionaryAnkiWordDatabase": "Ankiの単語データベース",
         "dictionaryColorizeSubtitles": "単語の成熟度をもとに字幕を色づけます",
+        "dictionaryAutoGenerateStatistics": "Generate statistics automatically",
         "dictionaryColorizeOnHoverOnly": "マウスカーソルを字幕に重ねるときにのみアノテーションを表示",
         "dictionaryHighlightOnHover": "マウスカーソルを重ねると単語をハイライト表示",
         "dictionaryTokenMatchStrategy": "単語フィールド検索戦略",
@@ -525,6 +530,7 @@
         "dictionaryTokenStatusReading1": "しんき",
         "dictionaryTokenStatus0": "未収集",
         "dictionaryTokenStatusReading0": "みしゅうしゅう",
+        "dictionaryTokenStateIgnored": "Ignored",
         "dictionaryBuildAnkiStarted": "変更されたカードをクエリしています",
         "dictionaryTokenStatusAlpha": "アルファ値",
         "dictionaryBuildAnkiTracks": "Ankiのトラック：{{tracks}}",
@@ -540,6 +546,60 @@
         "ui": "UI",
         "webSocketInterface": "WebSocketインターフェース",
         "yomitanHelperText": "YomitanのAPIのセットアップは<0>こちら<0>をご参考にしてください。"
+    },
+    "statistics": {
+        "title": "Statistics",
+        "description": "Generate and review vocabulary statistics for the current sentence collection.",
+        "generate": "Generate statistics",
+        "generationInProgress": "Statistics generation in progress",
+        "empty": "No statistics have been generated for the current sentences yet.",
+        "gettingStarted": "To generate statistics for loaded subtitles, enable annotations from the <0>settings</0>.",
+        "uniqueWords": "Unique words",
+        "knownWords": "Known words",
+        "uniqueWordsPerSentence": "Unique words per sentence",
+        "knownWordsPerSentence": "Known words per sentence",
+        "globalKnownWords": "Global known words",
+        "comprehension": "Comprehension",
+        "sentenceIndex": "Sentence index",
+        "wordDistribution": "Word distribution (occurrences)",
+        "statusDistribution": "Status",
+        "frequency": "Frequency",
+        "occurrences": "Occurrences",
+        "sentenceStatistics": "Sentence statistics",
+        "currentWatch": "Current watch",
+        "projectedRewatch": "Projected rewatch",
+        "rewatchSelect": "Rewatch",
+        "rewatchOption": "Rewatch #{{rewatch}}",
+        "miningDisabledUntilComplete": "Mining is available after statistics for this track finish generating.",
+        "sortBy": "Sort by",
+        "matchingSentences": "{{number}} matching sentences",
+        "sentenceDetailsEmpty": "No sentences matched this bucket.",
+        "noMoreRewatches": "There will be no more mining after all i+1 sentences this session.",
+        "totalSentences": "Total sentences",
+        "knownSentences": "Known sentences",
+        "anki": {
+            "ankiStatistics": "Anki statistics",
+            "dueByToday": "Due by today",
+            "dueByTomorrow": "Due by tomorrow",
+            "dueByWeek": "Due within a week",
+            "suspended": "Suspended",
+            "deckBreakdown": "Deck breakdown",
+            "modelBreakdown": "Model breakdown",
+            "ankiNeedsToBeRunning": "Anki needs to be running to load statistics.",
+            "noDeckBreakdown": "No matching Anki cards were found for this media.",
+            "info": {
+                "ankiStatistics": "How your Anki cards match up with the words in this media."
+            }
+        },
+        "info": {
+            "comprehension": "How many unique words are known, weighted by status and occurrences.",
+            "globalKnownWords": "How many words are known including locally stored words and Anki.",
+            "wordDistribution": "How unique words are distributed across status and frequency.",
+            "frequency": "Frequency: The rank-based frequency from your frequency dictionaries.",
+            "occurrences": "Occurrences: The total number of times a word appears.",
+            "sentenceStatistics": "How easily this content can be mined.",
+            "projectedRewatch": "Assumes all i+1 uncollected sentences were mined from the previous watch."
+        }
     },
     "subtitlePlayer": {
         "multiSubtitleSelectHelp": "複数の字幕をマイニングするには、クリックし、押し続け、ドラッグしてください"
