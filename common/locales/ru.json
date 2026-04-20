@@ -178,7 +178,9 @@
         "toggleTheaterMode": "Включить/выключить театральный режим",
         "showSubtitlePlayer": "Показать панель списка субтитров",
         "hideSubtitlePlayer": "Скрыть панель списка субтитров",
-        "currentTimestamp": "Текущая метка времени"
+        "currentTimestamp": "Текущая метка времени",
+        "showBlurOverlay": "Show Blur Overlay",
+        "hideBlurOverlay": "Hide Blur Overlay"
     },
     "copyHistory": {
         "blank": "Пусто",

@@ -178,7 +178,9 @@
         "toggleTheaterMode": "宽屏模式",
         "showSubtitlePlayer": "展开字幕列表",
         "hideSubtitlePlayer": "收起字幕列表",
-        "currentTimestamp": "当前时间"
+        "currentTimestamp": "当前时间",
+        "showBlurOverlay": "Show Blur Overlay",
+        "hideBlurOverlay": "Hide Blur Overlay"
     },
     "copyHistory": {
         "blank": "空白",

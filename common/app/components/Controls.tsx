@@ -4,6 +4,8 @@ import { makeStyles, withStyles } from '@mui/styles';
 import { useTheme } from '@mui/material/styles';
 import { type Theme } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import BlurOnIcon from '@mui/icons-material/BlurOn';
+import BlurOffIcon from '@mui/icons-material/BlurOff';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import CloseIcon from '@mui/icons-material/Close';
 import FolderIcon from '@mui/icons-material/Folder';
@@ -524,6 +526,8 @@ interface ControlsProps {
     onSubtitleAlignment?: (alignment: SubtitleAlignment) => void;
     hideToolbar?: boolean;
     onLoadFiles?: () => void;
+    blurOverlayEnabled?: boolean;
+    onBlurOverlayToggle?: () => void;
 }
 
 export default function Controls({
@@ -578,6 +582,8 @@ export default function Controls({
     onSubtitleAlignment,
     hideToolbar,
     onLoadFiles,
+    blurOverlayEnabled,
+    onBlurOverlayToggle,
 }: ControlsProps) {
     const classes = useControlStyles();
     const { t } = useTranslation();
@@ -1047,6 +1053,23 @@ export default function Controls({
                                                     className={classes.button}
                                                     style={popOut ? { transform: 'rotateX(180deg)' } : {}}
                                                 />
+                                            </IconButton>
+                                        </Tooltip>
+                                    )}
+                                    {onBlurOverlayToggle && (
+                                        <Tooltip
+                                            title={
+                                                blurOverlayEnabled
+                                                    ? t('controls.hideBlurOverlay')
+                                                    : t('controls.showBlurOverlay')
+                                            }
+                                        >
+                                            <IconButton color="inherit" onClick={onBlurOverlayToggle}>
+                                                {blurOverlayEnabled ? (
+                                                    <BlurOnIcon className={classes.button} />
+                                                ) : (
+                                                    <BlurOffIcon className={classes.inactiveButton} />
+                                                )}
                                             </IconButton>
                                         </Tooltip>
                                     )}

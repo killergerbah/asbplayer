@@ -178,7 +178,9 @@
         "toggleTheaterMode": "시네마 모드 켜기/끄기",
         "showSubtitlePlayer": "자막 목록 보기",
         "hideSubtitlePlayer": "자막 목록 숨기기",
-        "currentTimestamp": "현재 위치 (시간)"
+        "currentTimestamp": "현재 위치 (시간)",
+        "showBlurOverlay": "Show Blur Overlay",
+        "hideBlurOverlay": "Hide Blur Overlay"
     },
     "copyHistory": {
         "blank": "자막 없음",

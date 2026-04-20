@@ -178,7 +178,9 @@
         "toggleTheaterMode": "Aktifkan/Nonaktifkan Mode Teater",
         "showSubtitlePlayer": "Tampilkan Daftar Takarir",
         "hideSubtitlePlayer": "Sembunyikan Daftar Takarir",
-        "currentTimestamp": "Penanda Waktu Saat Ini"
+        "currentTimestamp": "Penanda Waktu Saat Ini",
+        "showBlurOverlay": "Show Blur Overlay",
+        "hideBlurOverlay": "Hide Blur Overlay"
     },
     "copyHistory": {
         "blank": "Kosong",

@@ -178,7 +178,9 @@
         "toggleTheaterMode": "Modo Cine",
         "showSubtitlePlayer": "Mostrar Lista de Subtítulos",
         "hideSubtitlePlayer": "Ocultar Lista de Subtítulos",
-        "currentTimestamp": "Current Timestamp"
+        "currentTimestamp": "Current Timestamp",
+        "showBlurOverlay": "Show Blur Overlay",
+        "hideBlurOverlay": "Hide Blur Overlay"
     },
     "copyHistory": {
         "blank": "En Blanco",

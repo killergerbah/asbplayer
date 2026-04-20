@@ -178,7 +178,9 @@
         "toggleTheaterMode": "Toggle Theater Mode",
         "showSubtitlePlayer": "Show Subtitle List",
         "hideSubtitlePlayer": "Hide Subtitle List",
-        "currentTimestamp": "Current Timestamp"
+        "currentTimestamp": "Current Timestamp",
+        "showBlurOverlay": "Show Blur Overlay",
+        "hideBlurOverlay": "Hide Blur Overlay"
     },
     "copyHistory": {
         "blank": "Blank",
