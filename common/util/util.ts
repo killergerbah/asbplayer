@@ -412,6 +412,8 @@ export const HAS_LETTER_REGEX = /\p{L}/u;
 
 export const ONLY_ASCII_LETTERS_REGEX = /^[a-z]+$/i;
 
+const ASCII_LETTER_REGEX = /[a-z]/i;
+
 const KANA_ONLY_REGEX =
     /^[\u3040-\u309F\u30A0-\u30FF\u31F0-\u31FF\uFF61-\uFF9F\u{1B000}-\u{1B0FF}\u{1B100}-\u{1B12F}\u{1B130}-\u{1B16F}\u{1AFF0}-\u{1AFFF}]+$/u;
 export function isKanaOnly(text: string) {
@@ -422,6 +424,69 @@ const KATAKANA_ONLY_REGEX =
     /^[\u30A0-\u30FF\u31F0-\u31FF\u3099\u309A\uFF61-\uFF9F\u{1B000}-\u{1B0FF}\u{1B100}-\u{1B12F}\u{1B130}-\u{1B16F}\u{1AFF0}-\u{1AFFF}]+$/u;
 export function isKatakanaOnly(text: string) {
     return KATAKANA_ONLY_REGEX.test(text.normalize('NFC'));
+}
+
+// FROM: https://github.com/yomidevs/yomitan/blob/3a7c5e524d9ae4d2f7f1a12a1dd95d8172dc21ed/ext/js/language/ja/japanese-wanakana.js#L25
+export function convertToHiragana(text: string) {
+    let newText = text.toLowerCase();
+    for (const [romaji, kana] of Object.entries(ROMAJI_TO_HIRAGANA)) {
+        newText = newText.replaceAll(romaji, kana);
+    }
+    return fillSokuonGaps(newText);
+}
+export function convertToKana(text: string) {
+    let newText = text;
+    for (const [romaji, kana] of Object.entries(ROMAJI_TO_HIRAGANA)) {
+        newText = newText.replaceAll(romaji, kana);
+        // Uppercase text converts to katakana
+        newText = newText.replaceAll(romaji.toUpperCase(), convertHiraganaToKatakana(kana).toUpperCase());
+    }
+    return fillSokuonGaps(newText);
+}
+
+export function convertToKanaForSearch(text: string) {
+    if (!ASCII_LETTER_REGEX.test(text)) return text;
+    return text === text.toUpperCase() ? convertToKana(text) : convertToHiragana(text);
+}
+
+export function convertHiraganaToKatakana(text: string) {
+    let result = '';
+    const offset = KATAKANA_CONVERSION_RANGE[0] - HIRAGANA_CONVERSION_RANGE[0];
+    for (let char of text) {
+        const codePoint = char.codePointAt(0)!;
+        if (isCodePointInRange(codePoint, HIRAGANA_CONVERSION_RANGE)) {
+            char = String.fromCodePoint(codePoint + offset);
+        }
+        result += char;
+    }
+    return result;
+}
+function isCodePointInRange(codePoint: number, [min, max]: [number, number]) {
+    return codePoint >= min && codePoint <= max;
+}
+function fillSokuonGaps(text: string) {
+    return text.replaceAll(/っ[a-z](?=っ)/g, 'っっ').replaceAll(/ッ[A-Z](?=ッ)/g, 'ッッ');
+}
+const HIRAGANA_CONVERSION_RANGE: [number, number] = [0x3041, 0x3096];
+const KATAKANA_CONVERSION_RANGE: [number, number] = [0x30a1, 0x30f6];
+
+export function normalizeForSearch(text: string): string {
+    return text
+        .normalize('NFD')
+        .replace(/\p{M}/gu, '')
+        .replace(/ß/g, 'ss')
+        .replace(/ẞ/g, 'SS')
+        .replace(/æ/g, 'ae')
+        .replace(/Æ/g, 'AE')
+        .replace(/œ/g, 'oe')
+        .replace(/Œ/g, 'OE')
+        .replace(/ø/g, 'o')
+        .replace(/Ø/g, 'O')
+        .replace(/đ/g, 'd')
+        .replace(/Đ/g, 'D')
+        .replace(/ł/g, 'l')
+        .replace(/Ł/g, 'L')
+        .normalize('NFC');
 }
 
 // https://stackoverflow.com/questions/63116039/camelcase-to-kebab-case
@@ -695,3 +760,339 @@ export class AsyncSemaphore {
         }
     }
 }
+
+// FROM: https://github.com/yomidevs/yomitan/blob/3a7c5e524d9ae4d2f7f1a12a1dd95d8172dc21ed/ext/js/language/ja/japanese-kana-romaji-dicts.js#L20
+export const ROMAJI_TO_HIRAGANA = {
+    // Double letters - these **must** always be matched first or further down matches may cause inserting `っ` from double letters to require extra logic
+    // There **must** be an entry for every accepted double letter
+    // To not disturb further matches, an extra letter must be appended after the `っ`
+    qq: 'っq',
+    vv: 'っv',
+    ll: 'っl',
+    xx: 'っx',
+    kk: 'っk',
+    gg: 'っg',
+    ss: 'っs',
+    zz: 'っz',
+    jj: 'っj',
+    tt: 'っt',
+    dd: 'っd',
+    hh: 'っh',
+    ff: 'っf',
+    bb: 'っb',
+    pp: 'っp',
+    mm: 'っm',
+    yy: 'っy',
+    rr: 'っr',
+    ww: 'っw',
+    cc: 'っc',
+
+    // Length 4 - longest matches
+    hwyu: 'ふゅ',
+    xtsu: 'っ',
+    ltsu: 'っ',
+
+    // Length 3
+    vya: 'ゔゃ',
+    vyi: 'ゔぃ',
+    vyu: 'ゔゅ',
+    vye: 'ゔぇ',
+    vyo: 'ゔょ',
+    kya: 'きゃ',
+    kyi: 'きぃ',
+    kyu: 'きゅ',
+    kye: 'きぇ',
+    kyo: 'きょ',
+    gya: 'ぎゃ',
+    gyi: 'ぎぃ',
+    gyu: 'ぎゅ',
+    gye: 'ぎぇ',
+    gyo: 'ぎょ',
+    sya: 'しゃ',
+    syi: 'しぃ',
+    syu: 'しゅ',
+    sye: 'しぇ',
+    syo: 'しょ',
+    sha: 'しゃ',
+    shi: 'し',
+    shu: 'しゅ',
+    she: 'しぇ',
+    sho: 'しょ',
+    zya: 'じゃ',
+    zyi: 'じぃ',
+    zyu: 'じゅ',
+    zye: 'じぇ',
+    zyo: 'じょ',
+    tya: 'ちゃ',
+    tyi: 'ちぃ',
+    tyu: 'ちゅ',
+    tye: 'ちぇ',
+    tyo: 'ちょ',
+    cha: 'ちゃ',
+    chi: 'ち',
+    chu: 'ちゅ',
+    che: 'ちぇ',
+    cho: 'ちょ',
+    cya: 'ちゃ',
+    cyi: 'ちぃ',
+    cyu: 'ちゅ',
+    cye: 'ちぇ',
+    cyo: 'ちょ',
+    dya: 'ぢゃ',
+    dyi: 'ぢぃ',
+    dyu: 'ぢゅ',
+    dye: 'ぢぇ',
+    dyo: 'ぢょ',
+    tsa: 'つぁ',
+    tsi: 'つぃ',
+    tse: 'つぇ',
+    tso: 'つぉ',
+    tha: 'てゃ',
+    thi: 'てぃ',
+    thu: 'てゅ',
+    the: 'てぇ',
+    tho: 'てょ',
+    dha: 'でゃ',
+    dhi: 'でぃ',
+    dhu: 'でゅ',
+    dhe: 'でぇ',
+    dho: 'でょ',
+    twa: 'とぁ',
+    twi: 'とぃ',
+    twu: 'とぅ',
+    twe: 'とぇ',
+    two: 'とぉ',
+    dwa: 'どぁ',
+    dwi: 'どぃ',
+    dwu: 'どぅ',
+    dwe: 'どぇ',
+    dwo: 'どぉ',
+    nya: 'にゃ',
+    nyi: 'にぃ',
+    nyu: 'にゅ',
+    nye: 'にぇ',
+    nyo: 'にょ',
+    hya: 'ひゃ',
+    hyi: 'ひぃ',
+    hyu: 'ひゅ',
+    hye: 'ひぇ',
+    hyo: 'ひょ',
+    bya: 'びゃ',
+    byi: 'びぃ',
+    byu: 'びゅ',
+    bye: 'びぇ',
+    byo: 'びょ',
+    pya: 'ぴゃ',
+    pyi: 'ぴぃ',
+    pyu: 'ぴゅ',
+    pye: 'ぴぇ',
+    pyo: 'ぴょ',
+    fya: 'ふゃ',
+    fyu: 'ふゅ',
+    fyo: 'ふょ',
+    hwa: 'ふぁ',
+    hwi: 'ふぃ',
+    hwe: 'ふぇ',
+    hwo: 'ふぉ',
+    mya: 'みゃ',
+    myi: 'みぃ',
+    myu: 'みゅ',
+    mye: 'みぇ',
+    myo: 'みょ',
+    rya: 'りゃ',
+    ryi: 'りぃ',
+    ryu: 'りゅ',
+    rye: 'りぇ',
+    ryo: 'りょ',
+    lyi: 'ぃ',
+    xyi: 'ぃ',
+    lye: 'ぇ',
+    xye: 'ぇ',
+    xka: 'ヵ',
+    xke: 'ヶ',
+    lka: 'ヵ',
+    lke: 'ヶ',
+    kwa: 'くぁ',
+    kwi: 'くぃ',
+    kwu: 'くぅ',
+    kwe: 'くぇ',
+    kwo: 'くぉ',
+    gwa: 'ぐぁ',
+    gwi: 'ぐぃ',
+    gwu: 'ぐぅ',
+    gwe: 'ぐぇ',
+    gwo: 'ぐぉ',
+    swa: 'すぁ',
+    swi: 'すぃ',
+    swu: 'すぅ',
+    swe: 'すぇ',
+    swo: 'すぉ',
+    zwa: 'ずぁ',
+    zwi: 'ずぃ',
+    zwu: 'ずぅ',
+    zwe: 'ずぇ',
+    zwo: 'ずぉ',
+    jya: 'じゃ',
+    jyi: 'じぃ',
+    jyu: 'じゅ',
+    jye: 'じぇ',
+    jyo: 'じょ',
+    tsu: 'つ',
+    xtu: 'っ',
+    ltu: 'っ',
+    xya: 'ゃ',
+    lya: 'ゃ',
+    wyi: 'ゐ',
+    xyu: 'ゅ',
+    lyu: 'ゅ',
+    wye: 'ゑ',
+    xyo: 'ょ',
+    lyo: 'ょ',
+    xwa: 'ゎ',
+    lwa: 'ゎ',
+    wha: 'うぁ',
+    whi: 'うぃ',
+    whu: 'う',
+    whe: 'うぇ',
+    who: 'うぉ',
+
+    // Length 2
+    nn: 'ん',
+    "n'": 'ん',
+    va: 'ゔぁ',
+    vi: 'ゔぃ',
+    vu: 'ゔ',
+    ve: 'ゔぇ',
+    vo: 'ゔぉ',
+    fa: 'ふぁ',
+    fi: 'ふぃ',
+    fe: 'ふぇ',
+    fo: 'ふぉ',
+    xn: 'ん',
+    wu: 'う',
+    xa: 'ぁ',
+    xi: 'ぃ',
+    xu: 'ぅ',
+    xe: 'ぇ',
+    xo: 'ぉ',
+    la: 'ぁ',
+    li: 'ぃ',
+    lu: 'ぅ',
+    le: 'ぇ',
+    lo: 'ぉ',
+    ye: 'いぇ',
+    ka: 'か',
+    ki: 'き',
+    ku: 'く',
+    ke: 'け',
+    ko: 'こ',
+    ga: 'が',
+    gi: 'ぎ',
+    gu: 'ぐ',
+    ge: 'げ',
+    go: 'ご',
+    sa: 'さ',
+    si: 'し',
+    su: 'す',
+    se: 'せ',
+    so: 'そ',
+    ca: 'か',
+    ci: 'し',
+    cu: 'く',
+    ce: 'せ',
+    co: 'こ',
+    qa: 'くぁ',
+    qi: 'くぃ',
+    qu: 'く',
+    qe: 'くぇ',
+    qo: 'くぉ',
+    za: 'ざ',
+    zi: 'じ',
+    zu: 'ず',
+    ze: 'ぜ',
+    zo: 'ぞ',
+    ja: 'じゃ',
+    ji: 'じ',
+    ju: 'じゅ',
+    je: 'じぇ',
+    jo: 'じょ',
+    ta: 'た',
+    ti: 'ち',
+    tu: 'つ',
+    te: 'て',
+    to: 'と',
+    da: 'だ',
+    di: 'ぢ',
+    du: 'づ',
+    de: 'で',
+    do: 'ど',
+    na: 'な',
+    ni: 'に',
+    nu: 'ぬ',
+    ne: 'ね',
+    no: 'の',
+    ha: 'は',
+    hi: 'ひ',
+    hu: 'ふ',
+    fu: 'ふ',
+    he: 'へ',
+    ho: 'ほ',
+    ba: 'ば',
+    bi: 'び',
+    bu: 'ぶ',
+    be: 'べ',
+    bo: 'ぼ',
+    pa: 'ぱ',
+    pi: 'ぴ',
+    pu: 'ぷ',
+    pe: 'ぺ',
+    po: 'ぽ',
+    ma: 'ま',
+    mi: 'み',
+    mu: 'む',
+    me: 'め',
+    mo: 'も',
+    ya: 'や',
+    yu: 'ゆ',
+    yo: 'よ',
+    ra: 'ら',
+    ri: 'り',
+    ru: 'る',
+    re: 'れ',
+    ro: 'ろ',
+    wa: 'わ',
+    wi: 'うぃ',
+    we: 'うぇ',
+    wo: 'を',
+
+    // Length 1 - shortest matches
+    a: 'あ',
+    i: 'い',
+    u: 'う',
+    e: 'え',
+    o: 'お',
+
+    // Length 1 Special/Symbols
+    '.': '。',
+    ',': '、',
+    ':': '：',
+    '/': '・',
+    '!': '！',
+    '?': '？',
+    '~': '〜',
+    '-': 'ー',
+    '‘': '「',
+    '’': '」',
+    '“': '『',
+    '”': '』',
+    '[': '［',
+    ']': '］',
+    '(': '（',
+    ')': '）',
+    '{': '｛',
+    '}': '｝',
+    ' ': '　',
+
+    // n -> ん is a special case.
+    n: 'ん',
+};

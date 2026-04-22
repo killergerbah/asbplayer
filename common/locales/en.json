@@ -1,6 +1,7 @@
 {
     "action": {
         "cancel": "Cancel",
+        "close": "Close",
         "copy": "Copy",
         "delete": "Delete",
         "save": "Save",
@@ -31,7 +32,9 @@
         "increaseOffsetButton": "Increase offset to so that previous subtitle is at current position. Hold to increase by 100ms.",
         "gotIt": "Got it",
         "revert": "Revert",
-        "userGuide": "User guide"
+        "userGuide": "User guide",
+        "search": "Search",
+        "reload": "Reload"
     },
     "about": {
         "title": "About asbplayer",
@@ -543,6 +546,49 @@
         "dictionaryImportClipboardText": "Paste text or one word per line",
         "dictionaryImportClipboardNoTokens": "No valid words found",
         "dictionaryImportedMaturity": "Treat imported words as",
+        "applyStrategies": {
+            "add": "Add",
+            "remove": "Remove",
+            "replace": "Replace",
+            "toggle": "Toggle"
+        },
+        "dictionaryBrowser": {
+            "title": "Word Browser",
+            "searchPlaceholder": "Search by word or lemma",
+            "yomitanWarning": "Yomitan lemma search is unavailable: {{message}}",
+            "bulkStatus": "Selected status",
+            "bulkStates": "Selected states",
+            "stateStrategy": "State strategy",
+            "applyToSelected": "Apply to selected",
+            "deleteSelected": "Delete selected",
+            "confirmApplyToSelected": "Are you sure you want to apply the selected changes to {{count}} entries?",
+            "confirmApplyToSelectedDeleteWarning": "Entries that are uncollected with no states will be deleted.",
+            "confirmDeleteSelected": "Are you sure you want to delete {{count}} selected entries?",
+            "results": "Showing {{shown}} of {{total}} entries - {{selected}} selected",
+            "noResults": "No matching words found.",
+            "columns": {
+                "word": "Word",
+                "lemmas": "Lemmas",
+                "source": "Source",
+                "status": "Status",
+                "states": "States",
+                "track": "Track",
+                "cardIds": "Card IDs",
+                "noteIds": "Note IDs",
+                "suspended": "Suspended"
+            },
+            "sources": {
+                "local": "Local",
+                "ankiWord": "Anki word",
+                "ankiSentence": "Anki sentence"
+            },
+            "suspended": {
+                "all": "All",
+                "yes": "Yes",
+                "no": "No",
+                "mixed": "Mixed"
+            }
+        },
         "ui": "UI",
         "webSocketInterface": "WebSocket interface",
         "yomitanHelperText": "Instructions to setup Yomitan API are <0>here<0>."

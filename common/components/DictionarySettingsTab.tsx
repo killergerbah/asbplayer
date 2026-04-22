@@ -66,6 +66,7 @@ import {
 } from '../util';
 import DictionaryImport from './DictionaryImport';
 import { applyTokenStyle, InternalToken } from '../subtitle-annotations';
+import WordBrowserDialog from './WordBrowserDialog';
 
 const yomitanInstallerUrl = 'https://github.com/yomidevs/yomitan-api';
 const yomitanMecabInstallerUrl = 'https://github.com/yomidevs/yomitan-mecab-installer';
@@ -172,6 +173,7 @@ interface Props {
     settings: AsbplayerSettings;
     dictionaryProvider: DictionaryProvider;
     extensionInstalled: boolean;
+    supportsDictionaryBrowser: boolean;
     supportsDictionaryTokenStatusDisplayAlpha: boolean;
     supportsDictionaryYomitanMecab: boolean;
     onSettingChanged: <K extends keyof AsbplayerSettings>(key: K, value: AsbplayerSettings[K]) => Promise<void>;
@@ -185,6 +187,7 @@ const DictionarySettingsTab: React.FC<Props> = ({
     dictionaryProvider,
     settings,
     extensionInstalled,
+    supportsDictionaryBrowser,
     supportsDictionaryTokenStatusDisplayAlpha,
     supportsDictionaryYomitanMecab,
     onSettingChanged,
@@ -355,6 +358,7 @@ const DictionarySettingsTab: React.FC<Props> = ({
     }, [dictionaryProvider, setBuildAnkiCacheState]);
 
     const [dictionaryImportOpen, setDictionaryImportOpen] = useState<boolean>(false);
+    const [wordBrowserOpen, setWordBrowserOpen] = useState<boolean>(false);
     const ankiSectionRef = useRef<HTMLDivElement | null>(null);
     const handleAnkiHelperTextClicked = () => ankiSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
     const subtitleStyles = useMemo(
@@ -372,6 +376,14 @@ const DictionarySettingsTab: React.FC<Props> = ({
                 dictionaryProvider={dictionaryProvider}
                 activeProfile={activeProfile}
                 profiles={profiles}
+            />
+            <WordBrowserDialog
+                open={wordBrowserOpen}
+                dictionaryProvider={dictionaryProvider}
+                activeProfile={activeProfile}
+                track={selectedDictionaryTrack}
+                dictionaryTrack={selectedDictionary}
+                onClose={() => setWordBrowserOpen(false)}
             />
             <Stack spacing={1}>
                 {(dictionaryYomitanUrlError || dictionaryYomitanMecabError || !extensionInstalled) && (
@@ -474,6 +486,11 @@ const DictionarySettingsTab: React.FC<Props> = ({
                         </MenuItem>
                     ))}
                 </SettingsTextField>
+                {supportsDictionaryBrowser && (
+                    <Button variant="contained" color="primary" onClick={() => setWordBrowserOpen(true)}>
+                        {t('settings.dictionaryBrowser.title')}
+                    </Button>
+                )}
                 <SwitchLabelWithHoverEffect
                     control={
                         <Switch
