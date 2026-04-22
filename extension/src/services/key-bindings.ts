@@ -1,4 +1,6 @@
 import {
+    OpenAsbplayerSettingsMessage,
+    OpenStatisticsMessage,
     PlayMode,
     SettingsUpdatedMessage,
     ToggleSubtitlesInListFromVideoMessage,
@@ -35,6 +37,7 @@ export default class KeyBindings {
     private _unbindAdjustTopSubtitlePositionOffset: Unbinder = false;
     private _unbindMarkHoveredToken?: Unbinder = false;
     private _unbindToggleHoveredTokenIgnored?: Unbinder = false;
+    private _unbindOpenStatistics?: Unbinder = false;
 
     private _bound: boolean;
 
@@ -206,7 +209,7 @@ export default class KeyBindings {
                 void ensureStoragePersisted();
                 event.preventDefault();
                 event.stopImmediatePropagation();
-                void context.subtitleController.subtitleColoring.saveTokenLocal(
+                void context.subtitleController.subtitleAnnotations.saveTokenLocal(
                     res.track,
                     res.token,
                     tokenStatus,
@@ -225,7 +228,7 @@ export default class KeyBindings {
                 void ensureStoragePersisted();
                 event.preventDefault();
                 event.stopImmediatePropagation();
-                void context.subtitleController.subtitleColoring.saveTokenLocal(
+                void context.subtitleController.subtitleAnnotations.saveTokenLocal(
                     res.track,
                     res.token,
                     null,
@@ -234,6 +237,25 @@ export default class KeyBindings {
                 );
             },
             () => context.subtitleController.subtitles.length === 0,
+            true
+        );
+
+        this._unbindOpenStatistics = this._keyBinder.bindOpenStatistics(
+            (event) => {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+
+                const command: VideoToExtensionCommand<OpenStatisticsMessage> = {
+                    sender: 'asbplayer-video',
+                    message: {
+                        command: 'open-statistics',
+                    },
+                    src: context.video.src,
+                };
+
+                browser.runtime.sendMessage(command);
+            },
+            () => false,
             true
         );
 
@@ -462,6 +484,11 @@ export default class KeyBindings {
         if (this._unbindToggleHoveredTokenIgnored) {
             this._unbindToggleHoveredTokenIgnored();
             this._unbindToggleHoveredTokenIgnored = false;
+        }
+
+        if (this._unbindOpenStatistics) {
+            this._unbindOpenStatistics();
+            this._unbindOpenStatistics = false;
         }
 
         this._bound = false;

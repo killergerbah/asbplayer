@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { makeStyles } from '@mui/styles';
-import { timeDurationDisplay } from '../services/util';
+import { timeDurationDisplay } from '@project/common/util';
 import Button from '@mui/material/Button';
 import Paper from '@mui/material/Paper';
 import ListItemSecondaryAction from '@mui/material/ListItemSecondaryAction';
@@ -376,7 +376,7 @@ export default function CopyHistoryList({
         }
 
         content = (
-            <Paper className={classes.listContainer} ref={listContainerRef}>
+            <Paper square className={classes.listContainer} ref={listContainerRef}>
                 {title && (
                     <Typography variant="h6" className={classes.title}>
                         {title}
@@ -396,7 +396,7 @@ export default function CopyHistoryList({
         );
     } else {
         content = (
-            <Paper className={classes.emptyState}>
+            <Paper square className={classes.emptyState}>
                 {title && (
                     <Typography variant="h6" gutterBottom>
                         {title}

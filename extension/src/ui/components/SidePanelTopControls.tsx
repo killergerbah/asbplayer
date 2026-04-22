@@ -3,6 +3,7 @@ import HistoryIcon from '@mui/icons-material/History';
 import LoadSubtitlesIcon from '@project/common/components/LoadSubtitlesIcon';
 import SaveAltIcon from '@mui/icons-material/SaveAlt';
 import ImportExportIcon from '@mui/icons-material/ImportExport';
+import BarChartIcon from '@mui/icons-material/BarChart';
 import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
 import Fade from '@mui/material/Fade';
@@ -20,6 +21,7 @@ interface Props {
     onBulkExportSubtitles: () => void;
     onShowMiningHistory: () => void;
     miningHistoryCount: number;
+    onShowStatistics: () => void;
     disableBulkExport?: boolean;
 }
 
@@ -32,6 +34,7 @@ const SidePanelTopControls = React.forwardRef(function SidePanelTopControls(
         onBulkExportSubtitles,
         onShowMiningHistory,
         miningHistoryCount,
+        onShowStatistics,
         disableBulkExport,
     }: Props,
     ref: ForwardedRef<HTMLDivElement>
@@ -83,6 +86,13 @@ const SidePanelTopControls = React.forwardRef(function SidePanelTopControls(
                                 <Badge badgeContent={miningHistoryCount} color="primary" showZero>
                                     <HistoryIcon />
                                 </Badge>
+                            </Tooltip>
+                        </IconButton>
+                    </Grid>
+                    <Grid item>
+                        <IconButton onClick={onShowStatistics}>
+                            <Tooltip title={t('statistics.title')!}>
+                                <BarChartIcon />
                             </Tooltip>
                         </IconButton>
                     </Grid>

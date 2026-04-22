@@ -60,7 +60,7 @@ export default defineConfig({
         },
     },
     manifest: ({ browser, mode }) => {
-        const version = '1.15.0';
+        const version = '1.16.0';
         const isDev = mode === 'development';
         const devLabel = isDev ? ' (Dev)' : '';
         const title = `${extName}${devLabel}`;
@@ -113,6 +113,7 @@ export default defineConfig({
                         'video-select-ui.js',
                         'notification-ui.js',
                         'mobile-video-overlay-ui.html',
+                        'statistics-overlay-ui.html',
                         'page-favicons/*',
                     ],
                     matches: ['<all_urls>'],

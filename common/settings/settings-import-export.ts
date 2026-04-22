@@ -33,6 +33,9 @@ const dictionaryTrackSchema = {
         dictionaryColorizeSubtitles: {
             type: 'boolean',
         },
+        dictionaryAutoGenerateStatistics: {
+            type: 'boolean',
+        },
         dictionaryColorizeOnHoverOnly: {
             type: 'boolean',
         },
@@ -374,6 +377,7 @@ const settingsSchema = {
                 markHoveredToken1: { $ref: '/KeyBind' },
                 markHoveredToken0: { $ref: '/KeyBind' },
                 toggleHoveredTokenIgnored: { $ref: '/KeyBind' },
+                openStatistics: { $ref: '/KeyBind' },
             },
         },
         recordWithAudioPlayback: {
@@ -398,6 +402,9 @@ const settingsSchema = {
             type: 'number',
         },
         themeType: {
+            type: 'string',
+        },
+        videoSubtitleSplitBehavior: {
             type: 'string',
         },
         copyToClipboardOnMine: {

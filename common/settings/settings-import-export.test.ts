@@ -5,6 +5,7 @@ import {
     TokenStyling,
     TokenReadingAnnotation,
     TokenFrequencyAnnotation,
+    VideoSubtitleSplitBehavior,
 } from './settings';
 import { validateSettings } from './settings-import-export';
 import { defaultSettings } from './settings-provider';
@@ -119,6 +120,7 @@ it('validates exported settings', () => {
             markHoveredToken1: { keys: 'Q+1' },
             markHoveredToken0: { keys: 'Q+0' },
             toggleHoveredTokenIgnored: { keys: 'Q+I' },
+            openStatistics: { keys: 'Q+S' },
         },
         recordWithAudioPlayback: true,
         preferMp3: true,
@@ -128,6 +130,7 @@ it('validates exported settings', () => {
         clickToMineDefaultAction: 1,
         postMiningPlaybackState: 0,
         themeType: 'dark',
+        videoSubtitleSplitBehavior: VideoSubtitleSplitBehavior.rememberSplitPosition,
         copyToClipboardOnMine: false,
         rememberSubtitleOffset: true,
         lastSubtitleOffset: 0,
@@ -158,6 +161,7 @@ it('validates exported settings', () => {
         dictionaryTracks: [
             {
                 dictionaryColorizeSubtitles: true,
+                dictionaryAutoGenerateStatistics: true,
                 dictionaryColorizeOnHoverOnly: true,
                 dictionaryHighlightOnHover: true,
                 dictionaryTokenMatchStrategy: TokenMatchStrategy.ANY_FORM_COLLECTED,
@@ -189,6 +193,7 @@ it('validates exported settings', () => {
             },
             {
                 dictionaryColorizeSubtitles: false,
+                dictionaryAutoGenerateStatistics: false,
                 dictionaryColorizeOnHoverOnly: true,
                 dictionaryHighlightOnHover: false,
                 dictionaryTokenMatchStrategy: TokenMatchStrategy.LEMMA_OR_EXACT_FORM_COLLECTED,
@@ -220,6 +225,7 @@ it('validates exported settings', () => {
             },
             {
                 dictionaryColorizeSubtitles: false,
+                dictionaryAutoGenerateStatistics: false,
                 dictionaryColorizeOnHoverOnly: false,
                 dictionaryHighlightOnHover: true,
                 dictionaryTokenMatchStrategy: TokenMatchStrategy.LEMMA_FORM_COLLECTED,
