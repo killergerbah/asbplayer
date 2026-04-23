@@ -28,7 +28,6 @@ interface CopyHistoryListProps {
     open: boolean;
     forceShowDownloadOptions?: boolean;
     items: CopyHistoryItem[];
-    title?: string;
     onClose: () => void;
     onDelete: (item: CopyHistoryItem) => void;
     onDeleteAll: () => void;
@@ -42,8 +41,9 @@ interface CopyHistoryListProps {
 const useStyles = makeStyles<Theme>((theme) => ({
     listContainer: {
         display: 'flex',
-        height: '100%',
         flexDirection: 'column',
+        flexGrow: 1,
+        minHeight: 0,
         overflowY: 'auto',
         overflowX: 'hidden',
     },
@@ -67,15 +67,12 @@ const useStyles = makeStyles<Theme>((theme) => ({
     },
     emptyState: {
         display: 'flex',
+        flexGrow: 1,
         justifyContent: 'center',
         flexDirection: 'column',
         alignItems: 'center',
         textAlign: 'center',
-        height: '100%',
         padding: 15,
-    },
-    title: {
-        padding: theme.spacing(2, 2, 0),
     },
     text: {
         flexGrow: 1,
@@ -241,7 +238,6 @@ export default function CopyHistoryList({
     open,
     items,
     forceShowDownloadOptions,
-    title,
     onSelect,
     onClipAudio,
     onDownloadImage,
@@ -377,11 +373,6 @@ export default function CopyHistoryList({
 
         content = (
             <Paper square className={classes.listContainer} ref={listContainerRef}>
-                {title && (
-                    <Typography variant="h6" className={classes.title}>
-                        {title}
-                    </Typography>
-                )}
                 <List className={classes.list}>{elements}</List>
                 <Button
                     variant="contained"
@@ -397,11 +388,6 @@ export default function CopyHistoryList({
     } else {
         content = (
             <Paper square className={classes.emptyState}>
-                {title && (
-                    <Typography variant="h6" gutterBottom>
-                        {title}
-                    </Typography>
-                )}
                 <Typography variant="h6">{t('copyHistory.miningHistoryEmpty')}</Typography>
             </Paper>
         );
