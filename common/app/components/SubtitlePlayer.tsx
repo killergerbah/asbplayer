@@ -369,6 +369,7 @@ interface SubtitlePlayerProps {
     subtitleCollection: SubtitleAnnotations | SubtitleCollection<DisplaySubtitleModel>;
     length: number;
     jumpToSubtitle?: SubtitleModel;
+    onJumpToSubtitleHandled?: () => void;
     compressed: boolean;
     resizable: boolean;
     showCopyButton: boolean;
@@ -405,6 +406,7 @@ export default function SubtitlePlayer({
     subtitleCollection,
     length,
     jumpToSubtitle,
+    onJumpToSubtitleHandled,
     compressed,
     resizable,
     showCopyButton,
@@ -711,6 +713,7 @@ export default function SubtitlePlayer({
 
         const target = jumpToIndex !== -1 ? subtitles[jumpToIndex] : jumpToSubtitle;
         onSeek(target.start, clock.running);
+        onJumpToSubtitleHandled?.();
 
         if (!hiddenRef.current && jumpToIndex !== -1) {
             subtitleRefs[jumpToIndex]?.current?.scrollIntoView({
@@ -721,7 +724,7 @@ export default function SubtitlePlayer({
             setHighlightedJumpToSubtitleIndex(jumpToIndex);
             setTimeout(() => setHighlightedJumpToSubtitleIndex(undefined), 1000);
         }
-    }, [jumpToSubtitle, subtitles, subtitleRefs, onSeek, clock]);
+    }, [jumpToSubtitle, subtitles, subtitleRefs, onSeek, onJumpToSubtitleHandled, clock]);
 
     const currentMockSubtitle = useCallback(() => {
         const timestamp = clock.time(length);
