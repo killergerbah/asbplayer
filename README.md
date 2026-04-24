@@ -143,6 +143,10 @@ Thank you to all those who have translated asbplayer:
 
 If you are a non-English native, and would like to help translate asbplayer, join the [Crowdin project](https://crowdin.com/project/asbplayer). If your language isn't there, feel free to create an issue to add it on the [issues page](https://github.com/killergerbah/asbplayer/issues).
 
+## Contributing
+
+Before contributing, please read the [contribution guidelines](https://github.com/killergerbah/asbplayer/blob/main/CONTRIBUTING.md).
+
 ## User guide
 
 asbplayer's complete user guide is [here](https://docs.asbplayer.dev/docs/intro).
@@ -164,6 +168,7 @@ asbplayer's complete user guide is [here](https://docs.asbplayer.dev/docs/intro)
 
 6. When a subtitle appears that you want to mine, use <kbd>Ctrl + Shift + X</kbd> to open the flashcard creator.
 7. Fill in the definition and word fields and then export the card. To fill in the definition field you may use the dictionary you installed in step 1.
+
 
 ## Contact
 
