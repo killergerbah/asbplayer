@@ -790,6 +790,9 @@ function App({
         },
         [handleJumpToSubtitle]
     );
+    const handleJumpToSubtitleHandled = useCallback(() => {
+        setJumpToSubtitle(undefined);
+    }, []);
 
     const handleAnki = useCallback((card: CardModel) => {
         setAnkiDialogCard(card);
@@ -1635,6 +1638,7 @@ function App({
                                     availableTabs={availableTabs ?? []}
                                     sources={sources}
                                     jumpToSubtitle={jumpToSubtitle}
+                                    onJumpToSubtitleHandled={handleJumpToSubtitleHandled}
                                     rewindSubtitle={rewindSubtitle}
                                     videoFrameRef={videoFrameRef}
                                     videoChannelRef={videoChannelRef}

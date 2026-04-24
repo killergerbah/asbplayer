@@ -42,7 +42,6 @@ import SidePanelBottomControls from './SidePanelBottomControls';
 import SidePanelRecordingOverlay from './SidePanelRecordingOverlay';
 import SidePanelTopControls from './SidePanelTopControls';
 import CopyHistory from '@project/common/app/components/CopyHistory';
-import CopyHistoryList from '@project/common/app/components/CopyHistoryList';
 import { useAppKeyBinder } from '@project/common/app/hooks/use-app-key-binder';
 import { download, timeDurationDisplay } from '@project/common/util';
 import { MiningContext } from '@project/common/app/services/mining-context';
@@ -585,11 +584,12 @@ export default function SidePanel({ dictionaryProvider, settingsProvider, settin
             </Alert>
             {viewingAsbplayerId &&
                 (appRequestedLocation === 'mining-history' || appRequestedLocation === undefined) && (
-                    <CopyHistoryList
+                    <CopyHistory
                         open={true}
+                        showBackButton={false}
                         items={copyHistoryItems}
                         forceShowDownloadOptions={true}
-                        onClose={handleCloseCopyHistory}
+                        onClose={noOp}
                         onDelete={deleteCopyHistoryItem}
                         onDeleteAll={deleteAllCopyHistoryItems}
                         onAnki={handleAnki}
@@ -628,6 +628,7 @@ export default function SidePanel({ dictionaryProvider, settingsProvider, settin
                         <SidePanelHome
                             extension={extension}
                             videoElementCount={videoElementCount}
+                            miningHistoryCount={copyHistoryItems.length}
                             onLoadSubtitles={handleLoadSubtitles}
                             onShowMiningHistory={handleShowCopyHistory}
                             onOpenUserGuide={handleOpenUserGuide}
@@ -692,6 +693,7 @@ export default function SidePanel({ dictionaryProvider, settingsProvider, settin
                                 onBulkExportSubtitles={handleBulkExportSubtitles}
                                 disableBulkExport={recordingAudio}
                                 onShowMiningHistory={handleShowCopyHistory}
+                                miningHistoryCount={copyHistoryItems.length}
                                 onShowStatistics={handleShowStatistics}
                             />
                             <SidePanelBottomControls

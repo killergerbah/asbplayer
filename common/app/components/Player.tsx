@@ -148,6 +148,7 @@ interface PlayerProps {
     onLoadFiles?: () => void;
     disableKeyEvents: boolean;
     jumpToSubtitle?: SubtitleModel;
+    onJumpToSubtitleHandled?: () => void;
     rewindSubtitle?: SubtitleModel;
     hideControls?: boolean;
     forceCompressedMode?: boolean;
@@ -192,6 +193,7 @@ const Player = React.memo(function Player({
     onLoadFiles,
     disableKeyEvents,
     jumpToSubtitle,
+    onJumpToSubtitleHandled,
     rewindSubtitle,
     hideControls,
     forceCompressedMode,
@@ -1431,6 +1433,7 @@ const Player = React.memo(function Player({
                         extension={extension}
                         length={calculateLength()}
                         jumpToSubtitle={jumpToSubtitle}
+                        onJumpToSubtitleHandled={onJumpToSubtitleHandled}
                         drawerOpen={drawerOpen}
                         appBarHidden={appBarHidden}
                         compressed={videoInWindow || (forceCompressedMode ?? false)}

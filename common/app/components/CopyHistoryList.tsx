@@ -41,8 +41,9 @@ interface CopyHistoryListProps {
 const useStyles = makeStyles<Theme>((theme) => ({
     listContainer: {
         display: 'flex',
-        height: '100%',
         flexDirection: 'column',
+        flexGrow: 1,
+        minHeight: 0,
         overflowY: 'auto',
         overflowX: 'hidden',
     },
@@ -66,11 +67,11 @@ const useStyles = makeStyles<Theme>((theme) => ({
     },
     emptyState: {
         display: 'flex',
+        flexGrow: 1,
         justifyContent: 'center',
         flexDirection: 'column',
         alignItems: 'center',
         textAlign: 'center',
-        height: '100%',
         padding: 15,
     },
     text: {

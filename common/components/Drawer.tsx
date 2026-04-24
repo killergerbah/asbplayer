@@ -3,18 +3,22 @@ import MuiDrawer, { type DrawerProps } from '@mui/material/Drawer';
 import Paper from '@mui/material/Paper';
 import IconButton from '@mui/material/IconButton';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import Divider from '@mui/material/Divider';
+import Typography from '@mui/material/Typography';
 import { useAppBarHeight } from '../hooks/use-app-bar-height';
 
 interface Props extends DrawerProps {
     children: React.ReactNode;
     showBackButton: boolean;
+    label?: React.ReactNode;
     drawerWidth?: number;
     onClose: () => void;
 }
 
-const Drawer: React.FC<Props> = ({ children, showBackButton, onClose, drawerWidth, ...rest }) => {
+const Drawer: React.FC<Props> = ({ children, showBackButton, label, onClose, drawerWidth, ...rest }) => {
     const width = drawerWidth === undefined ? '100%' : drawerWidth;
     const appBarHeight = useAppBarHeight();
+    const showHeader = showBackButton || label !== undefined;
 
     return (
         <MuiDrawer
@@ -31,23 +35,31 @@ const Drawer: React.FC<Props> = ({ children, showBackButton, onClose, drawerWidt
             }}
             {...rest}
         >
-            {showBackButton && (
-                <Paper
-                    square
-                    sx={{
-                        height: appBarHeight === 0 ? 'auto' : appBarHeight,
-                        flexShrink: 0,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'center',
-                        alignItems: 'start',
-                        pl: 1,
-                    }}
-                >
-                    <IconButton onClick={onClose}>
-                        <ChevronRightIcon />
-                    </IconButton>
-                </Paper>
+            {showHeader && (
+                <>
+                    <Paper
+                        square
+                        sx={{
+                            height: appBarHeight === 0 ? 'auto' : appBarHeight,
+                            flexShrink: 0,
+                            display: 'flex',
+                            alignItems: 'center',
+                            px: 1,
+                        }}
+                    >
+                        {showBackButton && (
+                            <IconButton onClick={onClose}>
+                                <ChevronRightIcon />
+                            </IconButton>
+                        )}
+                        {label !== undefined && (
+                            <Typography variant="h6" sx={{ flexGrow: 1, pl: showBackButton ? 1 : 1 }}>
+                                {label}
+                            </Typography>
+                        )}
+                    </Paper>
+                    {label !== undefined && <Divider />}
+                </>
             )}
             {children}
         </MuiDrawer>

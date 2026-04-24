@@ -7,6 +7,7 @@ import BarChartIcon from '@mui/icons-material/BarChart';
 import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
 import Fade from '@mui/material/Fade';
+import Badge from '@mui/material/Badge';
 import { ForwardedRef, useEffect, useState } from 'react';
 import React from 'react';
 import Tooltip from '@project/common/components/Tooltip';
@@ -19,6 +20,7 @@ interface Props {
     onDownloadSubtitles: () => void;
     onBulkExportSubtitles: () => void;
     onShowMiningHistory: () => void;
+    miningHistoryCount: number;
     onShowStatistics: () => void;
     disableBulkExport?: boolean;
 }
@@ -31,6 +33,7 @@ const SidePanelTopControls = React.forwardRef(function SidePanelTopControls(
         onDownloadSubtitles,
         onBulkExportSubtitles,
         onShowMiningHistory,
+        miningHistoryCount,
         onShowStatistics,
         disableBulkExport,
     }: Props,
@@ -80,7 +83,9 @@ const SidePanelTopControls = React.forwardRef(function SidePanelTopControls(
                     <Grid item>
                         <IconButton onClick={onShowMiningHistory}>
                             <Tooltip title={t('bar.miningHistory')!}>
-                                <HistoryIcon />
+                                <Badge badgeContent={miningHistoryCount} color="primary" showZero>
+                                    <HistoryIcon />
+                                </Badge>
                             </Tooltip>
                         </IconButton>
                     </Grid>
