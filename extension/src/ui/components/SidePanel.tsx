@@ -29,10 +29,7 @@ import Player from '@project/common/app/components/Player';
 import { PlaybackPreferences } from '@project/common/app';
 import { AlertColor } from '@mui/material/Alert';
 import Alert from '@project/common/app/components/Alert';
-import Divider from '@mui/material/Divider';
 import { LocalizedError } from '@project/common/app';
-import Paper from '@mui/material/Paper';
-import Typography from '@mui/material/Typography';
 import { useTranslation } from 'react-i18next';
 import SidePanelHome from './SidePanelHome';
 import { DisplaySubtitleModel } from '@project/common/app/components/SubtitlePlayer';
@@ -45,7 +42,6 @@ import SidePanelBottomControls from './SidePanelBottomControls';
 import SidePanelRecordingOverlay from './SidePanelRecordingOverlay';
 import SidePanelTopControls from './SidePanelTopControls';
 import CopyHistory from '@project/common/app/components/CopyHistory';
-import CopyHistoryList from '@project/common/app/components/CopyHistoryList';
 import { useAppKeyBinder } from '@project/common/app/hooks/use-app-key-binder';
 import { download, timeDurationDisplay } from '@project/common/util';
 import { MiningContext } from '@project/common/app/services/mining-context';
@@ -588,26 +584,19 @@ export default function SidePanel({ dictionaryProvider, settingsProvider, settin
             </Alert>
             {viewingAsbplayerId &&
                 (appRequestedLocation === 'mining-history' || appRequestedLocation === undefined) && (
-                    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
-                        <Paper square sx={{ px: 2, py: 2, flexShrink: 0 }}>
-                            <Typography variant="h6">
-                                {`${t('bar.miningHistory')} (${copyHistoryItems.length})`}
-                            </Typography>
-                        </Paper>
-                        <Divider />
-                        <CopyHistoryList
-                            open={true}
-                            items={copyHistoryItems}
-                            forceShowDownloadOptions={true}
-                            onClose={handleCloseCopyHistory}
-                            onDelete={deleteCopyHistoryItem}
-                            onDeleteAll={deleteAllCopyHistoryItems}
-                            onAnki={handleAnki}
-                            onClipAudio={handleClipAudio}
-                            onDownloadImage={handleDownloadImage}
-                            onSelect={handleJumpToSubtitle}
-                        />
-                    </div>
+                    <CopyHistory
+                        open={true}
+                        showBackButton={false}
+                        items={copyHistoryItems}
+                        forceShowDownloadOptions={true}
+                        onClose={noOp}
+                        onDelete={deleteCopyHistoryItem}
+                        onDeleteAll={deleteAllCopyHistoryItems}
+                        onAnki={handleAnki}
+                        onClipAudio={handleClipAudio}
+                        onDownloadImage={handleDownloadImage}
+                        onSelect={handleJumpToSubtitle}
+                    />
                 )}
             {viewingAsbplayerId && appRequestedLocation === 'statistics' && (
                 <StatisticsDrawer
