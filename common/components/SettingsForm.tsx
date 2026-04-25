@@ -274,12 +274,8 @@ export default function SettingsForm({
             'about',
         ];
 
-        if (!extensionSupportsAppIntegration) {
-            tabs.splice(tabs.indexOf('streaming-video'), 1);
-        }
-        if (!supportsDictionary) {
-            tabs.splice(tabs.indexOf('annotation'), 1);
-        }
+        if (!extensionSupportsAppIntegration) tabs.splice(tabs.indexOf('streaming-video'), 1);
+        if (!supportsDictionary) tabs.splice(tabs.indexOf('annotation'), 1);
 
         return Object.fromEntries(tabs.map((tab, i) => [tab, i]));
     }, [extensionSupportsAppIntegration, supportsDictionary]);

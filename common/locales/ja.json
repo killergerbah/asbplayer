@@ -15,8 +15,8 @@
         "openFiles": "開く",
         "importFile": "ファイルからインプオート",
         "loadSubtitles": "字幕をロードする",
-        "openApp": "アプリを開く",
-        "openSidePanel": "サイドパネルを開く",
+        "openApp": "アプリ",
+        "openSidePanel": "サイドパネル",
         "mine": "マイニングする",
         "updateLastCard": "最後のカードを更新する",
         "startRecording": "録音開始",
@@ -57,6 +57,9 @@
         "disabled": "無効",
         "inNotOut": "有効",
         "inAndOut": "有効。マウスカーソルを外すと自動再生。"
+    },
+    "videoSubtitleSplitBehavior": {
+        "autoMaximizeVideo": "ローカルビデオの自動拡大表示"
     },
     "ankiDialog": {
         "applySelection": "選択範囲を適用する",
@@ -152,7 +155,8 @@
         "moveTopSubtitlesUp": "上の字幕を上へ移動",
         "moveTopSubtitlesDown": "上の字幕を下へ移動",
         "markHoveredToken": "マウスカーソルを重ねた単語を「{{tokenStatus}}」として保存する",
-        "toggleHoveredTokenIgnored": "マウスカーソルを重ねた単語の「無視」状態をオン／オフ"
+        "toggleHoveredTokenIgnored": "マウスカーソルを重ねた単語の「無視」状態をオン／オフ",
+        "openStatistics": "統計を開く"
     },
     "controls": {
         "autoPauseMode": "自動一時停止",
@@ -174,7 +178,9 @@
         "toggleTheaterMode": "シアターモードオン/オフ",
         "showSubtitlePlayer": "字幕リストを表示",
         "hideSubtitlePlayer": "字幕リストを非表示",
-        "currentTimestamp": "タイムスタンプ"
+        "currentTimestamp": "タイムスタンプ",
+        "showBlurOverlay": "ぼかしオーバーレイを表示",
+        "hideBlurOverlay": "ぼかしオーバーレイを非表示"
     },
     "copyHistory": {
         "blank": "空白",
@@ -288,6 +294,7 @@
         "disabledAutoPause": "自動一時停止：オフ",
         "disabledCondensedPlayback": "短縮プレイバック：オフ",
         "disabledFastForwardPlayback": "早送りプレイバック：オフ",
+        "disabledAllPlayModes": "すべてのプレイバックモード：オフ",
         "enabledAutoPause": "自動一時停止：オン",
         "enabledCondensedPlayback": "短縮プレイバック：オン",
         "enabledFastForwardPlayback": "早送りプレイバック：オン",
@@ -462,6 +469,7 @@
         "dictionaryLocalWordDatabase": "ローカルの単語データベース",
         "dictionaryAnkiWordDatabase": "Ankiの単語データベース",
         "dictionaryColorizeSubtitles": "単語の成熟度をもとに字幕を色づけます",
+        "dictionaryAutoGenerateStatistics": "統計を自動的に生成",
         "dictionaryColorizeOnHoverOnly": "マウスカーソルを字幕に重ねるときにのみアノテーションを表示",
         "dictionaryHighlightOnHover": "マウスカーソルを重ねると単語をハイライト表示",
         "dictionaryTokenMatchStrategy": "単語フィールド検索戦略",
@@ -522,6 +530,7 @@
         "dictionaryTokenStatusReading1": "しんき",
         "dictionaryTokenStatus0": "未収集",
         "dictionaryTokenStatusReading0": "みしゅうしゅう",
+        "dictionaryTokenStateIgnored": "無視",
         "dictionaryBuildAnkiStarted": "変更されたカードをクエリしています",
         "dictionaryTokenStatusAlpha": "アルファ値",
         "dictionaryBuildAnkiTracks": "Ankiのトラック：{{tracks}}",
@@ -537,6 +546,59 @@
         "ui": "UI",
         "webSocketInterface": "WebSocketインターフェース",
         "yomitanHelperText": "YomitanのAPIのセットアップは<0>こちら<0>をご参考にしてください。"
+    },
+    "statistics": {
+        "title": "統計",
+        "generate": "統計を処理",
+        "generationInProgress": "統計を処理しています",
+        "empty": "現在ロードされている字幕の統計はまだ処理されていません。",
+        "gettingStarted": "ロードされている字幕の統計を処理するには、<0>設定画面</0>でアノテーション機能を有効にしてください。",
+        "uniqueWords": "異なり語数",
+        "knownWords": "既知単語数",
+        "uniqueWordsPerSentence": "文章ごとの異なり語数",
+        "knownWordsPerSentence": "文章ごとの既知単語数",
+        "globalKnownWords": "総語彙量",
+        "comprehension": "理解度",
+        "sentenceIndex": "文章インデックス",
+        "wordDistribution": "単語の分布（出現数）",
+        "statusDistribution": "成熟度",
+        "frequency": "頻度",
+        "occurrences": "出現数",
+        "sentenceStatistics": "文章統計",
+        "currentWatch": "今回の視聴",
+        "projectedRewatch": "次回の視聴",
+        "rewatchSelect": "視聴数",
+        "rewatchOption": "視聴 #{{rewatch}}",
+        "miningDisabledUntilComplete": "統計処理が完了次第マイニングが利用可能になります。",
+        "sortBy": "並べ替え",
+        "matchingSentences": "一致した文：{{number}} 件",
+        "sentenceDetailsEmpty": "この項目に一致した文章はありません。",
+        "noMoreRewatches": "今回の視聴ですべてのi+1文章のマイニングが完了します。",
+        "totalSentences": "合計文数",
+        "knownSentences": "既知文数",
+        "anki": {
+            "ankiStatistics": "Ankiの統計",
+            "dueByToday": "今日の復習",
+            "dueByTomorrow": "明日の復習",
+            "dueByWeek": "１週間以内の復習",
+            "suspended": "休止中",
+            "deckBreakdown": "デッキ内訳",
+            "modelBreakdown": "モデル内訳",
+            "ankiNeedsToBeRunning": "統計を処理するにはAnkiを起動してください。",
+            "noDeckBreakdown": "現在のメディアに一致するAnkiカードは見つかりませんでした。",
+            "info": {
+                "ankiStatistics": "メディア内の単語とAnkiカードの照合。"
+            }
+        },
+        "info": {
+            "comprehension": "成熟度と出現数で重みづけられた、既知の異なり語数。",
+            "globalKnownWords": "ローカルとAnkiの単語データベースを合わせた既知の単語数。",
+            "wordDistribution": "成熟度と頻度による異なり語数の分布。",
+            "frequency": "頻度：インストールした頻度辞典による頻度順位。",
+            "occurrences": "出現数：文章内における単語の総出現回数。",
+            "sentenceStatistics": "現在のコンテンツのマイニング難易度。",
+            "projectedRewatch": "前回のi+1文章がすべてマイニングされたと仮定した統計。"
+        }
     },
     "subtitlePlayer": {
         "multiSubtitleSelectHelp": "複数の字幕をマイニングするには、クリックし、押し続け、ドラッグしてください"

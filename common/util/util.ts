@@ -59,6 +59,39 @@ export function humanReadableTime(timestamp: number, nearestTenth = false, fully
     }
 }
 
+export function timeDurationDisplay(
+    milliseconds: number,
+    totalMilliseconds: number,
+    includeMilliseconds = true
+): string {
+    if (milliseconds < 0) {
+        return timeDurationDisplay(0, totalMilliseconds, includeMilliseconds);
+    }
+
+    milliseconds = Math.round(milliseconds);
+    const remainingMilliseconds = milliseconds % 1000;
+    milliseconds = (milliseconds - remainingMilliseconds) / 1000;
+    const seconds = milliseconds % 60;
+    milliseconds = (milliseconds - seconds) / 60;
+    const minutes = milliseconds % 60;
+
+    if (totalMilliseconds >= 3600000) {
+        const hours = (milliseconds - minutes) / 60;
+
+        if (includeMilliseconds) {
+            return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(remainingMilliseconds).padStart(3, '0')}`;
+        }
+
+        return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    }
+
+    if (includeMilliseconds) {
+        return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(remainingMilliseconds).padStart(3, '0')}`;
+    }
+
+    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+}
+
 export function getCurrentTimeString(): string {
     const now = new Date();
     return `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}-${now.getHours()}-${now.getMinutes()}-${now.getSeconds()}`;
@@ -584,6 +617,7 @@ const areTokensEqual = (aToken: any, bToken: any) => {
     if (!arrayEquals(aToken.states, bToken.states)) return false;
     if (!arrayEquals(aToken.readings, bToken.readings, areTokenReadingsEqual)) return false;
     if (aToken.frequency !== bToken.frequency) return false;
+    if (aToken.groupingKey !== bToken.groupingKey) return false;
     return true;
 };
 
@@ -591,7 +625,8 @@ const areTokenReadingsEqual = (a: TokenReading, b: TokenReading) =>
     arrayEquals(a.pos, b.pos) && a.reading === b.reading;
 
 /**
- * An async safe semaphore implementation that preserves FIFO order.
+ * An async safe semaphore implementation that preserves FIFO order (within a priority group).
+ * Priority levels are set with acquire(), higher numbers indicate a higher priority.
  * It uses an id for release to allow multiple releases (e.g try/finally with early releases).
  * @param options.permits The number of concurrent permits.
  * @param options.lifetimeMs Maximum lifetime of an acquire before automatic release (prevents deadlocks if callers don't call this.release()).
@@ -601,7 +636,7 @@ export class AsyncSemaphore {
     private lifetimeMs?: number;
     private acquired: Set<number> = new Set();
     private timers: Map<number, ReturnType<typeof setTimeout>> = new Map();
-    private waiting: ((id: number) => void)[] = [];
+    private waiting: Map<number, ((id: number) => void)[]> = new Map();
     private counter: number = 0;
     private getNextId = () => {
         if (this.counter === Number.MAX_SAFE_INTEGER) this.counter = 0;
@@ -631,13 +666,15 @@ export class AsyncSemaphore {
         return id;
     }
 
-    acquire(): Promise<number> {
+    acquire(priority: number = 0): Promise<number> {
         return new Promise<number>((resolve) => {
             if (this.permits > 0) {
                 this.permits--;
                 resolve(this._acquire());
             } else {
-                this.waiting.push(resolve);
+                const queue = this.waiting.get(priority);
+                if (queue) queue.push(resolve);
+                else this.waiting.set(priority, [resolve]);
             }
         });
     }
@@ -648,8 +685,11 @@ export class AsyncSemaphore {
         clearTimeout(this.timers.get(id)!);
         this.timers.delete(id);
 
-        if (this.waiting.length > 0) {
-            this.waiting.shift()!(this._acquire());
+        if (this.waiting.size > 0) {
+            const highestPriority = Math.max(...this.waiting.keys());
+            const queue = this.waiting.get(highestPriority)!;
+            queue.shift()!(this._acquire());
+            if (!queue.length) this.waiting.delete(highestPriority);
         } else {
             this.permits++;
         }

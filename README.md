@@ -121,25 +121,32 @@ Thank you to all those who have contributed to asbplayer:
 [@danthemango](https://github.com/danthemango),
 [@L-M-Sherlock](https://github.com/L-M-Sherlock),
 [@Hit2Skill](https://github.com/Hit2Skill),
-[@khajiitvaper2017](https://github.com/khajiitvaper2017)
+[@khajiitvaper2017](https://github.com/khajiitvaper2017),
+[@saifkaral](https://github.com/saifkaral)
 
 Thank you to all those who have translated asbplayer:
 
 **Mana Tsutsumi** (Japanese, initial translation),
 **Kai Böse** (German),
-**Triline**, **nekorushi** (Polish),
+**Triline**, **[@nekorushi](https://github.com/nekorushi)** (Polish),
 **NeverWinterSwor** (Simplified Chinese),
-**Yagxter**, **Chatterine** (Brazilian Portuguese),
+**[@AkihaZhang](https://github.com/AkihaZhang)** (Simlified Chinese),
+**Yagxter**, **[@chatterine](https://github.com/chatterine)** (Brazilian Portuguese),
 **Leo Gonzalez** (Spanish),
-**Yuri (ganqqwerty)** (Russian),
+**[@NovaKing007](https://github.com/NovaKing007)** (Spanish),
+**Yuri ([@ganqqwerty](https://github.com/ganqqwerty))** (Russian),
 **Kellen (kputuhuk)** (Russian),
 **Vladislav Kochetkov (vakochetkov)** (Russian),
-**825i** (Finnish),
-**Jaybird1291** (French),
+**[@825i](https://github.com/825i)** (Finnish),
+**[@Jaybird1291](https://github.com/jaybird1291)** (French),
 **Tigerbabe aka Gyaru Jinsei Juku** (Korean),
 **yaacha** (Indonesian)
 
 If you are a non-English native, and would like to help translate asbplayer, join the [Crowdin project](https://crowdin.com/project/asbplayer). If your language isn't there, feel free to create an issue to add it on the [issues page](https://github.com/killergerbah/asbplayer/issues).
+
+## Contributing
+
+Before contributing, please read the [contribution guidelines](https://github.com/killergerbah/asbplayer/blob/main/CONTRIBUTING.md).
 
 ## User guide
 
@@ -162,6 +169,7 @@ asbplayer's complete user guide is [here](https://docs.asbplayer.dev/docs/intro)
 
 6. When a subtitle appears that you want to mine, use <kbd>Ctrl + Shift + X</kbd> to open the flashcard creator.
 7. Fill in the definition and word fields and then export the card. To fill in the definition field you may use the dictionary you installed in step 1.
+
 
 ## Contact
 

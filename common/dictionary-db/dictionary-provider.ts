@@ -10,11 +10,13 @@ import {
     DictionaryDeleteProfileResult,
 } from '@project/common/dictionary-db';
 import { DictionaryBuildAnkiCacheState } from '@project/common';
+import { DictionaryStatisticsSnapshot } from '@project/common/dictionary-statistics';
 import { ApplyStrategy, AsbplayerSettings } from '@project/common/settings';
 import { download, getCurrentTimeString } from '../util';
 
 export interface DictionaryStorage {
     getBulk: (profile: string | undefined, track: number, tokens: string[]) => Promise<TokenResults>;
+    getAllTokens: (profile: string | undefined, track: number) => Promise<TokenResults>;
     getByLemmaBulk: (profile: string | undefined, track: number, lemmas: string[]) => Promise<LemmaResults>;
     saveRecordLocalBulk: (
         profile: string | undefined,
@@ -31,14 +33,20 @@ export interface DictionaryStorage {
         records: Partial<DictionaryTokenRecord>[],
         profiles: string[]
     ) => Promise<DictionaryImportRecordLocalResult>;
-    buildAnkiCache: (
-        profile: string | undefined,
-        settings: AsbplayerSettings,
-        options?: { useOriginTab?: boolean }
-    ) => Promise<void>;
+    buildAnkiCache: (profile: string | undefined, settings: AsbplayerSettings) => Promise<void>;
     ankiCardWasModified: () => void;
     onAnkiCardModified: (callback: () => void) => () => void;
     onBuildAnkiCacheStateChange: (callback: (message: DictionaryBuildAnkiCacheState) => void) => () => void;
+    publishStatisticsSnapshot: (mediaId: string, snapshot?: DictionaryStatisticsSnapshot) => Promise<void> | void;
+    onStatisticsSnapshot: (callback: (snapshot?: DictionaryStatisticsSnapshot) => void) => () => void;
+    requestStatisticsSnapshot: (mediaId?: string) => Promise<void> | void;
+    onRequestStatisticsSnapshot: (callback: () => void) => () => void;
+    requestStatisticsGeneration: (mediaId?: string) => Promise<void> | void;
+    onRequestStatisticsGeneration: (callback: () => void) => () => void;
+    requestStatisticsSeek: (mediaId: string, timestamp: number) => Promise<void> | void;
+    onRequestStatisticsSeek: (callback: (timestamp: number) => void) => () => void;
+    requestStatisticsMineSentences: (mediaId: string, indexes: number[]) => Promise<void> | void;
+    onRequestStatisticsMineSentences: (callback: (mediaId: string, indexes: number[]) => void) => () => void;
     _removeCallback(callback: Function, callbacks: Function[]): void;
 }
 
@@ -51,6 +59,10 @@ export class DictionaryProvider {
 
     getBulk(profile: string | undefined, track: number, tokens: string[]) {
         return this._storage.getBulk(profile, track, tokens);
+    }
+
+    getAllTokens(profile: string | undefined, track: number) {
+        return this._storage.getAllTokens(profile, track);
     }
 
     getByLemmaBulk(profile: string | undefined, track: number, lemmas: string[]) {
@@ -86,8 +98,8 @@ export class DictionaryProvider {
         return this._storage.importRecordLocalBulk(records, profiles);
     }
 
-    buildAnkiCache(profile: string | undefined, settings: AsbplayerSettings, options?: { useOriginTab?: boolean }) {
-        return this._storage.buildAnkiCache(profile, settings, options);
+    buildAnkiCache(profile: string | undefined, settings: AsbplayerSettings) {
+        return this._storage.buildAnkiCache(profile, settings);
     }
 
     ankiCardWasModified() {
@@ -100,5 +112,45 @@ export class DictionaryProvider {
 
     onBuildAnkiCacheStateChange(callback: (message: DictionaryBuildAnkiCacheState) => void) {
         return this._storage.onBuildAnkiCacheStateChange(callback);
+    }
+
+    publishStatisticsSnapshot(mediaId: string, snapshot?: DictionaryStatisticsSnapshot) {
+        return this._storage.publishStatisticsSnapshot(mediaId, snapshot);
+    }
+
+    onStatisticsSnapshot(callback: (snapshot?: DictionaryStatisticsSnapshot) => void) {
+        return this._storage.onStatisticsSnapshot(callback);
+    }
+
+    requestStatisticsSnapshot(mediaId?: string) {
+        return this._storage.requestStatisticsSnapshot(mediaId);
+    }
+
+    onRequestStatisticsSnapshot(callback: () => void) {
+        return this._storage.onRequestStatisticsSnapshot(callback);
+    }
+
+    requestStatisticsGeneration(mediaId?: string) {
+        return this._storage.requestStatisticsGeneration(mediaId);
+    }
+
+    onRequestStatisticsGeneration(callback: () => void) {
+        return this._storage.onRequestStatisticsGeneration(callback);
+    }
+
+    requestStatisticsSeek(mediaId: string, timestamp: number) {
+        return this._storage.requestStatisticsSeek(mediaId, timestamp);
+    }
+
+    onRequestStatisticsSeek(callback: (timestamp: number) => void) {
+        return this._storage.onRequestStatisticsSeek(callback);
+    }
+
+    requestStatisticsMineSentences(mediaId: string, indexes: number[]) {
+        return this._storage.requestStatisticsMineSentences(mediaId, indexes);
+    }
+
+    onRequestStatisticsMineSentences(callback: (mediaId: string, indexes: number[]) => void) {
+        return this._storage.onRequestStatisticsMineSentences(callback);
     }
 }

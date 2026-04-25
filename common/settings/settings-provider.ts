@@ -9,6 +9,7 @@ import {
     SubtitleSettings,
     TextSubtitleSettings,
     textSubtitleSettingsKeys,
+    VideoSubtitleSplitBehavior,
     TokenMatchStrategyPriority,
     TokenMatchStrategy,
     TokenStyling,
@@ -40,6 +41,7 @@ const defaultSubtitleTextSettings = {
 
 const defaultDictionaryTrackSettings: DictionaryTrack = {
     dictionaryColorizeSubtitles: false,
+    dictionaryAutoGenerateStatistics: false,
     dictionaryColorizeOnHoverOnly: false,
     dictionaryHighlightOnHover: true,
     dictionaryTokenMatchStrategy: TokenMatchStrategy.ANY_FORM_COLLECTED,
@@ -160,6 +162,7 @@ export const defaultSettings: AsbplayerSettings = {
         markHoveredToken1: { keys: 'Q+1' },
         markHoveredToken0: { keys: 'Q+0' },
         toggleHoveredTokenIgnored: { keys: 'Q+I' },
+        openStatistics: { keys: 'Q+S' },
     },
     recordWithAudioPlayback: true,
     preferMp3: true,
@@ -168,6 +171,7 @@ export const defaultSettings: AsbplayerSettings = {
     clickToMineDefaultAction: PostMineAction.showAnkiDialog,
     postMiningPlaybackState: PostMinePlayback.remember,
     themeType: 'dark',
+    videoSubtitleSplitBehavior: VideoSubtitleSplitBehavior.rememberSplitPosition,
     copyToClipboardOnMine: false,
     rememberSubtitleOffset: true,
     lastSubtitleOffset: 0,
@@ -216,6 +220,8 @@ export const defaultSettings: AsbplayerSettings = {
         stremio: {},
         cijapanese: {},
         iwanttfc: {},
+        svtplay: {},
+        urplay: {},
     },
     webSocketClientEnabled: false,
     webSocketServerUrl: 'ws://127.0.0.1:8766/ws',
@@ -485,8 +491,11 @@ const ensureDictionaryTracksConsistency = ({ dictionaryTracks }: Partial<Asbplay
             };
         }
 
-        // Default for Yomitan parser
-        if (!dt.dictionaryYomitanParser) (dt as any).dictionaryYomitanParser = 'scanning-parser';
+        // Default for new settings
+        if (!dt.dictionaryYomitanParser) (dt as any).dictionaryYomitanParser = defaultTrack.dictionaryYomitanParser;
+        if (dt.dictionaryAutoGenerateStatistics === undefined) {
+            (dt as any).dictionaryAutoGenerateStatistics = defaultTrack.dictionaryAutoGenerateStatistics;
+        }
     }
     while (dictionaryTracks.length < NUM_DICTIONARY_TRACKS) {
         dictionaryTracks.push(defaultTrack);
