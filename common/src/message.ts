@@ -9,7 +9,7 @@ import type {
     TokenState,
     TokenStatus,
 } from '../settings/settings';
-import type { GlobalState } from '../global-state';
+import type { GlobalState, OnlineSubtitleSourceConfig } from '../global-state';
 import type { DictionaryStatisticsSnapshot } from '../dictionary-statistics';
 import {
     RectModel,
@@ -517,6 +517,11 @@ export interface VideoDataUiBridgeConfirmMessage extends Message {
 export interface VideoDataUiBridgeOpenFileMessage extends Message {
     readonly command: 'openFile';
     readonly subtitles: SerializedSubtitleFile[];
+}
+
+export interface VideoDataUiBridgeSetOnlineSubtitleSourceConfigMessage extends Message {
+    readonly command: 'setOnlineSubtitleSourceConfig';
+    readonly state: Partial<OnlineSubtitleSourceConfig>;
 }
 
 export interface CropAndResizeMessage extends Message, ImageCaptureParams {

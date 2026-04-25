@@ -70,6 +70,7 @@ interface Props {
     hideRememberTrackPreferenceToggle?: boolean;
     onCancel: () => void;
     onOpenFile: (track?: number) => void;
+    onOpenOnline: (track?: number) => void;
     onOpenSettings: () => void;
     onConfirm: (track: ConfirmedVideoDataSubtitleTrack[], shouldRememberTrackChoices: boolean) => void;
     onSetActiveProfile: (profile: string | undefined) => void;
@@ -93,6 +94,7 @@ export default function VideoDataSyncDialog({
     hideRememberTrackPreferenceToggle,
     onCancel,
     onOpenFile,
+    onOpenOnline,
     onOpenSettings,
     onConfirm,
     onSetActiveProfile,
@@ -219,6 +221,11 @@ export default function VideoDataSyncDialog({
                                 </MenuItem>
                             ))}
                             <MenuItem onClick={() => onOpenFile(i)}>{t('action.openFiles')}</MenuItem>
+                            <MenuItem onClick={() => onOpenOnline(i)}>
+                                {t('extension.videoDataSync.searchOnlineSubtitles', {
+                                    defaultValue: 'Search online subtitles',
+                                })}
+                            </MenuItem>
                         </TextField>
                         {isLoading && (
                             <span className={classes.spinner}>
@@ -328,6 +335,9 @@ export default function VideoDataSyncDialog({
             <DialogActions>
                 <Button disabled={disabled} onClick={() => onOpenFile()}>
                     {t('action.openFiles')}
+                </Button>
+                <Button disabled={disabled} onClick={() => onOpenOnline()}>
+                    {t('extension.videoDataSync.onlineSources', { defaultValue: 'Online sources' })}
                 </Button>
                 <Button action={okActionRef} disabled={!trimmedName || disabled} onClick={handleOkButtonClick}>
                     {t('action.ok')}
