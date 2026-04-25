@@ -549,7 +549,6 @@
     },
     "statistics": {
         "title": "統計",
-        "description": "現在ja.",
         "generate": "統計を処理",
         "generationInProgress": "統計を処理しています",
         "empty": "現在ロードされている字幕の統計はまだ処理されていません。",

@@ -549,7 +549,6 @@
     },
     "statistics": {
         "title": "统计数据",
-        "description": "生成并查看当前加载字幕的词汇数据报告。",
         "generate": "生成统计",
         "generationInProgress": "正在生成统计数据...",
         "empty": "当前句子暂无统计数据。",

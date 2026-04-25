@@ -549,7 +549,6 @@
     },
     "statistics": {
         "title": "Statistics",
-        "description": "Generate and review vocabulary statistics for the current sentence collection.",
         "generate": "Generate statistics",
         "generationInProgress": "Statistics generation in progress",
         "empty": "No statistics have been generated for the current sentences yet.",
