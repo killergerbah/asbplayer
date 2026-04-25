@@ -130,6 +130,25 @@ interface WordBrowserTableRowProps {
     renderStatusLabel: (status: TokenStatus) => React.ReactNode;
 }
 
+type FilterModeValue = string | number;
+type FilterMap<T extends FilterModeValue> = Partial<Record<T, FilterMode>>;
+type FilterCriteriaKey =
+    | 'selectedSourceFilters'
+    | 'selectedStatusFilters'
+    | 'selectedStateFilters'
+    | 'selectedTrackFilters';
+type FilterCriteriaValue<K extends FilterCriteriaKey> = ViewCriteria[K] extends FilterMap<infer T> ? T : never;
+type TextCriteriaKey = 'searchQuery' | 'cardIdFilter' | 'noteIdFilter';
+
+interface CyclingFilterSelectProps<T extends FilterModeValue> {
+    options: readonly T[];
+    selectedFilters: FilterMap<T>;
+    placeholder: string;
+    onToggle: (value: T) => void;
+    renderSelectedValue: (value: T, index: number) => React.ReactNode;
+    renderMenuItemLabel: (value: T) => React.ReactNode;
+}
+
 function normalizeSearchText(text: string) {
     return text.normalize('NFKC').trim().toLocaleLowerCase();
 }
@@ -153,6 +172,36 @@ function normalizedLookupTerms(...texts: Array<string | null | undefined>) {
 
 function matchesSearchTerm(searchTerms: string[], term: string) {
     return searchTerms.some((searchTerm) => searchTerm.includes(term));
+}
+
+function cycleFilterMode<T extends FilterModeValue>(filters: FilterMap<T>, value: T): FilterMap<T> {
+    const nextFilters = { ...filters };
+    const currentMode = nextFilters[value];
+
+    if (currentMode === undefined) {
+        nextFilters[value] = 'include';
+    } else if (currentMode === 'include') {
+        nextFilters[value] = 'exclude';
+    } else {
+        delete nextFilters[value];
+    }
+
+    return nextFilters;
+}
+
+function renderFilterLabel(label: string, mode?: FilterMode) {
+    return mode === 'exclude' ? `- ${label}` : label;
+}
+
+function cycleViewCriteriaFilter<K extends FilterCriteriaKey>(
+    criteria: ViewCriteria,
+    key: K,
+    value: FilterCriteriaValue<K>
+): ViewCriteria {
+    return {
+        ...criteria,
+        [key]: cycleFilterMode(criteria[key] as FilterMap<FilterCriteriaValue<K>>, value),
+    } as ViewCriteria;
 }
 
 function tokenKeyToString(key: DictionaryTokenKey) {
@@ -308,6 +357,53 @@ const WordBrowserTableRow = memo(function WordBrowserTableRow({
     );
 });
 
+function CyclingFilterSelect<T extends FilterModeValue>({
+    options,
+    selectedFilters,
+    placeholder,
+    onToggle,
+    renderSelectedValue,
+    renderMenuItemLabel,
+}: CyclingFilterSelectProps<T>) {
+    const selectedValues = options.filter((value) => selectedFilters[value] !== undefined);
+
+    return (
+        <FormControl size="small" fullWidth>
+            <Select
+                multiple
+                displayEmpty
+                value={selectedValues}
+                onChange={() => undefined}
+                input={<OutlinedInput />}
+                renderValue={() =>
+                    selectedValues.length ? (
+                        selectedValues.map(renderSelectedValue)
+                    ) : (
+                        <Typography color="text.secondary">{placeholder}</Typography>
+                    )
+                }
+            >
+                {options.map((value) => (
+                    <MenuItem
+                        key={String(value)}
+                        value={value}
+                        onClick={(event) => {
+                            event.preventDefault();
+                            onToggle(value);
+                        }}
+                    >
+                        <Checkbox
+                            checked={selectedFilters[value] === 'include'}
+                            indeterminate={selectedFilters[value] === 'exclude'}
+                        />
+                        {renderMenuItemLabel(value)}
+                    </MenuItem>
+                ))}
+            </Select>
+        </FormControl>
+    );
+}
+
 export default function WordBrowserDialog({
     open,
     dictionaryProvider,
@@ -357,6 +453,30 @@ export default function WordBrowserDialog({
         setPendingAutoRefreshDelayMs(delayMs);
         setDraftViewCriteria(updater);
     }, []);
+
+    const updateDraftTextCriteria = useCallback(
+        (key: TextCriteriaKey, value: string, delayMs = textFilterAutoRefreshDelayMs) => {
+            updateDraftViewCriteria(delayMs, (current) => ({
+                ...current,
+                [key]: value,
+            }));
+        },
+        [updateDraftViewCriteria]
+    );
+
+    const clearDraftTextCriteria = useCallback(
+        (key: TextCriteriaKey) => updateDraftTextCriteria(key, '', singleSelectAutoRefreshDelayMs),
+        [updateDraftTextCriteria]
+    );
+
+    const cycleFilter = useCallback(
+        <K extends FilterCriteriaKey>(key: K, value: FilterCriteriaValue<K>) => {
+            updateDraftViewCriteria(multiSelectAutoRefreshDelayMs, (current) =>
+                cycleViewCriteriaFilter(current, key, value)
+            );
+        },
+        [updateDraftViewCriteria]
+    );
 
     const loadRecords = useCallback(
         async (viewCriteria: ViewCriteria) => {
@@ -564,98 +684,22 @@ export default function WordBrowserDialog({
 
     const renderStatusFilterLabel = useCallback(
         (status: TokenStatus) =>
-            draftViewCriteria.selectedStatusFilters[status] === 'exclude'
-                ? `- ${t(`settings.dictionaryTokenStatus${status}`)}`
-                : t(`settings.dictionaryTokenStatus${status}`),
+            renderFilterLabel(
+                t(`settings.dictionaryTokenStatus${status}`),
+                draftViewCriteria.selectedStatusFilters[status]
+            ),
         [draftViewCriteria.selectedStatusFilters, t]
     );
 
     const renderSourceFilterLabel = useCallback(
         (source: DictionaryTokenSource) =>
-            draftViewCriteria.selectedSourceFilters[source] === 'exclude'
-                ? `- ${sourceLabels[source]}`
-                : sourceLabels[source],
+            renderFilterLabel(sourceLabels[source], draftViewCriteria.selectedSourceFilters[source]),
         [draftViewCriteria.selectedSourceFilters, sourceLabels]
     );
 
-    const cycleSourceFilter = useCallback(
-        (source: DictionaryTokenSource) => {
-            updateDraftViewCriteria(multiSelectAutoRefreshDelayMs, (current) => {
-                const nextSourceFilters = { ...current.selectedSourceFilters };
-                const currentMode = nextSourceFilters[source];
-                if (currentMode === undefined) {
-                    nextSourceFilters[source] = 'include';
-                } else if (currentMode === 'include') {
-                    nextSourceFilters[source] = 'exclude';
-                } else {
-                    delete nextSourceFilters[source];
-                }
-                return { ...current, selectedSourceFilters: nextSourceFilters };
-            });
-        },
-        [updateDraftViewCriteria]
-    );
-
-    const cycleStatusFilter = useCallback(
-        (status: TokenStatus) => {
-            updateDraftViewCriteria(multiSelectAutoRefreshDelayMs, (current) => {
-                const nextStatusFilters = { ...current.selectedStatusFilters };
-                const currentMode = nextStatusFilters[status];
-                if (currentMode === undefined) {
-                    nextStatusFilters[status] = 'include';
-                } else if (currentMode === 'include') {
-                    nextStatusFilters[status] = 'exclude';
-                } else {
-                    delete nextStatusFilters[status];
-                }
-                return { ...current, selectedStatusFilters: nextStatusFilters };
-            });
-        },
-        [updateDraftViewCriteria]
-    );
-
     const renderStateFilterLabel = useCallback(
-        (state: TokenState) =>
-            draftViewCriteria.selectedStateFilters[state] === 'exclude'
-                ? `- ${stateLabels[state]}`
-                : stateLabels[state],
+        (state: TokenState) => renderFilterLabel(stateLabels[state], draftViewCriteria.selectedStateFilters[state]),
         [draftViewCriteria.selectedStateFilters, stateLabels]
-    );
-
-    const cycleStateFilter = useCallback(
-        (state: TokenState) => {
-            updateDraftViewCriteria(multiSelectAutoRefreshDelayMs, (current) => {
-                const nextStateFilters = { ...current.selectedStateFilters };
-                const currentMode = nextStateFilters[state];
-                if (currentMode === undefined) {
-                    nextStateFilters[state] = 'include';
-                } else if (currentMode === 'include') {
-                    nextStateFilters[state] = 'exclude';
-                } else {
-                    delete nextStateFilters[state];
-                }
-                return { ...current, selectedStateFilters: nextStateFilters };
-            });
-        },
-        [updateDraftViewCriteria]
-    );
-
-    const cycleTrackFilter = useCallback(
-        (trackValue: number) => {
-            updateDraftViewCriteria(multiSelectAutoRefreshDelayMs, (current) => {
-                const nextTrackFilters = { ...current.selectedTrackFilters };
-                const currentMode = nextTrackFilters[trackValue];
-                if (currentMode === undefined) {
-                    nextTrackFilters[trackValue] = 'include';
-                } else if (currentMode === 'include') {
-                    nextTrackFilters[trackValue] = 'exclude';
-                } else {
-                    delete nextTrackFilters[trackValue];
-                }
-                return { ...current, selectedTrackFilters: nextTrackFilters };
-            });
-        },
-        [updateDraftViewCriteria]
     );
 
     const rows = useMemo(() => {
@@ -761,7 +805,7 @@ export default function WordBrowserDialog({
                 (trackValue === LOCAL_TOKEN_TRACK
                     ? sourceLabels[DictionaryTokenSource.LOCAL]
                     : t('settings.subtitleTrackChoice', { trackNumber: trackValue }));
-            return draftViewCriteria.selectedTrackFilters[trackValue] === 'exclude' ? `- ${trackLabel}` : trackLabel;
+            return renderFilterLabel(trackLabel, draftViewCriteria.selectedTrackFilters[trackValue]);
         },
         [draftViewCriteria.selectedTrackFilters, sourceLabels, t, trackFilterOptions]
     );
@@ -1327,23 +1371,13 @@ export default function WordBrowserDialog({
                                             placeholder={t('settings.dictionaryBrowser.searchPlaceholder')}
                                             value={draftViewCriteria.searchQuery}
                                             onChange={(event) =>
-                                                updateDraftViewCriteria(textFilterAutoRefreshDelayMs, (current) => ({
-                                                    ...current,
-                                                    searchQuery: event.target.value,
-                                                }))
+                                                updateDraftTextCriteria('searchQuery', event.target.value)
                                             }
                                             slotProps={{
                                                 input: {
                                                     endAdornment: renderClearAdornment(
                                                         draftViewCriteria.searchQuery,
-                                                        () =>
-                                                            updateDraftViewCriteria(
-                                                                singleSelectAutoRefreshDelayMs,
-                                                                (current) => ({
-                                                                    ...current,
-                                                                    searchQuery: '',
-                                                                })
-                                                            )
+                                                        () => clearDraftTextCriteria('searchQuery')
                                                     ),
                                                 },
                                             }}
@@ -1352,237 +1386,82 @@ export default function WordBrowserDialog({
                                         />
                                     </TableCell>
                                     <TableCell>
-                                        <FormControl size="small" fullWidth>
-                                            <Select
-                                                multiple
-                                                displayEmpty
-                                                value={filterableSources.filter(
-                                                    (source) =>
-                                                        draftViewCriteria.selectedSourceFilters[source] !== undefined
-                                                )}
-                                                onChange={() => undefined}
-                                                input={<OutlinedInput />}
-                                                renderValue={(selected) =>
-                                                    (selected as DictionaryTokenSource[]).length ? (
-                                                        (selected as DictionaryTokenSource[])
-                                                            .map((source) => renderSourceFilterLabel(source))
-                                                            .join(', ')
-                                                    ) : (
-                                                        <Typography color="text.secondary">
-                                                            {t('settings.dictionaryBrowser.columns.source')}
-                                                        </Typography>
-                                                    )
-                                                }
-                                            >
-                                                {filterableSources.map((source) => (
-                                                    <MenuItem
-                                                        key={source}
-                                                        value={source}
-                                                        onClick={(event) => {
-                                                            event.preventDefault();
-                                                            cycleSourceFilter(source);
-                                                        }}
-                                                    >
-                                                        <Checkbox
-                                                            checked={
-                                                                draftViewCriteria.selectedSourceFilters[source] ===
-                                                                'include'
-                                                            }
-                                                            indeterminate={
-                                                                draftViewCriteria.selectedSourceFilters[source] ===
-                                                                'exclude'
-                                                            }
-                                                        />
-                                                        <ListItemText primary={sourceLabels[source]} />
-                                                    </MenuItem>
-                                                ))}
-                                            </Select>
-                                        </FormControl>
+                                        <CyclingFilterSelect
+                                            options={filterableSources}
+                                            selectedFilters={draftViewCriteria.selectedSourceFilters}
+                                            placeholder={t('settings.dictionaryBrowser.columns.source')}
+                                            onToggle={(source) => cycleFilter('selectedSourceFilters', source)}
+                                            renderSelectedValue={(source) => renderSourceFilterLabel(source)}
+                                            renderMenuItemLabel={(source) => (
+                                                <ListItemText primary={sourceLabels[source]} />
+                                            )}
+                                        />
                                     </TableCell>
                                     <TableCell>
-                                        <FormControl size="small" fullWidth>
-                                            <Select
-                                                multiple
-                                                displayEmpty
-                                                value={filterStatusOptions.filter(
-                                                    (status) =>
-                                                        draftViewCriteria.selectedStatusFilters[status] !== undefined
-                                                )}
-                                                onChange={() => undefined}
-                                                input={<OutlinedInput />}
-                                                renderValue={(selected) =>
-                                                    (selected as TokenStatus[]).length ? (
-                                                        (selected as TokenStatus[]).map((status, index) => (
-                                                            <Typography
-                                                                key={`${status}-${index}`}
-                                                                component="span"
-                                                                sx={{ color: statusColors[status], fontWeight: 500 }}
-                                                            >
-                                                                {index > 0 ? ', ' : ''}
-                                                                {renderStatusFilterLabel(status)}
-                                                            </Typography>
-                                                        ))
-                                                    ) : (
-                                                        <Typography color="text.secondary">
-                                                            {t('settings.dictionaryBrowser.columns.status')}
-                                                        </Typography>
-                                                    )
-                                                }
-                                            >
-                                                {filterStatusOptions.map((tokenStatus) => (
-                                                    <MenuItem
-                                                        key={tokenStatus}
-                                                        value={tokenStatus}
-                                                        onClick={(event) => {
-                                                            event.preventDefault();
-                                                            cycleStatusFilter(tokenStatus);
-                                                        }}
-                                                    >
-                                                        <Checkbox
-                                                            checked={
-                                                                draftViewCriteria.selectedStatusFilters[tokenStatus] ===
-                                                                'include'
-                                                            }
-                                                            indeterminate={
-                                                                draftViewCriteria.selectedStatusFilters[tokenStatus] ===
-                                                                'exclude'
-                                                            }
-                                                        />
-                                                        <ListItemText
-                                                            primary={t(`settings.dictionaryTokenStatus${tokenStatus}`)}
-                                                            slotProps={{
-                                                                primary: { sx: { color: statusColors[tokenStatus] } },
-                                                            }}
-                                                        />
-                                                    </MenuItem>
-                                                ))}
-                                            </Select>
-                                        </FormControl>
+                                        <CyclingFilterSelect
+                                            options={filterStatusOptions}
+                                            selectedFilters={draftViewCriteria.selectedStatusFilters}
+                                            placeholder={t('settings.dictionaryBrowser.columns.status')}
+                                            onToggle={(status) => cycleFilter('selectedStatusFilters', status)}
+                                            renderSelectedValue={(status, index) => (
+                                                <Typography
+                                                    key={`${status}-${index}`}
+                                                    component="span"
+                                                    sx={{ color: statusColors[status], fontWeight: 500 }}
+                                                >
+                                                    {index > 0 ? ', ' : ''}
+                                                    {renderStatusFilterLabel(status)}
+                                                </Typography>
+                                            )}
+                                            renderMenuItemLabel={(status) => (
+                                                <ListItemText
+                                                    primary={t(`settings.dictionaryTokenStatus${status}`)}
+                                                    slotProps={{ primary: { sx: { color: statusColors[status] } } }}
+                                                />
+                                            )}
+                                        />
                                     </TableCell>
                                     <TableCell>
-                                        <FormControl size="small" fullWidth>
-                                            <Select
-                                                multiple
-                                                displayEmpty
-                                                value={filterableStates.filter(
-                                                    (state) =>
-                                                        draftViewCriteria.selectedStateFilters[state] !== undefined
-                                                )}
-                                                onChange={() => undefined}
-                                                input={<OutlinedInput />}
-                                                renderValue={(selected) =>
-                                                    (selected as TokenState[]).length ? (
-                                                        (selected as TokenState[])
-                                                            .map((state) => renderStateFilterLabel(state))
-                                                            .join(', ')
-                                                    ) : (
-                                                        <Typography color="text.secondary">
-                                                            {t('settings.dictionaryBrowser.columns.states')}
-                                                        </Typography>
-                                                    )
-                                                }
-                                            >
-                                                {filterableStates.map((state) => (
-                                                    <MenuItem
-                                                        key={state}
-                                                        value={state}
-                                                        onClick={(event) => {
-                                                            event.preventDefault();
-                                                            cycleStateFilter(state);
-                                                        }}
-                                                    >
-                                                        <Checkbox
-                                                            checked={
-                                                                draftViewCriteria.selectedStateFilters[state] ===
-                                                                'include'
-                                                            }
-                                                            indeterminate={
-                                                                draftViewCriteria.selectedStateFilters[state] ===
-                                                                'exclude'
-                                                            }
-                                                        />
-                                                        <ListItemText primary={stateLabels[state]} />
-                                                    </MenuItem>
-                                                ))}
-                                            </Select>
-                                        </FormControl>
+                                        <CyclingFilterSelect
+                                            options={filterableStates}
+                                            selectedFilters={draftViewCriteria.selectedStateFilters}
+                                            placeholder={t('settings.dictionaryBrowser.columns.states')}
+                                            onToggle={(state) => cycleFilter('selectedStateFilters', state)}
+                                            renderSelectedValue={(state) => renderStateFilterLabel(state)}
+                                            renderMenuItemLabel={(state) => (
+                                                <ListItemText primary={stateLabels[state]} />
+                                            )}
+                                        />
                                     </TableCell>
                                     <TableCell>
-                                        <FormControl size="small" fullWidth>
-                                            <Select
-                                                multiple
-                                                displayEmpty
-                                                value={trackFilterOptions
-                                                    .filter(
-                                                        (option) =>
-                                                            draftViewCriteria.selectedTrackFilters[option.value] !==
-                                                            undefined
-                                                    )
-                                                    .map((option) => option.value)}
-                                                onChange={() => undefined}
-                                                input={<OutlinedInput />}
-                                                renderValue={(selected) =>
-                                                    (selected as number[]).length ? (
-                                                        trackFilterOptions
-                                                            .filter((option) =>
-                                                                (selected as number[]).includes(option.value)
-                                                            )
-                                                            .map((option) => renderTrackFilterLabel(option.value))
-                                                            .join(', ')
-                                                    ) : (
-                                                        <Typography color="text.secondary">
-                                                            {t('settings.dictionaryBrowser.columns.track')}
-                                                        </Typography>
-                                                    )
-                                                }
-                                            >
-                                                {trackFilterOptions.map((option) => (
-                                                    <MenuItem
-                                                        key={option.value}
-                                                        value={option.value}
-                                                        onClick={(event) => {
-                                                            event.preventDefault();
-                                                            cycleTrackFilter(option.value);
-                                                        }}
-                                                    >
-                                                        <Checkbox
-                                                            checked={
-                                                                draftViewCriteria.selectedTrackFilters[option.value] ===
-                                                                'include'
-                                                            }
-                                                            indeterminate={
-                                                                draftViewCriteria.selectedTrackFilters[option.value] ===
-                                                                'exclude'
-                                                            }
-                                                        />
-                                                        <ListItemText primary={option.label} />
-                                                    </MenuItem>
-                                                ))}
-                                            </Select>
-                                        </FormControl>
+                                        <CyclingFilterSelect
+                                            options={trackFilterOptions.map((option) => option.value)}
+                                            selectedFilters={draftViewCriteria.selectedTrackFilters}
+                                            placeholder={t('settings.dictionaryBrowser.columns.track')}
+                                            onToggle={(trackValue) => cycleFilter('selectedTrackFilters', trackValue)}
+                                            renderSelectedValue={(trackValue) => renderTrackFilterLabel(trackValue)}
+                                            renderMenuItemLabel={(trackValue) => (
+                                                <ListItemText
+                                                    primary={
+                                                        trackFilterOptions.find((option) => option.value === trackValue)
+                                                            ?.label ?? ''
+                                                    }
+                                                />
+                                            )}
+                                        />
                                     </TableCell>
                                     <TableCell>
                                         <TextField
                                             placeholder={t('settings.dictionaryBrowser.columns.cardIds')}
                                             value={draftViewCriteria.cardIdFilter}
                                             onChange={(event) =>
-                                                updateDraftViewCriteria(textFilterAutoRefreshDelayMs, (current) => ({
-                                                    ...current,
-                                                    cardIdFilter: event.target.value,
-                                                }))
+                                                updateDraftTextCriteria('cardIdFilter', event.target.value)
                                             }
                                             slotProps={{
                                                 input: {
                                                     endAdornment: renderClearAdornment(
                                                         draftViewCriteria.cardIdFilter,
-                                                        () =>
-                                                            updateDraftViewCriteria(
-                                                                singleSelectAutoRefreshDelayMs,
-                                                                (current) => ({
-                                                                    ...current,
-                                                                    cardIdFilter: '',
-                                                                })
-                                                            )
+                                                        () => clearDraftTextCriteria('cardIdFilter')
                                                     ),
                                                 },
                                             }}
@@ -1595,23 +1474,13 @@ export default function WordBrowserDialog({
                                             placeholder={t('settings.dictionaryBrowser.columns.noteIds')}
                                             value={draftViewCriteria.noteIdFilter}
                                             onChange={(event) =>
-                                                updateDraftViewCriteria(textFilterAutoRefreshDelayMs, (current) => ({
-                                                    ...current,
-                                                    noteIdFilter: event.target.value,
-                                                }))
+                                                updateDraftTextCriteria('noteIdFilter', event.target.value)
                                             }
                                             slotProps={{
                                                 input: {
                                                     endAdornment: renderClearAdornment(
                                                         draftViewCriteria.noteIdFilter,
-                                                        () =>
-                                                            updateDraftViewCriteria(
-                                                                singleSelectAutoRefreshDelayMs,
-                                                                (current) => ({
-                                                                    ...current,
-                                                                    noteIdFilter: '',
-                                                                })
-                                                            )
+                                                        () => clearDraftTextCriteria('noteIdFilter')
                                                     ),
                                                 },
                                             }}
