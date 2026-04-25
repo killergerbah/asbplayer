@@ -9,16 +9,24 @@ export enum AnnotationTutorialState {
     hasSeen = 2,
 }
 
+export interface OnlineSubtitleSourceConfig {
+    jimakuApiKey: string;
+}
+
 export const initialGlobalState: GlobalState = {
     ftueHasSeenAnkiDialogQuickSelectV2: false,
     ftueHasSeenSubtitleTrackSelector: false,
     ftueAnnotation: AnnotationTutorialState.hasNotSeen,
+    onlineSubtitleSourceConfig: {
+        jimakuApiKey: '',
+    },
 };
 
 export interface GlobalState {
     ftueHasSeenAnkiDialogQuickSelectV2: boolean;
     ftueHasSeenSubtitleTrackSelector: boolean;
     ftueAnnotation: AnnotationTutorialState;
+    onlineSubtitleSourceConfig: OnlineSubtitleSourceConfig;
 }
 
 export interface GlobalStateProvider {

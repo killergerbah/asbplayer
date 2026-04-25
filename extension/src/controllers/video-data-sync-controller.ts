@@ -8,6 +8,7 @@ import {
     VideoDataSubtitleTrack,
     VideoDataUiBridgeConfirmMessage,
     VideoDataUiBridgeOpenFileMessage,
+    VideoDataUiBridgeSetOnlineSubtitleSourceConfigMessage,
     VideoDataUiModel,
     VideoDataUiOpenReason,
     VideoToExtensionCommand,
@@ -200,8 +201,12 @@ export default class VideoDataSyncController {
         const themeType = await this._context.settings.getSingle('themeType');
         const profilesPromise = this._context.settings.profiles();
         const activeProfilePromise = this._context.settings.activeProfile();
-        const hasSeenFtue = (await globalStateProvider.get(['ftueHasSeenSubtitleTrackSelector']))
-            .ftueHasSeenSubtitleTrackSelector;
+        const globalState = await globalStateProvider.get([
+            'ftueHasSeenSubtitleTrackSelector',
+            'onlineSubtitleSourceConfig',
+        ]);
+        const hasSeenFtue = globalState.ftueHasSeenSubtitleTrackSelector;
+        const onlineSubtitleSourceConfig = globalState.onlineSubtitleSourceConfig;
         const hideRememberTrackPreferenceToggle = this._isTutorial || (await this._pageHidesTrackPrefToggle());
         return this._syncedData
             ? {
@@ -219,6 +224,7 @@ export default class VideoDataSyncController {
                   },
                   hasSeenFtue,
                   hideRememberTrackPreferenceToggle,
+                  onlineSubtitleSourceConfig,
                   ...additionalFields,
               }
             : {
@@ -237,6 +243,7 @@ export default class VideoDataSyncController {
                   },
                   hasSeenFtue,
                   hideRememberTrackPreferenceToggle,
+                  onlineSubtitleSourceConfig,
                   ...additionalFields,
               };
     }
@@ -364,6 +371,22 @@ export default class VideoDataSyncController {
 
                 if ('dismissFtue' === message.command) {
                     globalStateProvider.set({ ftueHasSeenSubtitleTrackSelector: true }).catch(console.error);
+                    return;
+                }
+
+                if ('setOnlineSubtitleSourceConfig' === message.command) {
+                    const setOnlineSubtitleSourceConfigMessage =
+                        message as VideoDataUiBridgeSetOnlineSubtitleSourceConfigMessage;
+                    const currentOnlineSubtitleSourceConfig = (
+                        await globalStateProvider.get(['onlineSubtitleSourceConfig'])
+                    ).onlineSubtitleSourceConfig;
+
+                    await globalStateProvider.set({
+                        onlineSubtitleSourceConfig: {
+                            ...currentOnlineSubtitleSourceConfig,
+                            ...setOnlineSubtitleSourceConfigMessage.state,
+                        },
+                    });
                     return;
                 }
 
