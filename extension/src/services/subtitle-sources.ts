@@ -112,7 +112,6 @@ const parseOptionalFloat = (value: string | null): number | undefined => {
     return Number.isFinite(parsed) ? parsed : undefined;
 };
 
-
 export interface JimakuClientOptions {
     apiKey: string;
     baseUrl?: string;
@@ -225,4 +224,3 @@ export class JimakuClient {
         }
     }
 }
-
