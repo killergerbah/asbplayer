@@ -82,8 +82,7 @@ export default function OnlineSubtitleSourceDialog({
     const showDetectedTitleHint =
         normalizedDetectedTitleHint.length > 0 &&
         normalizedDetectedTitleHint.toLowerCase() !== query.trim().toLowerCase();
-    const isSearchDisabled =
-        loading || query.trim().length === 0 || jimakuApiKey.trim().length === 0;
+    const isSearchDisabled = loading || query.trim().length === 0 || jimakuApiKey.trim().length === 0;
 
     const resetState = useCallback(() => {
         setLoading(false);
@@ -162,13 +161,7 @@ export default function OnlineSubtitleSourceDialog({
     const handleSearch = handleSearchJimaku;
 
     return (
-        <Dialog
-            open={open}
-            onClose={onClose}
-            fullWidth
-            maxWidth="md"
-
-        >
+        <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
             <DialogTitle>
                 {t('extension.videoDataSync.onlineSubtitleSources', { defaultValue: 'Online subtitle sources' })}
             </DialogTitle>
@@ -214,8 +207,7 @@ export default function OnlineSubtitleSourceDialog({
                             <>
                                 {t('extension.videoDataSync.jimakuApiKeyAutosaveHint', {
                                     defaultValue: 'Saved automatically after typing.',
-                                })}
-                                {' '}
+                                })}{' '}
                                 <Link
                                     href="https://jimaku.cc/account"
                                     target="_blank"
@@ -265,7 +257,10 @@ export default function OnlineSubtitleSourceDialog({
                             <Typography variant="subtitle2">
                                 {t('extension.videoDataSync.availableFiles', { defaultValue: 'Available files' })}
                             </Typography>
-                            <List dense sx={{ maxHeight: 220, overflow: 'auto', border: '1px solid', borderColor: 'divider' }}>
+                            <List
+                                dense
+                                sx={{ maxHeight: 220, overflow: 'auto', border: '1px solid', borderColor: 'divider' }}
+                            >
                                 {selectedFiles.map((file) => (
                                     <ListItemButton key={file.url} onClick={() => handleImport(file)}>
                                         <ListItemText primary={file.name} secondary={file.url} />
@@ -274,7 +269,9 @@ export default function OnlineSubtitleSourceDialog({
                                 {selectedFiles.length === 0 && (
                                     <ListItem>
                                         <ListItemText
-                                            primary={t('extension.videoDataSync.noFiles', { defaultValue: emptyStateText.files })}
+                                            primary={t('extension.videoDataSync.noFiles', {
+                                                defaultValue: emptyStateText.files,
+                                            })}
                                         />
                                     </ListItem>
                                 )}

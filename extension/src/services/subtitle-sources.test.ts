@@ -95,4 +95,3 @@ describe('JimakuClient', () => {
         await expect(client.getEntry(123)).rejects.toThrow('Jimaku request failed: expected a JSON response body');
     });
 });
-

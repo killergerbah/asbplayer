@@ -238,7 +238,10 @@ export default function VideoDataSyncUi({ bridge }: Props) {
         // Revoke tracked blob URLs once they are no longer referenced by subtitle tracks.
         const currentLocalObjectUrls = new Set(
             subtitles
-                .filter((track) => track.localFile === true && typeof track.url === 'string' && track.url.startsWith('blob:'))
+                .filter(
+                    (track) =>
+                        track.localFile === true && typeof track.url === 'string' && track.url.startsWith('blob:')
+                )
                 .map((track) => track.url as string)
         );
 
@@ -436,9 +439,7 @@ export default function VideoDataSyncUi({ bridge }: Props) {
                     onImport={handleImportOnlineFile}
                     detectedTitleHint={detectedTitleHint}
                     jimakuApiKey={onlineSubtitleSourceConfig.jimakuApiKey}
-                    onJimakuApiKeyChange={(jimakuApiKey) =>
-                        handleOnlineSubtitleSourceConfigChanged({ jimakuApiKey })
-                    }
+                    onJimakuApiKeyChange={(jimakuApiKey) => handleOnlineSubtitleSourceConfigChanged({ jimakuApiKey })}
                 />
                 <input
                     ref={fileInputRef}
