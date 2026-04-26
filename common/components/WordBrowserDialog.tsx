@@ -46,12 +46,12 @@ import {
     TokenStatus,
 } from '@project/common/settings';
 import { getCardTokenStatus } from '@project/common/subtitle-annotations';
-import { convertToKanaForSearch, normalizeForSearch } from '@project/common/util';
+import { normalizeForSearch } from '@project/common/util';
 import { Yomitan } from '@project/common/yomitan';
 
 type SortField = 'token' | 'lemmas' | 'source' | 'status' | 'states' | 'track' | 'cardIds' | 'noteIds' | 'suspended';
 type SortDirection = 'asc' | 'desc';
-type MatchGroup = 0 | 1 | 2 | 3;
+type MatchGroup = 0 | 1 | 2 | 3 | 4;
 type SuspendedFilter = 'all' | 'yes' | 'no' | 'mixed';
 type FilterMode = 'include' | 'exclude';
 
@@ -163,15 +163,19 @@ function normalizedLookupTerms(...texts: Array<string | null | undefined>) {
                     if (!normalized.length || normalized === text) return [text];
                     return [text, normalized];
                 })
-                .filter((text): text is string => Boolean(text))
+                .filter((text) => Boolean(text))
                 .map(normalizeSearchText)
-                .filter((text) => text.length > 0)
+                .filter((text) => text.length)
         )
     );
 }
 
 function matchesSearchTerm(searchTerms: string[], term: string) {
     return searchTerms.some((searchTerm) => searchTerm.includes(term));
+}
+
+function hasExactSearchTermMatch(searchTerms: string[], term: string) {
+    return searchTerms.includes(term);
 }
 
 function cycleFilterMode<T extends FilterModeValue>(filters: FilterMap<T>, value: T): FilterMap<T> {
@@ -600,53 +604,45 @@ export default function WordBrowserDialog({
             setSearchExpansion({ exactTerms: [], lemmaTerms: [] });
             return;
         }
-        let cancelled = false;
-
         void (async () => {
-            const queryForms = Array.from(new Set([trimmed, convertToKanaForSearch(trimmed)])).filter(
-                (queryForm) => queryForm.length > 0
-            );
-            const exactTerms = normalizedLookupTerms(...queryForms);
+            const queryForms = Array.from(new Set([trimmed])).filter((queryForm) => queryForm.length);
             try {
                 await ensureYomitanVersion();
-                if (cancelled) return;
+
+                for (const queryForm of [...queryForms]) {
+                    const tokenizeTerms = (await yomitan.tokenize(queryForm)).map((t) =>
+                        t
+                            .map((p) => p.text)
+                            .join('')
+                            .trim()
+                    );
+                    for (const tokenText of tokenizeTerms) {
+                        if (tokenText.length && !queryForms.includes(tokenText)) queryForms.push(tokenText);
+                    }
+                }
+
                 const lemmaTerms = new Set<string>();
                 for (const exactTerm of queryForms) {
-                    if (cancelled) return;
                     const lemmas = (await yomitan.lemmatize(exactTerm)) ?? [];
-                    if (cancelled) return;
                     for (const lemma of lemmas) {
                         for (const normalizedLemma of normalizedLookupTerms(lemma)) {
                             lemmaTerms.add(normalizedLemma);
                         }
                     }
-                    const kanaLemma = convertToKanaForSearch(exactTerm);
-                    if (kanaLemma && kanaLemma !== exactTerm) {
-                        if (cancelled) return;
-                        const kanaLemmas = (await yomitan.lemmatize(kanaLemma)) ?? [];
-                        if (cancelled) return;
-                        for (const lemma of kanaLemmas) {
-                            for (const normalizedLemma of normalizedLookupTerms(lemma)) {
-                                lemmaTerms.add(normalizedLemma);
-                            }
-                        }
-                    }
                 }
-                if (!cancelled) setSearchExpansion({ exactTerms, lemmaTerms: Array.from(lemmaTerms) });
+
+                setSearchExpansion({
+                    exactTerms: normalizedLookupTerms(...queryForms),
+                    lemmaTerms: Array.from(lemmaTerms),
+                });
             } catch (error) {
-                if (!cancelled) {
-                    setSearchExpansion({
-                        exactTerms,
-                        lemmaTerms: [],
-                        yomitanError: error instanceof Error ? error.message : String(error),
-                    });
-                }
+                setSearchExpansion({
+                    exactTerms: normalizedLookupTerms(...queryForms),
+                    lemmaTerms: [],
+                    yomitanError: error instanceof Error ? error.message : String(error),
+                });
             }
         })();
-
-        return () => {
-            cancelled = true;
-        };
     }, [
         appliedViewCriteria.searchQuery,
         dictionaryTrack,
@@ -871,11 +867,20 @@ export default function WordBrowserDialog({
         if (!hasSearch) {
             for (const row of filtered) matchGroups.set(row.selectionKey, 0);
         } else {
+            const exactTokenRows: WordBrowserRow[] = [];
             const exactRows: WordBrowserRow[] = [];
             const lemmaRows: WordBrowserRow[] = [];
             const remainder: WordBrowserRow[] = [];
 
             for (const row of filtered) {
+                const matchesExactToken = exactTerms.some((term) =>
+                    hasExactSearchTermMatch(row.tokenSearchTerms, term)
+                );
+                if (matchesExactToken) {
+                    exactTokenRows.push(row);
+                    continue;
+                }
+
                 const matchesExact = exactTerms.some(
                     (term) =>
                         matchesSearchTerm(row.tokenSearchTerms, term) || matchesSearchTerm(row.lemmaSearchTerms, term)
@@ -887,7 +892,7 @@ export default function WordBrowserDialog({
                 }
             }
 
-            const exactLemmaSet = new Set(exactRows.flatMap((row) => row.lemmaSearchTerms));
+            const exactLemmaSet = new Set([...exactTokenRows, ...exactRows].flatMap((row) => row.lemmaSearchTerms));
             const trailingRows: WordBrowserRow[] = [];
 
             for (const row of remainder) {
@@ -904,15 +909,16 @@ export default function WordBrowserDialog({
                 if (sharesLemma) trailingRows.push(row);
             }
 
-            for (const row of exactRows) matchGroups.set(row.selectionKey, 0);
-            for (const row of lemmaRows) matchGroups.set(row.selectionKey, 1);
-            for (const row of trailingRows) matchGroups.set(row.selectionKey, 2);
+            for (const row of exactTokenRows) matchGroups.set(row.selectionKey, 0);
+            for (const row of exactRows) matchGroups.set(row.selectionKey, 1);
+            for (const row of lemmaRows) matchGroups.set(row.selectionKey, 2);
+            for (const row of trailingRows) matchGroups.set(row.selectionKey, 3);
         }
 
         const sorted = filtered
             .filter((row) => matchGroups.has(row.selectionKey))
             .sort((lhs, rhs) => {
-                const matchDiff = (matchGroups.get(lhs.selectionKey) ?? 3) - (matchGroups.get(rhs.selectionKey) ?? 3);
+                const matchDiff = (matchGroups.get(lhs.selectionKey) ?? 4) - (matchGroups.get(rhs.selectionKey) ?? 4);
                 if (matchDiff !== 0) return matchDiff;
 
                 let valueDiff = 0;
