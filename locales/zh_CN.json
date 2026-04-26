@@ -606,5 +606,15 @@
     "app": {
         "pwaUpdatePromptTitle": "应用版本更新",
         "pwaUpdatePromptBody": "点击“确定”以完成更新。"
+    },
+    "onlineSubtitleSources": {
+        "searchOnlineSubtitles": "Search online subtitles",
+        "searchTerm": "Search term",
+        "jimakuApiKey": "Jimaku API key",
+        "jimakuApiKeyAutosaveHint": "Saved automatically. Get an API key <0>here</0>.",
+        "entries": "Search results",
+        "noEntries": "No search results",
+        "availableFiles": "Files",
+        "noFiles": "No files"
     }
 }
