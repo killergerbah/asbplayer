@@ -1,22 +1,25 @@
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
-import CircularProgress from '@mui/material/CircularProgress';
+import SearchIcon from '@mui/icons-material/Search';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
-import DialogTitle from '@mui/material/DialogTitle';
 import Link from '@mui/material/Link';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemText from '@mui/material/ListItemText';
+import CloseIcon from '@mui/icons-material/Close';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import { JimakuClient } from '@/services/subtitle-sources';
+import IconButton from '@mui/material/IconButton';
+import InputAdornment from '@mui/material/InputAdornment';
+import Toolbar from '@mui/material/Toolbar';
 
 interface OnlineSubtitleImportCandidate {
     name: string;
@@ -31,11 +34,6 @@ interface Props {
     jimakuApiKey: string;
     onJimakuApiKeyChange: (jimakuApiKey: string) => void;
 }
-
-const emptyStateText = {
-    entries: 'No entries',
-    files: 'No files',
-};
 
 const SUPPORTED_JIMAKU_EXTENSIONS = ['.srt', '.ass'];
 
@@ -73,15 +71,13 @@ export default function OnlineSubtitleSourceDialog({
     const [jimakuEntries, setJimakuEntries] = useState<{ id: number; name: string }[]>([]);
     const [jimakuSelectedEntryId, setJimakuSelectedEntryId] = useState<number>();
     const [jimakuFiles, setJimakuFiles] = useState<OnlineSubtitleImportCandidate[]>([]);
+    const [searchFocused, setSearchFocused] = useState<boolean>(false);
 
     const selectedFiles = jimakuFiles;
     const normalizedDetectedTitleHint = useMemo(
         () => normalizeDetectedTitleHint(detectedTitleHint),
         [detectedTitleHint]
     );
-    const showDetectedTitleHint =
-        normalizedDetectedTitleHint.length > 0 &&
-        normalizedDetectedTitleHint.toLowerCase() !== query.trim().toLowerCase();
     const isSearchDisabled = loading || query.trim().length === 0 || jimakuApiKey.trim().length === 0;
 
     const resetState = useCallback(() => {
@@ -95,8 +91,10 @@ export default function OnlineSubtitleSourceDialog({
     useEffect(() => {
         if (open) {
             resetState();
+            setQuery(normalizedDetectedTitleHint);
         }
-    }, [open, resetState]);
+        setSearchFocused(false);
+    }, [open, normalizedDetectedTitleHint, resetState]);
 
     const handleSearchJimaku = useCallback(async () => {
         setError(undefined);
@@ -154,80 +152,84 @@ export default function OnlineSubtitleSourceDialog({
         [onClose, onImport]
     );
 
-    const handleApplyDetectedTitleHint = useCallback(() => {
-        setQuery(normalizedDetectedTitleHint);
-    }, [normalizedDetectedTitleHint]);
-
     const handleSearch = handleSearchJimaku;
 
     return (
         <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
-            <DialogTitle>
-                {t('extension.videoDataSync.onlineSubtitleSources', { defaultValue: 'Online subtitle sources' })}
-            </DialogTitle>
+            <Toolbar>
+                <Typography variant="h6" sx={{ flexGrow: 1 }}>
+                    {t('extension.videoDataSync.onlineSubtitleSources')}
+                </Typography>
+                <IconButton onClick={onClose} edge="end">
+                    <CloseIcon />
+                </IconButton>
+            </Toolbar>
             <DialogContent>
                 <Stack spacing={2}>
                     {error && <Alert severity="error">{error}</Alert>}
-
-                    {showDetectedTitleHint && (
-                        <Alert
-                            severity="info"
-                            action={
-                                <Button onClick={handleApplyDetectedTitleHint} size="small">
-                                    {t('extension.videoDataSync.fillDetectedTitle', {
-                                        defaultValue: 'Use title',
-                                    })}
-                                </Button>
-                            }
-                        >
-                            {t('extension.videoDataSync.detectedTitleHint', {
-                                defaultValue: 'Detected from current page: {{title}}',
-                                title: normalizedDetectedTitleHint,
-                            })}
-                        </Alert>
-                    )}
-
                     <Box sx={{ display: 'flex', gap: 1 }}>
                         <TextField
-                            label={t('extension.videoDataSync.animeTitle', { defaultValue: 'Anime title' })}
+                            autoFocus
+                            margin="dense"
+                            label={t('extension.videoDataSync.searchTerm')}
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
+                            onFocus={(e) => {
+                                e.target.select();
+                                setSearchFocused(true);
+                            }}
+                            onBlur={() => setSearchFocused(false)}
+                            onKeyDown={(evt) => {
+                                if (evt.key === 'Enter') {
+                                    handleSearch();
+                                }
+                            }}
                             fullWidth
+                            slotProps={{
+                                input: {
+                                    endAdornment: (
+                                        <InputAdornment position="end">
+                                            <IconButton
+                                                loading={loading}
+                                                onClick={handleSearch}
+                                                disabled={isSearchDisabled}
+                                            >
+                                                <SearchIcon fontSize="small" />
+                                            </IconButton>
+                                        </InputAdornment>
+                                    ),
+                                },
+                            }}
                         />
-                        <Button variant="contained" onClick={handleSearch} disabled={isSearchDisabled}>
-                            {t('extension.videoDataSync.search', { defaultValue: 'Search' })}
-                        </Button>
                     </Box>
 
                     <TextField
-                        label={t('extension.videoDataSync.jimakuApiKey', { defaultValue: 'Jimaku API Key' })}
+                        label={t('extension.videoDataSync.jimakuApiKey')}
                         value={jimakuApiKey}
                         onChange={(e) => onJimakuApiKeyChange(e.target.value)}
                         helperText={
-                            <>
-                                {t('extension.videoDataSync.jimakuApiKeyAutosaveHint', {
-                                    defaultValue: 'Saved automatically after typing.',
-                                })}{' '}
-                                <Link
-                                    href="https://jimaku.cc/account"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    underline="hover"
-                                >
-                                    {t('extension.videoDataSync.jimakuApiKeyGetHere', {
-                                        defaultValue: 'Get your API key here.',
-                                    })}
-                                </Link>
-                            </>
+                            <Trans
+                                i18nKey="extension.videoDataSync.jimakuApiKeyAutosaveHint"
+                                components={{
+                                    0: (
+                                        <Link
+                                            href="https://jimaku.cc/account"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            underline="hover"
+                                        >
+                                            here
+                                        </Link>
+                                    ),
+                                }}
+                            />
                         }
                         fullWidth
                     />
 
-                    <Box sx={{ display: 'flex', gap: 2 }}>
+                    <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
                         <Stack spacing={1} sx={{ flex: 1, minWidth: 0 }}>
-                            <Typography variant="subtitle2">
-                                {t('extension.videoDataSync.entries', { defaultValue: 'Entries' })}
-                            </Typography>
+                            <Typography variant="subtitle2">{t('extension.videoDataSync.entries')}</Typography>
                             <List
                                 dense
                                 sx={{ maxHeight: 220, overflow: 'auto', border: '1px solid', borderColor: 'divider' }}
@@ -243,20 +245,14 @@ export default function OnlineSubtitleSourceDialog({
                                 ))}
                                 {jimakuEntries.length === 0 && (
                                     <ListItem>
-                                        <ListItemText
-                                            primary={t('extension.videoDataSync.noEntries', {
-                                                defaultValue: emptyStateText.entries,
-                                            })}
-                                        />
+                                        <ListItemText primary={t('extension.videoDataSync.noEntries')} />
                                     </ListItem>
                                 )}
                             </List>
                         </Stack>
 
                         <Stack spacing={1} sx={{ flex: 1, minWidth: 0 }}>
-                            <Typography variant="subtitle2">
-                                {t('extension.videoDataSync.availableFiles', { defaultValue: 'Available files' })}
-                            </Typography>
+                            <Typography variant="subtitle2">{t('extension.videoDataSync.availableFiles')}</Typography>
                             <List
                                 dense
                                 sx={{ maxHeight: 220, overflow: 'auto', border: '1px solid', borderColor: 'divider' }}
@@ -268,21 +264,12 @@ export default function OnlineSubtitleSourceDialog({
                                 ))}
                                 {selectedFiles.length === 0 && (
                                     <ListItem>
-                                        <ListItemText
-                                            primary={t('extension.videoDataSync.noFiles', {
-                                                defaultValue: emptyStateText.files,
-                                            })}
-                                        />
+                                        <ListItemText primary={t('extension.videoDataSync.noFiles')} />
                                     </ListItem>
                                 )}
                             </List>
                         </Stack>
                     </Box>
-                    {loading && (
-                        <Box sx={{ display: 'flex', justifyContent: 'center', py: 1 }}>
-                            <CircularProgress size={22} />
-                        </Box>
-                    )}
                 </Stack>
             </DialogContent>
             <DialogActions>
