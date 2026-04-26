@@ -608,13 +608,13 @@
         "pwaUpdatePromptBody": "「OK」をクリックすると更新が完了します。"
     },
     "onlineSubtitleSources": {
-        "searchOnlineSubtitles": "Search online subtitles",
-        "searchTerm": "Search term",
-        "jimakuApiKey": "Jimaku API key",
-        "jimakuApiKeyAutosaveHint": "Saved automatically. Get an API key <0>here</0>.",
-        "entries": "Search results",
-        "noEntries": "No search results",
-        "availableFiles": "Files",
-        "noFiles": "No files"
+        "searchOnlineSubtitles": "ネット上の字幕ファイルを検索",
+        "searchTerm": "検索キーワード",
+        "jimakuApiKey": "JimakuのAPIキー",
+        "jimakuApiKeyAutosaveHint": "自動的に保存されます。APIキーは<0>こちらから</0>入手できます。",
+        "entries": "検索結果",
+        "noEntries": "検索結果はありません",
+        "availableFiles": "ファイル",
+        "noFiles": "ファイルはありません"
     }
 }
