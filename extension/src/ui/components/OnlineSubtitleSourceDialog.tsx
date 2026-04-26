@@ -158,7 +158,7 @@ export default function OnlineSubtitleSourceDialog({
         <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
             <Toolbar>
                 <Typography variant="h6" sx={{ flexGrow: 1 }}>
-                    {t('extension.videoDataSync.onlineSubtitleSources')}
+                    {t('onlineSubtitleSources.title')}
                 </Typography>
                 <IconButton onClick={onClose} edge="end">
                     <CloseIcon />
@@ -171,7 +171,7 @@ export default function OnlineSubtitleSourceDialog({
                         <TextField
                             autoFocus
                             margin="dense"
-                            label={t('extension.videoDataSync.searchTerm')}
+                            label={t('onlineSubtitleSources.searchTerm')}
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
                             onFocus={(e) => {
@@ -204,24 +204,23 @@ export default function OnlineSubtitleSourceDialog({
                     </Box>
 
                     <TextField
-                        label={t('extension.videoDataSync.jimakuApiKey')}
+                        label={t('onlineSubtitleSources.jimakuApiKey')}
                         value={jimakuApiKey}
                         onChange={(e) => onJimakuApiKeyChange(e.target.value)}
                         helperText={
                             <Trans
-                                i18nKey="extension.videoDataSync.jimakuApiKeyAutosaveHint"
-                                components={{
-                                    0: (
-                                        <Link
-                                            href="https://jimaku.cc/account"
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            underline="hover"
-                                        >
-                                            here
-                                        </Link>
-                                    ),
-                                }}
+                                i18nKey="onlineSubtitleSources.jimakuApiKeyAutosaveHint"
+                                components={[
+                                    <Link
+                                        key={0}
+                                        href="https://jimaku.cc/account"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        underline="hover"
+                                    >
+                                        here
+                                    </Link>,
+                                ]}
                             />
                         }
                         fullWidth
@@ -229,7 +228,7 @@ export default function OnlineSubtitleSourceDialog({
 
                     <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
                         <Stack spacing={1} sx={{ flex: 1, minWidth: 0 }}>
-                            <Typography variant="subtitle2">{t('extension.videoDataSync.entries')}</Typography>
+                            <Typography variant="subtitle2">{t('onlineSubtitleSources.entries')}</Typography>
                             <List
                                 dense
                                 sx={{ maxHeight: 220, overflow: 'auto', border: '1px solid', borderColor: 'divider' }}
@@ -245,14 +244,14 @@ export default function OnlineSubtitleSourceDialog({
                                 ))}
                                 {jimakuEntries.length === 0 && (
                                     <ListItem>
-                                        <ListItemText primary={t('extension.videoDataSync.noEntries')} />
+                                        <ListItemText primary={t('onlineSubtitleSources.noEntries')} />
                                     </ListItem>
                                 )}
                             </List>
                         </Stack>
 
                         <Stack spacing={1} sx={{ flex: 1, minWidth: 0 }}>
-                            <Typography variant="subtitle2">{t('extension.videoDataSync.availableFiles')}</Typography>
+                            <Typography variant="subtitle2">{t('onlineSubtitleSources.availableFiles')}</Typography>
                             <List
                                 dense
                                 sx={{ maxHeight: 220, overflow: 'auto', border: '1px solid', borderColor: 'divider' }}
@@ -264,7 +263,7 @@ export default function OnlineSubtitleSourceDialog({
                                 ))}
                                 {selectedFiles.length === 0 && (
                                     <ListItem>
-                                        <ListItemText primary={t('extension.videoDataSync.noFiles')} />
+                                        <ListItemText primary={t('onlineSubtitleSources.noFiles')} />
                                     </ListItem>
                                 )}
                             </List>
