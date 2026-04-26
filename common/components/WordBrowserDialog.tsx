@@ -1,6 +1,7 @@
 import { memo, MouseEvent as ReactMouseEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Alert from '@mui/material/Alert';
+import Badge from '@mui/material/Badge';
 import Button from '@mui/material/Button';
 import Checkbox from '@mui/material/Checkbox';
 import Dialog from '@mui/material/Dialog';
@@ -14,6 +15,9 @@ import ListItemText from '@mui/material/ListItemText';
 import MenuItem from '@mui/material/MenuItem';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import Paper from '@mui/material/Paper';
+import Popover from '@mui/material/Popover';
+import Radio from '@mui/material/Radio';
+import RadioGroup from '@mui/material/RadioGroup';
 import Select from '@mui/material/Select';
 import Stack from '@mui/material/Stack';
 import Table from '@mui/material/Table';
@@ -26,7 +30,9 @@ import TableSortLabel from '@mui/material/TableSortLabel';
 import TextField from '@mui/material/TextField';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
+import FormControlLabel from '@mui/material/FormControlLabel';
 import CloseIcon from '@mui/icons-material/Close';
+import FilterListIcon from '@mui/icons-material/FilterList';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
@@ -54,6 +60,7 @@ type SortDirection = 'asc' | 'desc';
 type MatchGroup = 0 | 1 | 2 | 3 | 4;
 type SuspendedFilter = 'all' | 'yes' | 'no' | 'mixed';
 type FilterMode = 'include' | 'exclude';
+type FilterPopoverKey = 'search' | 'source' | 'status' | 'states' | 'track' | 'cardIds' | 'noteIds' | 'suspended';
 
 interface Props {
     open: boolean;
@@ -126,7 +133,7 @@ type AutoRefreshViewCriteria = Pick<
 interface WordBrowserTableRowProps {
     row: WordBrowserRow;
     selected: boolean;
-    onSelectRow: (selectionKey: string, options: { shiftKey: boolean; ctrlKey: boolean; metaKey: boolean }) => void;
+    onSelectRow: (selectionKey: string, options: { shiftKey: boolean }) => void;
     renderStatusLabel: (status: TokenStatus) => React.ReactNode;
 }
 
@@ -140,12 +147,10 @@ type FilterCriteriaKey =
 type FilterCriteriaValue<K extends FilterCriteriaKey> = ViewCriteria[K] extends FilterMap<infer T> ? T : never;
 type TextCriteriaKey = 'searchQuery' | 'cardIdFilter' | 'noteIdFilter';
 
-interface CyclingFilterSelectProps<T extends FilterModeValue> {
+interface CyclingFilterListProps<T extends FilterModeValue> {
     options: readonly T[];
     selectedFilters: FilterMap<T>;
-    placeholder: string;
     onToggle: (value: T) => void;
-    renderSelectedValue: (value: T, index: number) => React.ReactNode;
     renderMenuItemLabel: (value: T) => React.ReactNode;
 }
 
@@ -324,8 +329,6 @@ const WordBrowserTableRow = memo(function WordBrowserTableRow({
             if (!row.selectable) return;
             onSelectRow(row.selectionKey, {
                 shiftKey: event.shiftKey,
-                ctrlKey: event.ctrlKey,
-                metaKey: event.metaKey,
             });
         },
         [onSelectRow, row.selectable, row.selectionKey]
@@ -335,6 +338,9 @@ const WordBrowserTableRow = memo(function WordBrowserTableRow({
         <TableRow
             hover
             selected={selected}
+            onMouseDown={(event) => {
+                if (event.shiftKey) event.preventDefault();
+            }}
             onClick={handleSelect}
             sx={row.selectable ? { cursor: 'pointer' } : undefined}
         >
@@ -365,50 +371,24 @@ const WordBrowserTableRow = memo(function WordBrowserTableRow({
     );
 });
 
-function CyclingFilterSelect<T extends FilterModeValue>({
+function CyclingFilterList<T extends FilterModeValue>({
     options,
     selectedFilters,
-    placeholder,
     onToggle,
-    renderSelectedValue,
     renderMenuItemLabel,
-}: CyclingFilterSelectProps<T>) {
-    const selectedValues = options.filter((value) => selectedFilters[value] !== undefined);
-
+}: CyclingFilterListProps<T>) {
     return (
-        <FormControl size="small" fullWidth>
-            <Select
-                multiple
-                displayEmpty
-                value={selectedValues}
-                onChange={() => undefined}
-                input={<OutlinedInput />}
-                renderValue={() =>
-                    selectedValues.length ? (
-                        selectedValues.map(renderSelectedValue)
-                    ) : (
-                        <Typography color="text.secondary">{placeholder}</Typography>
-                    )
-                }
-            >
-                {options.map((value) => (
-                    <MenuItem
-                        key={String(value)}
-                        value={value}
-                        onClick={(event) => {
-                            event.preventDefault();
-                            onToggle(value);
-                        }}
-                    >
-                        <Checkbox
-                            checked={selectedFilters[value] === 'include'}
-                            indeterminate={selectedFilters[value] === 'exclude'}
-                        />
-                        {renderMenuItemLabel(value)}
-                    </MenuItem>
-                ))}
-            </Select>
-        </FormControl>
+        <Stack spacing={0.5}>
+            {options.map((value) => (
+                <MenuItem key={String(value)} value={value} onClick={() => onToggle(value)} sx={{ borderRadius: 1 }}>
+                    <Checkbox
+                        checked={selectedFilters[value] === 'include'}
+                        indeterminate={selectedFilters[value] === 'exclude'}
+                    />
+                    {renderMenuItemLabel(value)}
+                </MenuItem>
+            ))}
+        </Stack>
     );
 }
 
@@ -449,6 +429,7 @@ export default function WordBrowserDialog({
     const [bulkStatesApplyStrategy, setBulkStatesApplyStrategy] = useState<ApplyStrategy>(ApplyStrategy.REPLACE);
     const [confirmApplyOpen, setConfirmApplyOpen] = useState(false);
     const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+    const [openFilterPopover, setOpenFilterPopover] = useState<{ key: FilterPopoverKey; anchorEl: HTMLElement }>();
     const [pendingAutoRefreshDelayMs, setPendingAutoRefreshDelayMs] = useState<number>();
     const loadRequestIdRef = useRef(0);
     const selectionAnchorKeyRef = useRef<string | undefined>(undefined);
@@ -522,6 +503,7 @@ export default function WordBrowserDialog({
         setBulkStatesApplyStrategy(ApplyStrategy.REPLACE);
         setConfirmApplyOpen(false);
         setConfirmDeleteOpen(false);
+        setOpenFilterPopover(undefined);
         selectionAnchorKeyRef.current = undefined;
         void loadRecords(initialViewCriteria);
     }, [loadRecords, open]);
@@ -557,6 +539,7 @@ export default function WordBrowserDialog({
         setBulkStatesApplyStrategy(ApplyStrategy.REPLACE);
         setConfirmApplyOpen(false);
         setConfirmDeleteOpen(false);
+        setOpenFilterPopover(undefined);
         selectionAnchorKeyRef.current = undefined;
         setPendingAutoRefreshDelayMs(undefined);
     }, [open]);
@@ -803,6 +786,21 @@ export default function WordBrowserDialog({
         [draftViewCriteria.selectedTrackFilters, sourceLabels, t, trackFilterOptions]
     );
 
+    const toggleFilterPopover = useCallback((key: FilterPopoverKey, anchorEl: HTMLElement) => {
+        setOpenFilterPopover((current) =>
+            current?.key === key && current.anchorEl === anchorEl
+                ? undefined
+                : {
+                      key,
+                      anchorEl,
+                  }
+        );
+    }, []);
+
+    const closeFilterPopover = useCallback(() => {
+        setOpenFilterPopover(undefined);
+    }, []);
+
     const visibleRows = useMemo(() => {
         const cardIdFilterTerms = appliedViewCriteria.cardIdFilter.split(/\D+/).filter((value) => value.length);
         const noteIdFilterTerms = appliedViewCriteria.noteIdFilter.split(/\D+/).filter((value) => value.length);
@@ -999,45 +997,39 @@ export default function WordBrowserDialog({
         setBulkStatesApplyStrategy(ApplyStrategy.REPLACE);
     }, [bulkIgnoredState]);
 
-    const handleSelectRow = useCallback(
-        (
-            selectionKey: string,
-            { shiftKey, ctrlKey, metaKey }: { shiftKey: boolean; ctrlKey: boolean; metaKey: boolean }
-        ) => {
-            const visibleSelectionKeys = visibleSelectableRowsRef.current.map((row) => row.selectionKey);
-            const preserveExisting = ctrlKey || metaKey;
+    const handleSelectRow = useCallback((selectionKey: string, { shiftKey }: { shiftKey: boolean }) => {
+        const visibleSelectionKeys = visibleSelectableRowsRef.current.map((row) => row.selectionKey);
+        const preserveExisting = true;
 
-            setSelectedRowKeys((current) => {
-                const clickedIndex = visibleSelectionKeys.indexOf(selectionKey);
-                if (clickedIndex === -1) return current;
+        setSelectedRowKeys((current) => {
+            const clickedIndex = visibleSelectionKeys.indexOf(selectionKey);
+            if (clickedIndex === -1) return current;
 
-                if (shiftKey) {
-                    const anchorKey = selectionAnchorKeyRef.current ?? selectionKey;
-                    const anchorIndex = visibleSelectionKeys.indexOf(anchorKey);
+            if (shiftKey) {
+                const anchorKey = selectionAnchorKeyRef.current ?? selectionKey;
+                const anchorIndex = visibleSelectionKeys.indexOf(anchorKey);
 
-                    if (anchorIndex !== -1) {
-                        const [start, end] =
-                            anchorIndex <= clickedIndex ? [anchorIndex, clickedIndex] : [clickedIndex, anchorIndex];
-                        const next = preserveExisting ? new Set(current) : new Set<string>();
-                        for (let index = start; index <= end; ++index) next.add(visibleSelectionKeys[index]);
-                        return next;
-                    }
-                }
-
-                if (preserveExisting) {
-                    const next = new Set(current);
-                    if (next.has(selectionKey)) next.delete(selectionKey);
-                    else next.add(selectionKey);
+                if (anchorIndex !== -1) {
+                    const [start, end] =
+                        anchorIndex <= clickedIndex ? [anchorIndex, clickedIndex] : [clickedIndex, anchorIndex];
+                    const next = preserveExisting ? new Set(current) : new Set<string>();
+                    for (let index = start; index <= end; ++index) next.add(visibleSelectionKeys[index]);
                     return next;
                 }
+            }
 
-                return new Set([selectionKey]);
-            });
+            if (preserveExisting) {
+                const next = new Set(current);
+                if (next.has(selectionKey)) next.delete(selectionKey);
+                else next.add(selectionKey);
+                return next;
+            }
 
-            selectionAnchorKeyRef.current = selectionKey;
-        },
-        []
-    );
+            return new Set([selectionKey]);
+        });
+
+        selectionAnchorKeyRef.current = selectionKey;
+    }, []);
 
     const toggleSelectAllVisible = useCallback(() => {
         setSelectedRowKeys((current) => {
@@ -1082,6 +1074,27 @@ export default function WordBrowserDialog({
             </TableSortLabel>
         ),
         [draftViewCriteria.sortField, draftViewCriteria.sortDirection, handleSortColumnClick]
+    );
+
+    const renderHeaderCell = useCallback(
+        (field: SortField, label: string, filterKey?: FilterPopoverKey, filterActive = false) => (
+            <Stack direction="row" spacing={0.5} alignItems="center" justifyContent="space-between">
+                {renderSortableHeader(field, label)}
+                {filterKey && (
+                    <Badge color="primary" variant="dot" invisible={!filterActive}>
+                        <IconButton
+                            size="small"
+                            color={filterActive ? 'primary' : 'default'}
+                            aria-label={`${label} filter`}
+                            onClick={(event) => toggleFilterPopover(filterKey, event.currentTarget)}
+                        >
+                            <FilterListIcon fontSize="small" />
+                        </IconButton>
+                    </Badge>
+                )}
+            </Stack>
+        ),
+        [renderSortableHeader, toggleFilterPopover]
     );
 
     const renderClearAdornment = useCallback(
@@ -1306,10 +1319,6 @@ export default function WordBrowserDialog({
                                         height: 40,
                                         boxSizing: 'border-box',
                                     },
-                                    '& .MuiTableRow-root:nth-of-type(2) .MuiTableCell-head': {
-                                        top: 40,
-                                        zIndex: 2,
-                                    },
                                 }}
                             >
                                 <TableRow sx={{ boxShadow: `inset 0 -1px 0 ${theme.palette.divider}` }}>
@@ -1322,194 +1331,71 @@ export default function WordBrowserDialog({
                                         />
                                     </TableCell>
                                     <TableCell>
-                                        {renderSortableHeader('token', t('settings.dictionaryBrowser.columns.word'))}
+                                        {renderHeaderCell(
+                                            'token',
+                                            t('settings.dictionaryBrowser.columns.word'),
+                                            'search',
+                                            draftViewCriteria.searchQuery.length > 0
+                                        )}
                                     </TableCell>
                                     <TableCell>
                                         {renderSortableHeader('lemmas', t('settings.dictionaryBrowser.columns.lemmas'))}
                                     </TableCell>
                                     <TableCell>
-                                        {renderSortableHeader('source', t('settings.dictionaryBrowser.columns.source'))}
+                                        {renderHeaderCell(
+                                            'source',
+                                            t('settings.dictionaryBrowser.columns.source'),
+                                            'source',
+                                            Object.keys(draftViewCriteria.selectedSourceFilters).length > 0
+                                        )}
                                     </TableCell>
                                     <TableCell>
-                                        {renderSortableHeader('status', t('settings.dictionaryBrowser.columns.status'))}
+                                        {renderHeaderCell(
+                                            'status',
+                                            t('settings.dictionaryBrowser.columns.status'),
+                                            'status',
+                                            Object.keys(draftViewCriteria.selectedStatusFilters).length > 0
+                                        )}
                                     </TableCell>
                                     <TableCell>
-                                        {renderSortableHeader('states', t('settings.dictionaryBrowser.columns.states'))}
+                                        {renderHeaderCell(
+                                            'states',
+                                            t('settings.dictionaryBrowser.columns.states'),
+                                            'states',
+                                            Object.keys(draftViewCriteria.selectedStateFilters).length > 0
+                                        )}
                                     </TableCell>
                                     <TableCell>
-                                        {renderSortableHeader('track', t('settings.dictionaryBrowser.columns.track'))}
+                                        {renderHeaderCell(
+                                            'track',
+                                            t('settings.dictionaryBrowser.columns.track'),
+                                            'track',
+                                            Object.keys(draftViewCriteria.selectedTrackFilters).length > 0
+                                        )}
                                     </TableCell>
                                     <TableCell>
-                                        {renderSortableHeader(
+                                        {renderHeaderCell(
                                             'cardIds',
-                                            t('settings.dictionaryBrowser.columns.cardIds')
+                                            t('settings.dictionaryBrowser.columns.cardIds'),
+                                            'cardIds',
+                                            draftViewCriteria.cardIdFilter.length > 0
                                         )}
                                     </TableCell>
                                     <TableCell>
-                                        {renderSortableHeader(
+                                        {renderHeaderCell(
                                             'noteIds',
-                                            t('settings.dictionaryBrowser.columns.noteIds')
+                                            t('settings.dictionaryBrowser.columns.noteIds'),
+                                            'noteIds',
+                                            draftViewCriteria.noteIdFilter.length > 0
                                         )}
                                     </TableCell>
                                     <TableCell>
-                                        {renderSortableHeader(
+                                        {renderHeaderCell(
                                             'suspended',
-                                            t('settings.dictionaryBrowser.columns.suspended')
+                                            t('settings.dictionaryBrowser.columns.suspended'),
+                                            'suspended',
+                                            draftViewCriteria.suspendedFilter !== 'all'
                                         )}
-                                    </TableCell>
-                                </TableRow>
-                                <TableRow sx={{ boxShadow: `inset 0 -1px 0 ${theme.palette.divider}` }}>
-                                    <TableCell padding="checkbox" />
-                                    <TableCell colSpan={2}>
-                                        <TextField
-                                            placeholder={t('settings.dictionaryBrowser.searchPlaceholder')}
-                                            value={draftViewCriteria.searchQuery}
-                                            onChange={(event) =>
-                                                updateDraftTextCriteria('searchQuery', event.target.value)
-                                            }
-                                            slotProps={{
-                                                input: {
-                                                    endAdornment: renderClearAdornment(
-                                                        draftViewCriteria.searchQuery,
-                                                        () => clearDraftTextCriteria('searchQuery')
-                                                    ),
-                                                },
-                                            }}
-                                            size="small"
-                                            fullWidth
-                                        />
-                                    </TableCell>
-                                    <TableCell>
-                                        <CyclingFilterSelect
-                                            options={filterableSources}
-                                            selectedFilters={draftViewCriteria.selectedSourceFilters}
-                                            placeholder={t('settings.dictionaryBrowser.columns.source')}
-                                            onToggle={(source) => cycleFilter('selectedSourceFilters', source)}
-                                            renderSelectedValue={(source) => renderSourceFilterLabel(source)}
-                                            renderMenuItemLabel={(source) => (
-                                                <ListItemText primary={sourceLabels[source]} />
-                                            )}
-                                        />
-                                    </TableCell>
-                                    <TableCell>
-                                        <CyclingFilterSelect
-                                            options={filterStatusOptions}
-                                            selectedFilters={draftViewCriteria.selectedStatusFilters}
-                                            placeholder={t('settings.dictionaryBrowser.columns.status')}
-                                            onToggle={(status) => cycleFilter('selectedStatusFilters', status)}
-                                            renderSelectedValue={(status, index) => (
-                                                <Typography
-                                                    key={`${status}-${index}`}
-                                                    component="span"
-                                                    sx={{ color: statusColors[status], fontWeight: 500 }}
-                                                >
-                                                    {index > 0 ? ', ' : ''}
-                                                    {renderStatusFilterLabel(status)}
-                                                </Typography>
-                                            )}
-                                            renderMenuItemLabel={(status) => (
-                                                <ListItemText
-                                                    primary={t(`settings.dictionaryTokenStatus${status}`)}
-                                                    slotProps={{ primary: { sx: { color: statusColors[status] } } }}
-                                                />
-                                            )}
-                                        />
-                                    </TableCell>
-                                    <TableCell>
-                                        <CyclingFilterSelect
-                                            options={filterableStates}
-                                            selectedFilters={draftViewCriteria.selectedStateFilters}
-                                            placeholder={t('settings.dictionaryBrowser.columns.states')}
-                                            onToggle={(state) => cycleFilter('selectedStateFilters', state)}
-                                            renderSelectedValue={(state) => renderStateFilterLabel(state)}
-                                            renderMenuItemLabel={(state) => (
-                                                <ListItemText primary={stateLabels[state]} />
-                                            )}
-                                        />
-                                    </TableCell>
-                                    <TableCell>
-                                        <CyclingFilterSelect
-                                            options={trackFilterOptions.map((option) => option.value)}
-                                            selectedFilters={draftViewCriteria.selectedTrackFilters}
-                                            placeholder={t('settings.dictionaryBrowser.columns.track')}
-                                            onToggle={(trackValue) => cycleFilter('selectedTrackFilters', trackValue)}
-                                            renderSelectedValue={(trackValue) => renderTrackFilterLabel(trackValue)}
-                                            renderMenuItemLabel={(trackValue) => (
-                                                <ListItemText
-                                                    primary={
-                                                        trackFilterOptions.find((option) => option.value === trackValue)
-                                                            ?.label ?? ''
-                                                    }
-                                                />
-                                            )}
-                                        />
-                                    </TableCell>
-                                    <TableCell>
-                                        <TextField
-                                            placeholder={t('settings.dictionaryBrowser.columns.cardIds')}
-                                            value={draftViewCriteria.cardIdFilter}
-                                            onChange={(event) =>
-                                                updateDraftTextCriteria('cardIdFilter', event.target.value)
-                                            }
-                                            slotProps={{
-                                                input: {
-                                                    endAdornment: renderClearAdornment(
-                                                        draftViewCriteria.cardIdFilter,
-                                                        () => clearDraftTextCriteria('cardIdFilter')
-                                                    ),
-                                                },
-                                            }}
-                                            size="small"
-                                            fullWidth
-                                        />
-                                    </TableCell>
-                                    <TableCell>
-                                        <TextField
-                                            placeholder={t('settings.dictionaryBrowser.columns.noteIds')}
-                                            value={draftViewCriteria.noteIdFilter}
-                                            onChange={(event) =>
-                                                updateDraftTextCriteria('noteIdFilter', event.target.value)
-                                            }
-                                            slotProps={{
-                                                input: {
-                                                    endAdornment: renderClearAdornment(
-                                                        draftViewCriteria.noteIdFilter,
-                                                        () => clearDraftTextCriteria('noteIdFilter')
-                                                    ),
-                                                },
-                                            }}
-                                            size="small"
-                                            fullWidth
-                                        />
-                                    </TableCell>
-                                    <TableCell>
-                                        <FormControl size="small" fullWidth>
-                                            <Select
-                                                value={draftViewCriteria.suspendedFilter}
-                                                onChange={(event) =>
-                                                    updateDraftViewCriteria(
-                                                        singleSelectAutoRefreshDelayMs,
-                                                        (current) => ({
-                                                            ...current,
-                                                            suspendedFilter: event.target.value as SuspendedFilter,
-                                                        })
-                                                    )
-                                                }
-                                            >
-                                                <MenuItem value="all">
-                                                    {t('settings.dictionaryBrowser.suspended.all')}
-                                                </MenuItem>
-                                                <MenuItem value="yes">
-                                                    {t('settings.dictionaryBrowser.suspended.yes')}
-                                                </MenuItem>
-                                                <MenuItem value="no">
-                                                    {t('settings.dictionaryBrowser.suspended.no')}
-                                                </MenuItem>
-                                                <MenuItem value="mixed">
-                                                    {t('settings.dictionaryBrowser.suspended.mixed')}
-                                                </MenuItem>
-                                            </Select>
-                                        </FormControl>
                                     </TableCell>
                                 </TableRow>
                             </TableHead>
@@ -1535,6 +1421,187 @@ export default function WordBrowserDialog({
                             </TableBody>
                         </Table>
                     </TableContainer>
+                    <Popover
+                        open={openFilterPopover !== undefined}
+                        anchorEl={openFilterPopover?.anchorEl}
+                        onClose={closeFilterPopover}
+                        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+                        transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+                        PaperProps={{ sx: { p: 1.5, width: 280, maxWidth: 'calc(100vw - 32px)' } }}
+                    >
+                        <Stack spacing={1.5}>
+                            {openFilterPopover?.key === 'search' && (
+                                <>
+                                    <Typography variant="body2" fontWeight={500}>
+                                        {t('settings.dictionaryBrowser.columns.word')}
+                                    </Typography>
+                                    <TextField
+                                        autoFocus
+                                        placeholder={t('settings.dictionaryBrowser.searchPlaceholder')}
+                                        value={draftViewCriteria.searchQuery}
+                                        onChange={(event) => updateDraftTextCriteria('searchQuery', event.target.value)}
+                                        slotProps={{
+                                            input: {
+                                                endAdornment: renderClearAdornment(draftViewCriteria.searchQuery, () =>
+                                                    clearDraftTextCriteria('searchQuery')
+                                                ),
+                                            },
+                                        }}
+                                        size="small"
+                                        fullWidth
+                                    />
+                                </>
+                            )}
+                            {openFilterPopover?.key === 'source' && (
+                                <>
+                                    <Typography variant="body2" fontWeight={500}>
+                                        {t('settings.dictionaryBrowser.columns.source')}
+                                    </Typography>
+                                    <CyclingFilterList
+                                        options={filterableSources}
+                                        selectedFilters={draftViewCriteria.selectedSourceFilters}
+                                        onToggle={(source) => cycleFilter('selectedSourceFilters', source)}
+                                        renderMenuItemLabel={(source) => (
+                                            <ListItemText primary={renderSourceFilterLabel(source)} />
+                                        )}
+                                    />
+                                </>
+                            )}
+                            {openFilterPopover?.key === 'status' && (
+                                <>
+                                    <Typography variant="body2" fontWeight={500}>
+                                        {t('settings.dictionaryBrowser.columns.status')}
+                                    </Typography>
+                                    <CyclingFilterList
+                                        options={filterStatusOptions}
+                                        selectedFilters={draftViewCriteria.selectedStatusFilters}
+                                        onToggle={(status) => cycleFilter('selectedStatusFilters', status)}
+                                        renderMenuItemLabel={(status) => (
+                                            <ListItemText
+                                                primary={renderStatusFilterLabel(status)}
+                                                slotProps={{ primary: { sx: { color: statusColors[status] } } }}
+                                            />
+                                        )}
+                                    />
+                                </>
+                            )}
+                            {openFilterPopover?.key === 'states' && (
+                                <>
+                                    <Typography variant="body2" fontWeight={500}>
+                                        {t('settings.dictionaryBrowser.columns.states')}
+                                    </Typography>
+                                    <CyclingFilterList
+                                        options={filterableStates}
+                                        selectedFilters={draftViewCriteria.selectedStateFilters}
+                                        onToggle={(state) => cycleFilter('selectedStateFilters', state)}
+                                        renderMenuItemLabel={(state) => (
+                                            <ListItemText primary={renderStateFilterLabel(state)} />
+                                        )}
+                                    />
+                                </>
+                            )}
+                            {openFilterPopover?.key === 'track' && (
+                                <>
+                                    <Typography variant="body2" fontWeight={500}>
+                                        {t('settings.dictionaryBrowser.columns.track')}
+                                    </Typography>
+                                    <CyclingFilterList
+                                        options={trackFilterOptions.map((option) => option.value)}
+                                        selectedFilters={draftViewCriteria.selectedTrackFilters}
+                                        onToggle={(trackValue) => cycleFilter('selectedTrackFilters', trackValue)}
+                                        renderMenuItemLabel={(trackValue) => (
+                                            <ListItemText primary={renderTrackFilterLabel(trackValue)} />
+                                        )}
+                                    />
+                                </>
+                            )}
+                            {openFilterPopover?.key === 'cardIds' && (
+                                <>
+                                    <Typography variant="body2" fontWeight={500}>
+                                        {t('settings.dictionaryBrowser.columns.cardIds')}
+                                    </Typography>
+                                    <TextField
+                                        autoFocus
+                                        placeholder={t('settings.dictionaryBrowser.columns.cardIds')}
+                                        value={draftViewCriteria.cardIdFilter}
+                                        onChange={(event) =>
+                                            updateDraftTextCriteria('cardIdFilter', event.target.value)
+                                        }
+                                        slotProps={{
+                                            input: {
+                                                endAdornment: renderClearAdornment(draftViewCriteria.cardIdFilter, () =>
+                                                    clearDraftTextCriteria('cardIdFilter')
+                                                ),
+                                            },
+                                        }}
+                                        size="small"
+                                        fullWidth
+                                    />
+                                </>
+                            )}
+                            {openFilterPopover?.key === 'noteIds' && (
+                                <>
+                                    <Typography variant="body2" fontWeight={500}>
+                                        {t('settings.dictionaryBrowser.columns.noteIds')}
+                                    </Typography>
+                                    <TextField
+                                        autoFocus
+                                        placeholder={t('settings.dictionaryBrowser.columns.noteIds')}
+                                        value={draftViewCriteria.noteIdFilter}
+                                        onChange={(event) =>
+                                            updateDraftTextCriteria('noteIdFilter', event.target.value)
+                                        }
+                                        slotProps={{
+                                            input: {
+                                                endAdornment: renderClearAdornment(draftViewCriteria.noteIdFilter, () =>
+                                                    clearDraftTextCriteria('noteIdFilter')
+                                                ),
+                                            },
+                                        }}
+                                        size="small"
+                                        fullWidth
+                                    />
+                                </>
+                            )}
+                            {openFilterPopover?.key === 'suspended' && (
+                                <>
+                                    <Typography variant="body2" fontWeight={500}>
+                                        {t('settings.dictionaryBrowser.columns.suspended')}
+                                    </Typography>
+                                    <RadioGroup
+                                        value={draftViewCriteria.suspendedFilter}
+                                        onChange={(event) =>
+                                            updateDraftViewCriteria(singleSelectAutoRefreshDelayMs, (current) => ({
+                                                ...current,
+                                                suspendedFilter: event.target.value as SuspendedFilter,
+                                            }))
+                                        }
+                                    >
+                                        <FormControlLabel
+                                            value="all"
+                                            control={<Radio size="small" />}
+                                            label={t('settings.dictionaryBrowser.suspended.all')}
+                                        />
+                                        <FormControlLabel
+                                            value="yes"
+                                            control={<Radio size="small" />}
+                                            label={t('settings.dictionaryBrowser.suspended.yes')}
+                                        />
+                                        <FormControlLabel
+                                            value="no"
+                                            control={<Radio size="small" />}
+                                            label={t('settings.dictionaryBrowser.suspended.no')}
+                                        />
+                                        <FormControlLabel
+                                            value="mixed"
+                                            control={<Radio size="small" />}
+                                            label={t('settings.dictionaryBrowser.suspended.mixed')}
+                                        />
+                                    </RadioGroup>
+                                </>
+                            )}
+                        </Stack>
+                    </Popover>
                 </Stack>
             </DialogContent>
             <DialogActions>
