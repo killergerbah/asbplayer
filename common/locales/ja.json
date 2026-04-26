@@ -606,5 +606,15 @@
     "app": {
         "pwaUpdatePromptTitle": "アプリ更新",
         "pwaUpdatePromptBody": "「OK」をクリックすると更新が完了します。"
+    },
+    "onlineSubtitleSources": {
+        "searchOnlineSubtitles": "ネット上の字幕ファイルを検索",
+        "searchTerm": "検索キーワード",
+        "jimakuApiKey": "JimakuのAPIキー",
+        "jimakuApiKeyAutosaveHint": "自動的に保存されます。APIキーは<0>こちらから</0>入手できます。",
+        "entries": "検索結果",
+        "noEntries": "検索結果はありません",
+        "availableFiles": "ファイル",
+        "noFiles": "ファイルはありません"
     }
 }

@@ -606,5 +606,15 @@
     "app": {
         "pwaUpdatePromptTitle": "Atualização do aplicativo",
         "pwaUpdatePromptBody": "Clique em \"OK\" para concluir a atualização."
+    },
+    "onlineSubtitleSources": {
+        "searchOnlineSubtitles": "Search online subtitles",
+        "searchTerm": "Search term",
+        "jimakuApiKey": "Jimaku API key",
+        "jimakuApiKeyAutosaveHint": "Saved automatically. Get an API key <0>here</0>.",
+        "entries": "Search results",
+        "noEntries": "No search results",
+        "availableFiles": "Files",
+        "noFiles": "No files"
     }
 }

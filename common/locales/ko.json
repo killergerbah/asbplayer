@@ -606,5 +606,15 @@
     "app": {
         "pwaUpdatePromptTitle": "앱 업데이트",
         "pwaUpdatePromptBody": "‘OK’를 클릭하면 업데이트가 완료됩니다"
+    },
+    "onlineSubtitleSources": {
+        "searchOnlineSubtitles": "Search online subtitles",
+        "searchTerm": "Search term",
+        "jimakuApiKey": "Jimaku API key",
+        "jimakuApiKeyAutosaveHint": "Saved automatically. Get an API key <0>here</0>.",
+        "entries": "Search results",
+        "noEntries": "No search results",
+        "availableFiles": "Files",
+        "noFiles": "No files"
     }
 }

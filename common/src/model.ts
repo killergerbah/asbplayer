@@ -1,4 +1,5 @@
 import type { AnkiSettings, TokenState, TokenStatus } from '../settings/settings';
+import type { OnlineSubtitleSourceConfig } from '../global-state';
 
 type Profile = { name: string };
 
@@ -231,6 +232,7 @@ export interface VideoDataUiModel {
     openReason?: VideoDataUiOpenReason;
     openedFromAsbplayerId?: string;
     defaultCheckboxState?: boolean;
+    onlineSubtitleSourceConfig?: OnlineSubtitleSourceConfig;
     settings: VideoDataUiSettings;
     hasSeenFtue: boolean;
     hideRememberTrackPreferenceToggle: boolean;
