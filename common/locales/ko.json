@@ -612,9 +612,9 @@
         "searchTerm": "Search term",
         "jimakuApiKey": "Jimaku API key",
         "jimakuApiKeyAutosaveHint": "Saved automatically. Get an API key <0>here</0>.",
-        "entries": "Entries",
-        "noEntries": "No entries",
-        "availableFiles": "Available files",
-        "noFiles": "No available files"
+        "entries": "Search results",
+        "noEntries": "No search results",
+        "availableFiles": "Files",
+        "noFiles": "No files"
     }
 }

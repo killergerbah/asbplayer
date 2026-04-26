@@ -16,10 +16,11 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
-import { JimakuClient } from '@/services/subtitle-sources';
+import { JimakuClient, JimakuEntry } from '@/services/subtitle-sources';
 import IconButton from '@mui/material/IconButton';
 import InputAdornment from '@mui/material/InputAdornment';
 import Toolbar from '@mui/material/Toolbar';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 
 interface OnlineSubtitleImportCandidate {
     name: string;
@@ -64,28 +65,33 @@ export default function OnlineSubtitleSourceDialog({
     onJimakuApiKeyChange,
 }: Props) {
     const { t } = useTranslation();
-    const [loading, setLoading] = useState(false);
+    const [searching, setSearching] = useState(false);
+    const [loadingFiles, setLoadingFiles] = useState(false);
     const [error, setError] = useState<string>();
 
     const [query, setQuery] = useState('');
+    const [lastQuery, setLastQuery] = useState<string>();
     const [jimakuEntries, setJimakuEntries] = useState<{ id: number; name: string }[]>([]);
-    const [jimakuSelectedEntryId, setJimakuSelectedEntryId] = useState<number>();
-    const [jimakuFiles, setJimakuFiles] = useState<OnlineSubtitleImportCandidate[]>([]);
-    const [searchFocused, setSearchFocused] = useState<boolean>(false);
+    const [jimakuSelectedEntry, setJimakuSelectedEntry] = useState<JimakuEntry>();
+    const [jimakuFiles, setJimakuFiles] = useState<OnlineSubtitleImportCandidate[]>();
 
-    const selectedFiles = jimakuFiles;
     const normalizedDetectedTitleHint = useMemo(
         () => normalizeDetectedTitleHint(detectedTitleHint),
         [detectedTitleHint]
     );
-    const isSearchDisabled = loading || query.trim().length === 0 || jimakuApiKey.trim().length === 0;
+    const isSearchDisabled =
+        searching ||
+        query.trim().length === 0 ||
+        jimakuApiKey.trim().length === 0 ||
+        lastQuery === query ||
+        loadingFiles;
 
     const resetState = useCallback(() => {
-        setLoading(false);
+        setSearching(false);
         setError(undefined);
         setJimakuEntries([]);
-        setJimakuSelectedEntryId(undefined);
-        setJimakuFiles([]);
+        setJimakuSelectedEntry(undefined);
+        setJimakuFiles(undefined);
     }, []);
 
     useEffect(() => {
@@ -93,43 +99,43 @@ export default function OnlineSubtitleSourceDialog({
             resetState();
             setQuery(normalizedDetectedTitleHint);
         }
-        setSearchFocused(false);
     }, [open, normalizedDetectedTitleHint, resetState]);
 
     const handleSearchJimaku = useCallback(async () => {
         setError(undefined);
-        setLoading(true);
+        setSearching(true);
 
         try {
             const client = new JimakuClient({ apiKey: jimakuApiKey });
             const entries = (await client.searchEntries(query)).data;
+            setLastQuery(query);
             setJimakuEntries(entries.map((entry) => ({ id: entry.id, name: entry.name })));
-            setJimakuSelectedEntryId(undefined);
-            setJimakuFiles([]);
+            setJimakuSelectedEntry(undefined);
+            setJimakuFiles(undefined);
         } catch (e) {
             setError((e as Error).message);
         } finally {
-            setLoading(false);
+            setSearching(false);
         }
     }, [jimakuApiKey, query]);
 
     const handleLoadJimakuFiles = useCallback(
-        async (entryId: number) => {
+        async (entry: JimakuEntry) => {
             setError(undefined);
-            setLoading(true);
-            setJimakuSelectedEntryId(entryId);
+            setSearching(true);
+            setJimakuSelectedEntry(entry);
 
             try {
                 const client = new JimakuClient({ apiKey: jimakuApiKey });
-                const files = (await client.getFiles(entryId)).data
+                const files = (await client.getFiles(entry.id)).data
                     .filter((file) => isSupportedSubtitleFile(file.name))
                     .map((file) => ({ name: file.name, url: file.url }));
                 setJimakuFiles(files);
             } catch (e) {
                 setError((e as Error).message);
-                setJimakuFiles([]);
+                setJimakuFiles(undefined);
             } finally {
-                setLoading(false);
+                setSearching(false);
             }
         },
         [jimakuApiKey]
@@ -138,7 +144,7 @@ export default function OnlineSubtitleSourceDialog({
     const handleImport = useCallback(
         async (file: OnlineSubtitleImportCandidate) => {
             setError(undefined);
-            setLoading(true);
+            setLoadingFiles(true);
 
             try {
                 await onImport(file);
@@ -146,7 +152,7 @@ export default function OnlineSubtitleSourceDialog({
             } catch (e) {
                 setError((e as Error).message);
             } finally {
-                setLoading(false);
+                setLoadingFiles(false);
             }
         },
         [onClose, onImport]
@@ -174,11 +180,7 @@ export default function OnlineSubtitleSourceDialog({
                             label={t('onlineSubtitleSources.searchTerm')}
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
-                            onFocus={(e) => {
-                                e.target.select();
-                                setSearchFocused(true);
-                            }}
-                            onBlur={() => setSearchFocused(false)}
+                            onFocus={(e) => e.target.select()}
                             onKeyDown={(evt) => {
                                 if (evt.key === 'Enter') {
                                     handleSearch();
@@ -190,7 +192,7 @@ export default function OnlineSubtitleSourceDialog({
                                     endAdornment: (
                                         <InputAdornment position="end">
                                             <IconButton
-                                                loading={loading}
+                                                loading={searching}
                                                 onClick={handleSearch}
                                                 disabled={isSearchDisabled}
                                             >
@@ -226,49 +228,82 @@ export default function OnlineSubtitleSourceDialog({
                         fullWidth
                     />
 
-                    <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
-                        <Stack spacing={1} sx={{ flex: 1, minWidth: 0 }}>
-                            <Typography variant="subtitle2">{t('onlineSubtitleSources.entries')}</Typography>
-                            <List
-                                dense
-                                sx={{ maxHeight: 220, overflow: 'auto', border: '1px solid', borderColor: 'divider' }}
-                            >
-                                {jimakuEntries.map((entry) => (
-                                    <ListItemButton
-                                        key={entry.id}
-                                        onClick={() => handleLoadJimakuFiles(entry.id)}
-                                        selected={jimakuSelectedEntryId === entry.id}
+                    {lastQuery !== undefined && (
+                        <>
+                            {jimakuFiles === undefined && (
+                                <Stack spacing={1} sx={{ flex: 1, minWidth: 0 }}>
+                                    <Typography variant="subtitle2">
+                                        {t('onlineSubtitleSources.entries')} ({jimakuEntries.length})
+                                    </Typography>
+                                    <List
+                                        dense
+                                        sx={{
+                                            maxHeight: 220,
+                                            overflow: 'auto',
+                                            border: '1px solid',
+                                            borderColor: 'divider',
+                                        }}
                                     >
-                                        <ListItemText primary={entry.name} />
-                                    </ListItemButton>
-                                ))}
-                                {jimakuEntries.length === 0 && (
-                                    <ListItem>
-                                        <ListItemText primary={t('onlineSubtitleSources.noEntries')} />
-                                    </ListItem>
-                                )}
-                            </List>
-                        </Stack>
+                                        {jimakuEntries.map((entry) => (
+                                            <ListItemButton
+                                                key={entry.id}
+                                                onClick={() => handleLoadJimakuFiles(entry)}
+                                                selected={jimakuSelectedEntry?.id === entry.id}
+                                                disabled={loadingFiles}
+                                            >
+                                                <ListItemText primary={entry.name} />
+                                            </ListItemButton>
+                                        ))}
+                                        {jimakuEntries.length === 0 && (
+                                            <ListItem>
+                                                <ListItemText primary={t('onlineSubtitleSources.noEntries')} />
+                                            </ListItem>
+                                        )}
+                                    </List>
+                                </Stack>
+                            )}
 
-                        <Stack spacing={1} sx={{ flex: 1, minWidth: 0 }}>
-                            <Typography variant="subtitle2">{t('onlineSubtitleSources.availableFiles')}</Typography>
-                            <List
-                                dense
-                                sx={{ maxHeight: 220, overflow: 'auto', border: '1px solid', borderColor: 'divider' }}
-                            >
-                                {selectedFiles.map((file) => (
-                                    <ListItemButton key={file.url} onClick={() => handleImport(file)}>
-                                        <ListItemText primary={file.name} secondary={file.url} />
-                                    </ListItemButton>
-                                ))}
-                                {selectedFiles.length === 0 && (
-                                    <ListItem>
-                                        <ListItemText primary={t('onlineSubtitleSources.noFiles')} />
-                                    </ListItem>
-                                )}
-                            </List>
-                        </Stack>
-                    </Box>
+                            {jimakuFiles !== undefined && jimakuSelectedEntry !== undefined && (
+                                <Stack spacing={1} sx={{ flex: 1, minWidth: 0 }}>
+                                    <Box display="flex">
+                                        <Typography
+                                            sx={{ textDecoration: 'underline', '&:hover': { cursor: 'pointer' } }}
+                                            variant="subtitle2"
+                                            onClick={() => setJimakuFiles(undefined)}
+                                        >
+                                            {t('onlineSubtitleSources.entries')}
+                                        </Typography>
+                                        <Typography variant="subtitle2">&nbsp;/&nbsp;</Typography>
+                                        <Typography variant="subtitle2" noWrap>
+                                            {jimakuSelectedEntry.name}
+                                        </Typography>
+                                        <Typography variant="subtitle2">&nbsp;({jimakuFiles.length})</Typography>
+                                    </Box>
+
+                                    <List
+                                        dense
+                                        sx={{
+                                            maxHeight: 220,
+                                            overflow: 'auto',
+                                            border: '1px solid',
+                                            borderColor: 'divider',
+                                        }}
+                                    >
+                                        {jimakuFiles.map((file) => (
+                                            <ListItemButton key={file.url} onClick={() => handleImport(file)}>
+                                                <ListItemText primary={file.name} />
+                                            </ListItemButton>
+                                        ))}
+                                        {jimakuFiles.length === 0 && (
+                                            <ListItem>
+                                                <ListItemText primary={t('onlineSubtitleSources.noFiles')} />
+                                            </ListItem>
+                                        )}
+                                    </List>
+                                </Stack>
+                            )}
+                        </>
+                    )}
                 </Stack>
             </DialogContent>
             <DialogActions>
