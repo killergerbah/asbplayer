@@ -32,7 +32,11 @@ import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import CloseIcon from '@mui/icons-material/Close';
+import FirstPageIcon from '@mui/icons-material/FirstPage';
 import FilterListIcon from '@mui/icons-material/FilterList';
+import LastPageIcon from '@mui/icons-material/LastPage';
+import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
@@ -317,6 +321,8 @@ function applyAutoRefreshViewCriteria(
 const textFilterAutoRefreshDelayMs = 500;
 const multiSelectAutoRefreshDelayMs = 300;
 const singleSelectAutoRefreshDelayMs = 0;
+const allPageSize = -1;
+const pageSizeOptions = [10, 100, 1000, 10000, allPageSize] as const;
 
 const WordBrowserTableRow = memo(function WordBrowserTableRow({
     row,
@@ -431,8 +437,12 @@ export default function WordBrowserDialog({
     const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
     const [openFilterPopover, setOpenFilterPopover] = useState<{ key: FilterPopoverKey; anchorEl: HTMLElement }>();
     const [pendingAutoRefreshDelayMs, setPendingAutoRefreshDelayMs] = useState<number>();
+    const [pageSize, setPageSize] = useState<number>(100);
+    const [currentPage, setCurrentPage] = useState(0);
+    const [pageInput, setPageInput] = useState('1');
     const loadRequestIdRef = useRef(0);
     const selectionAnchorKeyRef = useRef<string | undefined>(undefined);
+    const tableContainerRef = useRef<HTMLDivElement | null>(null);
     const draftAutoRefreshCriteria = useMemo(() => autoRefreshViewCriteria(draftViewCriteria), [draftViewCriteria]);
     const appliedAutoRefreshCriteria = useMemo(
         () => autoRefreshViewCriteria(appliedViewCriteria),
@@ -504,6 +514,9 @@ export default function WordBrowserDialog({
         setConfirmApplyOpen(false);
         setConfirmDeleteOpen(false);
         setOpenFilterPopover(undefined);
+        setPageSize(100);
+        setCurrentPage(0);
+        setPageInput('1');
         selectionAnchorKeyRef.current = undefined;
         void loadRecords(initialViewCriteria);
     }, [loadRecords, open]);
@@ -540,6 +553,9 @@ export default function WordBrowserDialog({
         setConfirmApplyOpen(false);
         setConfirmDeleteOpen(false);
         setOpenFilterPopover(undefined);
+        setPageSize(100);
+        setCurrentPage(0);
+        setPageInput('1');
         selectionAnchorKeyRef.current = undefined;
         setPendingAutoRefreshDelayMs(undefined);
     }, [open]);
@@ -970,16 +986,48 @@ export default function WordBrowserDialog({
         });
     }, [visibleRows]);
 
+    const pageCount = useMemo(
+        () => (pageSize === allPageSize ? 1 : Math.max(1, Math.ceil(visibleRows.length / pageSize))),
+        [pageSize, visibleRows.length]
+    );
+    const clampedCurrentPage = Math.min(currentPage, pageCount - 1);
+    const pagedVisibleRows = useMemo(() => {
+        if (pageSize === allPageSize) return visibleRows;
+
+        const start = clampedCurrentPage * pageSize;
+        return visibleRows.slice(start, start + pageSize);
+    }, [clampedCurrentPage, pageSize, visibleRows]);
+    const pagedVisibleSelectableRows = useMemo(
+        () => pagedVisibleRows.filter((row) => row.selectable),
+        [pagedVisibleRows]
+    );
     const visibleSelectableRows = useMemo(() => visibleRows.filter((row) => row.selectable), [visibleRows]);
-    const visibleSelectableRowsRef = useRef(visibleSelectableRows);
+    const pagedVisibleSelectableRowsRef = useRef(pagedVisibleSelectableRows);
+
     useEffect(() => {
-        visibleSelectableRowsRef.current = visibleSelectableRows;
-    }, [visibleSelectableRows]);
+        if (currentPage !== clampedCurrentPage) {
+            setCurrentPage(clampedCurrentPage);
+        }
+    }, [clampedCurrentPage, currentPage]);
+
+    useEffect(() => {
+        setPageInput(String(clampedCurrentPage + 1));
+    }, [clampedCurrentPage]);
+
+    useEffect(() => {
+        tableContainerRef.current?.scrollTo({ top: 0 });
+    }, [clampedCurrentPage]);
+
+    useEffect(() => {
+        pagedVisibleSelectableRowsRef.current = pagedVisibleSelectableRows;
+    }, [pagedVisibleSelectableRows]);
+
     const selectedCount = selectedRowKeys.size;
     const allVisibleSelected =
-        visibleSelectableRows.length > 0 && visibleSelectableRows.every((row) => selectedRowKeys.has(row.selectionKey));
+        pagedVisibleSelectableRows.length > 0 &&
+        pagedVisibleSelectableRows.every((row) => selectedRowKeys.has(row.selectionKey));
     const partiallyVisibleSelected =
-        visibleSelectableRows.some((row) => selectedRowKeys.has(row.selectionKey)) && !allVisibleSelected;
+        pagedVisibleSelectableRows.some((row) => selectedRowKeys.has(row.selectionKey)) && !allVisibleSelected;
 
     const selectedRows = useMemo(
         () => visibleSelectableRows.filter((row) => selectedRowKeys.has(row.selectionKey)),
@@ -997,8 +1045,47 @@ export default function WordBrowserDialog({
         setBulkStatesApplyStrategy(ApplyStrategy.REPLACE);
     }, [bulkIgnoredState]);
 
+    const goToPage = useCallback(
+        (page: number) => {
+            const nextPage = Math.max(0, Math.min(page, pageCount - 1));
+            setCurrentPage(nextPage);
+            setPageInput(String(nextPage + 1));
+        },
+        [pageCount]
+    );
+
+    const commitPageInput = useCallback(() => {
+        const parsedPage = Number.parseInt(pageInput, 10);
+        if (Number.isNaN(parsedPage)) {
+            setPageInput(String(clampedCurrentPage + 1));
+            return;
+        }
+
+        goToPage(parsedPage - 1);
+    }, [clampedCurrentPage, goToPage, pageInput]);
+
+    const handlePageSizeChange = useCallback(
+        (nextPageSize: number) => {
+            const currentOffset = pageSize === allPageSize ? 0 : clampedCurrentPage * pageSize;
+            const adjustedOffset =
+                nextPageSize !== allPageSize &&
+                pageSize !== allPageSize &&
+                nextPageSize > pageSize &&
+                currentOffset > 0 &&
+                currentOffset % nextPageSize === 0
+                    ? currentOffset - 1
+                    : currentOffset;
+            const nextPage = nextPageSize === allPageSize ? 0 : Math.floor(adjustedOffset / nextPageSize);
+
+            setPageSize(nextPageSize);
+            setCurrentPage(nextPage);
+            setPageInput(String(nextPage + 1));
+        },
+        [clampedCurrentPage, pageSize]
+    );
+
     const handleSelectRow = useCallback((selectionKey: string, { shiftKey }: { shiftKey: boolean }) => {
-        const visibleSelectionKeys = visibleSelectableRowsRef.current.map((row) => row.selectionKey);
+        const visibleSelectionKeys = pagedVisibleSelectableRowsRef.current.map((row) => row.selectionKey);
         const preserveExisting = true;
 
         setSelectedRowKeys((current) => {
@@ -1033,16 +1120,18 @@ export default function WordBrowserDialog({
 
     const toggleSelectAllVisible = useCallback(() => {
         setSelectedRowKeys((current) => {
-            if (visibleSelectableRows.every((row) => current.has(row.selectionKey))) {
+            if (pagedVisibleSelectableRows.every((row) => current.has(row.selectionKey))) {
                 return new Set(
-                    Array.from(current).filter((key) => !visibleSelectableRows.some((row) => row.selectionKey === key))
+                    Array.from(current).filter(
+                        (key) => !pagedVisibleSelectableRows.some((row) => row.selectionKey === key)
+                    )
                 );
             }
             const next = new Set(current);
-            for (const row of visibleSelectableRows) next.add(row.selectionKey);
+            for (const row of pagedVisibleSelectableRows) next.add(row.selectionKey);
             return next;
         });
-    }, [visibleSelectableRows]);
+    }, [pagedVisibleSelectableRows]);
 
     const handleSortColumnClick = useCallback(
         (field: SortField) => {
@@ -1302,6 +1391,7 @@ export default function WordBrowserDialog({
                         </Dialog>
                     </Stack>
                     <TableContainer
+                        ref={tableContainerRef}
                         component={Paper}
                         variant="outlined"
                         sx={{ maxHeight: fullScreen ? '60vh' : '55vh' }}
@@ -1327,7 +1417,7 @@ export default function WordBrowserDialog({
                                             checked={allVisibleSelected}
                                             indeterminate={partiallyVisibleSelected}
                                             onChange={toggleSelectAllVisible}
-                                            disabled={!visibleSelectableRows.length}
+                                            disabled={!pagedVisibleSelectableRows.length}
                                         />
                                     </TableCell>
                                     <TableCell>
@@ -1400,7 +1490,7 @@ export default function WordBrowserDialog({
                                 </TableRow>
                             </TableHead>
                             <TableBody>
-                                {visibleRows.length === 0 && !loading && (
+                                {pagedVisibleRows.length === 0 && !loading && (
                                     <TableRow>
                                         <TableCell colSpan={10}>
                                             <Typography color="text.secondary">
@@ -1409,7 +1499,7 @@ export default function WordBrowserDialog({
                                         </TableCell>
                                     </TableRow>
                                 )}
-                                {visibleRows.map((row) => (
+                                {pagedVisibleRows.map((row) => (
                                     <WordBrowserTableRow
                                         key={row.selectionKey}
                                         row={row}
@@ -1604,7 +1694,96 @@ export default function WordBrowserDialog({
                     </Popover>
                 </Stack>
             </DialogContent>
-            <DialogActions>
+            <DialogActions
+                sx={{
+                    justifyContent: 'space-between',
+                    alignItems: fullScreen ? 'stretch' : 'center',
+                    flexWrap: 'wrap',
+                    gap: 1,
+                }}
+            >
+                <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap sx={{ mr: 'auto' }}>
+                    <IconButton
+                        size="small"
+                        onClick={() => goToPage(0)}
+                        disabled={clampedCurrentPage === 0 || !visibleRows.length}
+                        aria-label="First page"
+                    >
+                        <FirstPageIcon fontSize="small" />
+                    </IconButton>
+                    <IconButton
+                        size="small"
+                        onClick={() => goToPage(clampedCurrentPage - 1)}
+                        disabled={clampedCurrentPage === 0 || !visibleRows.length}
+                        aria-label="Previous page"
+                    >
+                        <NavigateBeforeIcon fontSize="small" />
+                    </IconButton>
+                    <Stack direction="row" spacing={0.75} alignItems="center">
+                        <TextField
+                            size="small"
+                            value={pageInput}
+                            onChange={(event) => {
+                                const nextValue = event.target.value.replace(/\D+/g, '');
+                                setPageInput(nextValue);
+                            }}
+                            onBlur={commitPageInput}
+                            onKeyDown={(event) => {
+                                if (event.key === 'Enter') {
+                                    event.preventDefault();
+                                    commitPageInput();
+                                }
+                            }}
+                            slotProps={{
+                                htmlInput: {
+                                    inputMode: 'numeric',
+                                    pattern: '[0-9]*',
+                                    min: 1,
+                                    max: pageCount,
+                                    'aria-label': 'Page number',
+                                },
+                            }}
+                            sx={{ width: 72 }}
+                            disabled={!visibleRows.length}
+                        />
+                        <Typography variant="body2" color="text.secondary">
+                            / {pageCount}
+                        </Typography>
+                    </Stack>
+                    <IconButton
+                        size="small"
+                        onClick={() => goToPage(clampedCurrentPage + 1)}
+                        disabled={clampedCurrentPage >= pageCount - 1 || !visibleRows.length}
+                        aria-label="Next page"
+                    >
+                        <NavigateNextIcon fontSize="small" />
+                    </IconButton>
+                    <IconButton
+                        size="small"
+                        onClick={() => goToPage(pageCount - 1)}
+                        disabled={clampedCurrentPage >= pageCount - 1 || !visibleRows.length}
+                        aria-label="Last page"
+                    >
+                        <LastPageIcon fontSize="small" />
+                    </IconButton>
+                    <Select
+                        size="small"
+                        value={pageSize}
+                        onChange={(event) => handlePageSizeChange(Number(event.target.value))}
+                        renderValue={(value) =>
+                            Number(value) === allPageSize
+                                ? t('settings.dictionaryBrowser.suspended.all')
+                                : String(value)
+                        }
+                        sx={{ minWidth: 96 }}
+                    >
+                        {pageSizeOptions.map((option) => (
+                            <MenuItem key={option} value={option}>
+                                {option === allPageSize ? t('settings.dictionaryBrowser.suspended.all') : option}
+                            </MenuItem>
+                        ))}
+                    </Select>
+                </Stack>
                 <Button onClick={onClose} disabled={mutating}>
                     {t('action.close')}
                 </Button>
