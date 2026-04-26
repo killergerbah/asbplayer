@@ -164,7 +164,7 @@ export default function OnlineSubtitleSourceDialog({
         <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
             <Toolbar>
                 <Typography variant="h6" sx={{ flexGrow: 1 }}>
-                    {t('onlineSubtitleSources.title')}
+                    {t('onlineSubtitleSources.searchOnlineSubtitles')}
                 </Typography>
                 <IconButton onClick={onClose} edge="end">
                     <CloseIcon />

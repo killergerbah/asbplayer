@@ -222,9 +222,7 @@ export default function VideoDataSyncDialog({
                             ))}
                             <MenuItem onClick={() => onOpenFile(i)}>{t('action.openFiles')}</MenuItem>
                             <MenuItem onClick={() => onOpenOnline(i)}>
-                                {t('extension.videoDataSync.searchOnlineSubtitles', {
-                                    defaultValue: 'Search online subtitles',
-                                })}
+                                {t('onlineSubtitleSources.searchOnlineSubtitles')}
                             </MenuItem>
                         </TextField>
                         {isLoading && (
@@ -337,7 +335,7 @@ export default function VideoDataSyncDialog({
                     {t('action.openFiles')}
                 </Button>
                 <Button disabled={disabled} onClick={() => onOpenOnline()}>
-                    {t('extension.videoDataSync.onlineSources', { defaultValue: 'Online sources' })}
+                    {t('onlineSubtitleSources.searchOnlineSubtitles')}
                 </Button>
                 <Button action={okActionRef} disabled={!trimmedName || disabled} onClick={handleOkButtonClick}>
                     {t('action.ok')}

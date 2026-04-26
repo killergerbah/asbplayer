@@ -608,7 +608,7 @@
         "pwaUpdatePromptBody": "Cliquez sur \"OK\" pour terminer la mise à jour."
     },
     "onlineSubtitleSources": {
-        "title": "Online subtitle sources",
+        "searchOnlineSubtitles": "Search online subtitles",
         "searchTerm": "Search term",
         "jimakuApiKey": "Jimaku API key",
         "jimakuApiKeyAutosaveHint": "Saved automatically. Get an API key <0>here</0>.",

@@ -608,7 +608,7 @@
         "pwaUpdatePromptBody": "点击“确定”以完成更新。"
     },
     "onlineSubtitleSources": {
-        "title": "Online subtitle sources",
+        "searchOnlineSubtitles": "Search online subtitles",
         "searchTerm": "Search term",
         "jimakuApiKey": "Jimaku API key",
         "jimakuApiKeyAutosaveHint": "Saved automatically. Get an API key <0>here</0>.",
