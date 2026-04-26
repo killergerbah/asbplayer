@@ -178,16 +178,20 @@ function hasExactSearchTermMatch(searchTerms: string[], term: string) {
     return searchTerms.includes(term);
 }
 
+function nextFilterMode(currentMode?: FilterMode) {
+    if (currentMode === undefined) return 'include' as const;
+    if (currentMode === 'include') return 'exclude' as const;
+    return undefined;
+}
+
 function cycleFilterMode<T extends FilterModeValue>(filters: FilterMap<T>, value: T): FilterMap<T> {
     const nextFilters = { ...filters };
-    const currentMode = nextFilters[value];
+    const nextMode = nextFilterMode(nextFilters[value]);
 
-    if (currentMode === undefined) {
-        nextFilters[value] = 'include';
-    } else if (currentMode === 'include') {
-        nextFilters[value] = 'exclude';
-    } else {
+    if (nextMode === undefined) {
         delete nextFilters[value];
+    } else {
+        nextFilters[value] = nextMode;
     }
 
     return nextFilters;
@@ -440,6 +444,7 @@ export default function WordBrowserDialog({
     const [searchExpansionRefreshToken, setSearchExpansionRefreshToken] = useState(0);
     const [selectedRowKeys, setSelectedRowKeys] = useState<Set<string>>(new Set());
     const [bulkStatus, setBulkStatus] = useState<TokenStatus | ''>('');
+    const [bulkIgnoredState, setBulkIgnoredState] = useState<FilterMode>();
     const [bulkStates, setBulkStates] = useState<TokenState[]>([]);
     const [bulkStatesApplyStrategy, setBulkStatesApplyStrategy] = useState<ApplyStrategy>(ApplyStrategy.REPLACE);
     const [confirmApplyOpen, setConfirmApplyOpen] = useState(false);
@@ -512,6 +517,7 @@ export default function WordBrowserDialog({
         setDraftViewCriteria(initialViewCriteria);
         setSelectedRowKeys(new Set());
         setBulkStatus('');
+        setBulkIgnoredState(undefined);
         setBulkStates([]);
         setBulkStatesApplyStrategy(ApplyStrategy.REPLACE);
         setConfirmApplyOpen(false);
@@ -546,6 +552,7 @@ export default function WordBrowserDialog({
         setLoadError(undefined);
         setSearchExpansion({ exactTerms: [], lemmaTerms: [] });
         setBulkStatus('');
+        setBulkIgnoredState(undefined);
         setBulkStates([]);
         setBulkStatesApplyStrategy(ApplyStrategy.REPLACE);
         setConfirmApplyOpen(false);
@@ -664,16 +671,6 @@ export default function WordBrowserDialog({
     const stateLabels = useMemo(
         () => ({
             [TokenState.IGNORED]: t('settings.dictionaryTokenStateIgnored'),
-        }),
-        [t]
-    );
-
-    const stateApplyStrategyLabels = useMemo(
-        () => ({
-            [ApplyStrategy.ADD]: t('settings.applyStrategies.add'),
-            [ApplyStrategy.REMOVE]: t('settings.applyStrategies.remove'),
-            [ApplyStrategy.REPLACE]: t('settings.applyStrategies.replace'),
-            [ApplyStrategy.TOGGLE]: t('settings.applyStrategies.toggle'),
         }),
         [t]
     );
@@ -991,8 +988,16 @@ export default function WordBrowserDialog({
         [selectedRowKeys, visibleSelectableRows]
     );
 
+    const bulkStatesConfigured = bulkIgnoredState !== undefined || bulkStates.length > 0;
     const canApplyToSelected =
-        selectedCount > 0 && (bulkStatus !== '' || bulkStates.length > 0) && !mutating && !loading;
+        selectedCount > 0 && (bulkStatus !== '' || bulkStatesConfigured) && !mutating && !loading;
+
+    const cycleBulkIgnoredState = useCallback(() => {
+        const nextState = nextFilterMode(bulkIgnoredState);
+        setBulkIgnoredState(nextState);
+        setBulkStates(nextState === 'include' ? [TokenState.IGNORED] : []);
+        setBulkStatesApplyStrategy(ApplyStrategy.REPLACE);
+    }, [bulkIgnoredState]);
 
     const handleSelectRow = useCallback(
         (
@@ -1101,9 +1106,9 @@ export default function WordBrowserDialog({
                 selectedRows.map((row) => ({
                     tokenKey: row.tokenKey,
                     status: bulkStatus === '' ? row.status : bulkStatus,
-                    states: bulkStates.length ? bulkStates : row.states,
+                    states: bulkStatesConfigured ? bulkStates : row.states,
                 })),
-                bulkStates.length ? bulkStatesApplyStrategy : ApplyStrategy.REPLACE // Keep existing states if not modifying
+                bulkStatesConfigured ? bulkStatesApplyStrategy : ApplyStrategy.REPLACE // Keep existing states if not modifying
             );
             setSelectedRowKeys(new Set());
             await loadRecords(draftViewCriteria);
@@ -1114,6 +1119,7 @@ export default function WordBrowserDialog({
         }
     }, [
         activeProfile,
+        bulkStatesConfigured,
         bulkStates,
         bulkStatesApplyStrategy,
         bulkStatus,
@@ -1215,39 +1221,21 @@ export default function WordBrowserDialog({
                                 ))}
                             </Select>
                         </FormControl>
-                        <FormControl size="small" sx={{ minWidth: 180 }}>
-                            <InputLabel>{t('settings.dictionaryBrowser.bulkStates')}</InputLabel>
-                            <Select
-                                multiple
-                                value={bulkStates}
-                                onChange={(event) => setBulkStates(event.target.value as TokenState[])}
-                                input={<OutlinedInput label={t('settings.dictionaryBrowser.bulkStates')} />}
-                                renderValue={(selected) =>
-                                    (selected as TokenState[]).map((state) => stateLabels[state]).join(', ')
-                                }
-                            >
-                                {filterableStates.map((state) => (
-                                    <MenuItem key={state} value={state}>
-                                        <Checkbox checked={bulkStates.includes(state)} />
-                                        <ListItemText primary={stateLabels[state]} />
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
-                        <FormControl size="small" sx={{ minWidth: 180 }}>
-                            <InputLabel>{t('settings.dictionaryBrowser.stateStrategy')}</InputLabel>
-                            <Select
-                                value={bulkStatesApplyStrategy}
-                                label={t('settings.dictionaryBrowser.stateStrategy')}
-                                onChange={(event) => setBulkStatesApplyStrategy(event.target.value as ApplyStrategy)}
-                            >
-                                {(Object.values(ApplyStrategy) as ApplyStrategy[]).map((applyStrategy) => (
-                                    <MenuItem key={applyStrategy} value={applyStrategy}>
-                                        {stateApplyStrategyLabels[applyStrategy]}
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
+                        <Stack spacing={0.25} sx={{ minWidth: 180 }}>
+                            <Typography variant="caption" color="text.secondary">
+                                {t('settings.dictionaryBrowser.bulkStates')}
+                            </Typography>
+                            <Stack direction="row" alignItems="center" sx={{ minHeight: 40 }}>
+                                <Checkbox
+                                    checked={bulkIgnoredState === 'include'}
+                                    indeterminate={bulkIgnoredState === 'exclude'}
+                                    onClick={cycleBulkIgnoredState}
+                                />
+                                <Typography color={bulkIgnoredState === undefined ? 'text.secondary' : undefined}>
+                                    {renderFilterLabel(stateLabels[TokenState.IGNORED], bulkIgnoredState)}
+                                </Typography>
+                            </Stack>
+                        </Stack>
                         <Button
                             variant="contained"
                             onClick={() => setConfirmApplyOpen(true)}
