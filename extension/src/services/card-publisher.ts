@@ -159,7 +159,8 @@ export class CardPublisher {
 
     private async _updateLastCard(card: CardModel, src: string | undefined, tabId: number) {
         const ankiSettings = (await this._settingsProvider.get(ankiSettingsKeys)) as AnkiSettings;
-        const cardName = await exportCard(card, ankiSettings, 'updateLast');
+        const updateSameLine = await this._settingsProvider.getSingle('updateLastCardForSameSubtitle');
+        const cardName = await exportCard(card, ankiSettings, updateSameLine ? 'updateLastForSameLine' : 'updateLast');
 
         const cardUpdatedCommand: ExtensionToVideoCommand<CardUpdatedMessage> = {
             sender: 'asbplayer-extension-to-video',
