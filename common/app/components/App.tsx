@@ -524,6 +524,9 @@ function App({
                 case PostMineAction.showAnkiDialog:
                     handleAnkiDialogRequest(newCard);
                     break;
+                case PostMineAction.showUpdateCardDialog:
+                    handleAnkiDialogRequest(newCard);
+                    break;
                 case PostMineAction.exportCard:
                 case PostMineAction.updateLastCard:
                     miningContext.started();

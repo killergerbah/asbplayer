@@ -249,6 +249,10 @@ const KeyboardShortcutsSettingsTab: React.FC<Props> = ({
                 label: t('binds.updateLastCard')!,
                 boundViaBrowser: true,
             },
+            updateSelectedCard: {
+                label: t('binds.updateSelectedCard')!,
+                boundViaBrowser: true,
+            },
             exportCard: {
                 label: t('binds.exportCard')!,
                 boundViaBrowser: true,

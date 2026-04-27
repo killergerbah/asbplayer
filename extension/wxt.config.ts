@@ -107,6 +107,7 @@ export default defineConfig({
                         'svt-play-page.js',
                         'ur-play-page.js',
                         'anki-ui.js',
+                        'card-select-ui.js',
                         'mp3-encoder-worker.js',
                         'pgs-parser-worker.js',
                         'video-data-sync-ui.js',
@@ -138,6 +139,9 @@ export default defineConfig({
                     mac: 'MacCtrl+Shift+U',
                 },
                 description: '__MSG_shortcutUpdateLastCardDescription__',
+            },
+            'update-selected-card': {
+                description: '__MSG_shortcutSelectCardToUpdateDescription__',
             },
             'toggle-video-select': {
                 suggested_key: {

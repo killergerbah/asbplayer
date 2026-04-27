@@ -188,7 +188,7 @@ export default function AnkiUi({ bridge }: Props) {
                     bridge.sendMessageFromServer(message);
                 }
 
-                if (params.mode === 'updateLast') {
+                if (params.mode === 'updateLast' || params.mode === 'updateSpecific') {
                     bridge.sendMessageFromServer({ command: 'card-updated-dialog' } as CardUpdatedDialogMessage);
                 } else if (params.mode === 'default') {
                     bridge.sendMessageFromServer({ command: 'card-exported-dialog' } as CardExportedDialogMessage);
