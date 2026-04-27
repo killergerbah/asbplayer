@@ -1392,7 +1392,6 @@ const Player = React.memo(function Player({
                     hidden={actuallyHideSubtitlePlayer}
                     style={{
                         flexGrow: videoInWindow ? 0 : 1,
-                        flexShrink: 0,
                         width: 'auto',
                     }}
                 >
