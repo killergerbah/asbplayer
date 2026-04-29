@@ -58,6 +58,9 @@
         "inNotOut": "Aktif",
         "inAndOut": "Aktif dengan lanjut otomatis"
     },
+    "videoSubtitleSplitBehavior": {
+        "autoMaximizeVideo": "Auto-maximize local video"
+    },
     "ankiDialog": {
         "applySelection": "Terapkan Pilihan",
         "audio": "Audio",
@@ -152,7 +155,8 @@
         "moveTopSubtitlesUp": "Naikkan subtitle atas",
         "moveTopSubtitlesDown": "Turunkan subtitle atas",
         "markHoveredToken": "Mark hovered word as {{tokenStatus}}",
-        "toggleHoveredTokenIgnored": "Toggle hovered word as ignored"
+        "toggleHoveredTokenIgnored": "Toggle hovered word as ignored",
+        "openStatistics": "Open statistics"
     },
     "controls": {
         "autoPauseMode": "Jeda Otomatis",
@@ -174,7 +178,9 @@
         "toggleTheaterMode": "Aktifkan/Nonaktifkan Mode Teater",
         "showSubtitlePlayer": "Tampilkan Daftar Takarir",
         "hideSubtitlePlayer": "Sembunyikan Daftar Takarir",
-        "currentTimestamp": "Penanda Waktu Saat Ini"
+        "currentTimestamp": "Penanda Waktu Saat Ini",
+        "showBlurOverlay": "Show Blur Overlay",
+        "hideBlurOverlay": "Hide Blur Overlay"
     },
     "copyHistory": {
         "blank": "Kosong",
@@ -288,6 +294,7 @@
         "disabledAutoPause": "Jeda otomatis: Nonaktif",
         "disabledCondensedPlayback": "Pemutaran ringkas: Nonaktif",
         "disabledFastForwardPlayback": "Pemutaran maju cepat: Nonaktif",
+        "disabledAllPlayModes": "All playback modes: Off",
         "enabledAutoPause": "Jeda otomatis: Aktif",
         "enabledCondensedPlayback": "Pemutaran ringkas: Aktif",
         "enabledFastForwardPlayback": "Pemutaran maju cepat: Aktif",
@@ -469,6 +476,7 @@
         "dictionaryLocalWordDatabase": "Local word database",
         "dictionaryAnkiWordDatabase": "Anki word database",
         "dictionaryColorizeSubtitles": "Colorize subtitles based on known words",
+        "dictionaryAutoGenerateStatistics": "Generate statistics automatically",
         "dictionaryColorizeOnHoverOnly": "On Hover Only",
         "dictionaryHighlightOnHover": "Highlight words on hover",
         "dictionaryTokenMatchStrategy": "Word field search strategy",
@@ -483,6 +491,11 @@
         "dictionaryTokenMatchStrategyPriorityLeastKnown": "Least known card",
         "dictionaryYomitanSection": "Yomitan",
         "dictionaryYomitanUrl": "Yomitan API URL",
+        "dictionaryYomitanParser": "Yomitan parser",
+        "dictionaryYomitanScanningParser": "Scanning Parser (All languages)",
+        "dictionaryYomitanMecabParser": "MeCab (Japanese)",
+        "dictionaryYomitanMecabNotSupportedError": "Failed to parse with MeCab, instructions to setup are <0>here</0>. Install UniDic for the best results.",
+        "dictionaryYomitanMecabLemmaNotSupportedError": "Update to the latest MeCab installer <0>here</0> and install UniDic for the best results.",
         "dictionaryYomitanScanLength": "Max word length",
         "dictionaryTokenReadingAnnotation": "Annotation for word readings",
         "dictionaryTokenReadingAnnotationAlways": "Always",
@@ -524,6 +537,7 @@
         "dictionaryTokenStatusReading1": "Reading",
         "dictionaryTokenStatus0": "Uncollected",
         "dictionaryTokenStatusReading0": "Reading",
+        "dictionaryTokenStateIgnored": "Ignored",
         "dictionaryBuildAnkiStarted": "Querying Anki for modified cards",
         "dictionaryTokenStatusAlpha": "Alpha",
         "dictionaryBuildAnkiTracks": "Anki track(s): {{tracks}}",
@@ -540,11 +554,74 @@
         "webSocketInterface": "WebSocket interface",
         "yomitanHelperText": "Instructions to setup Yomitan API are <0>here<0>."
     },
+    "statistics": {
+        "title": "Statistics",
+        "generate": "Generate statistics",
+        "generationInProgress": "Statistics generation in progress",
+        "empty": "No statistics have been generated for the current sentences yet.",
+        "gettingStarted": "To generate statistics for loaded subtitles, enable annotations from the <0>settings</0>.",
+        "uniqueWords": "Unique words",
+        "knownWords": "Known words",
+        "uniqueWordsPerSentence": "Unique words per sentence",
+        "knownWordsPerSentence": "Known words per sentence",
+        "globalKnownWords": "Global known words",
+        "comprehension": "Comprehension",
+        "sentenceIndex": "Sentence index",
+        "wordDistribution": "Word distribution (occurrences)",
+        "statusDistribution": "Status",
+        "frequency": "Frequency",
+        "occurrences": "Occurrences",
+        "sentenceStatistics": "Sentence statistics",
+        "currentWatch": "Current watch",
+        "projectedRewatch": "Projected rewatch",
+        "rewatchSelect": "Rewatch",
+        "rewatchOption": "Rewatch #{{rewatch}}",
+        "miningDisabledUntilComplete": "Mining is available after statistics for this track finish generating.",
+        "sortBy": "Sort by",
+        "matchingSentences": "{{number}} matching sentences",
+        "sentenceDetailsEmpty": "No sentences matched this bucket.",
+        "noMoreRewatches": "There will be no more mining after all i+1 sentences this session.",
+        "totalSentences": "Total sentences",
+        "knownSentences": "Known sentences",
+        "anki": {
+            "ankiStatistics": "Anki statistics",
+            "dueByToday": "Due by today",
+            "dueByTomorrow": "Due by tomorrow",
+            "dueByWeek": "Due within a week",
+            "suspended": "Suspended",
+            "deckBreakdown": "Deck breakdown",
+            "modelBreakdown": "Model breakdown",
+            "ankiNeedsToBeRunning": "Anki needs to be running to load statistics.",
+            "noDeckBreakdown": "No matching Anki cards were found for this media.",
+            "info": {
+                "ankiStatistics": "How your Anki cards match up with the words in this media."
+            }
+        },
+        "info": {
+            "comprehension": "How many unique words are known, weighted by status and occurrences.",
+            "globalKnownWords": "How many words are known including locally stored words and Anki.",
+            "wordDistribution": "How unique words are distributed across status and frequency.",
+            "frequency": "Frequency: The rank-based frequency from your frequency dictionaries.",
+            "occurrences": "Occurrences: The total number of times a word appears.",
+            "sentenceStatistics": "How easily this content can be mined.",
+            "projectedRewatch": "Assumes all i+1 uncollected sentences were mined from the previous watch."
+        }
+    },
     "subtitlePlayer": {
         "multiSubtitleSelectHelp": "Klik, tahan, dan seret untuk menambang beberapa takarir sekaligus"
     },
     "app": {
         "pwaUpdatePromptTitle": "Pembaruan aplikasi",
         "pwaUpdatePromptBody": "Klik \"OK\" untuk menyelesaikan pembaruan."
+    },
+    "onlineSubtitleSources": {
+        "searchOnlineSubtitles": "Search online subtitles",
+        "searchTerm": "Search term",
+        "jimakuApiKey": "Jimaku API key",
+        "jimakuApiKeyAutosaveHint": "Saved automatically. Get an API key <0>here</0>.",
+        "entries": "Search results",
+        "noEntries": "No search results",
+        "availableFiles": "Files",
+        "noFiles": "No files"
     }
 }

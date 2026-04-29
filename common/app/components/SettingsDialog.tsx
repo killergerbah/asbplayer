@@ -115,6 +115,7 @@ export default function SettingsDialog({
                     extensionSupportsDictionaryTokenStatusDisplayAlpha={
                         extension.supportsDictionaryTokenStatusDisplayAlpha
                     }
+                    extensionSupportsDictionaryYomitanMecab={extension.supportsDictionaryYomitanMecab}
                     pageConfigs={extension.pageConfig}
                     insideApp
                     appVersion={import.meta.env.VITE_APP_GIT_COMMIT}

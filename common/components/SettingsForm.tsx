@@ -180,6 +180,7 @@ interface Props {
     extensionSupportsPageSettings: boolean;
     extensionSupportsDictionary: boolean;
     extensionSupportsDictionaryTokenStatusDisplayAlpha: boolean;
+    extensionSupportsDictionaryYomitanMecab: boolean;
     insideApp?: boolean;
     appVersion?: string;
     dictionaryProvider: DictionaryProvider;
@@ -227,6 +228,7 @@ export default function SettingsForm({
     extensionSupportsPageSettings,
     extensionSupportsDictionary,
     extensionSupportsDictionaryTokenStatusDisplayAlpha,
+    extensionSupportsDictionaryYomitanMecab,
     insideApp,
     appVersion,
     scrollToId,
@@ -248,6 +250,7 @@ export default function SettingsForm({
     const supportsDictionary = !extensionInstalled || extensionSupportsDictionary;
     const supportsDictionaryTokenStatusDisplayAlpha =
         !extensionInstalled || extensionSupportsDictionaryTokenStatusDisplayAlpha;
+    const supportsDictionaryYomitanMecab = !extensionInstalled || extensionSupportsDictionaryYomitanMecab;
     const theme = useTheme();
     const smallScreen = useMediaQuery(theme.breakpoints.down(500)) && !forceVerticalTabs;
     const classes = useStyles({ smallScreen, heightConstrained });
@@ -271,12 +274,8 @@ export default function SettingsForm({
             'about',
         ];
 
-        if (!extensionSupportsAppIntegration) {
-            tabs.splice(tabs.indexOf('streaming-video'), 1);
-        }
-        if (!supportsDictionary) {
-            tabs.splice(tabs.indexOf('annotation'), 1);
-        }
+        if (!extensionSupportsAppIntegration) tabs.splice(tabs.indexOf('streaming-video'), 1);
+        if (!supportsDictionary) tabs.splice(tabs.indexOf('annotation'), 1);
 
         return Object.fromEntries(tabs.map((tab, i) => [tab, i]));
     }, [extensionSupportsAppIntegration, supportsDictionary]);
@@ -463,6 +462,7 @@ export default function SettingsForm({
                     activeProfile={activeProfile}
                     extensionInstalled={extensionInstalled}
                     supportsDictionaryTokenStatusDisplayAlpha={supportsDictionaryTokenStatusDisplayAlpha}
+                    supportsDictionaryYomitanMecab={supportsDictionaryYomitanMecab}
                     onSettingChanged={handleSettingChanged}
                     onViewKeyboardShortcuts={() => {
                         setTabIndex(tabIndicesById['keyboard-shortcuts']);

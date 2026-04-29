@@ -65,7 +65,10 @@ import {
     percentToHex2,
 } from '../util';
 import DictionaryImport from './DictionaryImport';
-import { applyTokenStyle, InternalToken } from '../subtitle-coloring';
+import { applyTokenStyle, InternalToken } from '../subtitle-annotations';
+
+const yomitanInstallerUrl = 'https://github.com/yomidevs/yomitan-api';
+const yomitanMecabInstallerUrl = 'https://github.com/yomidevs/yomitan-mecab-installer';
 
 const useBuildAnkiCacheState: () => {
     severity: 'error' | 'info';
@@ -170,6 +173,7 @@ interface Props {
     dictionaryProvider: DictionaryProvider;
     extensionInstalled: boolean;
     supportsDictionaryTokenStatusDisplayAlpha: boolean;
+    supportsDictionaryYomitanMecab: boolean;
     onSettingChanged: <K extends keyof AsbplayerSettings>(key: K, value: AsbplayerSettings[K]) => Promise<void>;
     onViewKeyboardShortcuts: () => void;
     profiles: Profile[];
@@ -182,6 +186,7 @@ const DictionarySettingsTab: React.FC<Props> = ({
     settings,
     extensionInstalled,
     supportsDictionaryTokenStatusDisplayAlpha,
+    supportsDictionaryYomitanMecab,
     onSettingChanged,
     onViewKeyboardShortcuts,
     profiles,
@@ -195,7 +200,7 @@ const DictionarySettingsTab: React.FC<Props> = ({
     const selectedDictionary = dictionaryTracks[selectedDictionaryTrack];
 
     const getHelperTextForAnkiCacheSettingsDependencies = useCallback(
-        (fieldName: string, key: keyof typeof selectedDictionary, error?: string) => {
+        (fieldName: string, key: keyof typeof selectedDictionary, error?: React.ReactNode) => {
             if (error) return error;
             const initialTrack = initialDictionaryTracksRef.current[selectedDictionaryTrack];
             if (compareDTField(key, initialTrack, selectedDictionary)) return;
@@ -223,11 +228,35 @@ const DictionarySettingsTab: React.FC<Props> = ({
     }, [selectedDictionary.dictionaryColorizeFullyKnownTokens]);
 
     const [dictionaryYomitanUrlError, setDictionaryYomitanUrlError] = useState<string>();
+    const [dictionaryYomitanMecabError, setDictionaryYomitanMecabError] = useState<React.ReactNode>();
     const dictionaryRequestYomitan = useCallback(async () => {
         try {
             const yomitan = new Yomitan(selectedDictionary);
             await yomitan.version();
             setDictionaryYomitanUrlError(undefined);
+            if (!supportsDictionaryYomitanMecab) {
+                setDictionaryYomitanMecabError(undefined);
+                return;
+            }
+            if (selectedDictionary.dictionaryYomitanParser !== 'mecab' || yomitan.getSupportsMecabLemma()) {
+                setDictionaryYomitanMecabError(undefined);
+                return;
+            }
+            if (yomitan.getSupportsMecab()) {
+                setDictionaryYomitanMecabError(
+                    <Trans
+                        i18nKey="settings.dictionaryYomitanMecabLemmaNotSupportedError"
+                        components={[<Link key={0} target="_blank" href={yomitanMecabInstallerUrl} />]}
+                    />
+                );
+                return;
+            }
+            setDictionaryYomitanMecabError(
+                <Trans
+                    i18nKey="settings.dictionaryYomitanMecabNotSupportedError"
+                    components={[<Link key={0} target="_blank" href={yomitanMecabInstallerUrl} />]}
+                />
+            );
         } catch (e) {
             console.error(e);
             if (e instanceof Error) {
@@ -238,7 +267,7 @@ const DictionarySettingsTab: React.FC<Props> = ({
                 setDictionaryYomitanUrlError(String(e));
             }
         }
-    }, [selectedDictionary]);
+    }, [selectedDictionary, supportsDictionaryYomitanMecab]);
 
     useEffect(() => {
         let canceled = false;
@@ -345,10 +374,10 @@ const DictionarySettingsTab: React.FC<Props> = ({
                 profiles={profiles}
             />
             <Stack spacing={1}>
-                {(dictionaryYomitanUrlError || !extensionInstalled) && (
+                {(dictionaryYomitanUrlError || dictionaryYomitanMecabError || !extensionInstalled) && (
                     <Alert severity="info">
                         <Stack spacing={1}>
-                            {dictionaryYomitanUrlError && (
+                            {(dictionaryYomitanUrlError || dictionaryYomitanMecabError) && (
                                 <div>
                                     <Trans
                                         i18nKey="settings.annotationHelperText"
@@ -460,6 +489,23 @@ const DictionarySettingsTab: React.FC<Props> = ({
                         />
                     }
                     label={t('settings.dictionaryColorizeSubtitles')}
+                    labelPlacement="start"
+                />
+                <SwitchLabelWithHoverEffect
+                    control={
+                        <Switch
+                            checked={selectedDictionary.dictionaryAutoGenerateStatistics}
+                            onChange={(e) => {
+                                const newTracks = [...dictionaryTracks];
+                                newTracks[selectedDictionaryTrack] = {
+                                    ...newTracks[selectedDictionaryTrack],
+                                    dictionaryAutoGenerateStatistics: e.target.checked,
+                                };
+                                onSettingChanged('dictionaryTracks', newTracks);
+                            }}
+                        />
+                    }
+                    label={t('settings.dictionaryAutoGenerateStatistics')}
                     labelPlacement="start"
                 />
                 <FormControl>
@@ -915,9 +961,7 @@ const DictionarySettingsTab: React.FC<Props> = ({
                     <Alert severity="info">
                         <Trans
                             i18nKey={t('settings.yomitanHelperText')}
-                            components={[
-                                <Link key={0} target="_blank" href="https://github.com/yomidevs/yomitan-api" />,
-                            ]}
+                            components={[<Link key={0} target="_blank" href={yomitanInstallerUrl} />]}
                         />
                     </Alert>
                 )}
@@ -951,27 +995,56 @@ const DictionarySettingsTab: React.FC<Props> = ({
                         },
                     }}
                 />
-                <SettingsTextField
-                    type="number"
-                    label={t('settings.dictionaryYomitanScanLength')}
-                    value={selectedDictionary.dictionaryYomitanScanLength}
-                    helperText={getHelperTextForAnkiCacheSettingsDependencies(
-                        t('settings.dictionaryYomitanScanLength'),
-                        'dictionaryYomitanScanLength'
-                    )}
-                    color="primary"
-                    onChange={(e) => {
-                        const newTracks = [...dictionaryTracks];
-                        newTracks[selectedDictionaryTrack] = {
-                            ...newTracks[selectedDictionaryTrack],
-                            dictionaryYomitanScanLength: Number(e.target.value),
-                        };
-                        onSettingChanged('dictionaryTracks', newTracks);
-                    }}
-                    slotProps={{
-                        htmlInput: { min: 1, max: 128, step: 1 },
-                    }}
-                />
+                {dictionaryYomitanMecabError && <Alert severity="info">{dictionaryYomitanMecabError}</Alert>}
+                {supportsDictionaryYomitanMecab && (
+                    <SettingsTextField
+                        select
+                        label={t('settings.dictionaryYomitanParser')}
+                        value={selectedDictionary.dictionaryYomitanParser}
+                        error={Boolean(dictionaryYomitanMecabError)}
+                        helperText={getHelperTextForAnkiCacheSettingsDependencies(
+                            t('settings.dictionaryYomitanParser'),
+                            'dictionaryYomitanParser',
+                            dictionaryYomitanMecabError
+                        )}
+                        color="primary"
+                        onChange={(e) => {
+                            const newTracks = [...dictionaryTracks];
+                            newTracks[selectedDictionaryTrack] = {
+                                ...newTracks[selectedDictionaryTrack],
+                                dictionaryYomitanParser: e.target.value as DictionaryTrack['dictionaryYomitanParser'],
+                            };
+                            onSettingChanged('dictionaryTracks', newTracks);
+                        }}
+                    >
+                        <MenuItem value="scanning-parser">{t('settings.dictionaryYomitanScanningParser')}</MenuItem>
+                        <MenuItem value="mecab">{t('settings.dictionaryYomitanMecabParser')}</MenuItem>
+                    </SettingsTextField>
+                )}
+                {(selectedDictionary.dictionaryYomitanParser === 'scanning-parser' ||
+                    !supportsDictionaryYomitanMecab) && (
+                    <SettingsTextField
+                        type="number"
+                        label={t('settings.dictionaryYomitanScanLength')}
+                        value={selectedDictionary.dictionaryYomitanScanLength}
+                        helperText={getHelperTextForAnkiCacheSettingsDependencies(
+                            t('settings.dictionaryYomitanScanLength'),
+                            'dictionaryYomitanScanLength'
+                        )}
+                        color="primary"
+                        onChange={(e) => {
+                            const newTracks = [...dictionaryTracks];
+                            newTracks[selectedDictionaryTrack] = {
+                                ...newTracks[selectedDictionaryTrack],
+                                dictionaryYomitanScanLength: Number(e.target.value),
+                            };
+                            onSettingChanged('dictionaryTracks', newTracks);
+                        }}
+                        slotProps={{
+                            htmlInput: { min: 1, max: 128, step: 1 },
+                        }}
+                    />
+                )}
                 <SettingsSection ref={ankiSectionRef}>{t('settings.anki')}</SettingsSection>
                 <Autocomplete
                     multiple

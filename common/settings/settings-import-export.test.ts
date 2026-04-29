@@ -5,6 +5,7 @@ import {
     TokenStyling,
     TokenReadingAnnotation,
     TokenFrequencyAnnotation,
+    VideoSubtitleSplitBehavior,
 } from './settings';
 import { validateSettings } from './settings-import-export';
 import { defaultSettings } from './settings-provider';
@@ -120,6 +121,7 @@ it('validates exported settings', () => {
             markHoveredToken1: { keys: 'Q+1' },
             markHoveredToken0: { keys: 'Q+0' },
             toggleHoveredTokenIgnored: { keys: 'Q+I' },
+            openStatistics: { keys: 'Q+S' },
         },
         recordWithAudioPlayback: true,
         preferMp3: true,
@@ -129,6 +131,7 @@ it('validates exported settings', () => {
         clickToMineDefaultAction: 1,
         postMiningPlaybackState: 0,
         themeType: 'dark',
+        videoSubtitleSplitBehavior: VideoSubtitleSplitBehavior.rememberSplitPosition,
         copyToClipboardOnMine: false,
         rememberSubtitleOffset: true,
         lastSubtitleOffset: 0,
@@ -159,11 +162,13 @@ it('validates exported settings', () => {
         dictionaryTracks: [
             {
                 dictionaryColorizeSubtitles: true,
+                dictionaryAutoGenerateStatistics: true,
                 dictionaryColorizeOnHoverOnly: true,
                 dictionaryHighlightOnHover: true,
                 dictionaryTokenMatchStrategy: TokenMatchStrategy.ANY_FORM_COLLECTED,
                 dictionaryTokenMatchStrategyPriority: TokenMatchStrategyPriority.EXACT,
                 dictionaryYomitanUrl: 'http://127.0.0.1:19633',
+                dictionaryYomitanParser: 'scanning-parser',
                 dictionaryYomitanScanLength: 16,
                 dictionaryTokenReadingAnnotation: TokenReadingAnnotation.UNKNOWN_OR_BELOW,
                 dictionaryDisplayIgnoredTokenReadings: true,
@@ -189,11 +194,13 @@ it('validates exported settings', () => {
             },
             {
                 dictionaryColorizeSubtitles: false,
+                dictionaryAutoGenerateStatistics: false,
                 dictionaryColorizeOnHoverOnly: true,
                 dictionaryHighlightOnHover: false,
                 dictionaryTokenMatchStrategy: TokenMatchStrategy.LEMMA_OR_EXACT_FORM_COLLECTED,
                 dictionaryTokenMatchStrategyPriority: TokenMatchStrategyPriority.LEMMA,
                 dictionaryYomitanUrl: 'http://127.0.0.1:19634',
+                dictionaryYomitanParser: 'mecab',
                 dictionaryYomitanScanLength: 12,
                 dictionaryTokenReadingAnnotation: TokenReadingAnnotation.ALWAYS,
                 dictionaryDisplayIgnoredTokenReadings: false,
@@ -219,11 +226,13 @@ it('validates exported settings', () => {
             },
             {
                 dictionaryColorizeSubtitles: false,
+                dictionaryAutoGenerateStatistics: false,
                 dictionaryColorizeOnHoverOnly: false,
                 dictionaryHighlightOnHover: true,
                 dictionaryTokenMatchStrategy: TokenMatchStrategy.LEMMA_FORM_COLLECTED,
                 dictionaryTokenMatchStrategyPriority: TokenMatchStrategyPriority.BEST_KNOWN,
                 dictionaryYomitanUrl: 'http://127.0.0.1:19635',
+                dictionaryYomitanParser: 'scanning-parser',
                 dictionaryYomitanScanLength: 8,
                 dictionaryTokenReadingAnnotation: TokenReadingAnnotation.NEVER,
                 dictionaryDisplayIgnoredTokenReadings: true,

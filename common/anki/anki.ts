@@ -331,20 +331,33 @@ export class Anki {
     }
 
     async findRecentlyEditedOrReviewedCards(
-        fields: string[],
         sinceDays: number,
+        fields: string[],
+        decks: string[] = [],
         ankiConnectUrl?: string
     ): Promise<number[]> {
         if (!fields.length) return [];
         if (sinceDays < 1) sinceDays = 1;
-        const response = await this._executeAction(
-            'findCards',
-            {
-                query: `(rated:${sinceDays} OR edited:${sinceDays}) (${fields.map((field) => `"${escapeAnkiQuery(field)}:_*"`).join(' OR ')})`,
-            },
-            ankiConnectUrl
-        );
-        return response.result;
+        const fieldsQuery = fields.map((field) => `"${escapeAnkiQuery(field)}:_*"`).join(' OR ');
+        const decksQuery = decks.map((deck) => `"deck:${escapeAnkiDeckQuery(deck)}"`).join(' OR ');
+        const query = decksQuery.length ? `(${decksQuery}) (${fieldsQuery})` : fieldsQuery;
+        const recentQuery = `(edited:${sinceDays} OR rated:${sinceDays})`;
+        return this.findCards(`${recentQuery} (${query})`, ankiConnectUrl);
+    }
+
+    async findCardsDueBy(
+        dueDays: number,
+        fields: string[],
+        decks: string[] = [],
+        ankiConnectUrl?: string
+    ): Promise<number[]> {
+        if (!fields.length) return [];
+        if (dueDays < 0) dueDays = 0;
+        const fieldsQuery = fields.map((field) => `"${escapeAnkiQuery(field)}:_*"`).join(' OR ');
+        const decksQuery = decks.map((deck) => `"deck:${escapeAnkiDeckQuery(deck)}"`).join(' OR ');
+        const query = decksQuery.length ? `(${decksQuery}) (${fieldsQuery})` : fieldsQuery;
+        const dueQuery = `prop:due<=${dueDays}`;
+        return this.findCards(`${dueQuery} (${query})`, ankiConnectUrl);
     }
 
     async cardsInfo(
