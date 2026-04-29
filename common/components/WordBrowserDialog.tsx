@@ -41,6 +41,7 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
 import {
+    DictionaryAnkiCardRecordsByTrack,
     DictionaryAnkiCardRecord,
     DictionaryProvider,
     DictionaryTokenKey,
@@ -70,15 +71,19 @@ interface Props {
     open: boolean;
     dictionaryProvider: DictionaryProvider;
     activeProfile?: string;
-    track: number;
-    dictionaryTrack: DictionaryTrack;
+    dictionaryTracks: DictionaryTrack[];
     onClose: () => void;
 }
 
 interface SearchExpansion {
     exactTerms: string[];
     lemmaTerms: string[];
-    yomitanError?: string;
+    yomitanErrors?: { track: number; message: string }[];
+}
+
+interface TrackError {
+    track: number;
+    message: string;
 }
 
 interface WordBrowserRow {
@@ -93,6 +98,7 @@ interface WordBrowserRow {
     source: DictionaryTokenSource;
     sourceDisplay: string;
     status: TokenStatus;
+    statusColor: string;
     states: TokenState[];
     statesDisplay: string;
     trackDisplay: string;
@@ -138,7 +144,7 @@ interface WordBrowserTableRowProps {
     row: WordBrowserRow;
     selected: boolean;
     onSelectRow: (selectionKey: string, options: { shiftKey: boolean }) => void;
-    renderStatusLabel: (status: TokenStatus) => React.ReactNode;
+    renderStatusLabel: (status: TokenStatus, color?: string) => React.ReactNode;
 }
 
 type FilterModeValue = string | number;
@@ -236,6 +242,14 @@ function dedupeNumbers(values: number[]) {
 
 function formatList(values: Array<string | number>) {
     return values.join(' · ');
+}
+
+function errorMessage(error: unknown) {
+    return error instanceof Error ? error.message : String(error);
+}
+
+function dedupedTrackErrors(errors: TrackError[]) {
+    return Array.from(new Map(errors.map((error) => [`${error.track}:${error.message}`, error])).values());
 }
 
 function filterableTokenStatuses() {
@@ -365,7 +379,7 @@ const WordBrowserTableRow = memo(function WordBrowserTableRow({
             <TableCell>{row.token}</TableCell>
             <TableCell>{row.lemmasDisplay}</TableCell>
             <TableCell>{row.sourceDisplay}</TableCell>
-            <TableCell>{renderStatusLabel(row.status)}</TableCell>
+            <TableCell>{renderStatusLabel(row.status, row.statusColor)}</TableCell>
             <TableCell>{row.statesDisplay}</TableCell>
             <TableCell>{row.trackDisplay}</TableCell>
             <TableCell>{row.cardIdsDisplay}</TableCell>
@@ -402,24 +416,27 @@ export default function WordBrowserDialog({
     open,
     dictionaryProvider,
     activeProfile,
-    track,
-    dictionaryTrack,
+    dictionaryTracks,
     onClose,
 }: Props) {
     const { t } = useTranslation();
     const theme = useTheme();
     const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
-    const yomitan = useMemo(() => new Yomitan(dictionaryTrack), [dictionaryTrack]);
-    const yomitanVersionPromiseRef = useRef<Promise<void> | undefined>(undefined);
+    const defaultDictionaryTrack = dictionaryTracks[0];
+    const yomitans = useMemo(
+        () => dictionaryTracks.map((dictionaryTrack) => new Yomitan(dictionaryTrack)),
+        [dictionaryTracks]
+    );
+    const yomitanVersionPromiseRef = useRef<Promise<TrackError[]> | undefined>(undefined);
     const filterableSources = useMemo(() => filterableTokenSources(), []);
     const filterableStates = FILTERABLE_STATES;
     const filterStatusOptions = useMemo(() => filterableTokenStatuses(), []);
     const [records, setRecords] = useState<{
         tokenRecords: DictionaryTokenRecord[];
-        ankiCardRecords: DictionaryAnkiCardRecord[];
+        ankiCardRecords: DictionaryAnkiCardRecordsByTrack;
     }>({
         tokenRecords: [],
-        ankiCardRecords: [],
+        ankiCardRecords: {},
     });
     const [loading, setLoading] = useState(false);
     const [mutating, setMutating] = useState(false);
@@ -488,18 +505,18 @@ export default function WordBrowserDialog({
             setLoading(true);
             setLoadError(undefined);
             try {
-                const nextRecords = await dictionaryProvider.getRecords(activeProfile, track);
+                const nextRecords = await dictionaryProvider.getRecords(activeProfile, undefined);
                 if (requestId !== loadRequestIdRef.current) return;
                 setRecords(nextRecords);
             } catch (error) {
                 if (requestId !== loadRequestIdRef.current) return;
-                setLoadError(error instanceof Error ? error.message : String(error));
+                setLoadError(errorMessage(error));
             } finally {
                 if (requestId !== loadRequestIdRef.current) return;
                 setLoading(false);
             }
         },
-        [dictionaryProvider, activeProfile, track]
+        [dictionaryProvider, activeProfile]
     );
 
     useEffect(() => {
@@ -539,7 +556,7 @@ export default function WordBrowserDialog({
         if (open) return;
         loadRequestIdRef.current += 1;
         const initialViewCriteria = defaultViewCriteria();
-        setRecords({ tokenRecords: [], ankiCardRecords: [] });
+        setRecords({ tokenRecords: [], ankiCardRecords: {} });
         setLoading(false);
         setDraftViewCriteria(initialViewCriteria);
         setAppliedViewCriteria(initialViewCriteria);
@@ -562,45 +579,114 @@ export default function WordBrowserDialog({
 
     const ensureYomitanVersion = useCallback(async () => {
         if (yomitanVersionPromiseRef.current) return yomitanVersionPromiseRef.current;
-        const versionPromise = yomitan.version().then(() => undefined);
+        const versionPromise = Promise.allSettled(yomitans.map((yomitan) => yomitan.version())).then((results) =>
+            dedupedTrackErrors(
+                results.flatMap((result, track) =>
+                    result.status === 'rejected' ? [{ track, message: errorMessage(result.reason) }] : []
+                )
+            )
+        );
         yomitanVersionPromiseRef.current = versionPromise;
-        try {
-            await versionPromise;
-        } catch (error) {
-            yomitanVersionPromiseRef.current = undefined;
-            throw error;
-        }
-    }, [yomitan]);
+        return versionPromise;
+    }, [yomitans]);
 
     useEffect(() => {
         yomitanVersionPromiseRef.current = undefined;
-    }, [yomitan]);
+    }, [yomitans]);
+
+    const statusColorForTrack = useCallback((dictionaryTrack: DictionaryTrack | undefined, status: TokenStatus) => {
+        const config = dictionaryTrack?.dictionaryTokenStatusConfig[status] ?? {
+            color: '#9E9E9E',
+            alpha: 'FF',
+            display: true,
+        };
+        return `${config.color}${config.alpha}`;
+    }, []);
+
+    const dictionaryTrackForTrackValue = useCallback(
+        (trackValue: number) =>
+            trackValue === LOCAL_TOKEN_TRACK ? defaultDictionaryTrack : dictionaryTracks[trackValue - 1],
+        [defaultDictionaryTrack, dictionaryTracks]
+    );
+
+    const statusColorForTrackValue = useCallback(
+        (trackValue: number, status: TokenStatus) =>
+            statusColorForTrack(dictionaryTrackForTrackValue(trackValue), status),
+        [dictionaryTrackForTrackValue, statusColorForTrack]
+    );
+
+    const statusColorForTrackValues = useCallback(
+        (trackValues: number[], status: TokenStatus) => {
+            const colors = Array.from(
+                new Set(trackValues.map((trackValue) => statusColorForTrackValue(trackValue, status)))
+            );
+            return colors.length === 1 ? colors[0] : undefined;
+        },
+        [statusColorForTrackValue]
+    );
+
+    const tokenizeAcrossTracks = useCallback(
+        async (queryForm: string) => {
+            const terms = new Set<string>();
+            const errors: TrackError[] = [];
+            const results = await Promise.allSettled(yomitans.map((yomitan) => yomitan.tokenize(queryForm)));
+
+            for (const [track, result] of results.entries()) {
+                if (result.status === 'rejected') {
+                    errors.push({ track, message: errorMessage(result.reason) });
+                    continue;
+                }
+
+                for (const tokenParts of result.value) {
+                    const tokenText = tokenParts
+                        .map((part) => part.text)
+                        .join('')
+                        .trim();
+                    if (tokenText.length) terms.add(tokenText);
+                }
+            }
+
+            return { terms: Array.from(terms), errors: dedupedTrackErrors(errors) };
+        },
+        [yomitans]
+    );
+
+    const lemmatizeAcrossTracks = useCallback(
+        async (term: string) => {
+            const lemmas = new Set<string>();
+            const errors: TrackError[] = [];
+            const results = await Promise.allSettled(yomitans.map((yomitan) => yomitan.lemmatize(term)));
+
+            for (const [track, result] of results.entries()) {
+                if (result.status === 'rejected') {
+                    errors.push({ track, message: errorMessage(result.reason) });
+                    continue;
+                }
+
+                for (const lemma of result.value ?? []) {
+                    for (const normalizedLemma of normalizedLookupTerms(lemma)) {
+                        lemmas.add(normalizedLemma);
+                    }
+                }
+            }
+
+            return { lemmas: Array.from(lemmas), errors: dedupedTrackErrors(errors) };
+        },
+        [yomitans]
+    );
 
     useEffect(() => {
         if (!open) return;
         void ensureYomitanVersion();
     }, [ensureYomitanVersion, open]);
 
-    const statusColors = useMemo(() => {
-        const colors = {} as Record<TokenStatus, string>;
-        for (let status = TokenStatus.UNCOLLECTED; status <= getFullyKnownTokenStatus(); ++status) {
-            const config = dictionaryTrack.dictionaryTokenStatusConfig[status] ?? {
-                color: '#9E9E9E',
-                alpha: 'FF',
-                display: true,
-            };
-            colors[status as TokenStatus] = `${config.color}${config.alpha}`;
-        }
-        return colors;
-    }, [dictionaryTrack.dictionaryTokenStatusConfig]);
-
     const renderStatusLabel = useCallback(
-        (status: TokenStatus) => (
-            <Typography component="span" sx={{ color: statusColors[status], fontWeight: 500 }}>
+        (status: TokenStatus, color?: string) => (
+            <Typography component="span" sx={{ color, fontWeight: 500 }}>
                 {t(`settings.dictionaryTokenStatus${status}`)}
             </Typography>
         ),
-        [statusColors, t]
+        [t]
     );
 
     useEffect(() => {
@@ -612,51 +698,52 @@ export default function WordBrowserDialog({
         }
         void (async () => {
             const queryForms = Array.from(new Set([trimmed])).filter((queryForm) => queryForm.length);
-            try {
-                await ensureYomitanVersion();
+            const errors: TrackError[] = [...(await ensureYomitanVersion())];
 
-                for (const queryForm of [...queryForms]) {
-                    const tokenizeTerms = (await yomitan.tokenize(queryForm)).map((t) =>
-                        t
-                            .map((p) => p.text)
-                            .join('')
-                            .trim()
-                    );
-                    for (const tokenText of tokenizeTerms) {
-                        if (tokenText.length && !queryForms.includes(tokenText)) queryForms.push(tokenText);
-                    }
+            for (const queryForm of [...queryForms]) {
+                const { terms, errors: tokenizeErrors } = await tokenizeAcrossTracks(queryForm);
+                errors.push(...tokenizeErrors);
+                for (const tokenText of terms) {
+                    if (!queryForms.includes(tokenText)) queryForms.push(tokenText);
                 }
-
-                const lemmaTerms = new Set<string>();
-                for (const exactTerm of queryForms) {
-                    const lemmas = (await yomitan.lemmatize(exactTerm)) ?? [];
-                    for (const lemma of lemmas) {
-                        for (const normalizedLemma of normalizedLookupTerms(lemma)) {
-                            lemmaTerms.add(normalizedLemma);
-                        }
-                    }
-                }
-
-                setSearchExpansion({
-                    exactTerms: normalizedLookupTerms(...queryForms),
-                    lemmaTerms: Array.from(lemmaTerms),
-                });
-            } catch (error) {
-                setSearchExpansion({
-                    exactTerms: normalizedLookupTerms(...queryForms),
-                    lemmaTerms: [],
-                    yomitanError: error instanceof Error ? error.message : String(error),
-                });
             }
+
+            const lemmaTerms = new Set<string>();
+            for (const exactTerm of queryForms) {
+                const { lemmas, errors: lemmaErrors } = await lemmatizeAcrossTracks(exactTerm);
+                errors.push(...lemmaErrors);
+                for (const lemma of lemmas) lemmaTerms.add(lemma);
+            }
+
+            setSearchExpansion({
+                exactTerms: normalizedLookupTerms(...queryForms),
+                lemmaTerms: Array.from(lemmaTerms),
+                yomitanErrors: dedupedTrackErrors(errors),
+            });
         })();
     }, [
         appliedViewCriteria.searchQuery,
-        dictionaryTrack,
+        dictionaryTracks,
         ensureYomitanVersion,
+        lemmatizeAcrossTracks,
         open,
         searchExpansionRefreshToken,
-        yomitan,
+        tokenizeAcrossTracks,
     ]);
+
+    const visibleYomitanError = useMemo(() => {
+        const tracksWithDbEntries = new Set(
+            records.tokenRecords.filter((record) => record.track !== LOCAL_TOKEN_TRACK).map((record) => record.track)
+        );
+        const relevantErrors = (searchExpansion.yomitanErrors ?? []).filter((error) =>
+            tracksWithDbEntries.has(error.track)
+        );
+        if (!relevantErrors.length) return;
+
+        return dedupedTrackErrors(relevantErrors)
+            .map(({ track, message }) => `${t('settings.subtitleTrackChoice', { trackNumber: track + 1 })}: ${message}`)
+            .join(' | ');
+    }, [records.tokenRecords, searchExpansion.yomitanErrors, t]);
 
     const sourceLabels = useMemo(
         () => ({
@@ -695,12 +782,13 @@ export default function WordBrowserDialog({
     );
 
     const rows = useMemo(() => {
-        const cardRecordMap = new Map<number, DictionaryAnkiCardRecord>();
-        for (const record of records.ankiCardRecords) cardRecordMap.set(record.cardId, record);
-        const treatSuspended = dictionaryTrack.dictionaryAnkiTreatSuspended;
         return records.tokenRecords.map((record) => {
+            const trackConfig =
+                record.track === LOCAL_TOKEN_TRACK ? defaultDictionaryTrack : dictionaryTracks[record.track];
+            const treatSuspended = trackConfig?.dictionaryAnkiTreatSuspended ?? false;
+            const trackCardRecords = records.ankiCardRecords[record.track];
             const cardRecords = record.cardIds
-                .map((cardId) => cardRecordMap.get(cardId))
+                .map((cardId) => trackCardRecords?.[cardId])
                 .filter((cardRecord): cardRecord is DictionaryAnkiCardRecord => cardRecord !== undefined);
             const noteIds = dedupeNumbers(cardRecords.map((cardRecord) => cardRecord.noteId));
             const status =
@@ -754,6 +842,7 @@ export default function WordBrowserDialog({
                 source: record.source,
                 sourceDisplay: sourceLabels[record.source],
                 status,
+                statusColor: statusColorForTrack(trackConfig, status),
                 states: record.states,
                 statesDisplay,
                 trackDisplay: record.source === DictionaryTokenSource.LOCAL ? '' : String(record.track + 1),
@@ -769,9 +858,11 @@ export default function WordBrowserDialog({
             } satisfies WordBrowserRow;
         });
     }, [
-        dictionaryTrack.dictionaryAnkiTreatSuspended,
+        defaultDictionaryTrack,
+        dictionaryTracks,
         records,
         sourceLabels,
+        statusColorForTrack,
         stateLabels,
         t,
         theme.palette.success.main,
@@ -801,6 +892,15 @@ export default function WordBrowserDialog({
         },
         [draftViewCriteria.selectedTrackFilters, sourceLabels, t, trackFilterOptions]
     );
+
+    const statusFilterTrackValues = useMemo(() => {
+        const includedTrackFilters = trackFilterOptions
+            .map((option) => option.value)
+            .filter((trackValue) => draftViewCriteria.selectedTrackFilters[trackValue] === 'include');
+        return includedTrackFilters.length > 0
+            ? includedTrackFilters
+            : trackFilterOptions.map((option) => option.value);
+    }, [draftViewCriteria.selectedTrackFilters, trackFilterOptions]);
 
     const toggleFilterPopover = useCallback((key: FilterPopoverKey, anchorEl: HTMLElement) => {
         setOpenFilterPopover((current) =>
@@ -1034,6 +1134,14 @@ export default function WordBrowserDialog({
         [selectedRowKeys, visibleSelectableRows]
     );
 
+    const bulkStatusTrackValues = useMemo(
+        () =>
+            selectedRows.length > 0
+                ? Array.from(new Set(selectedRows.map((row) => row.trackSortValue)))
+                : [LOCAL_TOKEN_TRACK],
+        [selectedRows]
+    );
+
     const bulkStatesConfigured = bulkIgnoredState !== undefined || bulkStates.length > 0;
     const canApplyToSelected =
         selectedCount > 0 && (bulkStatus !== '' || bulkStatesConfigured) && !mutating && !loading;
@@ -1262,9 +1370,9 @@ export default function WordBrowserDialog({
             <DialogContent sx={{ pt: 1 }}>
                 <Stack spacing={2}>
                     {loadError && <Alert severity="error">{loadError}</Alert>}
-                    {searchExpansion.yomitanError && appliedViewCriteria.searchQuery.trim().length > 0 && (
+                    {visibleYomitanError && appliedViewCriteria.searchQuery.trim().length > 0 && (
                         <Alert severity="warning">
-                            {t('settings.dictionaryBrowser.yomitanWarning', { message: searchExpansion.yomitanError })}
+                            {t('settings.dictionaryBrowser.yomitanWarning', { message: visibleYomitanError })}
                         </Alert>
                     )}
                     <Stack
@@ -1300,7 +1408,10 @@ export default function WordBrowserDialog({
                                             {t('settings.dictionaryBrowser.bulkStatus')}
                                         </Typography>
                                     ) : (
-                                        renderStatusLabel(selected as TokenStatus)
+                                        renderStatusLabel(
+                                            selected as TokenStatus,
+                                            statusColorForTrackValues(bulkStatusTrackValues, selected as TokenStatus)
+                                        )
                                     )
                                 }
                                 onChange={(event) =>
@@ -1316,7 +1427,12 @@ export default function WordBrowserDialog({
                                 </MenuItem>
                                 {filterStatusOptions.map((tokenStatus) => (
                                     <MenuItem key={tokenStatus} value={tokenStatus}>
-                                        <Typography sx={{ color: statusColors[tokenStatus], fontWeight: 500 }}>
+                                        <Typography
+                                            sx={{
+                                                color: statusColorForTrackValues(bulkStatusTrackValues, tokenStatus),
+                                                fontWeight: 500,
+                                            }}
+                                        >
                                             {t(`settings.dictionaryTokenStatus${tokenStatus}`)}
                                         </Typography>
                                     </MenuItem>
@@ -1569,7 +1685,16 @@ export default function WordBrowserDialog({
                                         renderMenuItemLabel={(status) => (
                                             <ListItemText
                                                 primary={renderStatusFilterLabel(status)}
-                                                slotProps={{ primary: { sx: { color: statusColors[status] } } }}
+                                                slotProps={{
+                                                    primary: {
+                                                        sx: {
+                                                            color: statusColorForTrackValues(
+                                                                statusFilterTrackValues,
+                                                                status
+                                                            ),
+                                                        },
+                                                    },
+                                                }}
                                             />
                                         )}
                                     />

@@ -187,7 +187,7 @@ export class ExtensionDictionaryStorage implements DictionaryStorage {
         return browser.runtime.sendMessage(message);
     }
 
-    getRecords(profile: string | undefined, track: number): Promise<DictionaryRecordsResult> {
+    getRecords(profile: string | undefined, track: number | undefined): Promise<DictionaryRecordsResult> {
         const message: DictionaryDBCommand<DictionaryGetRecordsMessage> = {
             sender: 'asbplayer-dictionary',
             message: {

@@ -99,7 +99,7 @@ export class LocalDictionaryStorage implements DictionaryStorage {
         return this.dictionaryDB.importRecordLocalBulk(records, profiles);
     }
 
-    getRecords(profile: string | undefined, track: number): Promise<DictionaryRecordsResult> {
+    getRecords(profile: string | undefined, track: number | undefined): Promise<DictionaryRecordsResult> {
         return this.dictionaryDB.getRecords(profile, track);
     }
 

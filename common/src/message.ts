@@ -859,7 +859,7 @@ export interface DictionaryImportRecordLocalBulkMessage extends MessageWithId {
 export interface DictionaryGetRecordsMessage extends MessageWithId {
     readonly command: 'dictionary-get-records';
     readonly profile: string | undefined;
-    readonly track: number;
+    readonly track: number | undefined;
 }
 
 export interface DictionaryUpdateRecordsMessage extends MessageWithId {

@@ -791,7 +791,10 @@ export default class ChromeExtension {
         return await this._createResponsePromise(messageId);
     }
 
-    async dictionaryGetRecords(profile: string | undefined, track: number): Promise<DictionaryRecordsResult> {
+    async dictionaryGetRecords(
+        profile: string | undefined,
+        track: number | undefined
+    ): Promise<DictionaryRecordsResult> {
         const messageId = uuidv4();
         const command: AsbPlayerCommand<DictionaryGetRecordsMessage> = {
             sender: 'asbplayerv2',

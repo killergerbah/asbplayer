@@ -162,9 +162,11 @@ export interface DictionaryDeleteProfileResult {
     deletedAnkiCards: DictionaryAnkiCardKey[];
 }
 
+export type DictionaryAnkiCardRecordsByTrack = Record<number, Record<number, DictionaryAnkiCardRecord>>;
+
 export interface DictionaryRecordsResult {
     tokenRecords: DictionaryTokenRecord[];
-    ankiCardRecords: DictionaryAnkiCardRecord[];
+    ankiCardRecords: DictionaryAnkiCardRecordsByTrack;
 }
 
 export interface DictionaryRecordUpdateInput {
@@ -337,8 +339,8 @@ export class DictionaryDB {
 
         return this.db.transaction('r', this.db.tokens, this.db.ankiCards, async () => {
             const records = await this.db.tokens
-                .where('[profile+token]')
-                .between([profile, Dexie.minKey], [profile, Dexie.maxKey])
+                .where('profile')
+                .equals(profile)
                 .filter((r) => r.track === track || r.track === LOCAL_TOKEN_TRACK)
                 .toArray();
             return this._tokenResultsFromRecords(profile, track, records);
@@ -639,24 +641,50 @@ export class DictionaryDB {
         });
     }
 
-    async getRecords(inputProfile: string | undefined, track: number): Promise<DictionaryRecordsResult> {
+    async getRecords(inputProfile: string | undefined, track: number | undefined): Promise<DictionaryRecordsResult> {
         const profile = this._getProfile(inputProfile);
 
         return this.db.transaction('r', this.db.tokens, this.db.ankiCards, async () => {
-            const tokenRecords = await this.db.tokens
-                .where('[profile+token]')
-                .between([profile, Dexie.minKey], [profile, Dexie.maxKey])
-                .filter((r) => r.track === track || r.track === LOCAL_TOKEN_TRACK)
-                .toArray();
-            if (!tokenRecords.length) return { tokenRecords: [], ankiCardRecords: [] };
+            const tokenRecords =
+                track === undefined
+                    ? await this.db.tokens.where('profile').equals(profile).toArray()
+                    : await this.db.tokens
+                          .where('profile')
+                          .equals(profile)
+                          .filter((r) => r.track === track || r.track === LOCAL_TOKEN_TRACK)
+                          .toArray();
+            if (!tokenRecords.length) return { tokenRecords: [], ankiCardRecords: {} };
 
-            const uniqueCardIds = Array.from(new Set(tokenRecords.flatMap((record) => record.cardIds)));
-            const ankiCardRecords = uniqueCardIds.length
+            const ankiCardKeys = Array.from(
+                new Map(
+                    tokenRecords
+                        .filter((record) => record.source !== DictionaryTokenSource.LOCAL)
+                        .flatMap((record) =>
+                            record.cardIds.map((cardId) => [
+                                `${cardId}:${record.track}`,
+                                [cardId, record.track, profile] as const,
+                            ])
+                        )
+                ).values()
+            );
+            const ankiCardRecords = ankiCardKeys.length
                 ? await this.db.ankiCards
                       .where('[cardId+track+profile]')
-                      .anyOf(uniqueCardIds.map((cardId) => [cardId, track, profile]))
+                      .anyOf(ankiCardKeys)
                       .toArray()
-                : [];
+                      .then((records) => {
+                          const recordsByTrack: DictionaryAnkiCardRecordsByTrack = {};
+                          for (const record of records) {
+                              const trackRecords = recordsByTrack[record.track];
+                              if (trackRecords) {
+                                  trackRecords[record.cardId] = record;
+                              } else {
+                                  recordsByTrack[record.track] = { [record.cardId]: record };
+                              }
+                          }
+                          return recordsByTrack;
+                      })
+                : {};
 
             return { tokenRecords, ankiCardRecords };
         });

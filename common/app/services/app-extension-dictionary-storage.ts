@@ -99,7 +99,7 @@ export class AppExtensionDictionaryStorage implements DictionaryStorage {
         return this._extension.dictionaryImportRecordLocalBulk(records, profiles);
     }
 
-    getRecords(profile: string | undefined, track: number): Promise<DictionaryRecordsResult> {
+    getRecords(profile: string | undefined, track: number | undefined): Promise<DictionaryRecordsResult> {
         return this._extension.dictionaryGetRecords(profile, track);
     }
 

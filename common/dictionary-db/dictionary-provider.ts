@@ -38,7 +38,7 @@ export interface DictionaryStorage {
         records: Partial<DictionaryTokenRecord>[],
         profiles: string[]
     ) => Promise<DictionaryImportRecordLocalResult>;
-    getRecords: (profile: string | undefined, track: number) => Promise<DictionaryRecordsResult>;
+    getRecords: (profile: string | undefined, track: number | undefined) => Promise<DictionaryRecordsResult>;
     updateRecords: (
         profile: string | undefined,
         updates: DictionaryRecordUpdateInput[],
@@ -113,7 +113,7 @@ export class DictionaryProvider {
         return this._storage.importRecordLocalBulk(records, profiles);
     }
 
-    getRecords(profile: string | undefined, track: number) {
+    getRecords(profile: string | undefined, track: number | undefined) {
         return this._storage.getRecords(profile, track);
     }
 
