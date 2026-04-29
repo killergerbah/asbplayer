@@ -1645,7 +1645,7 @@ function App({
                                     extension={extension}
                                     drawerOpen={effectiveDrawerOpen}
                                     appBarHidden={appBarHidden}
-                                    showCopyButton={tab === undefined}
+                                    showCopyButton={true}
                                     videoFullscreen={videoFullscreen}
                                     hideSubtitlePlayer={hideSubtitlePlayer || videoFullscreen}
                                     videoPopOut={videoPopOut}

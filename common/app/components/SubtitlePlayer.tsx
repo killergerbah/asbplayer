@@ -373,6 +373,7 @@ interface SubtitlePlayerProps {
     compressed: boolean;
     resizable: boolean;
     showCopyButton: boolean;
+    enableMultiSelectMining?: boolean;
     loading: boolean;
     drawerOpen: boolean;
     appBarHidden: boolean;
@@ -410,6 +411,7 @@ export default function SubtitlePlayer({
     compressed,
     resizable,
     showCopyButton,
+    enableMultiSelectMining = false,
     loading,
     drawerOpen,
     appBarHidden,
@@ -1017,6 +1019,7 @@ export default function SubtitlePlayer({
         onResizeStart,
         onResizeEnd,
     });
+    const canMultiSelectMine = showCopyButton || enableMultiSelectMining;
 
     useEffect(() => {
         if (!resizable || initialWidth === undefined || maxResizeWidth < minSubtitlePlayerWidth) {
@@ -1049,7 +1052,7 @@ export default function SubtitlePlayer({
             !draggingCurrentLocation ||
             !subtitleRefs ||
             isResizing ||
-            !showCopyButton ||
+            !canMultiSelectMine ||
             disableKeyEvents
         ) {
             setSelectedSubtitleIndexes(undefined);
@@ -1067,7 +1070,7 @@ export default function SubtitlePlayer({
         draggingCurrentLocation,
         subtitleRefs,
         isResizing,
-        showCopyButton,
+        canMultiSelectMine,
         disableKeyEvents,
     ]);
 
