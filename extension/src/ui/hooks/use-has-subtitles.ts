@@ -23,7 +23,9 @@ export const useHasSubtitles = (params?: Params) => {
                 const whereVideoElement = params?.whereVideoElement;
                 const anyVideoElementSynced = videoElements.some(
                     (videoElement) =>
-                        videoElement.synced && (whereVideoElement === undefined || whereVideoElement?.(videoElement))
+                        videoElement.synced &&
+                        videoElement.loadedSubtitles &&
+                        (whereVideoElement === undefined || whereVideoElement?.(videoElement))
                 );
 
                 const whereAsbplayer = params?.whereAsbplayer;

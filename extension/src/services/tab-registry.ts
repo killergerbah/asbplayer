@@ -311,6 +311,7 @@ export default class TabRegistry {
                     src: videoElement.src,
                     subscribed: videoElement.subscribed,
                     synced: videoElement.synced,
+                    loadedSubtitles: videoElement.loadedSubtitles ?? false,
                     syncedTimestamp: videoElement.syncedTimestamp,
                 };
                 activeVideoElements.push(element);

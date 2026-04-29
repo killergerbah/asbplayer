@@ -244,6 +244,7 @@ export interface VideoTabModel {
     src: string; // Video src
     subscribed: boolean; // Whether the video element is subscribed to extension messages
     synced: boolean; // Whether the video element has received subtitles
+    loadedSubtitles: boolean; // Whether a non-empty subtitle track is loaded
     syncedTimestamp?: number;
     faviconUrl?: string;
 }
