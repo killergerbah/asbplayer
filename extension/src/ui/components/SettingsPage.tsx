@@ -18,7 +18,6 @@ import { AsbplayerSettings, Profile, testCard } from '@project/common/settings';
 import { useTheme, type Theme } from '@mui/material/styles';
 import { settingsPageConfigs } from '@/services/pages';
 import { DictionaryProvider } from '@project/common/dictionary-db';
-import { uiTabRegistry } from '../hooks/use-has-subtitles';
 import { useLocationHash } from '@project/common/hooks/use-location-hash';
 
 const useStyles = makeStyles<Theme>((theme) => ({

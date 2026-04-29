@@ -214,6 +214,11 @@
             "autoSync": {
                 "enabled": true
             }
+        },
+        {
+            "key": "archive",
+            "host": "archive\\.org",
+            "searchShadowRootsForVideoElements": true
         }
     ]
 }
