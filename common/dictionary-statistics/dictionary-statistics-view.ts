@@ -62,6 +62,10 @@ export type DictionaryStatisticsSentenceDialogBucket =
     | {
           kind: 'uncollected';
           groupIndex: number;
+      }
+    | {
+          kind: 'unknown';
+          groupIndex: number;
       };
 
 export interface DictionaryStatisticsTokenStatusCount {
@@ -126,12 +130,19 @@ export interface DictionaryStatisticsSentenceUncollectedBucket {
     entries: DictionaryStatisticsSentenceBucketEntry[];
 }
 
+export interface DictionaryStatisticsSentenceUnknownBucket {
+    tokenCount: number;
+    count: number;
+    entries: DictionaryStatisticsSentenceBucketEntry[];
+}
+
 export interface DictionaryStatisticsSentenceBuckets {
     allKnown: {
         count: number;
         entries: DictionaryStatisticsSentenceBucketEntry[];
     };
     uncollected: DictionaryStatisticsSentenceUncollectedBucket[];
+    unknown: DictionaryStatisticsSentenceUnknownBucket[];
 }
 
 export interface DictionaryStatisticsRewatchSnapshot {
@@ -221,6 +232,7 @@ interface EvaluatedSentenceSnapshot {
     statusCounts: DictionaryStatisticsTokenStatusCounts;
     consideredTokenKeys: string[];
     uncollectedTokenKeys: string[];
+    unknownTokenKeys: string[];
 }
 
 interface DictionaryStatisticsDictionaryCounts {
@@ -396,11 +408,31 @@ function emptySentenceBuckets(): DictionaryStatisticsSentenceBuckets {
                 entries: [],
             },
         ],
+        unknown: [
+            {
+                tokenCount: 1,
+                count: 0,
+                entries: [],
+            },
+            {
+                tokenCount: 2,
+                count: 0,
+                entries: [],
+            },
+        ],
     };
 }
 
 function uncollectedSentenceBucketForCount(
     sentenceBuckets: DictionaryStatisticsSentenceUncollectedBucket[],
+    tokenCount: number
+) {
+    if (tokenCount <= 0) return;
+    return tokenCount === 1 ? sentenceBuckets[0] : sentenceBuckets[1];
+}
+
+function unknownSentenceBucketForCount(
+    sentenceBuckets: DictionaryStatisticsSentenceUnknownBucket[],
     tokenCount: number
 ) {
     if (tokenCount <= 0) return;
@@ -458,6 +490,7 @@ function evaluateSentenceSnapshot(
     let numUncollectedTokens = 0;
     const consideredTokenKeys: string[] = [];
     const uncollectedTokenKeys: string[] = [];
+    const unknownTokenKeys: string[] = [];
 
     for (const [tokenKey, token] of sentenceSnapshot.tokens.entries()) {
         if (token.ignored) continue;
@@ -475,6 +508,7 @@ function evaluateSentenceSnapshot(
         }
         if (status === TokenStatus.UNKNOWN) {
             numUnknownTokens += 1;
+            unknownTokenKeys.push(tokenKey);
             continue;
         }
         if (status === TokenStatus.UNCOLLECTED) {
@@ -492,6 +526,7 @@ function evaluateSentenceSnapshot(
         statusCounts,
         consideredTokenKeys,
         uncollectedTokenKeys,
+        unknownTokenKeys,
     };
 }
 
@@ -585,12 +620,20 @@ function buildSentenceBucketData(
             sentenceBuckets.uncollected,
             sentenceSnapshot.numUncollectedTokens
         );
-        if (!uncollectedBucket) continue;
+        if (uncollectedBucket) {
+            uncollectedBucket.count += 1;
+            uncollectedBucket.entries.push(
+                sentenceBucketEntry(sentenceSnapshot, sentenceSnapshot.uncollectedTokenKeys, tokens)
+            );
 
-        uncollectedBucket.count += 1;
-        uncollectedBucket.entries.push(
-            sentenceBucketEntry(sentenceSnapshot, sentenceSnapshot.uncollectedTokenKeys, tokens)
-        );
+            continue;
+        }
+
+        const unknownBucket = unknownSentenceBucketForCount(sentenceBuckets.unknown, sentenceSnapshot.numUnknownTokens);
+        if (!unknownBucket) continue;
+
+        unknownBucket.count += 1;
+        unknownBucket.entries.push(sentenceBucketEntry(sentenceSnapshot, sentenceSnapshot.unknownTokenKeys, tokens));
     }
 
     return sentenceBuckets;
@@ -926,7 +969,7 @@ export function nextDictionaryStatisticsSentenceSortDirection(
     return { sort: current.sort, direction: nextDirection };
 }
 
-export function uncollectedSentenceBucketLabel(
+export function statusSentenceBucketLabel(
     bucket: DictionaryStatisticsSentenceUncollectedBucket,
     uncollectedLabel: string
 ) {
@@ -940,6 +983,7 @@ export function sentenceDialogBucketData(
     labels: {
         knownSentencesLabel: string;
         uncollectedLabel: string;
+        unknownLabel: string;
     }
 ) {
     if (bucket.kind === 'allKnown') {
@@ -948,11 +992,21 @@ export function sentenceDialogBucketData(
             entries: sentenceBuckets.allKnown.entries,
         };
     }
-    const uncollectedBucket = sentenceBuckets.uncollected[bucket.groupIndex];
-    if (!uncollectedBucket) return;
+
+    if (bucket.kind === 'uncollected') {
+        const uncollectedBucket = sentenceBuckets.uncollected[bucket.groupIndex];
+        if (!uncollectedBucket) return;
+        return {
+            label: statusSentenceBucketLabel(uncollectedBucket, labels.uncollectedLabel),
+            entries: uncollectedBucket.entries,
+        };
+    }
+
+    const unknownBucket = sentenceBuckets.unknown[bucket.groupIndex];
+    if (!unknownBucket) return;
     return {
-        label: uncollectedSentenceBucketLabel(uncollectedBucket, labels.uncollectedLabel),
-        entries: uncollectedBucket.entries,
+        label: statusSentenceBucketLabel(unknownBucket, labels.unknownLabel),
+        entries: unknownBucket.entries,
     };
 }
 

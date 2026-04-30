@@ -22,7 +22,7 @@ import {
     sentenceComprehensionPointLabel,
     sentenceComprehensionXAxisLabels,
     sentenceDialogBucketData,
-    uncollectedSentenceBucketLabel,
+    statusSentenceBucketLabel,
 } from '@project/common/dictionary-statistics';
 import { AsbplayerSettings, dictionaryTrackEnabled, TokenStatus } from '@project/common/settings';
 import StatisticsSentenceDetailsDialog from '@project/common/components/StatisticsSentenceDetailsDialog';
@@ -108,6 +108,7 @@ const emptySentenceBuckets: DictionaryStatisticsSentenceBuckets = {
         entries: [],
     },
     uncollected: [],
+    unknown: [],
 };
 const distributionBarHeight = 6;
 const sentenceComprehensionGraphHeight = 120;
@@ -447,6 +448,7 @@ interface SentenceStatsPanelProps {
     totalSentences: number;
     sentenceBuckets: DictionaryStatisticsSentenceBuckets;
     uncollectedLabel: string;
+    unknownLabel: string;
     uniqueWordsPerSentenceLabel: string;
     uniqueWordsPerSentence: number;
     knownWordsPerSentenceLabel: string;
@@ -527,6 +529,7 @@ function SentenceStatsPanel({
     totalSentences,
     sentenceBuckets,
     uncollectedLabel,
+    unknownLabel,
     uniqueWordsPerSentenceLabel,
     uniqueWordsPerSentence,
     knownWordsPerSentenceLabel,
@@ -547,11 +550,21 @@ function SentenceStatsPanel({
         () =>
             sentenceBuckets.uncollected.map((bucket, groupIndex) => ({
                 bucket: { kind: 'uncollected', groupIndex } as const,
-                label: uncollectedSentenceBucketLabel(bucket, uncollectedLabel),
+                label: statusSentenceBucketLabel(bucket, uncollectedLabel),
                 count: bucket.count,
                 entries: bucket.entries,
             })),
         [sentenceBuckets, uncollectedLabel]
+    );
+    const unknownSentenceBuckets = useMemo(
+        () =>
+            sentenceBuckets.unknown.map((bucket, groupIndex) => ({
+                bucket: { kind: 'unknown', groupIndex } as const,
+                label: statusSentenceBucketLabel(bucket, unknownLabel),
+                count: bucket.count,
+                entries: bucket.entries,
+            })),
+        [sentenceBuckets, unknownLabel]
     );
 
     const renderSentenceBucketRow = useCallback(
@@ -641,9 +654,18 @@ function SentenceStatsPanel({
                             sentenceBuckets.allKnown.count,
                             sentenceBuckets.allKnown.entries
                         )}
-                        {uncollectedSentenceBuckets.map(({ bucket, label, count, entries }) =>
-                            renderSentenceBucketRow(bucket, label, count, entries)
-                        )}
+                        {uncollectedSentenceBuckets.map(({ bucket, label, count, entries }, index) => (
+                            <Box key={label} sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                                {renderSentenceBucketRow(bucket, label, count, entries)}
+                                {unknownSentenceBuckets[index] !== undefined &&
+                                    renderSentenceBucketRow(
+                                        unknownSentenceBuckets[index].bucket,
+                                        unknownSentenceBuckets[index].label,
+                                        unknownSentenceBuckets[index].count,
+                                        unknownSentenceBuckets[index].entries
+                                    )}
+                            </Box>
+                        ))}
                     </>
                 )}
             </Box>
@@ -898,6 +920,7 @@ function TrackSnapshot({
     const uniqueWordsPerSentenceLabel = t('statistics.uniqueWordsPerSentence');
     const knownWordsPerSentenceLabel = t('statistics.knownWordsPerSentence');
     const uncollectedLabel = statusLabels[TokenStatus.UNCOLLECTED];
+    const unknownLabel = statusLabels[TokenStatus.UNKNOWN];
     const currentWatchTitle = t('statistics.currentWatch');
     const ankiStatisticsTitle = t('statistics.anki.ankiStatistics');
     const ankiStatisticsInfoLines = useMemo(() => [t('statistics.anki.info.ankiStatistics')], [t]);
@@ -1115,6 +1138,7 @@ function TrackSnapshot({
                         totalSentences={totalSentences}
                         sentenceBuckets={trackSnapshot.sentenceBuckets}
                         uncollectedLabel={uncollectedLabel}
+                        unknownLabel={unknownLabel}
                         uniqueWordsPerSentenceLabel={uniqueWordsPerSentenceLabel}
                         uniqueWordsPerSentence={trackSnapshot.averageWordsPerSentence}
                         knownWordsPerSentenceLabel={knownWordsPerSentenceLabel}
@@ -1131,6 +1155,7 @@ function TrackSnapshot({
                             const bucketData = sentenceDialogBucketData(bucket, trackSnapshot.sentenceBuckets, {
                                 knownSentencesLabel: t('statistics.knownSentences'),
                                 uncollectedLabel,
+                                unknownLabel,
                             });
                             if (!bucketData) return;
                             onSentenceDialogState({
@@ -1149,6 +1174,7 @@ function TrackSnapshot({
                         totalSentences={totalSentences}
                         sentenceBuckets={projectedSentenceBuckets}
                         uncollectedLabel={uncollectedLabel}
+                        unknownLabel={unknownLabel}
                         uniqueWordsPerSentenceLabel={uniqueWordsPerSentenceLabel}
                         uniqueWordsPerSentence={projectedAverageWordsPerSentence}
                         knownWordsPerSentenceLabel={knownWordsPerSentenceLabel}
@@ -1191,6 +1217,7 @@ function TrackSnapshot({
                                 {
                                     knownSentencesLabel: t('statistics.knownSentences'),
                                     uncollectedLabel,
+                                    unknownLabel,
                                 }
                             );
                             if (!bucketData) return;
