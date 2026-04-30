@@ -551,6 +551,7 @@ export interface PageSettings {
     iwanttfc: Page;
     svtplay: Page;
     urplay: Page;
+    archive: Page;
 }
 
 export interface StreamingVideoSettings {

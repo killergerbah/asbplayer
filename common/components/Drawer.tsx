@@ -40,7 +40,7 @@ const Drawer: React.FC<Props> = ({ children, showBackButton, label, onClose, dra
                     <Paper
                         square
                         sx={{
-                            height: appBarHeight === 0 ? 'auto' : appBarHeight,
+                            height: appBarHeight === 0 ? 52 : appBarHeight,
                             flexShrink: 0,
                             display: 'flex',
                             alignItems: 'center',
@@ -53,7 +53,7 @@ const Drawer: React.FC<Props> = ({ children, showBackButton, label, onClose, dra
                             </IconButton>
                         )}
                         {label !== undefined && (
-                            <Typography variant="h6" sx={{ flexGrow: 1, pl: showBackButton ? 1 : 1 }}>
+                            <Typography variant="h6" sx={{ flexGrow: 1, pl: 1 }}>
                                 {label}
                             </Typography>
                         )}

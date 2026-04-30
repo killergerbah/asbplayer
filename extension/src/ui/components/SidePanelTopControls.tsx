@@ -49,8 +49,6 @@ const SidePanelTopControls = React.forwardRef(function SidePanelTopControls(
 
     return (
         <Fade in={show || forceShow}>
-            {/* Box type is missing ref support */}
-            {/* @ts-ignore */}
             <Box ref={ref} style={{ position: 'absolute', top: 12, right: 12 }}>
                 <Grid container direction="column">
                     <Grid item>
@@ -83,7 +81,7 @@ const SidePanelTopControls = React.forwardRef(function SidePanelTopControls(
                     <Grid item>
                         <IconButton onClick={onShowMiningHistory}>
                             <Tooltip title={t('bar.miningHistory')!}>
-                                <Badge badgeContent={miningHistoryCount} color="primary" showZero>
+                                <Badge badgeContent={miningHistoryCount} color="default" showZero>
                                     <HistoryIcon />
                                 </Badge>
                             </Tooltip>

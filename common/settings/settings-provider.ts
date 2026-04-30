@@ -222,6 +222,7 @@ export const defaultSettings: AsbplayerSettings = {
         iwanttfc: {},
         svtplay: {},
         urplay: {},
+        archive: {},
     },
     webSocketClientEnabled: false,
     webSocketServerUrl: 'ws://127.0.0.1:8766/ws',
