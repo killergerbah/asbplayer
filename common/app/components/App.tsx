@@ -5,7 +5,7 @@ import ThemeProvider from '@mui/material/styles/ThemeProvider';
 import { useWindowSize } from '../hooks/use-window-size';
 import { useLocationHash } from '@project/common/hooks/use-location-hash';
 import {
-    Image,
+    MediaFragment,
     OpenStatisticsOverlayMessage,
     SubtitleModel,
     VideoTabModel,
@@ -21,7 +21,7 @@ import {
     DownloadImageMessage,
     DownloadAudioMessage,
     CardTextFieldValues,
-    ImageErrorCode,
+    MediaFragmentErrorCode,
     RequestSubtitlesResponse,
 } from '@project/common';
 import { createTheme } from '@project/common/theme';
@@ -545,10 +545,14 @@ function App({
                         track3: extractText(card.subtitle, card.surroundingSubtitles, 2),
                         definition: newCard.definition ?? '',
                         audioClip: audioClip,
-                        image: Image.fromCard(
+                        image: MediaFragment.fromCard(
                             newCard,
                             settingsRef.current.maxImageWidth,
-                            settingsRef.current.maxImageHeight
+                            settingsRef.current.maxImageHeight,
+                            settingsRef.current.mediaFragmentFormat,
+                            settingsRef.current.mediaFragmentTrimStart,
+                            settingsRef.current.mediaFragmentTrimEnd,
+                            settingsRef.current.mediaFragmentMaxClipLength
                         ),
                         word: newCard.word ?? '',
                         source: `${newCard.subtitleFileName} (${humanReadableTime(card.mediaTimestamp)})`,
@@ -731,20 +735,37 @@ function App({
     const handleDownloadImage = useCallback(
         (item: CardModel) => {
             try {
-                const image = Image.fromCard(item, settings.maxImageWidth, settings.maxImageHeight)!;
+                const image = MediaFragment.fromCard(
+                    item,
+                    settings.maxImageWidth,
+                    settings.maxImageHeight,
+                    settings.mediaFragmentFormat,
+                    settings.mediaFragmentTrimStart,
+                    settings.mediaFragmentTrimEnd,
+                    settings.mediaFragmentMaxClipLength
+                )!;
 
                 if (image.error === undefined) {
                     image.download();
-                } else if (image.error === ImageErrorCode.fileLinkLost) {
+                } else if (image.error === MediaFragmentErrorCode.fileLinkLost) {
                     handleError(t('ankiDialog.imageFileLinkLost'));
-                } else if (image.error === ImageErrorCode.captureFailed) {
+                } else if (image.error === MediaFragmentErrorCode.captureFailed) {
                     handleError(t('ankiDialog.imageCaptureFailed'));
                 }
             } catch (e) {
                 handleError(e);
             }
         },
-        [handleError, settings.maxImageWidth, settings.maxImageHeight, t]
+        [
+            handleError,
+            settings.maxImageWidth,
+            settings.maxImageHeight,
+            settings.mediaFragmentFormat,
+            settings.mediaFragmentTrimStart,
+            settings.mediaFragmentTrimEnd,
+            settings.mediaFragmentMaxClipLength,
+            t,
+        ]
     );
 
     const handleDownloadCopyHistorySectionAsSrt = useCallback(

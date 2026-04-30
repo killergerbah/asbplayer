@@ -76,6 +76,7 @@ it('validates exported settings', () => {
         audioPaddingEnd: 500,
         maxImageWidth: 480,
         maxImageHeight: 0,
+        mediaFragmentMaxClipLength: 10000,
         surroundingSubtitlesCountRadius: 2,
         surroundingSubtitlesTimeRadius: 10000,
         autoPausePreference: 2,
