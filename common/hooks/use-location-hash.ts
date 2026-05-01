@@ -17,11 +17,14 @@ export const useLocationHash = (requiredParams?: { [key: string]: string }) => {
 
     useEffect(() => {
         if (!hasRequiredParams) {
+            setHash(undefined);
             return;
         }
         if (location.hash && location.hash.startsWith('#')) {
             const hash = location.hash.substring(1, location.hash.length);
             setHash(hash);
+        } else {
+            setHash('');
         }
     }, [hasRequiredParams]);
     return { hash };
