@@ -8,7 +8,7 @@ const config: Config = {
   favicon: "img/favicon.ico",
   url: "https://docs.asbplayer.dev",
   baseUrl: "/",
-  organizationName: "killergerbah",
+  organizationName: "asbplayer",
   projectName: "asbplayer-docs",
 
   onBrokenLinks: "throw",

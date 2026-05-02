@@ -29,7 +29,6 @@ import { ExtensionDictionaryStorage } from '@/services/extension-dictionary-stor
 import { ExtensionSettingsStorage } from '@/services/extension-settings-storage';
 import { ExtensionGlobalStateProvider } from '@/services/extension-global-state-provider';
 import type { ContentScriptContext } from '#imports';
-import gte from 'semver/functions/gte';
 
 const matches = ['*://killergerbah.github.io/asbplayer*', '*://app.asbplayer.dev/*'];
 
