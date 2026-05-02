@@ -47,7 +47,8 @@ We epecially acknowledge the wonderful humans below.
 [@Hit2Skill](https://github.com/Hit2Skill),
 [@khajiitvaper2017](https://github.com/khajiitvaper2017),
 [@saifkaral](https://github.com/saifkaral),
-[@xwxb](https://github.com/xwxb)
+[@xwxb](https://github.com/xwxb),
+[@yqmmm](https://github.com/yqmmm)
 
 ## Translators
 

@@ -123,7 +123,8 @@ Thank you to all those who have contributed to asbplayer:
 [@Hit2Skill](https://github.com/Hit2Skill),
 [@khajiitvaper2017](https://github.com/khajiitvaper2017),
 [@saifkaral](https://github.com/saifkaral),
-[@xwxb](https://github.com/xwxb)
+[@xwxb](https://github.com/xwxb),
+[@yqmmm](https://github.com/yqmmm)
 
 Thank you to all those who have translated asbplayer:
 
