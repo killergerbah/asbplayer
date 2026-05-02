@@ -1,12 +1,12 @@
 <p align="center">
-    <img src="https://raw.githubusercontent.com/killergerbah/asbplayer/main/extension/public/icon/icon128.png" width="75" height="75" style="border-radius: 16px" alt="asbplayer" />
+    <img src="https://raw.githubusercontent.com/asbplayer/asbplayer/main/extension/public/icon/icon128.png" width="75" height="75" style="border-radius: 16px" alt="asbplayer" />
 </p>
 
 <div align="center">
 
-[![GitHub Workflow Status (with event)](https://img.shields.io/github/actions/workflow/status/killergerbah/asbplayer/verify.yml)](https://github.com/killergerbah/asbplayer/actions/workflows/verify.yml)
-[![Github All Releases](https://img.shields.io/github/downloads/killergerbah/asbplayer/total.svg)](https://github.com/killergerbah/asbplayer/releases)
-[![GitHub License](https://img.shields.io/github/license/killergerbah/asbplayer)](https://github.com/killergerbah/asbplayer?tab=MIT-1-ov-file)
+[![GitHub Workflow Status (with event)](https://img.shields.io/github/actions/workflow/status/asbplayer/asbplayer/verify.yml)](https://github.com/asbplayer/asbplayer/actions/workflows/verify.yml)
+[![Github All Releases](https://img.shields.io/github/downloads/asbplayer/asbplayer/total.svg)](https://github.com/asbplayer/asbplayer/releases)
+[![GitHub License](https://img.shields.io/github/license/asbplayer/asbplayer)](https://github.com/asbplayer/asbplayer?tab=MIT-1-ov-file)
 [![Discord](https://img.shields.io/discord/962412001810849814?color=%237785cc)](https://discord.gg/ad7VAQru7m)
 
 </div>
@@ -19,19 +19,19 @@
 - **Load text-selectable subtitles onto most video sources**, including streaming sources. You can use **auto-detected subtitles** on popular streaming services like Netflix and YouTube, or your own **subtitle files**.
 - **Seek through subtitles** using a **navigable subtitle list**.
 - **Optimize language acquisition** with **playback modes** like:
-  - **Condensed playback**: Skip unsubtitled sections of video.
-  - **Fast-forward playback**: Fast-forward through unsubtitled sections of video.
-  - **Auto-pause**: Automatically pause at the beginning or end of every subtitle.
+    - **Condensed playback**: Skip unsubtitled sections of video.
+    - **Fast-forward playback**: Fast-forward through unsubtitled sections of video.
+    - **Auto-pause**: Automatically pause at the beginning or end of every subtitle.
 - **Use customizable keyboard shortcuts** to access most of asbplayer's features.
 - **Annotate subtitles** with the help of tools such as [Yomitan](https://yomitan.wiki/)
-  - **Word styling** (color/underline/outline, etc.) based on a word's status (uncollected/unknown/learning, etc.) synced from Anki and/or tracked locally in asbplayer.
-  - **Reading annotation** for pronunciation displayed above each word or based on status.
-  - **Frequency annotation** for rank-based frequency displayed below each word or based on status.
-  - Many more features for future releases! Some planned features include:
-    - **Statistics and Comprehension** on your known words for the current video and across videos.
-    - **Word browser** to manage local and Anki-synced words.
-    - **Auto pause**, **Condensed playback**, and **Auto mining** on uncollected/unknown/learning words.
-    - **Accent annotation** such as pitch accent, tones, gender, etc.
+    - **Word styling** (color/underline/outline, etc.) based on a word's status (uncollected/unknown/learning, etc.) synced from Anki and/or tracked locally in asbplayer.
+    - **Reading annotation** for pronunciation displayed above each word or based on status.
+    - **Frequency annotation** for rank-based frequency displayed below each word or based on status.
+    - Many more features for future releases! Some planned features include:
+        - **Statistics and Comprehension** on your known words for the current video and across videos.
+        - **Word browser** to manage local and Anki-synced words.
+        - **Auto pause**, **Condensed playback**, and **Auto mining** on uncollected/unknown/learning words.
+        - **Accent annotation** such as pitch accent, tones, gender, etc.
 
 ## Thanks
 
@@ -143,11 +143,11 @@ Thank you to all those who have translated asbplayer:
 **Tigerbabe aka Gyaru Jinsei Juku** (Korean),
 **yaacha** (Indonesian)
 
-If you are a non-English native, and would like to help translate asbplayer, join the [Crowdin project](https://crowdin.com/project/asbplayer). If your language isn't there, feel free to create an issue to add it on the [issues page](https://github.com/killergerbah/asbplayer/issues).
+If you are a non-English native, and would like to help translate asbplayer, join the [Crowdin project](https://crowdin.com/project/asbplayer). If your language isn't there, feel free to create an issue to add it on the [issues page](https://github.com/asbplayer/asbplayer/issues).
 
 ## Contributing
 
-Before contributing, please read the [contribution guidelines](https://github.com/killergerbah/asbplayer/blob/main/CONTRIBUTING.md).
+Before contributing, please read the [contribution guidelines](https://github.com/asbplayer/asbplayer/blob/main/CONTRIBUTING.md).
 
 ## User guide
 
@@ -161,20 +161,19 @@ asbplayer's complete user guide is [here](https://docs.asbplayer.dev/docs/intro)
 1. Install and set up a dictionary tool for your target language that allows you to do instant lookups. Popular ones are [Yomitan](https://chromewebstore.google.com/detail/yomitan/likgccmbimhjbgkjambclfkhldnlhbnn) (see [supported languages](https://yomitan.wiki/other/supported-languages/)) and [VocabSieve](https://github.com/FreeLanguageTools/vocabsieve) (tuned for European languages. Works with Asian languages too but doesn't automatically detect word boundaries).
 2. Install [Anki](https://apps.ankiweb.net/), and create a deck and note type. More details on [Refold's guide](https://refold.la/roadmap/stage-1/a/anki-setup).
 3. Install the [AnkiConnect](https://ankiweb.net/shared/info/2055492159) plugin for Anki.
-4. [Configure](https://killergerbah.github.io/asbplayer/?view=settings) asbplayer to create cards via AnkiConnect using your deck and note type.
+4. [Configure](https://app.asbplayer.dev/?view=settings) asbplayer to create cards via AnkiConnect using your deck and note type.
 5. Enhance a video using asbplayer and subtitle files.
-    - **For streaming video:** After installing the [browser extension](https://github.com/killergerbah/asbplayer/releases/latest), drag-and-drop a subtitle file into the streaming video you want to mine.
-    - **For local files:** Drag-and-drop media/subtitle files into the [asbplayer website](https://killergerbah.github.io/asbplayer).
+    - **For streaming video:** After installing the [browser extension](https://github.com/asbplayer/asbplayer/releases/latest), drag-and-drop a subtitle file into the streaming video you want to mine.
+    - **For local files:** Drag-and-drop media/subtitle files into the [asbplayer website](https://app.asbplayer.dev).
 
     You may have to [adjust the subtitle offset](https://docs.asbplayer.dev/docs/guides/subtitle-timing) to get the subtitles in sync.
 
 6. When a subtitle appears that you want to mine, use <kbd>Ctrl + Shift + X</kbd> to open the flashcard creator.
 7. Fill in the definition and word fields and then export the card. To fill in the definition field you may use the dictionary you installed in step 1.
 
-
 ## Contact
 
-Submit bugs or feature requests from the [issues page](https://github.com/killergerbah/asbplayer/issues). Join the [Discord](https://discord.gg/ad7VAQru7m) server to talk with me and other language learners.
+Submit bugs or feature requests from the [issues page](https://github.com/asbplayer/asbplayer/issues). Join the [Discord](https://discord.gg/ad7VAQru7m) server to talk with me and other language learners.
 
 ## Notes for AMO source code reviewers
 
