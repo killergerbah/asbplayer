@@ -257,7 +257,7 @@ export default function Bar({
                             </ListItemButton>
                         </ListItem>
                     </Link>
-                    <Link href="https://github.com/killergerbah/asbplayer/issues">
+                    <Link href="https://github.com/asbplayer/asbplayer/issues">
                         <ListItem disablePadding>
                             <ListItemButton>
                                 <ListItemIcon>

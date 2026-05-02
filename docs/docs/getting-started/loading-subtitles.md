@@ -10,7 +10,7 @@ The first step to using asbplayer is to load subtitles onto a video source.
 
 ### Chrome (or other Chromium-based browsers)
 
-1. Install the Chrome extension from Google's [web store](https://chromewebstore.google.com/detail/asbplayer-language-learni/hkledmpjpaehamkiehglnbelcpdflcab) or from the [GitHub release](https://github.com/killergerbah/asbplayer/releases/latest).
+1. Install the Chrome extension from Google's [web store](https://chromewebstore.google.com/detail/asbplayer-language-learni/hkledmpjpaehamkiehglnbelcpdflcab) or from the [GitHub release](https://github.com/asbplayer/asbplayer/releases/latest).
 2. Click 🧩 icon in browser toolbar → asbplayer → **Open Side Panel**
 3. Click **Load Subtitles** to load subtitles onto any video on the current page.
 
@@ -20,7 +20,7 @@ The first step to using asbplayer is to load subtitles onto a video source.
 asbplayer is missing some features on Firefox. See the [Compatibility](../compatibility#extension) section.  
 :::
 
-1. Install the the Firefox addon from the Mozilla [addon store](https://addons.mozilla.org/en-US/firefox/addon/asbplayer-language-learning/) or from the [GitHub release](https://github.com/killergerbah/asbplayer/releases/latest).
+1. Install the the Firefox addon from the Mozilla [addon store](https://addons.mozilla.org/en-US/firefox/addon/asbplayer-language-learning/) or from the [GitHub release](https://github.com/asbplayer/asbplayer/releases/latest).
 2. Click 🧩 icon in browser toolbar → asbplayer → **Open Side Panel**
 3. Click **Load Subtitles** to load subtitles onto any video on the current page.
 

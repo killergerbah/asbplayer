@@ -66,7 +66,7 @@ We epecially acknowledge the wonderful humans below.
 **Tigerbabe aka Gyaru Jinsei Juku** (Korean),
 **yaacha** (Indonesian)
 
-If you are a non-English native, and would like to help translate asbplayer, join the [Crowdin project](https://crowdin.com/project/asbplayer). If your language isn't there, feel free to create an issue on the [issues page](https://github.com/killergerbah/asbplayer/issues).
+If you are a non-English native, and would like to help translate asbplayer, join the [Crowdin project](https://crowdin.com/project/asbplayer). If your language isn't there, feel free to create an issue on the [issues page](https://github.com/asbplayer/asbplayer/issues).
 
 ## Sponsors
 

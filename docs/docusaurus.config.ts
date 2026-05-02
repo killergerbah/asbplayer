@@ -25,7 +25,7 @@ const config: Config = {
       {
         docs: {
           sidebarPath: "./sidebars.ts",
-          editUrl: "https://github.com/killergerbah/asbplayer-docs/edit/main",
+          editUrl: "https://github.com/asbplayer/asbplayer/edit/main",
         },
         blog: {
           showReadingTime: true,
@@ -66,7 +66,7 @@ const config: Config = {
         },
         { to: "/blog", label: "Blog", position: "left" },
         {
-          href: "https://github.com/killergerbah/asbplayer",
+          href: "https://github.com/asbplayer/asbplayer",
           className: "header-github-link",
           position: "right",
           "aria-label": "GitHub repository",
@@ -99,7 +99,7 @@ const config: Config = {
           items: [
             {
               label: "GitHub",
-              href: "https://github.com/killergerbah/asbplayer",
+              href: "https://github.com/asbplayer/asbplayer",
             },
           ],
         },

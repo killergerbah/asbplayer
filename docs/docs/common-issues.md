@@ -53,7 +53,7 @@ Make sure the browser zoom setting is at 100%. Cropping can be disabled altogeth
 
 ### I'm having trouble creating cards using JP mining note.
 
-See this [issue](https://github.com/killergerbah/asbplayer/issues/220#issuecomment-1501124166).
+See this [issue](https://github.com/asbplayer/asbplayer/issues/220#issuecomment-1501124166).
 
 ### asbplayer keeps asking for permission to record audio
 

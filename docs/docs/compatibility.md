@@ -32,7 +32,7 @@ sidebar_position: 7
 | -------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
 | Netflix        |                                                                                            ✓                                                                                             |
 | YouTube        |                                                                                            ✓                                                                                             |
-| Disney Plus    |                                           Seeking/timing is completely broken ([issue](https://github.com/killergerbah/asbplayer/issues/576))                                            |
+| Disney Plus    |                                           Seeking/timing is completely broken ([issue](https://github.com/asbplayer/asbplayer/issues/576))                                            |
 | Hulu           |                                                                                            ✓                                                                                             |
 | TVer           |                                                                                            ✓                                                                                             |
 | Bandai Channel |                                                                                            ✓                                                                                             |

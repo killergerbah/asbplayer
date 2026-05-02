@@ -4,7 +4,7 @@ sidebar_position: 2
 
 # External API
 
-This page is intended to be an technical reference on asbplayer's external interface and the [pre-packaged WebSocket server](https://github.com/killergerbah/asbplayer/tree/main/scripts/web-socket-server) that implements this interface. See the [guide](../guides/web-socket-server) for how to setup the WebSocket server.
+This page is intended to be an technical reference on asbplayer's external interface and the [pre-packaged WebSocket server](https://github.com/asbplayer/asbplayer/tree/main/scripts/web-socket-server) that implements this interface. See the [guide](../guides/web-socket-server) for how to setup the WebSocket server.
 
 ## WebSocket commands
 
@@ -107,8 +107,8 @@ asbplayer, as a WebSocket client, responds to the following commands from a WebS
 
 The WebSocket server also implements an HTTP-based API which can trigger the commands above.
 
-- `POST asbplayer/load-subtitles` ([script](https://github.com/killergerbah/asbplayer/blob/main/scripts/web-socket-server/cli/load-subtitles))
-- `POST asbplayer/seek` ([script](https://github.com/killergerbah/asbplayer/blob/main/scripts/web-socket-server/cli/seek))
+- `POST asbplayer/load-subtitles` ([script](https://github.com/asbplayer/asbplayer/blob/main/scripts/web-socket-server/cli/load-subtitles))
+- `POST asbplayer/seek` ([script](https://github.com/asbplayer/asbplayer/blob/main/scripts/web-socket-server/cli/seek))
 
 ## AnkiConnect proxy
 

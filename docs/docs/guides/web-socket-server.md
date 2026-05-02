@@ -12,9 +12,9 @@ The server was originally written to enable a one-click mining flow that enriche
 
 ## Run the server
 
-1. Clone the [asbplayer repo](https://github.com/killergerbah/asbplayer).
+1. Clone the [asbplayer repo](https://github.com/asbplayer/asbplayer).
    ```
-   git clone git@github.com:killergerbah/asbplayer
+   git clone git@github.com:asbplayer/asbplayer
    ```
 2. If not already installed, install [Golang](https://go.dev/dl/).
 3. Run the server:

@@ -1,6 +1,6 @@
 # Contributing
 
-Contributions to the project are always welcome. asbplayer will never be complete, and there are a ton of [issues](https://github.com/killergerbah/asbplayer/issues) to work on. [Many contributions](https://github.com/killergerbah/asbplayer/pulls?q=is%3Apr+is%3Aclosed) have already been made, including some very large features.
+Contributions to the project are always welcome. asbplayer will never be complete, and there are a ton of [issues](https://github.com/asbplayer/asbplayer/issues) to work on. [Many contributions](https://github.com/asbplayer/asbplayer/pulls?q=is%3Apr+is%3Aclosed) have already been made, including some very large features.
 
 ## AI-assisted contributions
 
@@ -26,7 +26,7 @@ Make sure the pre-merge checks are passing:
 yarn run verify
 ```
 
-Then open a pull request on the [GitHub repository](https://github.com/killergerbah/asbplayer).
+Then open a pull request on the [GitHub repository](https://github.com/asbplayer/asbplayer).
 
 ## Development
 
