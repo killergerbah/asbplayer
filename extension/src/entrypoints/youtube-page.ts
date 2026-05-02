@@ -32,12 +32,7 @@ const trackLabel = (track: any) =>
 
 const prepareTimedTextUrl = (url: URL) => {
     url.searchParams.set('fmt', 'srv3');
-
-    if (url.searchParams.has('pot')) {
-        // POT-gated timedtext URLs can return HTTP 200 with an empty body unless the request includes
-        // YouTube's current web client identity.
-        url.searchParams.set('c', window.ytcfg?.get?.('INNERTUBE_CLIENT_NAME') || 'WEB');
-    }
+    url.searchParams.set('c', window.ytcfg?.get?.('INNERTUBE_CLIENT_NAME') || 'WEB');
 };
 
 const trackToSubtitleTrack = (track: any): VideoDataSubtitleTrack | undefined => {
@@ -76,6 +71,11 @@ const tracksFromPlayerAudioTrack = async (videoId: string) => {
         const tracks = player?.getAudioTrack?.()?.captionTracks;
 
         if ((playerVideoId === undefined || playerVideoId === videoId) && Array.isArray(tracks) && tracks.length > 0) {
+            const trackWithPotParam = tracks.find((t) => new URL(t?.url)?.searchParams?.get('pot') !== null);
+            if (trackWithPotParam === undefined) {
+                return false;
+            }
+
             const subtitles = tracksToSubtitleTracks(tracks);
 
             if (subtitles.length > 0) {
@@ -88,7 +88,7 @@ const tracksFromPlayerAudioTrack = async (videoId: string) => {
         }
 
         return false;
-    }, 2000);
+    }, 5000);
 
     return ready ? info : undefined;
 };
