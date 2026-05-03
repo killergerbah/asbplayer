@@ -36,6 +36,7 @@ const MiningSettingsTab: React.FC<Props> = ({ settings, onSettingChanged }) => {
         recordWithAudioPlayback,
         preferMp3,
         copyToClipboardOnMine,
+        updateLastCardForSameSubtitle,
     } = settings;
     const [screenshotDelayInput, setScreenshotDelayInput] = useState(String(streamingScreenshotDelay));
 
@@ -155,6 +156,18 @@ const MiningSettingsTab: React.FC<Props> = ({ settings, onSettingChanged }) => {
                     />
                 }
                 label={t('settings.copyOnMine')}
+                labelPlacement="start"
+            />
+            <SwitchLabelWithHoverEffect
+                control={
+                    <Switch
+                        checked={updateLastCardForSameSubtitle}
+                        onChange={(event) =>
+                            onSettingChanged('updateLastCardForSameSubtitle', event.target.checked)
+                        }
+                    />
+                }
+                label={t('settings.updateLastCardForSameSubtitle')}
                 labelPlacement="start"
             />
             <SettingsSection>{t('settings.audio')}</SettingsSection>
