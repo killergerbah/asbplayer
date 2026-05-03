@@ -1331,7 +1331,7 @@ function App({
 
     const { hash: settingsHash } = useLocationHash({ view: 'settings' });
     useEffect(() => {
-        if (!settingsHash) {
+        if (settingsHash === undefined) {
             return;
         }
 

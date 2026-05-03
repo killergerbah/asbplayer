@@ -47,6 +47,7 @@ export class StatisticsOverlayController {
     }
 
     bind() {
+        this._setHeight('0px');
         this._messageListener = (
             message: any,
             sender: Browser.runtime.MessageSender,
