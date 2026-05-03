@@ -359,6 +359,7 @@ const settingsSchema = {
                 copySubtitle: { $ref: '/KeyBind' },
                 ankiExport: { $ref: '/KeyBind' },
                 updateLastCard: { $ref: '/KeyBind' },
+                updateSelectedCard: { $ref: '/KeyBind' },
                 exportCard: { $ref: '/KeyBind' },
                 takeScreenshot: { $ref: '/KeyBind' },
                 toggleRecording: { $ref: '/KeyBind' },
