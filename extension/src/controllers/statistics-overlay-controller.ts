@@ -249,7 +249,7 @@ export class StatisticsOverlayController {
             {
                 key: 'ui',
                 html: () =>
-                    `<iframe style="border: 0 !important; color-scheme: ${colorScheme} !important; width: 100% !important; height: 0px !important" src="${browser.runtime.getURL(
+                    `<iframe style="display: block !important; border: 0 !important; color-scheme: ${colorScheme} !important; width: 100% !important; height: 0px !important" src="${browser.runtime.getURL(
                         '/statistics-overlay-ui.html'
                     )}"/>`,
             },
