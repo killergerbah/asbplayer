@@ -72,7 +72,7 @@ import { DictionaryProvider } from '../../dictionary-db';
 import { isFirefox } from '../../browser-detection';
 import StatisticsOverlay, { StatisticsOverlayProps } from '../../components/StatisticsOverlay';
 
-const latestExtensionVersion = '1.15.0';
+const latestExtensionVersion = '1.16.0';
 const extensionUrl =
     'https://chromewebstore.google.com/detail/asbplayer-language-learni/hkledmpjpaehamkiehglnbelcpdflcab';
 
