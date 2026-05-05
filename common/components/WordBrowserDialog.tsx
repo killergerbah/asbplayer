@@ -1,4 +1,4 @@
-import { memo, MouseEvent as ReactMouseEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { memo, MouseEvent as ReactMouseEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Alert from '@mui/material/Alert';
 import Badge from '@mui/material/Badge';
@@ -7,13 +7,10 @@ import Checkbox from '@mui/material/Checkbox';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
-import FormControl from '@mui/material/FormControl';
 import IconButton from '@mui/material/IconButton';
 import InputAdornment from '@mui/material/InputAdornment';
-import InputLabel from '@mui/material/InputLabel';
 import ListItemText from '@mui/material/ListItemText';
 import MenuItem from '@mui/material/MenuItem';
-import OutlinedInput from '@mui/material/OutlinedInput';
 import Paper from '@mui/material/Paper';
 import Popover from '@mui/material/Popover';
 import Radio from '@mui/material/Radio';
@@ -47,6 +44,7 @@ import {
     DictionaryTokenKey,
     DictionaryTokenRecord,
     LOCAL_TOKEN_TRACK,
+    DictionaryRecordUpdateInput,
 } from '@project/common/dictionary-db';
 import {
     ApplyStrategy,
@@ -59,6 +57,7 @@ import {
 import { getCardTokenStatus } from '@project/common/subtitle-annotations';
 import { normalizeForSearch } from '@project/common/util';
 import { Yomitan } from '@project/common/yomitan';
+import Box from '@mui/material/Box';
 
 type SortField = 'token' | 'lemmas' | 'source' | 'status' | 'states' | 'track' | 'cardIds' | 'noteIds' | 'suspended';
 type SortDirection = 'asc' | 'desc';
@@ -158,6 +157,7 @@ type FilterCriteriaValue<K extends FilterCriteriaKey> = ViewCriteria[K] extends 
 type TextCriteriaKey = 'searchQuery' | 'cardIdFilter' | 'noteIdFilter';
 
 interface CyclingFilterListProps<T extends FilterModeValue> {
+    title?: string;
     options: readonly T[];
     selectedFilters: FilterMap<T>;
     onToggle: (value: T) => void;
@@ -213,7 +213,7 @@ function cycleFilterMode<T extends FilterModeValue>(filters: FilterMap<T>, value
 }
 
 function renderFilterLabel(label: string, mode?: FilterMode) {
-    return mode === 'exclude' ? `- ${label}` : label;
+    return mode === 'exclude' ? `− ${label}` : label;
 }
 
 function cycleViewCriteriaFilter<K extends FilterCriteriaKey>(
@@ -367,6 +367,7 @@ const WordBrowserTableRow = memo(function WordBrowserTableRow({
             <TableCell padding="checkbox">
                 {row.selectable && (
                     <Checkbox
+                        size="small"
                         checked={selected}
                         onClick={(event) => {
                             event.stopPropagation();
@@ -391,7 +392,14 @@ const WordBrowserTableRow = memo(function WordBrowserTableRow({
     );
 });
 
+const FilterHeading: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+    <Typography variant="body2" fontWeight={500} sx={{ p: 0.5 }}>
+        {children}
+    </Typography>
+);
+
 function CyclingFilterList<T extends FilterModeValue>({
+    title,
     options,
     selectedFilters,
     onToggle,
@@ -399,8 +407,14 @@ function CyclingFilterList<T extends FilterModeValue>({
 }: CyclingFilterListProps<T>) {
     return (
         <Stack spacing={0.5}>
+            {title !== undefined && <FilterHeading>{title}</FilterHeading>}
             {options.map((value) => (
-                <MenuItem key={String(value)} value={value} onClick={() => onToggle(value)} sx={{ borderRadius: 1 }}>
+                <MenuItem
+                    key={String(value)}
+                    value={value}
+                    onClick={() => onToggle(value)}
+                    sx={{ borderRadius: 1, p: 0 }}
+                >
                     <Checkbox
                         checked={selectedFilters[value] === 'include'}
                         indeterminate={selectedFilters[value] === 'exclude'}
@@ -411,6 +425,363 @@ function CyclingFilterList<T extends FilterModeValue>({
         </Stack>
     );
 }
+
+const PageSelector: React.FC<{
+    pageSize: number;
+    pageCount: number;
+    clampedCurrentPage: number;
+    totalRows: number;
+    goToPage: (page: number) => void;
+    onPageSize: (pageSize: number) => void;
+    onCurrentPage: (currentPage: number) => void;
+}> = ({ pageCount, pageSize, clampedCurrentPage, totalRows, goToPage, onPageSize, onCurrentPage }) => {
+    const { t } = useTranslation();
+    const [pageInput, setPageInput] = useState<string>('1');
+
+    const commitPageInput = useCallback(() => {
+        const parsedPage = Number.parseInt(pageInput, 10);
+        if (Number.isNaN(parsedPage)) {
+            setPageInput(String(clampedCurrentPage + 1));
+            return;
+        }
+
+        goToPage(parsedPage - 1);
+    }, [clampedCurrentPage, goToPage, pageInput]);
+
+    const handlePageSizeChange = useCallback(
+        (nextPageSize: number) => {
+            const currentOffset = pageSize === allPageSize ? 0 : clampedCurrentPage * pageSize;
+            const adjustedOffset =
+                nextPageSize !== allPageSize &&
+                pageSize !== allPageSize &&
+                nextPageSize > pageSize &&
+                currentOffset > 0 &&
+                currentOffset % nextPageSize === 0
+                    ? currentOffset - 1
+                    : currentOffset;
+            const nextPage = nextPageSize === allPageSize ? 0 : Math.floor(adjustedOffset / nextPageSize);
+
+            onPageSize(nextPageSize);
+            onCurrentPage(nextPage);
+            setPageInput(String(nextPage + 1));
+        },
+        [clampedCurrentPage, pageSize, onPageSize, onCurrentPage]
+    );
+
+    useEffect(() => {
+        setPageInput(String(clampedCurrentPage + 1));
+    }, [clampedCurrentPage]);
+
+    return (
+        <Stack direction="row" spacing={1} alignItems="center" flexWrap="nowrap" useFlexGap sx={{ mr: 'auto' }}>
+            <IconButton
+                size="small"
+                onClick={() => goToPage(0)}
+                disabled={clampedCurrentPage === 0 || totalRows === 0}
+                aria-label="First page"
+            >
+                <FirstPageIcon fontSize="small" />
+            </IconButton>
+            <IconButton
+                size="small"
+                onClick={() => goToPage(clampedCurrentPage - 1)}
+                disabled={clampedCurrentPage === 0 || totalRows === 0}
+                aria-label="Previous page"
+            >
+                <NavigateBeforeIcon fontSize="small" />
+            </IconButton>
+            <Stack direction="row" spacing={0.75} alignItems="center">
+                <TextField
+                    size="small"
+                    value={pageInput}
+                    onChange={(event) => {
+                        const nextValue = event.target.value.replace(/\D+/g, '');
+                        setPageInput(nextValue);
+                    }}
+                    onBlur={commitPageInput}
+                    onKeyDown={(event) => {
+                        if (event.key === 'Enter') {
+                            event.preventDefault();
+                            commitPageInput();
+                        }
+                    }}
+                    slotProps={{
+                        htmlInput: {
+                            inputMode: 'numeric',
+                            pattern: '[0-9]*',
+                            min: 1,
+                            max: pageCount,
+                            'aria-label': 'Page number',
+                        },
+                    }}
+                    sx={{
+                        width: 48,
+                        '& input': { pt: 0.5, pb: 0.5, pl: 0.75 },
+                        '& .MuiInputBase-root': { fontSize: (theme) => theme.typography.body2.fontSize },
+                    }}
+                    disabled={totalRows === 0}
+                />
+                <Typography noWrap variant="body2" color="text.secondary">
+                    / {pageCount}
+                </Typography>
+            </Stack>
+            <IconButton
+                size="small"
+                onClick={() => goToPage(clampedCurrentPage + 1)}
+                disabled={clampedCurrentPage >= pageCount - 1 || totalRows === 0}
+                aria-label="Next page"
+            >
+                <NavigateNextIcon fontSize="small" />
+            </IconButton>
+            <IconButton
+                size="small"
+                onClick={() => goToPage(pageCount - 1)}
+                disabled={clampedCurrentPage >= pageCount - 1 || totalRows === 0}
+                aria-label="Last page"
+            >
+                <LastPageIcon fontSize="small" />
+            </IconButton>
+            <Select
+                size="small"
+                value={pageSize}
+                onChange={(event) => handlePageSizeChange(Number(event.target.value))}
+                renderValue={(value) =>
+                    Number(value) === allPageSize ? t('settings.dictionaryBrowser.suspended.all') : String(value)
+                }
+                sx={{
+                    minWidth: 72,
+                    '& .MuiInputBase-input': {
+                        fontSize: (theme) => theme.typography.body2.fontSize,
+                        pt: 0.5,
+                        pb: 0.5,
+                        pl: 1,
+                    },
+                }}
+            >
+                {pageSizeOptions.map((option) => (
+                    <MenuItem key={option} value={option}>
+                        {option === allPageSize ? t('settings.dictionaryBrowser.suspended.all') : option}
+                    </MenuItem>
+                ))}
+            </Select>
+        </Stack>
+    );
+};
+
+const BulkUpdateDialog: React.FC<{
+    open: boolean;
+    selectedRows: WordBrowserRow[];
+    statusColorForTrackValues: (trackValues: number[], status: TokenStatus) => string | undefined;
+    onApplyToSelected: (rows: DictionaryRecordUpdateInput[], applyStrategy: ApplyStrategy) => Promise<void>;
+    onDeleteSelected: (keys: DictionaryTokenKey[]) => Promise<void>;
+    onClose: () => void;
+}> = ({ open, selectedRows, statusColorForTrackValues, onApplyToSelected, onDeleteSelected, onClose }) => {
+    const { t } = useTranslation();
+    const stateLabels = useMemo(
+        () => ({
+            [TokenState.IGNORED]: t('settings.dictionaryTokenStateIgnored'),
+        }),
+        [t]
+    );
+    const [mutating, setMutating] = useState<boolean>(false);
+    const [bulkStatus, setBulkStatus] = useState<TokenStatus | ''>('');
+    const [bulkIgnoredState, setBulkIgnoredState] = useState<FilterMode>();
+    const [bulkStates, setBulkStates] = useState<TokenState[]>([]);
+    const [bulkStatesApplyStrategy, setBulkStatesApplyStrategy] = useState<ApplyStrategy>(ApplyStrategy.REPLACE);
+    const [confirmApplyOpen, setConfirmApplyOpen] = useState(false);
+    const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+    const [error, setError] = useState<string>();
+
+    const filterStatusOptions = useMemo(() => filterableTokenStatuses(), []);
+    const bulkStatusTrackValues = useMemo(
+        () =>
+            selectedRows.length > 0
+                ? Array.from(new Set(selectedRows.map((row) => row.trackSortValue)))
+                : [LOCAL_TOKEN_TRACK],
+        [selectedRows]
+    );
+
+    const bulkStatesConfigured = bulkIgnoredState !== undefined || bulkStates.length > 0;
+    const canApplyToSelected = selectedRows.length > 0 && (bulkStatus !== '' || bulkStatesConfigured) && !mutating;
+
+    const cycleBulkIgnoredState = useCallback(() => {
+        const nextState = nextFilterMode(bulkIgnoredState);
+        setBulkIgnoredState(nextState);
+        setBulkStates(nextState === 'include' ? [TokenState.IGNORED] : []);
+        setBulkStatesApplyStrategy(ApplyStrategy.REPLACE);
+    }, [bulkIgnoredState]);
+
+    useEffect(() => {
+        setBulkStatus('');
+        setError(undefined);
+        setBulkIgnoredState(undefined);
+        setBulkStates([]);
+        setBulkStatesApplyStrategy(ApplyStrategy.REPLACE);
+        setConfirmApplyOpen(false);
+        setConfirmDeleteOpen(false);
+    }, [open]);
+
+    const handleApplyToSelected = useCallback(async () => {
+        if (!selectedRows.length) return;
+        setConfirmApplyOpen(false);
+        setMutating(true);
+        try {
+            await onApplyToSelected(
+                selectedRows.map((row) => ({
+                    tokenKey: row.tokenKey,
+                    status: bulkStatus === '' ? row.status : bulkStatus,
+                    states: bulkStatesConfigured ? bulkStates : row.states,
+                })),
+                bulkStatesConfigured ? bulkStatesApplyStrategy : ApplyStrategy.REPLACE // Keep existing states if not modifying
+            );
+            onClose();
+        } catch (error) {
+            setError(error instanceof Error ? error.message : String(error));
+        } finally {
+            setMutating(false);
+        }
+    }, [
+        bulkStatesConfigured,
+        bulkStates,
+        bulkStatesApplyStrategy,
+        bulkStatus,
+        selectedRows,
+        onApplyToSelected,
+        onClose,
+    ]);
+
+    const handleDeleteSelected = useCallback(async () => {
+        if (!selectedRows.length) return;
+        setConfirmDeleteOpen(false);
+        setMutating(true);
+        try {
+            await onDeleteSelected(selectedRows.map((row) => row.tokenKey));
+            onClose();
+        } catch (error) {
+            setError(error instanceof Error ? error.message : String(error));
+        } finally {
+            setMutating(false);
+        }
+    }, [selectedRows, onDeleteSelected, onClose]);
+
+    return (
+        <>
+            <Dialog open={open} onClose={onClose}>
+                <Toolbar>
+                    <Typography noWrap variant="h6" sx={{ flexGrow: 1 }}>
+                        {t('settings.dictionaryBrowser.updateSelected', { selectedCount: selectedRows.length })}
+                    </Typography>
+                    <IconButton edge="end" onClick={onClose} disabled={mutating}>
+                        <CloseIcon />
+                    </IconButton>
+                </Toolbar>
+                <DialogContent>
+                    <Box display="flex" flexDirection="column" sx={{ gap: 1 }}>
+                        {error && <Alert severity="error">{error}</Alert>}
+                        <TextField
+                            select
+                            fullWidth
+                            size="small"
+                            sx={{ flexGrow: 1, mr: 1 }}
+                            value={bulkStatus}
+                            label={t('settings.dictionaryBrowser.bulkStatus')}
+                            onChange={(event) =>
+                                setBulkStatus(
+                                    event.target.value === '' ? '' : (Number(event.target.value) as TokenStatus)
+                                )
+                            }
+                        >
+                            <MenuItem value="">
+                                <Typography color="text.secondary">
+                                    {t('settings.dictionaryBrowser.bulkStatus')}
+                                </Typography>
+                            </MenuItem>
+                            {filterStatusOptions.map((tokenStatus) => (
+                                <MenuItem key={tokenStatus} value={tokenStatus}>
+                                    <Typography
+                                        sx={{
+                                            color: statusColorForTrackValues(bulkStatusTrackValues, tokenStatus),
+                                            fontWeight: 500,
+                                        }}
+                                    >
+                                        {t(`settings.dictionaryTokenStatus${tokenStatus}`)}
+                                    </Typography>
+                                </MenuItem>
+                            ))}
+                        </TextField>
+                        <FormControlLabel
+                            sx={{ flexWrap: 'nowrap' }}
+                            control={
+                                <Checkbox
+                                    checked={bulkIgnoredState === 'include'}
+                                    indeterminate={bulkIgnoredState === 'exclude'}
+                                    onClick={cycleBulkIgnoredState}
+                                />
+                            }
+                            label={renderFilterLabel(stateLabels[TokenState.IGNORED], bulkIgnoredState)}
+                            slotProps={{ typography: { noWrap: true } }}
+                        />
+                    </Box>
+                </DialogContent>
+
+                <DialogActions>
+                    <Button
+                        color="error"
+                        variant="outlined"
+                        onClick={() => setConfirmDeleteOpen(true)}
+                        disabled={!selectedRows.length || mutating}
+                    >
+                        {t('settings.dictionaryBrowser.deleteSelected')}
+                    </Button>
+                    <Button
+                        variant="contained"
+                        onClick={() => setConfirmApplyOpen(true)}
+                        disabled={!canApplyToSelected}
+                        loading={mutating}
+                    >
+                        {t('settings.dictionaryBrowser.applyToSelected')}
+                    </Button>
+                </DialogActions>
+            </Dialog>
+            <Dialog open={confirmApplyOpen} onClose={() => setConfirmApplyOpen(false)}>
+                <DialogContent>
+                    <Typography>
+                        {t('settings.dictionaryBrowser.confirmApplyToSelected', {
+                            count: selectedRows.length,
+                        })}
+                    </Typography>
+                    {bulkStatus === TokenStatus.UNCOLLECTED && (
+                        <Alert severity="warning" sx={{ mt: 2 }}>
+                            {t('settings.dictionaryBrowser.confirmApplyToSelectedDeleteWarning')}
+                        </Alert>
+                    )}
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setConfirmApplyOpen(false)}>{t('action.cancel')}</Button>
+                    <Button onClick={() => void handleApplyToSelected()}>
+                        {t('settings.dictionaryBrowser.applyToSelected')}
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            <Dialog open={confirmDeleteOpen} onClose={() => setConfirmDeleteOpen(false)}>
+                <DialogContent>
+                    <Typography>
+                        {t('settings.dictionaryBrowser.confirmDeleteSelected', {
+                            count: selectedRows.length,
+                        })}
+                    </Typography>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setConfirmDeleteOpen(false)}>{t('action.cancel')}</Button>
+                    <Button color="error" onClick={() => void handleDeleteSelected()}>
+                        {t('action.delete')}
+                    </Button>
+                </DialogActions>
+            </Dialog>
+        </>
+    );
+};
 
 export default function WordBrowserDialog({
     open,
@@ -446,17 +817,11 @@ export default function WordBrowserDialog({
     const [searchExpansion, setSearchExpansion] = useState<SearchExpansion>({ exactTerms: [], lemmaTerms: [] });
     const [searchExpansionRefreshToken, setSearchExpansionRefreshToken] = useState(0);
     const [selectedRowKeys, setSelectedRowKeys] = useState<Set<string>>(new Set());
-    const [bulkStatus, setBulkStatus] = useState<TokenStatus | ''>('');
-    const [bulkIgnoredState, setBulkIgnoredState] = useState<FilterMode>();
-    const [bulkStates, setBulkStates] = useState<TokenState[]>([]);
-    const [bulkStatesApplyStrategy, setBulkStatesApplyStrategy] = useState<ApplyStrategy>(ApplyStrategy.REPLACE);
-    const [confirmApplyOpen, setConfirmApplyOpen] = useState(false);
-    const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
     const [openFilterPopover, setOpenFilterPopover] = useState<{ key: FilterPopoverKey; anchorEl: HTMLElement }>();
     const [pendingAutoRefreshDelayMs, setPendingAutoRefreshDelayMs] = useState<number>();
     const [pageSize, setPageSize] = useState<number>(100);
     const [currentPage, setCurrentPage] = useState(0);
-    const [pageInput, setPageInput] = useState('1');
+    const [bulkUpdateDialogOpen, setBulkUpdateDialogOpen] = useState(false);
     const loadRequestIdRef = useRef(0);
     const selectionAnchorKeyRef = useRef<string | undefined>(undefined);
     const tableContainerRef = useRef<HTMLDivElement | null>(null);
@@ -524,16 +889,9 @@ export default function WordBrowserDialog({
         const initialViewCriteria = defaultViewCriteria();
         setDraftViewCriteria(initialViewCriteria);
         setSelectedRowKeys(new Set());
-        setBulkStatus('');
-        setBulkIgnoredState(undefined);
-        setBulkStates([]);
-        setBulkStatesApplyStrategy(ApplyStrategy.REPLACE);
-        setConfirmApplyOpen(false);
-        setConfirmDeleteOpen(false);
         setOpenFilterPopover(undefined);
         setPageSize(100);
         setCurrentPage(0);
-        setPageInput('1');
         selectionAnchorKeyRef.current = undefined;
         void loadRecords(initialViewCriteria);
     }, [loadRecords, open]);
@@ -563,16 +921,9 @@ export default function WordBrowserDialog({
         setSelectedRowKeys(new Set());
         setLoadError(undefined);
         setSearchExpansion({ exactTerms: [], lemmaTerms: [] });
-        setBulkStatus('');
-        setBulkIgnoredState(undefined);
-        setBulkStates([]);
-        setBulkStatesApplyStrategy(ApplyStrategy.REPLACE);
-        setConfirmApplyOpen(false);
-        setConfirmDeleteOpen(false);
         setOpenFilterPopover(undefined);
         setPageSize(100);
         setCurrentPage(0);
-        setPageInput('1');
         selectionAnchorKeyRef.current = undefined;
         setPendingAutoRefreshDelayMs(undefined);
     }, [open]);
@@ -917,7 +1268,7 @@ export default function WordBrowserDialog({
         setOpenFilterPopover(undefined);
     }, []);
 
-    const visibleRows = useMemo(() => {
+    const visibleRows = useMemo<WordBrowserRow[]>(() => {
         const cardIdFilterTerms = appliedViewCriteria.cardIdFilter.split(/\D+/).filter((value) => value.length);
         const noteIdFilterTerms = appliedViewCriteria.noteIdFilter.split(/\D+/).filter((value) => value.length);
         const includedTrackFilters = trackFilterOptions
@@ -1111,10 +1462,6 @@ export default function WordBrowserDialog({
     }, [clampedCurrentPage, currentPage]);
 
     useEffect(() => {
-        setPageInput(String(clampedCurrentPage + 1));
-    }, [clampedCurrentPage]);
-
-    useEffect(() => {
         tableContainerRef.current?.scrollTo({ top: 0 });
     }, [clampedCurrentPage]);
 
@@ -1134,62 +1481,12 @@ export default function WordBrowserDialog({
         [selectedRowKeys, visibleSelectableRows]
     );
 
-    const bulkStatusTrackValues = useMemo(
-        () =>
-            selectedRows.length > 0
-                ? Array.from(new Set(selectedRows.map((row) => row.trackSortValue)))
-                : [LOCAL_TOKEN_TRACK],
-        [selectedRows]
-    );
-
-    const bulkStatesConfigured = bulkIgnoredState !== undefined || bulkStates.length > 0;
-    const canApplyToSelected =
-        selectedCount > 0 && (bulkStatus !== '' || bulkStatesConfigured) && !mutating && !loading;
-
-    const cycleBulkIgnoredState = useCallback(() => {
-        const nextState = nextFilterMode(bulkIgnoredState);
-        setBulkIgnoredState(nextState);
-        setBulkStates(nextState === 'include' ? [TokenState.IGNORED] : []);
-        setBulkStatesApplyStrategy(ApplyStrategy.REPLACE);
-    }, [bulkIgnoredState]);
-
     const goToPage = useCallback(
         (page: number) => {
             const nextPage = Math.max(0, Math.min(page, pageCount - 1));
             setCurrentPage(nextPage);
-            setPageInput(String(nextPage + 1));
         },
         [pageCount]
-    );
-
-    const commitPageInput = useCallback(() => {
-        const parsedPage = Number.parseInt(pageInput, 10);
-        if (Number.isNaN(parsedPage)) {
-            setPageInput(String(clampedCurrentPage + 1));
-            return;
-        }
-
-        goToPage(parsedPage - 1);
-    }, [clampedCurrentPage, goToPage, pageInput]);
-
-    const handlePageSizeChange = useCallback(
-        (nextPageSize: number) => {
-            const currentOffset = pageSize === allPageSize ? 0 : clampedCurrentPage * pageSize;
-            const adjustedOffset =
-                nextPageSize !== allPageSize &&
-                pageSize !== allPageSize &&
-                nextPageSize > pageSize &&
-                currentOffset > 0 &&
-                currentOffset % nextPageSize === 0
-                    ? currentOffset - 1
-                    : currentOffset;
-            const nextPage = nextPageSize === allPageSize ? 0 : Math.floor(adjustedOffset / nextPageSize);
-
-            setPageSize(nextPageSize);
-            setCurrentPage(nextPage);
-            setPageInput(String(nextPage + 1));
-        },
-        [clampedCurrentPage, pageSize]
     );
 
     const handleSelectRow = useCallback((selectionKey: string, { shiftKey }: { shiftKey: boolean }) => {
@@ -1306,613 +1603,419 @@ export default function WordBrowserDialog({
         [t]
     );
 
-    const handleApplyToSelected = useCallback(async () => {
-        if (!selectedRows.length) return;
-        setConfirmApplyOpen(false);
-        setMutating(true);
-        try {
-            await dictionaryProvider.updateRecords(
-                activeProfile,
-                selectedRows.map((row) => ({
-                    tokenKey: row.tokenKey,
-                    status: bulkStatus === '' ? row.status : bulkStatus,
-                    states: bulkStatesConfigured ? bulkStates : row.states,
-                })),
-                bulkStatesConfigured ? bulkStatesApplyStrategy : ApplyStrategy.REPLACE // Keep existing states if not modifying
-            );
-            setSelectedRowKeys(new Set());
-            await loadRecords(draftViewCriteria);
-        } catch (error) {
-            setLoadError(error instanceof Error ? error.message : String(error));
-        } finally {
-            setMutating(false);
-        }
-    }, [
-        activeProfile,
-        bulkStatesConfigured,
-        bulkStates,
-        bulkStatesApplyStrategy,
-        bulkStatus,
-        dictionaryProvider,
-        draftViewCriteria,
-        loadRecords,
-        selectedRows,
-    ]);
+    const handleBulkApplyUpdateToSelected = useCallback(
+        async (updateInputs: DictionaryRecordUpdateInput[], applyStrategy: ApplyStrategy) => {
+            setMutating(true);
+            try {
+                await dictionaryProvider.updateRecords(activeProfile, updateInputs, applyStrategy);
+                setSelectedRowKeys(new Set());
+                await loadRecords(draftViewCriteria);
+            } catch (error) {
+                setLoadError(error instanceof Error ? error.message : String(error));
+            } finally {
+                setMutating(false);
+            }
+        },
+        [dictionaryProvider, loadRecords, draftViewCriteria, activeProfile]
+    );
 
-    const handleDeleteSelected = useCallback(async () => {
-        if (!selectedRows.length) return;
-        setConfirmDeleteOpen(false);
-        setMutating(true);
-        try {
-            await dictionaryProvider.deleteRecords(
-                activeProfile,
-                selectedRows.map((row) => row.tokenKey)
-            );
-            setSelectedRowKeys(new Set());
-            await loadRecords(draftViewCriteria);
-        } catch (error) {
-            setLoadError(error instanceof Error ? error.message : String(error));
-        } finally {
-            setMutating(false);
-        }
-    }, [activeProfile, dictionaryProvider, draftViewCriteria, loadRecords, selectedRows]);
+    const handleBulkDeleteSelected = useCallback(
+        async (tokenKeys: DictionaryTokenKey[]) => {
+            if (!selectedRows.length) return;
+            setMutating(true);
+            try {
+                await dictionaryProvider.deleteRecords(activeProfile, tokenKeys);
+                setSelectedRowKeys(new Set());
+                await loadRecords(draftViewCriteria);
+            } catch (error) {
+                setLoadError(error instanceof Error ? error.message : String(error));
+            } finally {
+                setMutating(false);
+            }
+        },
+        [dictionaryProvider, loadRecords, draftViewCriteria, activeProfile, selectedRows]
+    );
 
     return (
-        <Dialog open={open} onClose={mutating ? undefined : onClose} fullScreen={fullScreen} fullWidth maxWidth="xl">
-            <Toolbar>
-                <Typography variant="h6" sx={{ flexGrow: 1 }}>
-                    {t('settings.dictionaryBrowser.title')}
-                </Typography>
-                <IconButton edge="end" onClick={onClose} disabled={mutating}>
-                    <CloseIcon />
-                </IconButton>
-            </Toolbar>
-            <DialogContent sx={{ pt: 1 }}>
-                <Stack spacing={2}>
-                    {loadError && <Alert severity="error">{loadError}</Alert>}
-                    {visibleYomitanError && appliedViewCriteria.searchQuery.trim().length > 0 && (
-                        <Alert severity="warning">
-                            {t('settings.dictionaryBrowser.yomitanWarning', { message: visibleYomitanError })}
-                        </Alert>
-                    )}
-                    <Stack
-                        direction={fullScreen ? 'column' : 'row'}
-                        spacing={1.5}
-                        alignItems={fullScreen ? 'stretch' : 'center'}
-                    >
-                        <Typography variant="body2" color="text.secondary" sx={{ flexGrow: 1 }}>
-                            {t('settings.dictionaryBrowser.results', {
-                                shown: visibleRows.length,
-                                total: rows.length,
-                                selected: selectedCount,
-                            })}
-                        </Typography>
-                        <Button
+        <>
+            <Dialog
+                open={open}
+                onClose={mutating ? undefined : onClose}
+                fullScreen={fullScreen}
+                fullWidth
+                maxWidth="xl"
+            >
+                <Toolbar>
+                    <Typography variant="h6" sx={{ flexGrow: 1 }}>
+                        {t('settings.dictionaryBrowser.title')}
+                    </Typography>
+                    <IconButton edge="end" onClick={onClose} disabled={mutating}>
+                        <CloseIcon />
+                    </IconButton>
+                </Toolbar>
+                <DialogContent sx={{ pt: 1 }}>
+                    <Stack spacing={2}>
+                        {loadError && <Alert severity="error">{loadError}</Alert>}
+                        {visibleYomitanError && appliedViewCriteria.searchQuery.trim().length > 0 && (
+                            <Alert severity="warning">
+                                {t('settings.dictionaryBrowser.yomitanWarning', { message: visibleYomitanError })}
+                            </Alert>
+                        )}
+                        <TableContainer
+                            ref={tableContainerRef}
+                            component={Paper}
                             variant="outlined"
-                            startIcon={<RefreshIcon />}
-                            onClick={() => void loadRecords(draftViewCriteria)}
-                            loading={loading}
-                            disabled={mutating}
+                            sx={{ maxHeight: fullScreen ? '60vh' : '55vh' }}
                         >
-                            {t('action.reload')}
-                        </Button>
-                        <FormControl size="small" sx={{ minWidth: 180 }}>
-                            <InputLabel shrink>{t('settings.dictionaryBrowser.bulkStatus')}</InputLabel>
-                            <Select
-                                displayEmpty
-                                value={bulkStatus}
-                                label={t('settings.dictionaryBrowser.bulkStatus')}
-                                renderValue={(selected: TokenStatus | string) =>
-                                    selected === '' ? (
-                                        <Typography component="span" color="text.secondary" sx={{ minHeight: 24 }}>
-                                            {t('settings.dictionaryBrowser.bulkStatus')}
-                                        </Typography>
-                                    ) : (
-                                        renderStatusLabel(
-                                            selected as TokenStatus,
-                                            statusColorForTrackValues(bulkStatusTrackValues, selected as TokenStatus)
-                                        )
-                                    )
-                                }
-                                onChange={(event) =>
-                                    setBulkStatus(
-                                        event.target.value === '' ? '' : (Number(event.target.value) as TokenStatus)
-                                    )
-                                }
-                            >
-                                <MenuItem value="">
-                                    <Typography color="text.secondary">
-                                        {t('settings.dictionaryBrowser.bulkStatus')}
-                                    </Typography>
-                                </MenuItem>
-                                {filterStatusOptions.map((tokenStatus) => (
-                                    <MenuItem key={tokenStatus} value={tokenStatus}>
-                                        <Typography
-                                            sx={{
-                                                color: statusColorForTrackValues(bulkStatusTrackValues, tokenStatus),
-                                                fontWeight: 500,
-                                            }}
-                                        >
-                                            {t(`settings.dictionaryTokenStatus${tokenStatus}`)}
-                                        </Typography>
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
-                        <Stack spacing={0.25} sx={{ minWidth: 180 }}>
-                            <Typography variant="caption" color="text.secondary">
-                                {t('settings.dictionaryBrowser.bulkStates')}
-                            </Typography>
-                            <Stack direction="row" alignItems="center" sx={{ minHeight: 40 }}>
-                                <Checkbox
-                                    checked={bulkIgnoredState === 'include'}
-                                    indeterminate={bulkIgnoredState === 'exclude'}
-                                    onClick={cycleBulkIgnoredState}
-                                />
-                                <Typography color={bulkIgnoredState === undefined ? 'text.secondary' : undefined}>
-                                    {renderFilterLabel(stateLabels[TokenState.IGNORED], bulkIgnoredState)}
-                                </Typography>
-                            </Stack>
-                        </Stack>
-                        <Button
-                            variant="contained"
-                            onClick={() => setConfirmApplyOpen(true)}
-                            disabled={!canApplyToSelected}
-                            loading={mutating}
-                        >
-                            {t('settings.dictionaryBrowser.applyToSelected')}
-                        </Button>
-                        <Dialog open={confirmApplyOpen} onClose={() => setConfirmApplyOpen(false)}>
-                            <DialogContent>
-                                <Typography>
-                                    {t('settings.dictionaryBrowser.confirmApplyToSelected', {
-                                        count: selectedCount,
-                                    })}
-                                </Typography>
-                                {bulkStatus === TokenStatus.UNCOLLECTED && (
-                                    <Alert severity="warning" sx={{ mt: 2 }}>
-                                        {t('settings.dictionaryBrowser.confirmApplyToSelectedDeleteWarning')}
-                                    </Alert>
-                                )}
-                            </DialogContent>
-                            <DialogActions>
-                                <Button onClick={() => setConfirmApplyOpen(false)}>{t('action.cancel')}</Button>
-                                <Button onClick={() => void handleApplyToSelected()}>
-                                    {t('settings.dictionaryBrowser.applyToSelected')}
-                                </Button>
-                            </DialogActions>
-                        </Dialog>
-                        <Button
-                            color="error"
-                            variant="outlined"
-                            onClick={() => setConfirmDeleteOpen(true)}
-                            disabled={!selectedCount || mutating || loading}
-                        >
-                            {t('settings.dictionaryBrowser.deleteSelected')}
-                        </Button>
-                        <Dialog open={confirmDeleteOpen} onClose={() => setConfirmDeleteOpen(false)}>
-                            <DialogContent>
-                                <Typography>
-                                    {t('settings.dictionaryBrowser.confirmDeleteSelected', {
-                                        count: selectedCount,
-                                    })}
-                                </Typography>
-                            </DialogContent>
-                            <DialogActions>
-                                <Button onClick={() => setConfirmDeleteOpen(false)}>{t('action.cancel')}</Button>
-                                <Button color="error" onClick={() => void handleDeleteSelected()}>
-                                    {t('action.delete')}
-                                </Button>
-                            </DialogActions>
-                        </Dialog>
-                    </Stack>
-                    <TableContainer
-                        ref={tableContainerRef}
-                        component={Paper}
-                        variant="outlined"
-                        sx={{ maxHeight: fullScreen ? '60vh' : '55vh' }}
-                    >
-                        <Table stickyHeader size="small">
-                            <TableHead
-                                sx={{
-                                    '& .MuiTableCell-head': {
-                                        borderBottom: 0,
-                                        backgroundColor: theme.palette.background.paper,
-                                    },
-                                    '& .MuiTableRow-root:first-of-type .MuiTableCell-head': {
-                                        top: 0,
-                                        zIndex: 3,
-                                        height: 40,
-                                        boxSizing: 'border-box',
-                                    },
-                                }}
-                            >
-                                <TableRow sx={{ boxShadow: `inset 0 -1px 0 ${theme.palette.divider}` }}>
-                                    <TableCell padding="checkbox">
-                                        <Checkbox
-                                            checked={allVisibleSelected}
-                                            indeterminate={partiallyVisibleSelected}
-                                            onChange={toggleSelectAllVisible}
-                                            disabled={!pagedVisibleSelectableRows.length}
-                                        />
-                                    </TableCell>
-                                    <TableCell>
-                                        {renderHeaderCell(
-                                            'token',
-                                            t('settings.dictionaryBrowser.columns.word'),
-                                            'search',
-                                            draftViewCriteria.searchQuery.length > 0
-                                        )}
-                                    </TableCell>
-                                    <TableCell>
-                                        {renderSortableHeader('lemmas', t('settings.dictionaryBrowser.columns.lemmas'))}
-                                    </TableCell>
-                                    <TableCell>
-                                        {renderHeaderCell(
-                                            'source',
-                                            t('settings.dictionaryBrowser.columns.source'),
-                                            'source',
-                                            Object.keys(draftViewCriteria.selectedSourceFilters).length > 0
-                                        )}
-                                    </TableCell>
-                                    <TableCell>
-                                        {renderHeaderCell(
-                                            'status',
-                                            t('settings.dictionaryBrowser.columns.status'),
-                                            'status',
-                                            Object.keys(draftViewCriteria.selectedStatusFilters).length > 0
-                                        )}
-                                    </TableCell>
-                                    <TableCell>
-                                        {renderHeaderCell(
-                                            'states',
-                                            t('settings.dictionaryBrowser.columns.states'),
-                                            'states',
-                                            Object.keys(draftViewCriteria.selectedStateFilters).length > 0
-                                        )}
-                                    </TableCell>
-                                    <TableCell>
-                                        {renderHeaderCell(
-                                            'track',
-                                            t('settings.dictionaryBrowser.columns.track'),
-                                            'track',
-                                            Object.keys(draftViewCriteria.selectedTrackFilters).length > 0
-                                        )}
-                                    </TableCell>
-                                    <TableCell>
-                                        {renderHeaderCell(
-                                            'cardIds',
-                                            t('settings.dictionaryBrowser.columns.cardIds'),
-                                            'cardIds',
-                                            draftViewCriteria.cardIdFilter.length > 0
-                                        )}
-                                    </TableCell>
-                                    <TableCell>
-                                        {renderHeaderCell(
-                                            'noteIds',
-                                            t('settings.dictionaryBrowser.columns.noteIds'),
-                                            'noteIds',
-                                            draftViewCriteria.noteIdFilter.length > 0
-                                        )}
-                                    </TableCell>
-                                    <TableCell>
-                                        {renderHeaderCell(
-                                            'suspended',
-                                            t('settings.dictionaryBrowser.columns.suspended'),
-                                            'suspended',
-                                            draftViewCriteria.suspendedFilter !== 'all'
-                                        )}
-                                    </TableCell>
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {pagedVisibleRows.length === 0 && !loading && (
-                                    <TableRow>
-                                        <TableCell colSpan={10}>
-                                            <Typography color="text.secondary">
-                                                {t('settings.dictionaryBrowser.noResults')}
-                                            </Typography>
+                            <Table stickyHeader size="small">
+                                <TableHead
+                                    sx={{
+                                        '& .MuiTableCell-head': {
+                                            borderBottom: 0,
+                                            backgroundColor: theme.palette.background.paper,
+                                        },
+                                        '& .MuiTableRow-root:first-of-type .MuiTableCell-head': {
+                                            top: 0,
+                                            zIndex: 3,
+                                            height: 40,
+                                            boxSizing: 'border-box',
+                                        },
+                                    }}
+                                >
+                                    <TableRow
+                                        sx={{
+                                            boxShadow: `inset 0 -1px 0 ${theme.palette.divider}`,
+                                        }}
+                                    >
+                                        <TableCell padding="checkbox">
+                                            <Checkbox
+                                                checked={allVisibleSelected}
+                                                indeterminate={partiallyVisibleSelected}
+                                                onChange={toggleSelectAllVisible}
+                                                disabled={!pagedVisibleSelectableRows.length}
+                                            />
+                                        </TableCell>
+                                        <TableCell>
+                                            {renderHeaderCell(
+                                                'token',
+                                                t('settings.dictionaryBrowser.columns.word'),
+                                                'search',
+                                                draftViewCriteria.searchQuery.length > 0
+                                            )}
+                                        </TableCell>
+                                        <TableCell>
+                                            {renderSortableHeader(
+                                                'lemmas',
+                                                t('settings.dictionaryBrowser.columns.lemmas')
+                                            )}
+                                        </TableCell>
+                                        <TableCell>
+                                            {renderHeaderCell(
+                                                'source',
+                                                t('settings.dictionaryBrowser.columns.source'),
+                                                'source',
+                                                Object.keys(draftViewCriteria.selectedSourceFilters).length > 0
+                                            )}
+                                        </TableCell>
+                                        <TableCell>
+                                            {renderHeaderCell(
+                                                'status',
+                                                t('settings.dictionaryBrowser.columns.status'),
+                                                'status',
+                                                Object.keys(draftViewCriteria.selectedStatusFilters).length > 0
+                                            )}
+                                        </TableCell>
+                                        <TableCell>
+                                            {renderHeaderCell(
+                                                'states',
+                                                t('settings.dictionaryBrowser.columns.states'),
+                                                'states',
+                                                Object.keys(draftViewCriteria.selectedStateFilters).length > 0
+                                            )}
+                                        </TableCell>
+                                        <TableCell>
+                                            {renderHeaderCell(
+                                                'track',
+                                                t('settings.dictionaryBrowser.columns.track'),
+                                                'track',
+                                                Object.keys(draftViewCriteria.selectedTrackFilters).length > 0
+                                            )}
+                                        </TableCell>
+                                        <TableCell>
+                                            {renderHeaderCell(
+                                                'cardIds',
+                                                t('settings.dictionaryBrowser.columns.cardIds'),
+                                                'cardIds',
+                                                draftViewCriteria.cardIdFilter.length > 0
+                                            )}
+                                        </TableCell>
+                                        <TableCell>
+                                            {renderHeaderCell(
+                                                'noteIds',
+                                                t('settings.dictionaryBrowser.columns.noteIds'),
+                                                'noteIds',
+                                                draftViewCriteria.noteIdFilter.length > 0
+                                            )}
+                                        </TableCell>
+                                        <TableCell>
+                                            {renderHeaderCell(
+                                                'suspended',
+                                                t('settings.dictionaryBrowser.columns.suspended'),
+                                                'suspended',
+                                                draftViewCriteria.suspendedFilter !== 'all'
+                                            )}
                                         </TableCell>
                                     </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {pagedVisibleRows.length === 0 && !loading && (
+                                        <TableRow>
+                                            <TableCell colSpan={10}>
+                                                <Typography color="text.secondary">
+                                                    {t('settings.dictionaryBrowser.noResults')}
+                                                </Typography>
+                                            </TableCell>
+                                        </TableRow>
+                                    )}
+                                    {pagedVisibleRows.map((row) => (
+                                        <WordBrowserTableRow
+                                            key={row.selectionKey}
+                                            row={row}
+                                            selected={selectedRowKeys.has(row.selectionKey)}
+                                            onSelectRow={handleSelectRow}
+                                            renderStatusLabel={renderStatusLabel}
+                                        />
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+                        <Popover
+                            open={openFilterPopover !== undefined}
+                            anchorEl={openFilterPopover?.anchorEl}
+                            onClose={closeFilterPopover}
+                            anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+                            transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+                            PaperProps={{ sx: { p: 1.5, width: 280, maxWidth: 'calc(100vw - 32px)' } }}
+                        >
+                            <Stack spacing={1.5}>
+                                {openFilterPopover?.key === 'search' && (
+                                    <>
+                                        <FilterHeading>{t('settings.dictionaryBrowser.columns.word')}</FilterHeading>
+                                        <TextField
+                                            autoFocus
+                                            placeholder={t('settings.dictionaryBrowser.searchPlaceholder')}
+                                            value={draftViewCriteria.searchQuery}
+                                            onChange={(event) =>
+                                                updateDraftTextCriteria('searchQuery', event.target.value)
+                                            }
+                                            slotProps={{
+                                                input: {
+                                                    endAdornment: renderClearAdornment(
+                                                        draftViewCriteria.searchQuery,
+                                                        () => clearDraftTextCriteria('searchQuery')
+                                                    ),
+                                                },
+                                            }}
+                                            size="small"
+                                            fullWidth
+                                        />
+                                    </>
                                 )}
-                                {pagedVisibleRows.map((row) => (
-                                    <WordBrowserTableRow
-                                        key={row.selectionKey}
-                                        row={row}
-                                        selected={selectedRowKeys.has(row.selectionKey)}
-                                        onSelectRow={handleSelectRow}
-                                        renderStatusLabel={renderStatusLabel}
-                                    />
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
-                    <Popover
-                        open={openFilterPopover !== undefined}
-                        anchorEl={openFilterPopover?.anchorEl}
-                        onClose={closeFilterPopover}
-                        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-                        transformOrigin={{ vertical: 'top', horizontal: 'left' }}
-                        PaperProps={{ sx: { p: 1.5, width: 280, maxWidth: 'calc(100vw - 32px)' } }}
-                    >
-                        <Stack spacing={1.5}>
-                            {openFilterPopover?.key === 'search' && (
-                                <>
-                                    <Typography variant="body2" fontWeight={500}>
-                                        {t('settings.dictionaryBrowser.columns.word')}
-                                    </Typography>
-                                    <TextField
-                                        autoFocus
-                                        placeholder={t('settings.dictionaryBrowser.searchPlaceholder')}
-                                        value={draftViewCriteria.searchQuery}
-                                        onChange={(event) => updateDraftTextCriteria('searchQuery', event.target.value)}
-                                        slotProps={{
-                                            input: {
-                                                endAdornment: renderClearAdornment(draftViewCriteria.searchQuery, () =>
-                                                    clearDraftTextCriteria('searchQuery')
-                                                ),
-                                            },
-                                        }}
-                                        size="small"
-                                        fullWidth
-                                    />
-                                </>
-                            )}
-                            {openFilterPopover?.key === 'source' && (
-                                <>
-                                    <Typography variant="body2" fontWeight={500}>
-                                        {t('settings.dictionaryBrowser.columns.source')}
-                                    </Typography>
-                                    <CyclingFilterList
-                                        options={filterableSources}
-                                        selectedFilters={draftViewCriteria.selectedSourceFilters}
-                                        onToggle={(source) => cycleFilter('selectedSourceFilters', source)}
-                                        renderMenuItemLabel={(source) => (
-                                            <ListItemText primary={renderSourceFilterLabel(source)} />
-                                        )}
-                                    />
-                                </>
-                            )}
-                            {openFilterPopover?.key === 'status' && (
-                                <>
-                                    <Typography variant="body2" fontWeight={500}>
-                                        {t('settings.dictionaryBrowser.columns.status')}
-                                    </Typography>
-                                    <CyclingFilterList
-                                        options={filterStatusOptions}
-                                        selectedFilters={draftViewCriteria.selectedStatusFilters}
-                                        onToggle={(status) => cycleFilter('selectedStatusFilters', status)}
-                                        renderMenuItemLabel={(status) => (
-                                            <ListItemText
-                                                primary={renderStatusFilterLabel(status)}
-                                                slotProps={{
-                                                    primary: {
-                                                        sx: {
-                                                            color: statusColorForTrackValues(
-                                                                statusFilterTrackValues,
-                                                                status
-                                                            ),
+                                {openFilterPopover?.key === 'source' && (
+                                    <>
+                                        <CyclingFilterList
+                                            title={t('settings.dictionaryBrowser.columns.source')}
+                                            options={filterableSources}
+                                            selectedFilters={draftViewCriteria.selectedSourceFilters}
+                                            onToggle={(source) => cycleFilter('selectedSourceFilters', source)}
+                                            renderMenuItemLabel={(source) => (
+                                                <ListItemText primary={renderSourceFilterLabel(source)} />
+                                            )}
+                                        />
+                                    </>
+                                )}
+                                {openFilterPopover?.key === 'status' && (
+                                    <>
+                                        <CyclingFilterList
+                                            title={t('settings.dictionaryBrowser.columns.status')}
+                                            options={filterStatusOptions}
+                                            selectedFilters={draftViewCriteria.selectedStatusFilters}
+                                            onToggle={(status) => cycleFilter('selectedStatusFilters', status)}
+                                            renderMenuItemLabel={(status) => (
+                                                <ListItemText
+                                                    primary={renderStatusFilterLabel(status)}
+                                                    slotProps={{
+                                                        primary: {
+                                                            sx: {
+                                                                color: statusColorForTrackValues(
+                                                                    statusFilterTrackValues,
+                                                                    status
+                                                                ),
+                                                            },
                                                         },
-                                                    },
-                                                }}
+                                                    }}
+                                                />
+                                            )}
+                                        />
+                                    </>
+                                )}
+                                {openFilterPopover?.key === 'states' && (
+                                    <>
+                                        <CyclingFilterList
+                                            options={filterableStates}
+                                            selectedFilters={draftViewCriteria.selectedStateFilters}
+                                            onToggle={(state) => cycleFilter('selectedStateFilters', state)}
+                                            renderMenuItemLabel={(state) => (
+                                                <ListItemText primary={renderStateFilterLabel(state)} />
+                                            )}
+                                        />
+                                    </>
+                                )}
+                                {openFilterPopover?.key === 'track' && (
+                                    <>
+                                        <CyclingFilterList
+                                            title={t('settings.dictionaryBrowser.columns.track')}
+                                            options={trackFilterOptions.map((option) => option.value)}
+                                            selectedFilters={draftViewCriteria.selectedTrackFilters}
+                                            onToggle={(trackValue) => cycleFilter('selectedTrackFilters', trackValue)}
+                                            renderMenuItemLabel={(trackValue) => (
+                                                <ListItemText primary={renderTrackFilterLabel(trackValue)} />
+                                            )}
+                                        />
+                                    </>
+                                )}
+                                {openFilterPopover?.key === 'cardIds' && (
+                                    <>
+                                        <FilterHeading>{t('settings.dictionaryBrowser.columns.cardIds')}</FilterHeading>
+                                        <TextField
+                                            autoFocus
+                                            placeholder={t('settings.dictionaryBrowser.columns.cardIds')}
+                                            value={draftViewCriteria.cardIdFilter}
+                                            onChange={(event) =>
+                                                updateDraftTextCriteria('cardIdFilter', event.target.value)
+                                            }
+                                            slotProps={{
+                                                input: {
+                                                    endAdornment: renderClearAdornment(
+                                                        draftViewCriteria.cardIdFilter,
+                                                        () => clearDraftTextCriteria('cardIdFilter')
+                                                    ),
+                                                },
+                                            }}
+                                            size="small"
+                                            fullWidth
+                                        />
+                                    </>
+                                )}
+                                {openFilterPopover?.key === 'noteIds' && (
+                                    <>
+                                        <FilterHeading>{t('settings.dictionaryBrowser.columns.noteIds')}</FilterHeading>
+                                        <TextField
+                                            autoFocus
+                                            placeholder={t('settings.dictionaryBrowser.columns.noteIds')}
+                                            value={draftViewCriteria.noteIdFilter}
+                                            onChange={(event) =>
+                                                updateDraftTextCriteria('noteIdFilter', event.target.value)
+                                            }
+                                            slotProps={{
+                                                input: {
+                                                    endAdornment: renderClearAdornment(
+                                                        draftViewCriteria.noteIdFilter,
+                                                        () => clearDraftTextCriteria('noteIdFilter')
+                                                    ),
+                                                },
+                                            }}
+                                            size="small"
+                                            fullWidth
+                                        />
+                                    </>
+                                )}
+                                {openFilterPopover?.key === 'suspended' && (
+                                    <>
+                                        <FilterHeading>
+                                            {t('settings.dictionaryBrowser.columns.suspended')}
+                                        </FilterHeading>
+                                        <RadioGroup
+                                            value={draftViewCriteria.suspendedFilter}
+                                            onChange={(event) =>
+                                                updateDraftViewCriteria(singleSelectAutoRefreshDelayMs, (current) => ({
+                                                    ...current,
+                                                    suspendedFilter: event.target.value as SuspendedFilter,
+                                                }))
+                                            }
+                                            sx={{ pl: 1, pr: 1 }}
+                                        >
+                                            <FormControlLabel
+                                                value="all"
+                                                control={<Radio size="small" />}
+                                                label={t('settings.dictionaryBrowser.suspended.all')}
                                             />
-                                        )}
-                                    />
-                                </>
-                            )}
-                            {openFilterPopover?.key === 'states' && (
-                                <>
-                                    <Typography variant="body2" fontWeight={500}>
-                                        {t('settings.dictionaryBrowser.columns.states')}
-                                    </Typography>
-                                    <CyclingFilterList
-                                        options={filterableStates}
-                                        selectedFilters={draftViewCriteria.selectedStateFilters}
-                                        onToggle={(state) => cycleFilter('selectedStateFilters', state)}
-                                        renderMenuItemLabel={(state) => (
-                                            <ListItemText primary={renderStateFilterLabel(state)} />
-                                        )}
-                                    />
-                                </>
-                            )}
-                            {openFilterPopover?.key === 'track' && (
-                                <>
-                                    <Typography variant="body2" fontWeight={500}>
-                                        {t('settings.dictionaryBrowser.columns.track')}
-                                    </Typography>
-                                    <CyclingFilterList
-                                        options={trackFilterOptions.map((option) => option.value)}
-                                        selectedFilters={draftViewCriteria.selectedTrackFilters}
-                                        onToggle={(trackValue) => cycleFilter('selectedTrackFilters', trackValue)}
-                                        renderMenuItemLabel={(trackValue) => (
-                                            <ListItemText primary={renderTrackFilterLabel(trackValue)} />
-                                        )}
-                                    />
-                                </>
-                            )}
-                            {openFilterPopover?.key === 'cardIds' && (
-                                <>
-                                    <Typography variant="body2" fontWeight={500}>
-                                        {t('settings.dictionaryBrowser.columns.cardIds')}
-                                    </Typography>
-                                    <TextField
-                                        autoFocus
-                                        placeholder={t('settings.dictionaryBrowser.columns.cardIds')}
-                                        value={draftViewCriteria.cardIdFilter}
-                                        onChange={(event) =>
-                                            updateDraftTextCriteria('cardIdFilter', event.target.value)
-                                        }
-                                        slotProps={{
-                                            input: {
-                                                endAdornment: renderClearAdornment(draftViewCriteria.cardIdFilter, () =>
-                                                    clearDraftTextCriteria('cardIdFilter')
-                                                ),
-                                            },
-                                        }}
-                                        size="small"
-                                        fullWidth
-                                    />
-                                </>
-                            )}
-                            {openFilterPopover?.key === 'noteIds' && (
-                                <>
-                                    <Typography variant="body2" fontWeight={500}>
-                                        {t('settings.dictionaryBrowser.columns.noteIds')}
-                                    </Typography>
-                                    <TextField
-                                        autoFocus
-                                        placeholder={t('settings.dictionaryBrowser.columns.noteIds')}
-                                        value={draftViewCriteria.noteIdFilter}
-                                        onChange={(event) =>
-                                            updateDraftTextCriteria('noteIdFilter', event.target.value)
-                                        }
-                                        slotProps={{
-                                            input: {
-                                                endAdornment: renderClearAdornment(draftViewCriteria.noteIdFilter, () =>
-                                                    clearDraftTextCriteria('noteIdFilter')
-                                                ),
-                                            },
-                                        }}
-                                        size="small"
-                                        fullWidth
-                                    />
-                                </>
-                            )}
-                            {openFilterPopover?.key === 'suspended' && (
-                                <>
-                                    <Typography variant="body2" fontWeight={500}>
-                                        {t('settings.dictionaryBrowser.columns.suspended')}
-                                    </Typography>
-                                    <RadioGroup
-                                        value={draftViewCriteria.suspendedFilter}
-                                        onChange={(event) =>
-                                            updateDraftViewCriteria(singleSelectAutoRefreshDelayMs, (current) => ({
-                                                ...current,
-                                                suspendedFilter: event.target.value as SuspendedFilter,
-                                            }))
-                                        }
-                                    >
-                                        <FormControlLabel
-                                            value="all"
-                                            control={<Radio size="small" />}
-                                            label={t('settings.dictionaryBrowser.suspended.all')}
-                                        />
-                                        <FormControlLabel
-                                            value="yes"
-                                            control={<Radio size="small" />}
-                                            label={t('settings.dictionaryBrowser.suspended.yes')}
-                                        />
-                                        <FormControlLabel
-                                            value="no"
-                                            control={<Radio size="small" />}
-                                            label={t('settings.dictionaryBrowser.suspended.no')}
-                                        />
-                                        <FormControlLabel
-                                            value="mixed"
-                                            control={<Radio size="small" />}
-                                            label={t('settings.dictionaryBrowser.suspended.mixed')}
-                                        />
-                                    </RadioGroup>
-                                </>
-                            )}
-                        </Stack>
-                    </Popover>
-                </Stack>
-            </DialogContent>
-            <DialogActions
-                sx={{
-                    justifyContent: 'space-between',
-                    alignItems: fullScreen ? 'stretch' : 'center',
-                    flexWrap: 'wrap',
-                    gap: 1,
-                }}
-            >
-                <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap sx={{ mr: 'auto' }}>
-                    <IconButton
-                        size="small"
-                        onClick={() => goToPage(0)}
-                        disabled={clampedCurrentPage === 0 || !visibleRows.length}
-                        aria-label="First page"
-                    >
-                        <FirstPageIcon fontSize="small" />
-                    </IconButton>
-                    <IconButton
-                        size="small"
-                        onClick={() => goToPage(clampedCurrentPage - 1)}
-                        disabled={clampedCurrentPage === 0 || !visibleRows.length}
-                        aria-label="Previous page"
-                    >
-                        <NavigateBeforeIcon fontSize="small" />
-                    </IconButton>
-                    <Stack direction="row" spacing={0.75} alignItems="center">
-                        <TextField
-                            size="small"
-                            value={pageInput}
-                            onChange={(event) => {
-                                const nextValue = event.target.value.replace(/\D+/g, '');
-                                setPageInput(nextValue);
-                            }}
-                            onBlur={commitPageInput}
-                            onKeyDown={(event) => {
-                                if (event.key === 'Enter') {
-                                    event.preventDefault();
-                                    commitPageInput();
-                                }
-                            }}
-                            slotProps={{
-                                htmlInput: {
-                                    inputMode: 'numeric',
-                                    pattern: '[0-9]*',
-                                    min: 1,
-                                    max: pageCount,
-                                    'aria-label': 'Page number',
-                                },
-                            }}
-                            sx={{ width: 72 }}
-                            disabled={!visibleRows.length}
-                        />
-                        <Typography variant="body2" color="text.secondary">
-                            / {pageCount}
-                        </Typography>
+                                            <FormControlLabel
+                                                value="yes"
+                                                control={<Radio size="small" />}
+                                                label={t('settings.dictionaryBrowser.suspended.yes')}
+                                            />
+                                            <FormControlLabel
+                                                value="no"
+                                                control={<Radio size="small" />}
+                                                label={t('settings.dictionaryBrowser.suspended.no')}
+                                            />
+                                            <FormControlLabel
+                                                value="mixed"
+                                                control={<Radio size="small" />}
+                                                label={t('settings.dictionaryBrowser.suspended.mixed')}
+                                            />
+                                        </RadioGroup>
+                                    </>
+                                )}
+                            </Stack>
+                        </Popover>
+                        <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+                            <Typography variant="body2" color="text.secondary" sx={{ flexGrow: 1 }}>
+                                {t('settings.dictionaryBrowser.results', {
+                                    shown: visibleRows.length,
+                                    total: rows.length,
+                                })}
+                            </Typography>
+                            <PageSelector
+                                pageSize={pageSize}
+                                pageCount={pageCount}
+                                clampedCurrentPage={clampedCurrentPage}
+                                totalRows={visibleRows.length}
+                                goToPage={goToPage}
+                                onPageSize={setPageSize}
+                                onCurrentPage={setCurrentPage}
+                            />
+                        </div>
                     </Stack>
-                    <IconButton
-                        size="small"
-                        onClick={() => goToPage(clampedCurrentPage + 1)}
-                        disabled={clampedCurrentPage >= pageCount - 1 || !visibleRows.length}
-                        aria-label="Next page"
+                </DialogContent>
+                <DialogActions>
+                    {selectedCount > 0 && (
+                        <Button onClick={() => setBulkUpdateDialogOpen(true)} loading={loading}>
+                            {t('settings.dictionaryBrowser.updateSelected', { selectedCount })}
+                        </Button>
+                    )}
+                    <Button
+                        startIcon={<RefreshIcon />}
+                        onClick={() => void loadRecords(draftViewCriteria)}
+                        loading={loading}
+                        disabled={mutating}
                     >
-                        <NavigateNextIcon fontSize="small" />
-                    </IconButton>
-                    <IconButton
-                        size="small"
-                        onClick={() => goToPage(pageCount - 1)}
-                        disabled={clampedCurrentPage >= pageCount - 1 || !visibleRows.length}
-                        aria-label="Last page"
-                    >
-                        <LastPageIcon fontSize="small" />
-                    </IconButton>
-                    <Select
-                        size="small"
-                        value={pageSize}
-                        onChange={(event) => handlePageSizeChange(Number(event.target.value))}
-                        renderValue={(value) =>
-                            Number(value) === allPageSize
-                                ? t('settings.dictionaryBrowser.suspended.all')
-                                : String(value)
-                        }
-                        sx={{ minWidth: 96 }}
-                    >
-                        {pageSizeOptions.map((option) => (
-                            <MenuItem key={option} value={option}>
-                                {option === allPageSize ? t('settings.dictionaryBrowser.suspended.all') : option}
-                            </MenuItem>
-                        ))}
-                    </Select>
-                </Stack>
-                <Button onClick={onClose} disabled={mutating}>
-                    {t('action.close')}
-                </Button>
-            </DialogActions>
-        </Dialog>
+                        {t('action.reload')}
+                    </Button>
+                    <Button onClick={onClose} disabled={mutating}>
+                        {t('action.close')}
+                    </Button>
+                </DialogActions>
+            </Dialog>
+            <BulkUpdateDialog
+                open={bulkUpdateDialogOpen}
+                onClose={() => setBulkUpdateDialogOpen(false)}
+                selectedRows={selectedRows}
+                statusColorForTrackValues={statusColorForTrackValues}
+                onApplyToSelected={handleBulkApplyUpdateToSelected}
+                onDeleteSelected={handleBulkDeleteSelected}
+            />
+        </>
     );
 }
