@@ -1388,14 +1388,14 @@ const DictionarySettingsTab: React.FC<Props> = ({
                                         sx={{
                                             width: '100%',
                                             '& .asb-reading': {
-                                                'ruby-position': 'over',
+                                                rubyPosition: 'over',
                                             },
                                             '& .asb-reading rt': {
                                                 fontSize: '0.5em',
                                                 lineHeight: 1,
                                             },
                                             '& .asb-frequency': {
-                                                'ruby-position': 'under',
+                                                rubyPosition: 'under',
                                             },
                                             '& .asb-frequency rt': {
                                                 fontSize: '0.5em',
