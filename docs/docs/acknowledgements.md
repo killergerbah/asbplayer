@@ -48,7 +48,8 @@ We epecially acknowledge the wonderful humans below.
 [@khajiitvaper2017](https://github.com/khajiitvaper2017),
 [@saifkaral](https://github.com/saifkaral),
 [@xwxb](https://github.com/xwxb),
-[@yqmmm](https://github.com/yqmmm)
+[@yqmmm](https://github.com/yqmmm),
+[@jprostko](https://github.com/jprostko)
 
 ## Translators
 
