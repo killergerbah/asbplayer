@@ -192,7 +192,7 @@ export default class ChromeExtension {
     }
 
     get supportsDictionaryBrowser() {
-        return this.installed && gte(this.version, '1.16.0');
+        return this.installed && gte(this.version, '1.17.0');
     }
 
     get supportsDictionaryStatistics() {
