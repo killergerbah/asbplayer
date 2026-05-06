@@ -33,7 +33,7 @@ import { ExtensionSettingsStorage } from '@/services/extension-settings-storage'
 import { ExtensionGlobalStateProvider } from '@/services/extension-global-state-provider';
 import type { ContentScriptContext } from '#imports';
 
-const matches = ['*://killergerbah.github.io/asbplayer*', '*://app.asbplayer.dev/*'];
+const matches = ['*://app.asbplayer.dev/*'];
 
 if (import.meta.env.DEV) {
     matches.push('*://localhost/*');

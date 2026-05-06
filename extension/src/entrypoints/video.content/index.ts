@@ -20,7 +20,7 @@ import { isFirefoxBuild } from '@/services/build-flags';
 import type { ContentScriptContext } from '#imports';
 import './video.css';
 
-const excludeGlobs = ['*://killergerbah.github.io/asbplayer*', '*://app.asbplayer.dev/*'];
+const excludeGlobs = ['*://app.asbplayer.dev/*'];
 
 if (import.meta.env.DEV) {
     excludeGlobs.push('*://localhost:3000/*');
