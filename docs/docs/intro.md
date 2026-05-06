@@ -18,13 +18,14 @@ sidebar_position: 1
 - **Use customizable keyboard shortcuts** to access most of asbplayer's features.
 - **Annotate subtitles** with the help of tools such as [Yomitan](https://yomitan.wiki/)
   - **Word styling** (color/underline/outline, etc.) based on a word's status (uncollected/unknown/learning, etc.) synced from Anki and/or tracked locally in asbplayer.
-  - **Reading annotation** for reading displayed above each word or based on status.
+  - **Reading annotation** for pronunciation displayed above each word or based on status.
   - **Frequency annotation** for rank-based frequency displayed below each word or based on status.
+  - **Statistics and Comprehension** on your known words for the current media.
+  - **Word browser** to manage local and Anki-synced words.
   - Many more features for future releases! Some planned features include:
-    - **Statistics and Comprehension** on your known words for the current video and across videos.
-    - **Word browser** to manage local and Anki-synced words.
     - **Auto pause**, **Condensed playback**, and **Auto mining** on uncollected/unknown/learning words.
     - **Accent annotation** such as pitch accent, tones, gender, etc.
+    - **Statistics and Comprehension** on your known words across media.
 
 ## A website and browser extension
 

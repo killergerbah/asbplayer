@@ -186,6 +186,20 @@ Some shortcut behaviors require privileged browser extension APIs, requiring the
 
 ## [Annotation](https://app.asbplayer.dev/?view=settings#annotation)
 
+### Word Browser
+
+:::info
+Only local words can be edited/deleted, Anki-synced words are read-only and can only update through [syncing with Anki](#re-build-anki-word-database) and its [respective settings](#anki-decks-optional).
+:::
+
+Opens the Word Browser, where you can view and manage all words in your local word database and Anki-synced word database.
+
+:::tip
+You can lookup words in any script of the language (e.g romaji/hiragana/katakana/kanji for Japanese).
+
+There are also some other common QOL substitutions, such as `e -> é` or `ss -> ß` done automatically.
+:::
+
 ### Import Words
 
 Imports words into asbplayer's **local word database**.
