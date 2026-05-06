@@ -221,7 +221,7 @@ const MiningSettingsTab: React.FC<Props> = ({ settings, onSettingChanged, showWe
                 }}
             />
             <SettingsSection>{t('settings.screenshots')}</SettingsSection>
-            {showWebmMediaFragmentSettings && (
+            {showWebmMediaFragmentSettings && webmCaptureSupported && (
                 <TextField
                     select
                     fullWidth
@@ -235,11 +235,7 @@ const MiningSettingsTab: React.FC<Props> = ({ settings, onSettingChanged, showWe
                     }
                 >
                     <MenuItem value="jpeg">{t('settings.mediaFragmentFormatScreenshot')}</MenuItem>
-                    <MenuItem value="webm" disabled={!webmCaptureSupported}>
-                        {webmCaptureSupported
-                            ? t('settings.mediaFragmentFormatVideoClip')
-                            : t('settings.mediaFragmentFormatVideoClipUnsupported')}
-                    </MenuItem>
+                    <MenuItem value="webm">{t('settings.mediaFragmentFormatVideoClip')}</MenuItem>
                 </TextField>
             )}
             <TextField
