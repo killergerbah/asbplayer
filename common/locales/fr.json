@@ -472,7 +472,7 @@
         "annotationHelperText": "Annotation requires <0>Yomitan API</0> to function.",
         "annotationNoExtensionWarn": "Installing the asbplayer extension is recommended to prevent your browser from deleting manually stored words. Export your settings before installing the extension to preserve your data.",
         "annotationLocalAnkiHelperText": "Word status is determined by your local collection then from Anki cards. Collect words locally through imports or by hovering over words and using the keyboard shortcuts.",
-        "manageWords": "Manage words",
+        "manageWords": "My word database",
         "buildAnkiCache": "Re-Build Anki cache",
         "buildAnkiCacheHelperText": "The cache is automatically updated during playback when a track is enabled and Anki is connectable.",
         "buildAnkiCacheAnkiEnableHelperText": "Configure word fields and/or sentence fields to use Anki for known words.",

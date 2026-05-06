@@ -472,7 +472,7 @@
         "annotationHelperText": "アノテーション機能は<0>Yomitan API</0>が必要です。",
         "annotationNoExtensionWarn": "単語がブラウザによって削除されないためには、asbplayer拡張機能のインストールをお勧めします。設定をなくさないためには拡張機能をインストールする前に設定のエクスポートもお勧めします。",
         "annotationLocalAnkiHelperText": "単語の成熟度は、Ankiの単語データベースより、ローカルの単語データベースが優先されます。単語を収集するためには、こちらのボタンでインポートするか、字幕にマウスカーソルを重ね、<0>キーボードショートカット</0>を使用することができます。",
-        "manageWords": "Manage words",
+        "manageWords": "My word database",
         "buildAnkiCache": "Ankiの単語データベースを再構築",
         "buildAnkiCacheHelperText": "Ankiの単語データベースは、トラックが有効になっておりAnkiが接続可能なときに、メディア再生中に自動的に更新されます。",
         "buildAnkiCacheAnkiEnableHelperText": "習得した単語を収集するためには、<0>検索対象の文章または単語フィールドを設定</0>してください。",
