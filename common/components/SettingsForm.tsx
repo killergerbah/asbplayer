@@ -450,7 +450,11 @@ export default function SettingsForm({
                 />
             </TabPanel>
             <TabPanel value={tabIndex} index={tabIndicesById['mining-settings']} tabsOrientation={tabsOrientation}>
-                <MiningSettingsTab settings={settings} onSettingChanged={handleSettingChanged} />
+                <MiningSettingsTab
+                    settings={settings}
+                    onSettingChanged={handleSettingChanged}
+                    showWebmMediaFragmentSettings={Boolean(insideApp)}
+                />
             </TabPanel>
             <TabPanel value={tabIndex} index={tabIndicesById['annotation']} tabsOrientation={tabsOrientation}>
                 <DictionarySettingsTab

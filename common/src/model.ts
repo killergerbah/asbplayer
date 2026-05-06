@@ -97,16 +97,20 @@ export interface CopyHistoryItem extends CardModel {
     readonly timestamp: number;
 }
 
-export enum ImageErrorCode {
+export enum MediaFragmentErrorCode {
     captureFailed = 1,
     fileLinkLost = 2,
 }
 
-export interface ImageModel {
+export interface MediaFragmentModel {
     readonly base64: string;
-    readonly extension: 'jpeg';
-    readonly error?: ImageErrorCode;
+    readonly extension: 'jpeg' | 'webm';
+    readonly error?: MediaFragmentErrorCode;
 }
+
+export const ImageErrorCode = MediaFragmentErrorCode;
+export type ImageErrorCode = MediaFragmentErrorCode;
+export type ImageModel = MediaFragmentModel;
 
 export enum AudioErrorCode {
     drmProtected = 1,
