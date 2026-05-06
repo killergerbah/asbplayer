@@ -81,6 +81,21 @@ export default defineContentScript({
             return false;
         };
 
+        const shadowRootsWithBindings: ShadowRoot[] = [];
+
+        const injectStylesIntoShadowRoot = async (shadowRoot: ShadowRoot, cssPath: string) => {
+            for (const s of shadowRootsWithBindings) {
+                if (s.isSameNode(shadowRoot)) {
+                    return;
+                }
+            }
+
+            shadowRootsWithBindings.push(shadowRoot);
+            const sheet = new CSSStyleSheet();
+            await sheet.replace(await (await fetch(cssPath)).text());
+            shadowRoot.adoptedStyleSheets = [...shadowRoot.adoptedStyleSheets, sheet];
+        };
+
         const bind = async () => {
             const bindings: Binding[] = [];
             const page = await currentPageDelegate();
@@ -108,6 +123,10 @@ export default defineContentScript({
 
                     for (const video of shadowRootHost.shadowRoot.querySelectorAll('video')) {
                         videoElements.push(video);
+                        void injectStylesIntoShadowRoot(
+                            shadowRootHost.shadowRoot,
+                            browser.runtime.getURL('/content-scripts/video.css')
+                        );
                     }
                 }
 

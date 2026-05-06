@@ -250,6 +250,10 @@ export class CachingElementOverlay implements ElementOverlay {
             return document.body;
         }
 
+        const targetElementRootNode = this.targetElement.getRootNode();
+        const rootNode: ShadowRoot | Document =
+            targetElementRootNode instanceof ShadowRoot ? targetElementRootNode : document;
+
         let chosen: HTMLElement | undefined = undefined;
 
         do {
@@ -260,7 +264,7 @@ export class CachingElementOverlay implements ElementOverlay {
                 (typeof chosen === 'undefined' ||
                     // Typescript is not smart enough to know that it's possible for 'chosen' to be defined here
                     rect.height >= (chosen as HTMLElement).getBoundingClientRect().height) &&
-                this._clickable(current, testNode)
+                this._clickable(rootNode, current, testNode)
             ) {
                 chosen = current;
                 break;
@@ -396,10 +400,10 @@ export class CachingElementOverlay implements ElementOverlay {
         this.onContainerStyles?.(container);
     }
 
-    private _clickable(container: HTMLElement, element: HTMLElement): boolean {
+    private _clickable(rootNode: Document | ShadowRoot, container: HTMLElement, element: HTMLElement): boolean {
         container.appendChild(element);
         const rect = element.getBoundingClientRect();
-        const clickedElement = document.elementFromPoint(rect.x, rect.y);
+        const clickedElement = rootNode.elementFromPoint(rect.x, rect.y);
         const clickable = element.isSameNode(clickedElement) || element.contains(clickedElement);
         element.remove();
         return clickable;

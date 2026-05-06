@@ -57,6 +57,7 @@ export default defineConfig({
             for (const { srcDir, destDir } of commonAssets) {
                 addToPublicPathsType(srcDir, destDir, paths);
             }
+            paths.push('content-scripts/video.css');
         },
     },
     manifest: ({ browser, mode }) => {
@@ -115,6 +116,7 @@ export default defineConfig({
                         'mobile-video-overlay-ui.html',
                         'statistics-overlay-ui.html',
                         'page-favicons/*',
+                        'content-scripts/video.css',
                     ],
                     matches: ['<all_urls>'],
                 },
