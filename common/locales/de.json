@@ -564,6 +564,7 @@
             "confirmApplyToSelected": "Are you sure you want to apply the selected changes to {{count}} entries?",
             "confirmApplyToSelectedDeleteWarning": "Entries that are uncollected with no states will be deleted.",
             "confirmDeleteSelected": "Are you sure you want to delete {{count}} selected entries?",
+            "results": "Showing {{shown}} of {{total}} entries",
             "noResults": "No matching words found.",
             "columns": {
                 "word": "Word",
