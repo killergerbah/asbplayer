@@ -149,3 +149,54 @@ it('pauses WebM rendering while the tab is hidden and resumes without tripping t
 
     await expect(frameLoopPromise).resolves.toBeUndefined();
 });
+
+it('fails WebM rendering after the global timeout elapses', async () => {
+    const data = new WebmFileMediaFragmentData(file, 1_000, 2_000, 320, 180);
+    const dataAny = data as any;
+    const video = new MockVideoElement();
+    const canvas = {} as HTMLCanvasElement;
+    const ctx = {} as CanvasRenderingContext2D;
+    const stopTrack = jest.fn();
+    const recorderStop = jest.fn();
+    const stopRecorderPromise = Promise.resolve(new Blob());
+
+    jest.spyOn(dataAny, '_setupCaptureStream').mockReturnValue({
+        stream: { getTracks: () => [{ stop: stopTrack }] } as unknown as MediaStream,
+        captureTrack: undefined,
+    });
+    jest.spyOn(dataAny, '_setupRecorder').mockReturnValue({
+        recorder: { state: 'recording', stop: recorderStop } as unknown as MediaRecorder,
+        recorderStarted: Promise.resolve(),
+        stopRecorder: stopRecorderPromise,
+    });
+    jest.spyOn(dataAny, '_seekVideo').mockReturnValue(new Promise(() => {}));
+
+    const renderPromise = dataAny._captureBlob({
+        video,
+        canvas,
+        ctx,
+        settings: {
+            outputWidth: 320,
+            outputHeight: 180,
+            startTimestampMs: 1_000,
+            endTimestampMs: 2_000,
+            durationMs: 1_000,
+            captureFrameRate: 24,
+            fallbackFrameDelayMs: 42,
+            targetBitsPerPixel: 0.1,
+            minBitsPerSecond: 1_000_000,
+            videoBitsPerSecond: 1_000_000,
+            renderWatchdogTimeoutMs: 10_000,
+        },
+        mimeType: 'video/webm',
+        abortSignal: new AbortController().signal,
+    });
+
+    jest.advanceTimersByTime(20_000);
+    await flushAsync();
+
+    await expect(renderPromise).rejects.toThrow('WebM rendering timed out after 20000ms');
+    expect(recorderStop).toHaveBeenCalledTimes(1);
+    expect(stopTrack).toHaveBeenCalledTimes(1);
+    expect(video.pause).toHaveBeenCalledTimes(1);
+});

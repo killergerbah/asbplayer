@@ -15,6 +15,7 @@ const defaultCaptureFrameRate = 24;
 const minWebmVideoBitsPerSecond = 1_000_000;
 const maxWebmVideoBitsPerSecond = 24_000_000;
 const minVp9WebmVideoBitsPerSecond = 2_000_000;
+const webmRenderTimeoutMs = 20_000;
 const videoSeekTimeoutMs = 3_000;
 const frameRenderWatchdogTimeoutMs = 10_000;
 
@@ -364,55 +365,71 @@ export class WebmFileMediaFragmentData implements MediaFragmentData {
         let stopRecorder: Promise<Blob> | undefined;
         let recorderStarted: Promise<void> | undefined;
         let captureTrack: CanvasCaptureMediaStreamTrack | undefined;
+        let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
         try {
-            const captureStreamSetup = this._setupCaptureStream(canvas, settings.captureFrameRate);
-            stream = captureStreamSetup.stream;
-            captureTrack = captureStreamSetup.captureTrack;
+            const renderPromise = (async () => {
+                const captureStreamSetup = this._setupCaptureStream(canvas, settings.captureFrameRate);
+                stream = captureStreamSetup.stream;
+                captureTrack = captureStreamSetup.captureTrack;
 
-            this._logWebmCaptureSettings({
-                ...settings,
-                mimeType,
-                captureMode: captureTrack ? 'manual-request-frame' : 'timed-capture-stream',
+                this._logWebmCaptureSettings({
+                    ...settings,
+                    mimeType,
+                    captureMode: captureTrack ? 'manual-request-frame' : 'timed-capture-stream',
+                });
+
+                const recorderSetup = this._setupRecorder(stream, mimeType, settings.videoBitsPerSecond, chunks);
+                mediaRecorder = recorderSetup.recorder;
+                recorderStarted = recorderSetup.recorderStarted;
+                stopRecorder = recorderSetup.stopRecorder;
+
+                await this._seekVideo(video, settings.startTimestampMs / 1000, abortSignal);
+                this._prepareVideoForCapture(video);
+
+                mediaRecorder.start();
+                if (mediaRecorder.state !== 'recording') {
+                    await recorderStarted;
+                }
+
+                await this._runFrameLoop({
+                    video,
+                    ctx,
+                    width: settings.outputWidth,
+                    height: settings.outputHeight,
+                    captureTrack,
+                    startTimestampMs: settings.startTimestampMs,
+                    targetEndTimestampMs: settings.endTimestampMs,
+                    fallbackFrameDelayMs: settings.fallbackFrameDelayMs,
+                    renderWatchdogTimeoutMs: settings.renderWatchdogTimeoutMs,
+                    pauseCapture: () => this._pauseRecorder(mediaRecorder),
+                    resumeCapture: () => this._resumeRecorder(mediaRecorder),
+                    abortSignal,
+                });
+
+                const blob = await this._stopAndFlushRecorder(mediaRecorder, stopRecorder);
+                if (!blob || blob.size <= 0) {
+                    throw new Error('Could not encode WebM from local video');
+                }
+
+                mediaRecorder = undefined;
+                stopRecorder = undefined;
+                return blob;
+            })();
+            const timeoutPromise = new Promise<never>((_, reject) => {
+                timeoutId = setTimeout(() => {
+                    const error = new Error(`WebM rendering timed out after ${webmRenderTimeoutMs}ms`);
+                    this._cancelRendering();
+                    reject(error);
+                }, webmRenderTimeoutMs);
             });
 
-            const recorderSetup = this._setupRecorder(stream, mimeType, settings.videoBitsPerSecond, chunks);
-            mediaRecorder = recorderSetup.recorder;
-            recorderStarted = recorderSetup.recorderStarted;
-            stopRecorder = recorderSetup.stopRecorder;
-
-            await this._seekVideo(video, settings.startTimestampMs / 1000, abortSignal);
-            this._prepareVideoForCapture(video);
-
-            mediaRecorder.start();
-            if (mediaRecorder.state !== 'recording') {
-                await recorderStarted;
-            }
-
-            await this._runFrameLoop({
-                video,
-                ctx,
-                width: settings.outputWidth,
-                height: settings.outputHeight,
-                captureTrack,
-                startTimestampMs: settings.startTimestampMs,
-                targetEndTimestampMs: settings.endTimestampMs,
-                fallbackFrameDelayMs: settings.fallbackFrameDelayMs,
-                renderWatchdogTimeoutMs: settings.renderWatchdogTimeoutMs,
-                pauseCapture: () => this._pauseRecorder(mediaRecorder),
-                resumeCapture: () => this._resumeRecorder(mediaRecorder),
-                abortSignal,
-            });
-
-            const blob = await this._stopAndFlushRecorder(mediaRecorder, stopRecorder);
-            if (!blob || blob.size <= 0) {
-                throw new Error('Could not encode WebM from local video');
-            }
-
-            mediaRecorder = undefined;
-            stopRecorder = undefined;
-            return blob;
+            return await Promise.race([renderPromise, timeoutPromise]);
         } finally {
+            if (timeoutId !== undefined) {
+                clearTimeout(timeoutId);
+            }
+
             video.pause();
 
             await this._stopAndFlushRecorder(mediaRecorder, stopRecorder).catch(() => undefined);
