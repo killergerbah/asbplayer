@@ -66,7 +66,6 @@ export default function VideoDataSyncUi({ bridge }: Props) {
     const [subtitleGenerationOpen, setSubtitleGenerationOpen] = useState(false);
     const [subtitleGenerationProgressOpen, setSubtitleGenerationProgressOpen] = useState(false);
     const [ocrExtractionOpen, setOcrExtractionOpen] = useState(false);
-    const [ocrPreview, setOcrPreview] = useState<string>();
     const [pendingGeneratedTrackId, setPendingGeneratedTrackId] = useState<string>();
     const trackedLocalObjectUrlsRef = useRef(new Set<string>());
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -243,10 +242,6 @@ export default function VideoDataSyncUi({ bridge }: Props) {
                         ? model.subtitleGeneration
                         : { ...current, ...model.subtitleGeneration }
                 );
-            }
-
-            if (model.ocrPreview !== undefined) {
-                setOcrPreview(model.ocrPreview || undefined);
             }
 
             if (model.generatedSubtitleEntryId !== undefined) {
@@ -470,7 +465,6 @@ export default function VideoDataSyncUi({ bridge }: Props) {
                 />
                 <OcrSubtitleExtractionDialog
                     open={subtitleTrackSelectorOpen && ocrExtractionOpen}
-                    preview={ocrPreview}
                     generation={subtitleGeneration}
                     onStart={handleStartOcrExtraction}
                     onClose={() => setOcrExtractionOpen(false)}

@@ -17,7 +17,6 @@ import type {
     CardExportedMessage,
     CardSavedMessage,
     CardUpdatedMessage,
-    CaptureOcrPreviewMessage,
     CopySubtitleMessage,
     CurrentTimeFromVideoMessage,
     CurrentTimeToVideoMessage,
@@ -1782,23 +1781,6 @@ export default class Binding {
             reason: openedFromMiningCommand ? VideoDataUiOpenReason.miningCommand : VideoDataUiOpenReason.userRequested,
             fromAsbplayerId,
         });
-    }
-
-    async captureOcrPreview(): Promise<string | undefined> {
-        const rect = this.video.getBoundingClientRect();
-        const command: VideoToExtensionCommand<CaptureOcrPreviewMessage> = {
-            sender: 'asbplayer-video',
-            message: {
-                command: 'capture-ocr-preview',
-                maxWidth: 1280,
-                maxHeight: 720,
-                rect: { left: rect.left, top: rect.top, width: rect.width, height: rect.height },
-                frameId: this.frameId,
-            },
-            src: this._registeredVideoSrc,
-        };
-        const response = await browser.runtime.sendMessage(command);
-        return response?.dataUrl;
     }
 
     async cropAndResize(tabImageDataUrl: string): Promise<string> {

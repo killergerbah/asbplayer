@@ -51,7 +51,6 @@ it('sends OCR generator settings separately from legacy Whisper options', async 
             sourceUrl: 'https://www.bilibili.tv/en/video/test',
             generator: 'ocr',
             ocrOptions: {
-                crop: { left: 0, top: 0.65, width: 1, height: 0.35 },
                 language: 'ch',
                 quality: 'medium',
             },
@@ -65,7 +64,6 @@ it('sends OCR generator settings separately from legacy Whisper options', async 
         generator: 'ocr',
         whisperOptions: {},
         ocrOptions: {
-            crop: { left: 0, top: 0.65, width: 1, height: 0.35 },
             language: 'ch',
             quality: 'medium',
         },

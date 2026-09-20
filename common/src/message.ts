@@ -612,11 +612,6 @@ export interface CropAndResizeMessage extends Message, ImageCaptureParams {
     readonly dataUrl: string;
 }
 
-/** Captures the selected video element for the burned-in subtitle crop editor. */
-export interface CaptureOcrPreviewMessage extends Message, ImageCaptureParams {
-    readonly command: 'capture-ocr-preview';
-}
-
 export interface StartRecordingAudioWithTimeoutMessage extends Message {
     readonly command: 'start-recording-audio-with-timeout';
     readonly timeout: number;

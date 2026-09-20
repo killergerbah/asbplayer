@@ -6,16 +6,7 @@ export type SubtitleGenerator = 'whisper' | 'ocr';
 export type OcrLanguage = 'ch' | 'chinese_cht';
 export type OcrQuality = 'medium' | 'small';
 
-/** A rectangle expressed as fractions of the decoded video dimensions. */
-export interface NormalizedOcrCrop {
-    readonly left: number;
-    readonly top: number;
-    readonly width: number;
-    readonly height: number;
-}
-
 export interface OcrOptions {
-    readonly crop: NormalizedOcrCrop;
     readonly language: OcrLanguage;
     readonly quality: OcrQuality;
 }

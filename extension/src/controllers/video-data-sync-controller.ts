@@ -256,12 +256,6 @@ export default class VideoDataSyncController {
             additionalFields.openedFromAsbplayerId = fromAsbplayerId;
         }
 
-        // Do this before the selector is made visible; its dialog backdrop would
-        // otherwise obscure the video in captureVisibleTab.
-        if (this._subtitleGenerationSourceUrl()) {
-            additionalFields.ocrPreview = await this._context.captureOcrPreview().catch(() => undefined);
-        }
-
         const model = await this._buildModel(additionalFields);
         this._prepareShow();
         client.updateState(model);

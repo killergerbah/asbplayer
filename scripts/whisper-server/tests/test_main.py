@@ -65,18 +65,15 @@ class WhisperServerTests(unittest.TestCase):
 
     def test_validates_ocr_options_and_keeps_them_separate_from_whisper_cache_entries(self):
         identity = {"extractor": "Bilibili", "id": "video-id", "url": "https://www.bilibili.tv/video/video-id"}
-        medium = validate_ocr_options(
-            {"crop": {"left": 0, "top": 0.65, "width": 1, "height": 0.35}, "language": "ch", "quality": "medium"}
-        )
-        small = validate_ocr_options(
-            {"crop": {"left": 0, "top": 0.65, "width": 1, "height": 0.35}, "language": "chinese_cht", "quality": "small"}
-        )
+        medium = validate_ocr_options({"language": "ch", "quality": "medium"})
+        small = validate_ocr_options({"language": "chinese_cht", "quality": "small"})
 
+        self.assertEqual(medium["crop"], {"left": 0.0, "top": 0.0, "width": 1.0, "height": 1.0})
         self.assertNotEqual(cache_key(identity, {}, "ocr", medium), cache_key(identity, {}, "ocr", small))
         self.assertNotEqual(cache_key(identity, validate_options({"model": "small"})), cache_key(identity, {}, "ocr", medium))
 
-    def test_rejects_invalid_ocr_crop(self):
-        with self.assertRaisesRegex(ValueError, "fit inside"):
+    def test_rejects_deprecated_ocr_crop_options(self):
+        with self.assertRaisesRegex(ValueError, "Unsupported OCR option: crop"):
             validate_ocr_options(
                 {"crop": {"left": 0.75, "top": 0.65, "width": 0.5, "height": 0.35}, "language": "ch", "quality": "medium"}
             )

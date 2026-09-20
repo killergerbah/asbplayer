@@ -4,7 +4,7 @@ sidebar_position: 10
 
 # Generate subtitles with Whisper or OCR
 
-asbplayer can generate an SRT subtitle track for a streaming video using a subtitle-generation service running on your own computer or an authenticated remote GPU service. Whisper jobs download audio through `yt-dlp`; burned-in subtitle OCR jobs download video and recognize the selected subtitle region. asbplayer does not run either workload on its own servers.
+asbplayer can generate an SRT subtitle track for a streaming video using a subtitle-generation service running on your own computer or an authenticated remote GPU service. Whisper jobs download audio through `yt-dlp`; burned-in subtitle OCR jobs download video and recognize the full video frame. asbplayer does not run either workload on its own servers.
 
 YouTube is supported directly. Other streaming sites are supported when `yt-dlp` can extract their audio; DRM-protected and unsupported sites cannot be processed.
 
@@ -79,12 +79,11 @@ When Colab disconnects, rerun the notebook and update the remote URL/token in ex
 
 ### Extract burned-in subtitles with OCR
 
-1. Pause the video on a frame where its burned-in subtitles are visible, then open **Select Subtitles**.
-2. Choose **Extract Burned-in Subtitles (OCR)** and drag over the subtitle area in the captured preview. The default is the lower 35% of the video.
-3. Choose Simplified or Traditional Chinese and a PP-OCRv6 quality tier. **Medium** is the accurate default; **Small** is faster on local CPUs.
-4. Choose **Extract SRT**. The service downloads a non-DRM video stream up to 1080p, samples the selected area at four frames per second, and automatically loads the resulting SRT.
+1. Open **Select Subtitles**, then choose **Extract Burned-in Subtitles (OCR)**.
+2. Choose Simplified or Traditional Chinese and a PP-OCRv6 quality tier. **Medium** is the accurate default; **Small** is faster on local CPUs.
+3. Choose **Extract SRT**. The service downloads a non-DRM video stream up to 1080p, samples the full video frame at four frames per second, and automatically loads the resulting SRT.
 
-OCR text and timing are estimates. The crop excludes channel logos and interface text, while adjacent matching frames prevent a static subtitle from being emitted repeatedly. Very brief subtitles can be timed within approximately 125 ms of their displayed boundaries.
+OCR text and timing are estimates. Whole-frame recognition can include channel logos or interface text, while adjacent matching frames prevent a static subtitle from being emitted repeatedly. Very brief subtitles can be timed within approximately 125 ms of their displayed boundaries.
 
 The service stores completed SRT files in its user cache directory. A revisit to the same video lists cached variants and selects the newest available result while that service remains available. Cache identity includes the video and output-affecting Whisper options, so changing a model or decoding setting creates a separate result while changing a runtime setting such as CPU thread count does not.
 
@@ -92,5 +91,5 @@ The service stores completed SRT files in its user cache directory. A revisit to
 
 - The generator is not available for local video files or mobile extension builds.
 - The Whisper popup exposes every option from the version-pinned Whisper command line except input audio, output directory/format, and verbose output. asbplayer supplies the current page URL, always requests an SRT, and uses Whisper's native frame counter and time estimate for progress.
-- OCR is desktop streaming-only, like Whisper generation. It requires a source that yt-dlp can download as video; DRM-protected and unsupported sources cannot be processed. The service cache stores OCR results separately from Whisper results, keyed by video, crop, Chinese language, quality, and OCR pipeline version.
+- OCR is desktop streaming-only, like Whisper generation. It requires a source that yt-dlp can download as video; DRM-protected and unsupported sources cannot be processed. The service cache stores OCR results separately from Whisper results, keyed by video, Chinese language, quality, and OCR pipeline version.
 - Long videos can take substantial time, CPU/GPU memory, and disk space. The service runs one job at a time to avoid competing Whisper processes. Set `ASBPLAYER_WHISPER_DEVICE=cuda` before starting a GPU service to make CUDA its default device.

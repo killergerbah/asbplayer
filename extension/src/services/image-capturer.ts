@@ -52,12 +52,6 @@ export default class ImageCapturer {
         return this.imageBase64Promise;
     }
 
-    /** Capture and crop immediately for an OCR preview, independent of screenshot user settings. */
-    async captureVideoPreview(tabId: number, src: string, captureParams: ImageCaptureParams): Promise<string> {
-        const dataUrl = await captureVisibleTab(tabId);
-        return this._cropAndResize(dataUrl, tabId, src, captureParams, true);
-    }
-
     private _captureWithDelay(
         tabId: number,
         src: string,
@@ -107,12 +101,11 @@ export default class ImageCapturer {
         dataUrl: string,
         tabId: number,
         src: string,
-        imageCaptureParams: ImageCaptureParams,
-        alwaysCrop = false
+        imageCaptureParams: ImageCaptureParams
     ): Promise<string> {
         const cropScreenshot = await this.settings.getSingle('streamingCropScreenshot');
 
-        if (!alwaysCrop && !cropScreenshot) {
+        if (!cropScreenshot) {
             return dataUrl;
         }
 

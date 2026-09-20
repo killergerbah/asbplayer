@@ -28,10 +28,10 @@ from pydantic import BaseModel, Field
 DEFAULT_CACHE_ROOT = Path(os.environ.get("ASBPLAYER_WHISPER_CACHE_DIR", Path.home() / ".cache/asbplayer/whisper"))
 AUTH_TOKEN_ENVIRONMENT_VARIABLE = "ASBPLAYER_WHISPER_AUTH_TOKEN"
 DEFAULT_DEVICE = os.environ.get("ASBPLAYER_WHISPER_DEVICE", "cpu")
-OCR_PIPELINE_VERSION = "pp-ocrv6-subtitle-v1"
+OCR_PIPELINE_VERSION = "pp-ocrv6-full-frame-v1"
 OCR_SAMPLE_RATE = 4.0
 OCR_CONFIDENCE_THRESHOLD = 0.60
-OCR_DEFAULT_CROP = {"left": 0.0, "top": 0.65, "width": 1.0, "height": 0.35}
+OCR_DEFAULT_CROP = {"left": 0.0, "top": 0.0, "width": 1.0, "height": 1.0}
 OCR_QUALITIES = {"medium": "PP-OCRv6_medium", "small": "PP-OCRv6_small"}
 OCR_LANGUAGES = {"ch", "chinese_cht"}
 logger = logging.getLogger("uvicorn.error")
@@ -254,7 +254,7 @@ def validate_options(raw: dict[str, Any]) -> dict[str, Any]:
 
 
 def validate_ocr_options(raw: dict[str, Any]) -> dict[str, Any]:
-    unknown = sorted(set(raw) - {"crop", "language", "quality"})
+    unknown = sorted(set(raw) - {"language", "quality"})
     if unknown:
         raise ValueError(f"Unsupported OCR option: {unknown[0]}")
 
@@ -265,20 +265,9 @@ def validate_ocr_options(raw: dict[str, Any]) -> dict[str, Any]:
     if quality not in OCR_QUALITIES:
         raise ValueError("OCR quality must be one of: medium, small")
 
-    crop = raw.get("crop", OCR_DEFAULT_CROP)
-    if not isinstance(crop, dict) or set(crop) != {"left", "top", "width", "height"}:
-        raise ValueError("OCR crop must contain left, top, width, and height")
-    normalized_crop: dict[str, float] = {}
-    for name in ("left", "top", "width", "height"):
-        value = crop[name]
-        if isinstance(value, bool) or not isinstance(value, (int, float)) or not 0 <= value <= 1:
-            raise ValueError(f"OCR crop {name} must be a number between 0 and 1")
-        normalized_crop[name] = float(value)
-    if normalized_crop["width"] <= 0 or normalized_crop["height"] <= 0:
-        raise ValueError("OCR crop width and height must be greater than zero")
-    if normalized_crop["left"] + normalized_crop["width"] > 1 or normalized_crop["top"] + normalized_crop["height"] > 1:
-        raise ValueError("OCR crop must fit inside the video")
-    return {"crop": normalized_crop, "language": language, "quality": quality}
+    # Whole-frame recognition avoids browser screenshot/crop permissions and is
+    # deliberately fixed for this first reliable OCR release.
+    return {"crop": OCR_DEFAULT_CROP.copy(), "language": language, "quality": quality}
 
 
 def source_key(identity: dict[str, str]) -> str:
