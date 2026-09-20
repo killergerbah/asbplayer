@@ -1,0 +1,14 @@
+Metadata-Version: 2.4
+Name: asbplayer-whisper-server
+Version: 0.1.0
+Summary: Local Whisper subtitle generation service for asbplayer
+Requires-Python: >=3.10
+Requires-Dist: fastapi==0.115.12
+Requires-Dist: openai-whisper==20250625
+Requires-Dist: uvicorn==0.34.0
+Requires-Dist: yt-dlp[curl-cffi,default]>=2025.2.19
+Requires-Dist: yt-dlp-ejs
+Provides-Extra: ocr
+Requires-Dist: paddleocr==3.7.0; extra == "ocr"
+Requires-Dist: paddlepaddle==3.2.1; extra == "ocr"
+Requires-Dist: opencv-python-headless==4.11.0.86; extra == "ocr"

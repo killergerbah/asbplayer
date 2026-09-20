@@ -1,0 +1,10 @@
+fastapi==0.115.12
+openai-whisper==20250625
+uvicorn==0.34.0
+yt-dlp[curl-cffi,default]>=2025.2.19
+yt-dlp-ejs
+
+[ocr]
+paddleocr==3.7.0
+paddlepaddle==3.2.1
+opencv-python-headless==4.11.0.86

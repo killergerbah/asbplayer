@@ -1,0 +1,2 @@
+[console_scripts]
+asbplayer-whisper-server = asbplayer_whisper_server.main:main

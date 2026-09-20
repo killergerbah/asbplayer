@@ -1,0 +1,10 @@
+pyproject.toml
+asbplayer_whisper_server/__init__.py
+asbplayer_whisper_server/main.py
+asbplayer_whisper_server.egg-info/PKG-INFO
+asbplayer_whisper_server.egg-info/SOURCES.txt
+asbplayer_whisper_server.egg-info/dependency_links.txt
+asbplayer_whisper_server.egg-info/entry_points.txt
+asbplayer_whisper_server.egg-info/requires.txt
+asbplayer_whisper_server.egg-info/top_level.txt
+tests/test_main.py
