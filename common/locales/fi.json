@@ -275,7 +275,6 @@
         },
         "subtitleGeneration": {
             "title": "Luo tekstitykset",
-            "description": "Paikallinen Whisper-palvelu lataa äänen tältä sivulta. DRM-suojattuja ja tukemattomia suoratoistopalveluja ei voida käsitellä.",
             "videoUrl": "Videon URL-osoite",
             "connecting": "Yhdistetään paikalliseen Whisper-palveluun…",
             "downloading": "Ääntä ladataan ({{progress}}%)",

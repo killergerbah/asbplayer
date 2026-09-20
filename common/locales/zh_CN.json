@@ -275,7 +275,6 @@
         },
         "subtitleGeneration": {
             "title": "生成字幕",
-            "description": "本地 Whisper 服务会从此页面下载音频。受 DRM 保护或不受支持的流媒体服务无法处理。",
             "videoUrl": "视频 URL",
             "connecting": "正在连接本地 Whisper 服务…",
             "downloading": "正在下载音频（{{progress}}%）",

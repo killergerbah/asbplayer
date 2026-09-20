@@ -275,7 +275,6 @@
         },
         "subtitleGeneration": {
             "title": "Buat subtitle",
-            "description": "Audio dari halaman ini diunduh oleh layanan Whisper lokal. Layanan streaming yang dilindungi DRM dan tidak didukung tidak dapat diproses.",
             "videoUrl": "URL video",
             "connecting": "Menghubungkan ke layanan Whisper lokal…",
             "downloading": "Mengunduh audio ({{progress}}%)",

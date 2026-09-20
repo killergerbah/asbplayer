@@ -125,7 +125,6 @@ export default function SubtitleGenerationProgressDialog({ open, generation, onP
                         {t('extension.subtitleGeneration.completed')}
                     </Alert>
                 )}
-                <DialogContentText>{t('extension.subtitleGeneration.description')}</DialogContentText>
             </DialogContent>
             <DialogActions>
                 {activeJob ? (

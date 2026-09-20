@@ -275,7 +275,6 @@
         },
         "subtitleGeneration": {
             "title": "Generate Subtitles",
-            "description": "Audio is downloaded from this page by your local Whisper service. DRM-protected and unsupported streaming services cannot be processed.",
             "videoUrl": "Video URL",
             "connecting": "Connecting to the local Whisper service…",
             "downloading": "Downloading audio ({{progress}}%)",

@@ -275,7 +275,6 @@
         },
         "subtitleGeneration": {
             "title": "字幕を生成",
-            "description": "このページの音声はローカルのWhisperサービスによってダウンロードされます。DRMで保護された、または未対応のストリーミングサービスは処理できません。",
             "videoUrl": "動画のURL",
             "connecting": "ローカルのWhisperサービスに接続中…",
             "downloading": "音声をダウンロード中（{{progress}}%）",

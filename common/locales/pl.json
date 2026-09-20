@@ -275,7 +275,6 @@
         },
         "subtitleGeneration": {
             "title": "Generuj napisy",
-            "description": "Dźwięk z tej strony jest pobierany przez lokalną usługę Whisper. Usługi przesyłania strumieniowego chronione przez DRM oraz nieobsługiwane nie mogą zostać przetworzone.",
             "videoUrl": "Adres URL filmu",
             "connecting": "Łączenie z lokalną usługą Whisper…",
             "downloading": "Pobieranie dźwięku ({{progress}}%)",

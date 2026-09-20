@@ -275,7 +275,6 @@
         },
         "subtitleGeneration": {
             "title": "Untertitel erstellen",
-            "description": "Audio wird von dieser Seite durch Ihren lokalen Whisper-Dienst heruntergeladen. DRM-geschützte und nicht unterstützte Streaming-Dienste können nicht verarbeitet werden.",
             "videoUrl": "Video-URL",
             "connecting": "Verbindung mit dem lokalen Whisper-Dienst wird hergestellt…",
             "downloading": "Audio wird heruntergeladen ({{progress}}%)",

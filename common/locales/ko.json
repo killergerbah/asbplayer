@@ -275,7 +275,6 @@
         },
         "subtitleGeneration": {
             "title": "자막 생성",
-            "description": "이 페이지의 오디오는 로컬 Whisper 서비스가 다운로드합니다. DRM으로 보호되었거나 지원되지 않는 스트리밍 서비스는 처리할 수 없습니다.",
             "videoUrl": "동영상 URL",
             "connecting": "로컬 Whisper 서비스에 연결하는 중…",
             "downloading": "오디오 다운로드 중 ({{progress}}%)",

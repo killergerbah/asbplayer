@@ -99,7 +99,7 @@ export default function SubtitleGenerationDialog({ open, generation, onStart, on
         <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
             <DialogTitle>{t('extension.subtitleGeneration.title')}</DialogTitle>
             <DialogContent>
-                <DialogContentText sx={{ mb: 2 }}>{t('extension.subtitleGeneration.description')}</DialogContentText>
+                <DialogContentText sx={{ mb: 2 }}></DialogContentText>
                 {generation.sourceUrl && (
                     <TextField
                         fullWidth

@@ -275,7 +275,6 @@
         },
         "subtitleGeneration": {
             "title": "Générer des sous-titres",
-            "description": "Le service Whisper local télécharge l’audio depuis cette page. Les services de streaming protégés par DRM ou non pris en charge ne peuvent pas être traités.",
             "videoUrl": "URL de la vidéo",
             "connecting": "Connexion au service Whisper local…",
             "downloading": "Téléchargement de l’audio ({{progress}}%)",
