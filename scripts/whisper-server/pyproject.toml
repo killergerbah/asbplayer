@@ -17,6 +17,15 @@ dependencies = [
     "yt-dlp-ejs",
 ]
 
+[project.optional-dependencies]
+# Kept optional so users who only transcribe audio do not have to install the
+# substantially larger computer-vision runtime and PP-OCR model loader.
+ocr = [
+    "paddleocr==3.7.0",
+    "paddlepaddle==3.2.1",
+    "opencv-python-headless==4.11.0.86",
+]
+
 [project.scripts]
 asbplayer-whisper-server = "asbplayer_whisper_server.main:main"
 

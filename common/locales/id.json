@@ -265,6 +265,7 @@
             "rememberTrackPreference": "Ingat pilihan trek ini untuk situs ini",
             "selectSubtitles": "Pilih Takarir",
             "generateSubtitles": "Buat Takarir",
+            "extractBurnedInSubtitles": "Ekstrak takarir tertanam (OCR)",
             "subtitleTrack": "Trek Takarir",
             "videoName": "Nama Video",
             "genericPage": "Use generic subtitle detection for this site",
@@ -290,6 +291,22 @@
             "generate": "Buat",
             "advancedOptions": "Opsi Whisper lanjutan",
             "close": "Tutup"
+        },
+        "ocrExtraction": {
+            "title": "Ekstrak takarir tertanam",
+            "instructions": "Jeda pada bingkai takarir representatif, lalu seret untuk memilih area takarir. Area ini hanya digunakan untuk video ini.",
+            "previewUnavailable": "Tidak dapat menangkap bingkai video saat ini. Jeda video dan buka kembali Pilih Takarir.",
+            "language": "Bahasa takarir",
+            "simplifiedChinese": "Tionghoa (Sederhana)",
+            "traditionalChinese": "Tionghoa (Tradisional)",
+            "quality": "Kualitas pengenalan",
+            "medium": "Sedang — paling akurat",
+            "small": "Kecil — lebih cepat",
+            "extract": "Ekstrak SRT",
+            "downloadingVideo": "Mengunduh video…",
+            "loadingModel": "Memuat model PaddleOCR…",
+            "analyzingVideo": "Menganalisis bingkai takarir…",
+            "recognizingText": "Mengenali teks takarir…"
         },
         "videoSelect": {
             "multipleVideoElements": "Beberapa elemen video terdeteksi",

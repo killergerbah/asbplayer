@@ -265,6 +265,7 @@
             "rememberTrackPreference": "Se souvenir de ces choix de piste pour ce site",
             "selectSubtitles": "Sélectionner des sous-titres",
             "generateSubtitles": "Générer des sous-titres",
+            "extractBurnedInSubtitles": "Extraire les sous-titres incrustés (OCR)",
             "subtitleTrack": "Piste de sous-titre",
             "videoName": "Nom de la vidéo",
             "genericPage": "Use generic subtitle detection for this site",
@@ -290,6 +291,22 @@
             "generate": "Générer",
             "advancedOptions": "Options avancées de Whisper",
             "close": "Fermer"
+        },
+        "ocrExtraction": {
+            "title": "Extraire les sous-titres incrustés",
+            "instructions": "Mettez en pause sur une image contenant des sous-titres, puis sélectionnez leur zone. Elle n'est utilisée que pour cette vidéo.",
+            "previewUnavailable": "Impossible de capturer l'image vidéo actuelle. Mettez la vidéo en pause et rouvrez Sélectionner les sous-titres.",
+            "language": "Langue des sous-titres",
+            "simplifiedChinese": "Chinois (simplifié)",
+            "traditionalChinese": "Chinois (traditionnel)",
+            "quality": "Qualité de reconnaissance",
+            "medium": "Moyenne — la plus précise",
+            "small": "Petite — plus rapide",
+            "extract": "Extraire le SRT",
+            "downloadingVideo": "Téléchargement de la vidéo…",
+            "loadingModel": "Chargement du modèle PaddleOCR…",
+            "analyzingVideo": "Analyse des images de sous-titres…",
+            "recognizingText": "Reconnaissance du texte des sous-titres…"
         },
         "videoSelect": {
             "multipleVideoElements": "Plusieurs éléments vidéo détectés",

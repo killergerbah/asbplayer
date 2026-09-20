@@ -265,6 +265,7 @@
             "rememberTrackPreference": "Muista nämä kappaleen valinnat tällä sivustolla",
             "selectSubtitles": "Valitse tekstitys",
             "generateSubtitles": "Luo tekstitykset",
+            "extractBurnedInSubtitles": "Poimi poltetut tekstitykset (OCR)",
             "subtitleTrack": "Tekstitysraita",
             "videoName": "Videonnimi",
             "genericPage": "Use generic subtitle detection for this site",
@@ -290,6 +291,22 @@
             "generate": "Luo",
             "advancedOptions": "Whisperin lisäasetukset",
             "close": "Sulje"
+        },
+        "ocrExtraction": {
+            "title": "Poimi poltetut tekstitykset",
+            "instructions": "Pysäytä video tekstitysruutuun ja valitse tekstitysalue vetämällä. Aluetta käytetään vain tälle videolle.",
+            "previewUnavailable": "Nykyistä videokehystä ei voitu kaapata. Pysäytä video ja avaa Valitse tekstitykset uudelleen.",
+            "language": "Tekstityksen kieli",
+            "simplifiedChinese": "Kiina (yksinkertaistettu)",
+            "traditionalChinese": "Kiina (perinteinen)",
+            "quality": "Tunnistuksen laatu",
+            "medium": "Keskitaso — tarkin",
+            "small": "Pieni — nopeampi",
+            "extract": "Poimi SRT",
+            "downloadingVideo": "Ladataan videota…",
+            "loadingModel": "Ladataan PaddleOCR-mallia…",
+            "analyzingVideo": "Analysoidaan tekstitysruutuja…",
+            "recognizingText": "Tunnistetaan tekstitystekstiä…"
         },
         "videoSelect": {
             "multipleVideoElements": "Useita video-elementtejä havaittu",

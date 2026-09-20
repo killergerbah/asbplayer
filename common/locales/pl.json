@@ -265,6 +265,7 @@
             "rememberTrackPreference": "Zapamiętaj ustawienia ścieżek dla tej strony",
             "selectSubtitles": "Wybierz napisy",
             "generateSubtitles": "Generuj napisy",
+            "extractBurnedInSubtitles": "Wyodrębnij wtopione napisy (OCR)",
             "subtitleTrack": "Ścieżka napisów",
             "videoName": "Nazwa wideo",
             "genericPage": "Use generic subtitle detection for this site",
@@ -290,6 +291,22 @@
             "generate": "Generuj",
             "advancedOptions": "Zaawansowane opcje Whisper",
             "close": "Zamknij"
+        },
+        "ocrExtraction": {
+            "title": "Wyodrębnij wtopione napisy",
+            "instructions": "Zatrzymaj film na reprezentatywnej klatce z napisami, a następnie przeciągnij, aby wybrać ich obszar. Obszar jest używany tylko dla tego filmu.",
+            "previewUnavailable": "Nie można było przechwycić bieżącej klatki filmu. Zatrzymaj film i ponownie otwórz Wybierz napisy.",
+            "language": "Język napisów",
+            "simplifiedChinese": "Chiński (uproszczony)",
+            "traditionalChinese": "Chiński (tradycyjny)",
+            "quality": "Jakość rozpoznawania",
+            "medium": "Średnia — najdokładniejsza",
+            "small": "Mała — szybsza",
+            "extract": "Wyodrębnij SRT",
+            "downloadingVideo": "Pobieranie filmu…",
+            "loadingModel": "Ładowanie modelu PaddleOCR…",
+            "analyzingVideo": "Analizowanie klatek napisów…",
+            "recognizingText": "Rozpoznawanie tekstu napisów…"
         },
         "videoSelect": {
             "multipleVideoElements": "Wykryto wiele elementów wideo",

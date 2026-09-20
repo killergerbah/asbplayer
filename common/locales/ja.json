@@ -265,6 +265,7 @@
             "rememberTrackPreference": "字幕トラックの選択を記憶する",
             "selectSubtitles": "字幕を選択",
             "generateSubtitles": "字幕を生成",
+            "extractBurnedInSubtitles": "焼き付け字幕を抽出 (OCR)",
             "subtitleTrack": "字幕トラック",
             "videoName": "動画ファイル名",
             "genericPage": "Use generic subtitle detection for this site",
@@ -290,6 +291,22 @@
             "generate": "生成",
             "advancedOptions": "Whisper の詳細オプション",
             "close": "閉じる"
+        },
+        "ocrExtraction": {
+            "title": "焼き付け字幕を抽出",
+            "instructions": "字幕が表示された代表的なフレームで一時停止し、ドラッグして字幕領域を選択してください。この領域はこの動画だけに使用されます。",
+            "previewUnavailable": "現在の動画フレームを取得できませんでした。動画を一時停止して、字幕を選択をもう一度開いてください。",
+            "language": "字幕の言語",
+            "simplifiedChinese": "中国語（簡体字）",
+            "traditionalChinese": "中国語（繁体字）",
+            "quality": "認識品質",
+            "medium": "中 — 最も正確",
+            "small": "小 — より高速",
+            "extract": "SRT を抽出",
+            "downloadingVideo": "動画をダウンロード中…",
+            "loadingModel": "PaddleOCR モデルを読み込み中…",
+            "analyzingVideo": "字幕フレームを解析中…",
+            "recognizingText": "字幕テキストを認識中…"
         },
         "videoSelect": {
             "multipleVideoElements": "複数の動画を探知しました",

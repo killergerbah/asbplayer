@@ -22,6 +22,7 @@ import type {
     SubtitleGenerationMessage,
     SubtitleGenerationUiState,
     WhisperOptionValue,
+    OcrOptions,
 } from '@project/common';
 import { VideoDataUiOpenReason } from '@project/common';
 import type { GenericParseType, OnlineSubtitleSourceConfig } from '@project/common/global-state';
@@ -35,6 +36,7 @@ import type { FileWithId } from '@project/common/file-selector';
 import { DefaultFileSelector } from '@project/common/file-selector';
 import SubtitleGenerationDialog from '@project/extension/src/ui/components/SubtitleGenerationDialog';
 import SubtitleGenerationProgressDialog from '@project/extension/src/ui/components/SubtitleGenerationProgressDialog';
+import OcrSubtitleExtractionDialog from '@project/extension/src/ui/components/OcrSubtitleExtractionDialog';
 
 interface Props {
     bridge: Bridge;
@@ -63,6 +65,8 @@ export default function VideoDataSyncUi({ bridge }: Props) {
     const [subtitleGeneration, setSubtitleGeneration] = useState<SubtitleGenerationUiState>({ state: 'idle' });
     const [subtitleGenerationOpen, setSubtitleGenerationOpen] = useState(false);
     const [subtitleGenerationProgressOpen, setSubtitleGenerationProgressOpen] = useState(false);
+    const [ocrExtractionOpen, setOcrExtractionOpen] = useState(false);
+    const [ocrPreview, setOcrPreview] = useState<string>();
     const [pendingGeneratedTrackId, setPendingGeneratedTrackId] = useState<string>();
     const trackedLocalObjectUrlsRef = useRef(new Set<string>());
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -98,7 +102,12 @@ export default function VideoDataSyncUi({ bridge }: Props) {
     }, [bridge]);
     const handleCancel = useCallback(() => {
         const job = subtitleGeneration.job;
-        if (job && ['queued', 'downloading', 'loading-model', 'transcribing'].includes(job.state)) {
+        if (
+            job &&
+            ['queued', 'downloading', 'loading-model', 'transcribing', 'analyzing-video', 'recognizing-text'].includes(
+                job.state
+            )
+        ) {
             bridge.sendMessageFromServer({
                 command: 'subtitle-generation',
                 operation: 'cancel',
@@ -107,6 +116,7 @@ export default function VideoDataSyncUi({ bridge }: Props) {
         }
         setSubtitleGenerationOpen(false);
         setSubtitleGenerationProgressOpen(false);
+        setOcrExtractionOpen(false);
         closeSubtitleTrackSelector();
         bridge.sendMessageFromServer({ command: 'cancel' });
     }, [bridge, closeSubtitleTrackSelector, subtitleGeneration.job]);
@@ -233,6 +243,10 @@ export default function VideoDataSyncUi({ bridge }: Props) {
                         ? model.subtitleGeneration
                         : { ...current, ...model.subtitleGeneration }
                 );
+            }
+
+            if (model.ocrPreview !== undefined) {
+                setOcrPreview(model.ocrPreview || undefined);
             }
 
             if (model.generatedSubtitleEntryId !== undefined) {
@@ -368,14 +382,29 @@ export default function VideoDataSyncUi({ bridge }: Props) {
     );
     const handleOpenSubtitleGeneration = useCallback(() => {
         setSubtitleGenerationProgressOpen(false);
+        setOcrExtractionOpen(false);
         setSubtitleGenerationOpen(true);
-        sendSubtitleGeneration({ operation: 'capabilities' });
+        sendSubtitleGeneration({ operation: 'capabilities', generator: 'whisper' });
     }, [sendSubtitleGeneration]);
     const handleStartSubtitleGeneration = useCallback(
         (whisperOptions: Record<string, WhisperOptionValue>) => {
             setSubtitleGenerationOpen(false);
             setSubtitleGenerationProgressOpen(true);
-            sendSubtitleGeneration({ operation: 'start', whisperOptions });
+            sendSubtitleGeneration({ operation: 'start', generator: 'whisper', whisperOptions });
+        },
+        [sendSubtitleGeneration]
+    );
+    const handleOpenOcrExtraction = useCallback(() => {
+        setSubtitleGenerationOpen(false);
+        setSubtitleGenerationProgressOpen(false);
+        setOcrExtractionOpen(true);
+        sendSubtitleGeneration({ operation: 'capabilities', generator: 'ocr' });
+    }, [sendSubtitleGeneration]);
+    const handleStartOcrExtraction = useCallback(
+        (ocrOptions: OcrOptions) => {
+            setOcrExtractionOpen(false);
+            setSubtitleGenerationProgressOpen(true);
+            sendSubtitleGeneration({ operation: 'start', generator: 'ocr', ocrOptions });
         },
         [sendSubtitleGeneration]
     );
@@ -414,6 +443,8 @@ export default function VideoDataSyncUi({ bridge }: Props) {
                     genericSubtitleParser={genericSubtitleParser}
                     canGenerateSubtitles={Boolean(subtitleGeneration.sourceUrl)}
                     onGenerateSubtitles={handleOpenSubtitleGeneration}
+                    canExtractBurnedInSubtitles={Boolean(subtitleGeneration.sourceUrl)}
+                    onExtractBurnedInSubtitles={handleOpenOcrExtraction}
                     fileSelector={fileSelector}
                     onCancel={handleCancel}
                     onOpenFiles={handleOpenFiles}
@@ -436,6 +467,13 @@ export default function VideoDataSyncUi({ bridge }: Props) {
                     onPoll={handlePollSubtitleGeneration}
                     onCancel={handleCancelSubtitleGeneration}
                     onClose={() => setSubtitleGenerationProgressOpen(false)}
+                />
+                <OcrSubtitleExtractionDialog
+                    open={subtitleTrackSelectorOpen && ocrExtractionOpen}
+                    preview={ocrPreview}
+                    generation={subtitleGeneration}
+                    onStart={handleStartOcrExtraction}
+                    onClose={() => setOcrExtractionOpen(false)}
                 />
                 <input
                     ref={fileInputRef}

@@ -263,6 +263,8 @@ export interface VideoDataUiModel {
     showGenericPageOption: boolean;
     genericSubtitleParser: GenericParseType;
     subtitleGeneration?: SubtitleGenerationUiState;
+    /** A cropped current-video frame supplied before the selector dialog becomes visible. */
+    ocrPreview?: string;
     generatedSubtitleEntryId?: string;
 }
 

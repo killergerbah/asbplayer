@@ -28,6 +28,12 @@ from pydantic import BaseModel, Field
 DEFAULT_CACHE_ROOT = Path(os.environ.get("ASBPLAYER_WHISPER_CACHE_DIR", Path.home() / ".cache/asbplayer/whisper"))
 AUTH_TOKEN_ENVIRONMENT_VARIABLE = "ASBPLAYER_WHISPER_AUTH_TOKEN"
 DEFAULT_DEVICE = os.environ.get("ASBPLAYER_WHISPER_DEVICE", "cpu")
+OCR_PIPELINE_VERSION = "pp-ocrv6-subtitle-v1"
+OCR_SAMPLE_RATE = 4.0
+OCR_CONFIDENCE_THRESHOLD = 0.60
+OCR_DEFAULT_CROP = {"left": 0.0, "top": 0.65, "width": 1.0, "height": 0.35}
+OCR_QUALITIES = {"medium": "PP-OCRv6_medium", "small": "PP-OCRv6_small"}
+OCR_LANGUAGES = {"ch", "chinese_cht"}
 logger = logging.getLogger("uvicorn.error")
 WHISPER_TQDM_PROGRESS = re.compile(
     r"\d{1,3}%\|.*?\|\s*(?P<current>[\d,]+)/(?P<total>[\d,]+)"
@@ -147,7 +153,7 @@ def require_authentication(authorization: str | None = Header(default=None)) -> 
         return
     raise HTTPException(
         status_code=401,
-        detail="A valid bearer token is required for this Whisper service.",
+        detail="A valid bearer token is required for this subtitle generation service.",
         headers={"WWW-Authenticate": "Bearer"},
     )
 
@@ -158,7 +164,9 @@ def is_loopback_host(host: str) -> bool:
 
 class CreateJobRequest(BaseModel):
     sourceUrl: str = Field(min_length=1)
+    generator: Literal["whisper", "ocr"] = "whisper"
     whisperOptions: dict[str, Any] = Field(default_factory=dict)
+    ocrOptions: dict[str, Any] = Field(default_factory=dict)
 
 
 @dataclass
@@ -169,6 +177,8 @@ class Job:
     source_key: str
     cache_id: str
     options: dict[str, Any]
+    generator: Literal["whisper", "ocr"] = "whisper"
+    ocr_options: dict[str, Any] | None = None
     state: str = "queued"
     progress: int | None = None
     error: str | None = None
@@ -184,6 +194,8 @@ class Job:
 
     def public(self) -> dict[str, Any]:
         result: dict[str, Any] = {"id": self.id, "state": self.state}
+        if self.generator != "whisper":
+            result["generator"] = self.generator
         if self.progress is not None:
             result["progress"] = self.progress
         if self.remaining_seconds is not None:
@@ -241,13 +253,54 @@ def validate_options(raw: dict[str, Any]) -> dict[str, Any]:
     return normalized
 
 
+def validate_ocr_options(raw: dict[str, Any]) -> dict[str, Any]:
+    unknown = sorted(set(raw) - {"crop", "language", "quality"})
+    if unknown:
+        raise ValueError(f"Unsupported OCR option: {unknown[0]}")
+
+    language = raw.get("language", "ch")
+    if language not in OCR_LANGUAGES:
+        raise ValueError("OCR language must be Simplified or Traditional Chinese")
+    quality = raw.get("quality", "medium")
+    if quality not in OCR_QUALITIES:
+        raise ValueError("OCR quality must be one of: medium, small")
+
+    crop = raw.get("crop", OCR_DEFAULT_CROP)
+    if not isinstance(crop, dict) or set(crop) != {"left", "top", "width", "height"}:
+        raise ValueError("OCR crop must contain left, top, width, and height")
+    normalized_crop: dict[str, float] = {}
+    for name in ("left", "top", "width", "height"):
+        value = crop[name]
+        if isinstance(value, bool) or not isinstance(value, (int, float)) or not 0 <= value <= 1:
+            raise ValueError(f"OCR crop {name} must be a number between 0 and 1")
+        normalized_crop[name] = float(value)
+    if normalized_crop["width"] <= 0 or normalized_crop["height"] <= 0:
+        raise ValueError("OCR crop width and height must be greater than zero")
+    if normalized_crop["left"] + normalized_crop["width"] > 1 or normalized_crop["top"] + normalized_crop["height"] > 1:
+        raise ValueError("OCR crop must fit inside the video")
+    return {"crop": normalized_crop, "language": language, "quality": quality}
+
+
 def source_key(identity: dict[str, str]) -> str:
     return hashlib.sha256(json.dumps(identity, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
 
 
-def cache_key(identity: dict[str, str], options: dict[str, Any]) -> str:
-    cache_options = {spec.name: options[spec.name] for spec in OPTION_SPECS if spec.affects_output}
-    value = json.dumps({"source": identity, "options": cache_options}, sort_keys=True, separators=(",", ":"))
+def cache_key(
+    identity: dict[str, str],
+    options: dict[str, Any],
+    generator: Literal["whisper", "ocr"] = "whisper",
+    ocr_options: dict[str, Any] | None = None,
+) -> str:
+    if generator == "whisper":
+        # Preserve the cache identity of all existing Whisper entries.
+        cache_options = {spec.name: options[spec.name] for spec in OPTION_SPECS if spec.affects_output}
+        value = json.dumps({"source": identity, "options": cache_options}, sort_keys=True, separators=(",", ":"))
+    else:
+        value = json.dumps(
+            {"source": identity, "generator": generator, "ocrOptions": ocr_options, "pipeline": OCR_PIPELINE_VERSION},
+            sort_keys=True,
+            separators=(",", ":"),
+        )
     return hashlib.sha256(value.encode()).hexdigest()
 
 
@@ -313,6 +366,26 @@ def output_options(options: dict[str, Any]) -> dict[str, Any]:
     return {spec.name: options[spec.name] for spec in OPTION_SPECS if spec.affects_output}
 
 
+def ocr_capabilities() -> dict[str, Any]:
+    try:
+        import paddleocr  # noqa: F401
+        import cv2  # noqa: F401
+    except ImportError:
+        return {
+            "available": False,
+            "error": "OCR support is not installed. Reinstall with `python -m pip install ./scripts/whisper-server[ocr]`.",
+            "qualities": ["medium", "small"],
+            "languages": ["ch", "chinese_cht"],
+            "defaultQuality": "medium",
+        }
+    return {
+        "available": True,
+        "qualities": ["medium", "small"],
+        "languages": ["ch", "chinese_cht"],
+        "defaultQuality": "medium",
+    }
+
+
 class JobManager:
     def __init__(self, cache_root: Path = DEFAULT_CACHE_ROOT):
         self.cache_root = cache_root
@@ -325,7 +398,7 @@ class JobManager:
     async def start(self) -> None:
         self.entries_root.mkdir(parents=True, exist_ok=True)
         self.worker = asyncio.create_task(self._work())
-        logger.info("Whisper job worker started; cache directory: %s", self.cache_root)
+        logger.info("Subtitle generation job worker started; cache directory: %s", self.cache_root)
 
     async def stop(self) -> None:
         if self.worker:
@@ -354,7 +427,12 @@ class JobManager:
 
     async def create(self, request: CreateJobRequest) -> Job:
         try:
-            options = validate_options(request.whisperOptions)
+            options = validate_options(request.whisperOptions) if request.generator == "whisper" else {}
+            ocr_options = validate_ocr_options(request.ocrOptions) if request.generator == "ocr" else None
+            if request.generator == "ocr":
+                capability = ocr_capabilities()
+                if not capability["available"]:
+                    raise ValueError(str(capability["error"]))
             normalized_url = normalize_url(request.sourceUrl)
         except ValueError as error:
             raise HTTPException(status_code=422, detail=str(error)) from error
@@ -364,8 +442,8 @@ class JobManager:
         # take much longer to resolve a video. The worker upgrades this
         # fallback identity to yt-dlp's canonical extractor/video identity.
         identity = fallback_source_identity(normalized_url)
-        entry_id = cache_key(identity, options)
-        metadata = self._matching_cached_entry(normalized_url, options)
+        entry_id = cache_key(identity, options, request.generator, ocr_options)
+        metadata = self._matching_cached_entry(normalized_url, request.generator, options, ocr_options)
         if metadata:
             entry_id = str(metadata["id"])
             identity = metadata.get("sourceIdentity") or identity
@@ -377,6 +455,8 @@ class JobManager:
                 source_key=str(metadata.get("sourceKey") or source_key(identity)),
                 cache_id=entry_id,
                 options=options,
+                generator=request.generator,
+                ocr_options=ocr_options,
                 state="completed",
                 entry=self.public_entry(metadata),
             )
@@ -384,8 +464,9 @@ class JobManager:
         for job in self.jobs.values():
             if (
                 normalize_url(job.source_url) == normalized_url
-                and output_options(job.options) == output_options(options)
-                and job.state in {"queued", "downloading", "loading-model", "transcribing"}
+                and job.generator == request.generator
+                and self._output_signature(job) == self._output_signature_values(request.generator, options, ocr_options)
+                and job.state in {"queued", "downloading", "loading-model", "transcribing", "analyzing-video", "recognizing-text"}
             ):
                 logger.info("Whisper job %s already exists for this source", job.id)
                 return job
@@ -397,11 +478,24 @@ class JobManager:
             source_key=source_key(identity),
             cache_id=entry_id,
             options=options,
+            generator=request.generator,
+            ocr_options=ocr_options,
         )
         self.jobs[job.id] = job
         await self.queue.put(job)
-        logger.info("Whisper job %s queued (model=%s, task=%s)", job.id, options["model"], options["task"])
+        logger.info("Subtitle job %s queued (generator=%s)", job.id, job.generator)
         return job
+
+    @staticmethod
+    def _output_signature_values(
+        generator: Literal["whisper", "ocr"], options: dict[str, Any], ocr_options: dict[str, Any] | None
+    ) -> dict[str, Any]:
+        if generator == "ocr":
+            return {"generator": generator, "ocrOptions": ocr_options, "pipeline": OCR_PIPELINE_VERSION}
+        return {"generator": generator, "whisperOptions": output_options(options)}
+
+    def _output_signature(self, job: Job) -> dict[str, Any]:
+        return self._output_signature_values(job.generator, job.options, job.ocr_options)
 
     async def _work(self) -> None:
         while True:
@@ -409,9 +503,9 @@ class JobManager:
             try:
                 if job.cancel_requested.is_set():
                     job.state = "cancelled"
-                    logger.info("Whisper job %s cancelled before it started", job.id)
+                    logger.info("Subtitle job %s cancelled before it started", job.id)
                 else:
-                    logger.info("Whisper job %s started", job.id)
+                    logger.info("Subtitle job %s started (generator=%s)", job.id, job.generator)
                     await asyncio.to_thread(self._run, job)
             finally:
                 self.queue.task_done()
@@ -420,8 +514,12 @@ class JobManager:
         try:
             with tempfile.TemporaryDirectory(prefix="asbplayer-whisper-") as temporary_directory:
                 temporary_path = Path(temporary_directory)
-                audio_file = self._download_audio(job, temporary_path)
-                logger.info("Whisper job %s downloaded audio (%d bytes)", job.id, audio_file.stat().st_size)
+                input_file = (
+                    self._download_audio(job, temporary_path)
+                    if job.generator == "whisper"
+                    else self._download_video(job, temporary_path)
+                )
+                logger.info("Subtitle job %s downloaded input (%d bytes)", job.id, input_file.stat().st_size)
                 if job.cancel_requested.is_set():
                     job.state = "cancelled"
                     logger.info("Whisper job %s cancelled after download", job.id)
@@ -432,27 +530,34 @@ class JobManager:
                     job.state = "completed"
                     logger.info("Whisper job %s found canonical cache entry %s", job.id, job.cache_id[:12])
                     return
-                self._transcribe(job, audio_file, temporary_path)
+                if job.generator == "whisper":
+                    self._transcribe(job, input_file, temporary_path)
+                else:
+                    self._extract_ocr(job, input_file, temporary_path)
                 if job.cancel_requested.is_set():
                     job.state = "cancelled"
                     logger.info("Whisper job %s cancelled during transcription", job.id)
                     return
-                subtitle_file = next(temporary_path.glob("output/**/*.srt"), None)
+                subtitle_file = (
+                    next(temporary_path.glob("output/**/*.srt"), None)
+                    if job.generator == "whisper"
+                    else temporary_path / "output" / "subtitles.srt"
+                )
                 if subtitle_file is None:
                     raise RuntimeError("Whisper completed without producing an SRT file")
                 job.entry = self._store_entry(job, subtitle_file)
                 job.state = "completed"
-                logger.info("Whisper job %s completed and cached as %s", job.id, job.cache_id[:12])
+                logger.info("Subtitle job %s completed and cached as %s", job.id, job.cache_id[:12])
         except Exception as error:
             job.state = "cancelled" if job.cancel_requested.is_set() else "failed"
             if job.state == "failed":
                 job.error = str(error)
-                logger.exception("Whisper job %s failed: %s", job.id, error)
+                logger.exception("Subtitle job %s failed: %s", job.id, error)
             else:
-                logger.info("Whisper job %s cancelled", job.id)
+                logger.info("Subtitle job %s cancelled", job.id)
         finally:
             job.process = None
-            logger.info("Whisper job %s finished with state=%s", job.id, job.state)
+            logger.info("Subtitle job %s finished with state=%s", job.id, job.state)
 
     def _download_audio(self, job: Job, temporary_path: Path) -> Path:
         import yt_dlp
@@ -513,6 +618,204 @@ class JobManager:
         if not audio_files:
             raise RuntimeError("yt-dlp did not download an audio file")
         return audio_files[0]
+
+    def _download_video(self, job: Job, temporary_path: Path) -> Path:
+        """Download a viewable stream suitable for OCR without fetching a 4K source."""
+        import yt_dlp
+        from yt_dlp.utils import DownloadError
+
+        job.state = "downloading"
+        job.progress = None
+        job.last_reported_progress = None
+        logger.info("OCR job %s is downloading video", job.id)
+
+        def progress_hook(progress: dict[str, Any]) -> None:
+            if job.cancel_requested.is_set():
+                raise RuntimeError("Download cancelled")
+            if progress.get("status") != "downloading":
+                return
+            total = progress.get("total_bytes") or progress.get("total_bytes_estimate")
+            downloaded = progress.get("downloaded_bytes", 0)
+            if total:
+                job.progress = max(0, min(100, round(downloaded / total * 100)))
+
+        options = {
+            "format": "bestvideo[height<=1080]/best[height<=1080]/best",
+            "noplaylist": True,
+            "outtmpl": str(temporary_path / "video.%(ext)s"),
+            "quiet": True,
+            "no_warnings": True,
+            "progress_hooks": [progress_hook],
+        }
+        try:
+            with yt_dlp.YoutubeDL(options) as downloader:
+                info = downloader.extract_info(job.source_url, download=True)
+                job.source_identity = source_identity_from_downloader_info(job.source_url, info)
+                job.source_key = source_key(job.source_identity)
+                job.cache_id = cache_key(job.source_identity, job.options, job.generator, job.ocr_options)
+                requested = info.get("requested_downloads") or []
+                if requested and requested[0].get("filepath"):
+                    return Path(requested[0]["filepath"])
+                expected = Path(downloader.prepare_filename(info))
+        except DownloadError as error:
+            raise RuntimeError(
+                "yt-dlp could not download video from this source. OCR requires a non-DRM video stream; update yt-dlp "
+                "and ensure yt-dlp-ejs plus a supported JavaScript runtime (such as Node.js) are installed. "
+                f"Detail: {error}"
+            ) from error
+        if expected.exists():
+            return expected
+        video_files = [path for path in temporary_path.glob("video.*") if path.is_file()]
+        if not video_files:
+            raise RuntimeError("yt-dlp did not download a video stream suitable for OCR")
+        return video_files[0]
+
+    @staticmethod
+    def _format_srt_timestamp(seconds: float) -> str:
+        milliseconds = max(0, round(seconds * 1000))
+        hours, remainder = divmod(milliseconds, 3_600_000)
+        minutes, remainder = divmod(remainder, 60_000)
+        seconds_part, milliseconds = divmod(remainder, 1_000)
+        return f"{hours:02}:{minutes:02}:{seconds_part:02},{milliseconds:03}"
+
+    @staticmethod
+    def _ocr_text(result: Any) -> str | None:
+        """Turn PaddleOCR v3 pipeline output into ordered subtitle lines."""
+        if isinstance(result, dict):
+            result = result.get("res", result)
+        if not isinstance(result, dict):
+            return None
+        texts = result.get("rec_texts") or []
+        scores = result.get("rec_scores") or []
+        polygons = result.get("rec_polys") or []
+        rows: list[tuple[float, float, str]] = []
+        for index, text in enumerate(texts):
+            if not isinstance(text, str) or not text.strip():
+                continue
+            score = scores[index] if index < len(scores) else 0
+            if not isinstance(score, (int, float)) or score < OCR_CONFIDENCE_THRESHOLD:
+                continue
+            polygon = polygons[index] if index < len(polygons) else []
+            try:
+                y = sum(float(point[1]) for point in polygon) / len(polygon)
+                x = sum(float(point[0]) for point in polygon) / len(polygon)
+            except (TypeError, IndexError, ZeroDivisionError):
+                y, x = float(index), 0.0
+            rows.append((y, x, re.sub(r"\s+", "", text)))
+        if not rows:
+            return None
+        rows.sort()
+        line_groups: list[list[tuple[float, float, str]]] = []
+        for row in rows:
+            if not line_groups or abs(row[0] - line_groups[-1][0][0]) > 24:
+                line_groups.append([row])
+            else:
+                line_groups[-1].append(row)
+        return "\n".join("".join(part[2] for part in sorted(line, key=lambda value: value[1])) for line in line_groups)
+
+    @classmethod
+    def _srt_from_ocr_samples(cls, samples: list[tuple[float, str | None]]) -> str:
+        """Require two matching samples, then make one cue per stable text run."""
+        half_interval = 1 / (OCR_SAMPLE_RATE * 2)
+        cues: list[tuple[float, float, str]] = []
+        run_text: str | None = None
+        run_start = 0.0
+        run_end = 0.0
+        run_count = 0
+
+        def emit() -> None:
+            if run_text is None or run_count < 2:
+                return
+            start = max(0, run_start - half_interval)
+            end = run_end + half_interval
+            if cues:
+                start = max(start, cues[-1][1])
+            if end > start:
+                cues.append((start, end, run_text))
+
+        for timestamp, text in samples:
+            if text == run_text and text is not None:
+                run_end = timestamp
+                run_count += 1
+                continue
+            emit()
+            run_text = text
+            run_start = timestamp
+            run_end = timestamp
+            run_count = 1 if text is not None else 0
+        emit()
+        return "\n\n".join(
+            f"{index}\n{cls._format_srt_timestamp(start)} --> {cls._format_srt_timestamp(end)}\n{text}"
+            for index, (start, end, text) in enumerate(cues, start=1)
+        ) + ("\n" if cues else "")
+
+    def _extract_ocr(self, job: Job, video_file: Path, temporary_path: Path) -> None:
+        try:
+            import cv2
+            from paddleocr import PaddleOCR
+        except ImportError as error:
+            raise RuntimeError(
+                "OCR support is not installed. Reinstall with `python -m pip install ./scripts/whisper-server[ocr]`."
+            ) from error
+        if job.ocr_options is None:
+            raise RuntimeError("OCR job has no OCR options")
+
+        job.state = "loading-model"
+        job.progress = None
+        job.remaining_seconds = None
+        ocr = PaddleOCR(
+            lang=job.ocr_options["language"],
+            ocr_version="PP-OCRv6",
+            text_detection_model_name=f"{OCR_QUALITIES[job.ocr_options['quality']]}_det",
+            text_recognition_model_name=f"{OCR_QUALITIES[job.ocr_options['quality']]}_rec",
+            use_doc_orientation_classify=False,
+            use_doc_unwarping=False,
+            use_textline_orientation=False,
+        )
+        capture = cv2.VideoCapture(str(video_file))
+        if not capture.isOpened():
+            raise RuntimeError("FFmpeg/OpenCV could not decode the downloaded video")
+        source_fps = capture.get(cv2.CAP_PROP_FPS) or OCR_SAMPLE_RATE
+        frame_count = int(capture.get(cv2.CAP_PROP_FRAME_COUNT) or 0)
+        step = max(1, round(source_fps / OCR_SAMPLE_RATE))
+        total_samples = max(1, (frame_count + step - 1) // step)
+        crop = job.ocr_options["crop"]
+        samples: list[tuple[float, str | None]] = []
+        frame_index = 0
+        sampled = 0
+        job.state = "analyzing-video"
+        try:
+            while True:
+                ok, frame = capture.read()
+                if not ok:
+                    break
+                if frame_index % step:
+                    frame_index += 1
+                    continue
+                if job.cancel_requested.is_set():
+                    return
+                height, width = frame.shape[:2]
+                left = round(width * crop["left"])
+                top = round(height * crop["top"])
+                right = min(width, left + max(1, round(width * crop["width"])))
+                bottom = min(height, top + max(1, round(height * crop["height"])))
+                frame_crop = frame[top:bottom, left:right]
+                job.state = "recognizing-text"
+                prediction = next(iter(ocr.predict(frame_crop)), None)
+                samples.append((frame_index / source_fps, self._ocr_text(prediction)))
+                sampled += 1
+                job.progress = max(0, min(100, round(sampled / total_samples * 100)))
+                job.completed_frames = sampled
+                job.total_frames = total_samples
+                frame_index += 1
+        finally:
+            capture.release()
+        if job.cancel_requested.is_set():
+            return
+        output_directory = temporary_path / "output"
+        output_directory.mkdir(exist_ok=True)
+        (output_directory / "subtitles.srt").write_text(self._srt_from_ocr_samples(samples), encoding="utf-8")
+        job.progress = 100
 
     def _transcribe(self, job: Job, audio_file: Path, temporary_path: Path) -> None:
         job.state = "loading-model"
@@ -661,8 +964,13 @@ class JobManager:
 
     def _store_entry(self, job: Job, subtitle_file: Path) -> dict[str, Any]:
         created_at = datetime.now(timezone.utc).isoformat()
-        language = job.options["language"] or "auto"
-        label = f"Generated subtitles — {job.options['model']} ({language}, {job.options['task']})"
+        if job.generator == "ocr":
+            assert job.ocr_options is not None
+            language = "Traditional Chinese" if job.ocr_options["language"] == "chinese_cht" else "Chinese"
+            label = f"OCR subtitles — PP-OCRv6 {job.ocr_options['quality'].title()} ({language})"
+        else:
+            language = job.options["language"] or "auto"
+            label = f"Generated subtitles — {job.options['model']} ({language}, {job.options['task']})"
         file_name = "generated-subtitles.srt"
         metadata = {
             "id": job.cache_id,
@@ -672,7 +980,10 @@ class JobManager:
             "sourceKey": job.source_key,
             "sourceIdentity": job.source_identity,
             "sourceUrl": normalize_url(job.source_url),
-            "whisperOptions": job.options,
+            "generator": job.generator,
+            "whisperOptions": job.options if job.generator == "whisper" else None,
+            "ocrOptions": job.ocr_options,
+            "ocrPipelineVersion": OCR_PIPELINE_VERSION if job.generator == "ocr" else None,
         }
         destination = self.entry_path(job.cache_id)
         temporary_destination = self.entries_root / f".{job.cache_id}-{uuid.uuid4().hex}"
@@ -686,7 +997,13 @@ class JobManager:
         logger.info("Whisper job %s saved cache entry %s", job.id, job.cache_id[:12])
         return self.public_entry(self.read_entry(job.cache_id) or metadata)
 
-    def _matching_cached_entry(self, normalized_url: str, options: dict[str, Any]) -> dict[str, Any] | None:
+    def _matching_cached_entry(
+        self,
+        normalized_url: str,
+        generator: Literal["whisper", "ocr"],
+        options: dict[str, Any],
+        ocr_options: dict[str, Any] | None,
+    ) -> dict[str, Any] | None:
         expected_options = output_options(options)
         for metadata_path in self.entries_root.glob("*/metadata.json"):
             try:
@@ -694,6 +1011,16 @@ class JobManager:
             except json.JSONDecodeError:
                 continue
             if metadata.get("sourceUrl") != normalized_url:
+                continue
+            entry_generator = metadata.get("generator", "whisper")
+            if entry_generator != generator:
+                continue
+            if generator == "ocr":
+                if (
+                    metadata.get("ocrOptions") == ocr_options
+                    and metadata.get("ocrPipelineVersion") == OCR_PIPELINE_VERSION
+                ):
+                    return metadata
                 continue
             cached_options = metadata.get("whisperOptions")
             if isinstance(cached_options, dict) and all(
@@ -733,7 +1060,7 @@ class JobManager:
 
 
 manager = JobManager()
-app = FastAPI(title="asbplayer Whisper Server", version="1", dependencies=[Depends(require_authentication)])
+app = FastAPI(title="asbplayer Subtitle Generation Server", version="1", dependencies=[Depends(require_authentication)])
 
 
 @app.on_event("startup")
@@ -759,7 +1086,11 @@ async def capabilities() -> dict[str, Any]:
         whisper_version = getattr(whisper, "__version__", "unknown")
     except ImportError:
         whisper_version = "not installed"
-    return {"whisperVersion": whisper_version, "options": [spec.public() for spec in OPTION_SPECS]}
+    return {
+        "whisperVersion": whisper_version,
+        "options": [spec.public() for spec in OPTION_SPECS],
+        "ocr": ocr_capabilities(),
+    }
 
 
 @app.post("/v1/jobs")

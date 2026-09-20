@@ -265,6 +265,7 @@
             "rememberTrackPreference": "Lembrar dessas escolhas de faixa para este site",
             "selectSubtitles": "Selecionar legenda",
             "generateSubtitles": "Gerar legendas",
+            "extractBurnedInSubtitles": "Extrair legendas incorporadas (OCR)",
             "subtitleTrack": "Selecionar faixa",
             "videoName": "Nome do vídeo",
             "genericPage": "Use generic subtitle detection for this site",
@@ -290,6 +291,22 @@
             "generate": "Gerar",
             "advancedOptions": "Opções avançadas do Whisper",
             "close": "Fechar"
+        },
+        "ocrExtraction": {
+            "title": "Extrair legendas incorporadas",
+            "instructions": "Pause em um quadro representativo com legenda e arraste para selecionar a área das legendas. A área é usada somente neste vídeo.",
+            "previewUnavailable": "Não foi possível capturar o quadro atual do vídeo. Pause o vídeo e abra Selecionar legendas novamente.",
+            "language": "Idioma das legendas",
+            "simplifiedChinese": "Chinês (simplificado)",
+            "traditionalChinese": "Chinês (tradicional)",
+            "quality": "Qualidade do reconhecimento",
+            "medium": "Média — mais precisa",
+            "small": "Pequena — mais rápida",
+            "extract": "Extrair SRT",
+            "downloadingVideo": "Baixando vídeo…",
+            "loadingModel": "Carregando modelo PaddleOCR…",
+            "analyzingVideo": "Analisando quadros de legendas…",
+            "recognizingText": "Reconhecendo texto das legendas…"
         },
         "videoSelect": {
             "multipleVideoElements": "Detectados Múltiplos Elementos de Vídeo",

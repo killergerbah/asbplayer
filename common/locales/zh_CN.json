@@ -265,6 +265,7 @@
             "rememberTrackPreference": "在此网站记住轨道偏好",
             "selectSubtitles": "选择字幕",
             "generateSubtitles": "生成字幕",
+            "extractBurnedInSubtitles": "提取内嵌字幕 (OCR)",
             "subtitleTrack": "字幕轨道",
             "videoName": "视频名称",
             "genericPage": "Use generic subtitle detection for this site",
@@ -290,6 +291,22 @@
             "generate": "生成",
             "advancedOptions": "Whisper 高级选项",
             "close": "关闭"
+        },
+        "ocrExtraction": {
+            "title": "提取内嵌字幕",
+            "instructions": "在有代表性字幕的画面暂停，然后拖动选择字幕区域。该区域只用于当前视频。",
+            "previewUnavailable": "无法捕获当前视频画面。请暂停视频并重新打开选择字幕。",
+            "language": "字幕语言",
+            "simplifiedChinese": "简体中文",
+            "traditionalChinese": "繁体中文",
+            "quality": "识别质量",
+            "medium": "中等 — 最准确",
+            "small": "小型 — 更快",
+            "extract": "提取 SRT",
+            "downloadingVideo": "正在下载视频…",
+            "loadingModel": "正在加载 PaddleOCR 模型…",
+            "analyzingVideo": "正在分析字幕画面…",
+            "recognizingText": "正在识别字幕文本…"
         },
         "videoSelect": {
             "multipleVideoElements": "检测到多个视频元素",

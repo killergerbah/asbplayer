@@ -1,5 +1,33 @@
 export type WhisperOptionValue = string | number | boolean | null;
 
+/** The subtitle source used by a generation job. Omit this for legacy Whisper jobs. */
+export type SubtitleGenerator = 'whisper' | 'ocr';
+
+export type OcrLanguage = 'ch' | 'chinese_cht';
+export type OcrQuality = 'medium' | 'small';
+
+/** A rectangle expressed as fractions of the decoded video dimensions. */
+export interface NormalizedOcrCrop {
+    readonly left: number;
+    readonly top: number;
+    readonly width: number;
+    readonly height: number;
+}
+
+export interface OcrOptions {
+    readonly crop: NormalizedOcrCrop;
+    readonly language: OcrLanguage;
+    readonly quality: OcrQuality;
+}
+
+export interface OcrCapabilities {
+    readonly available: boolean;
+    readonly error?: string;
+    readonly qualities: readonly OcrQuality[];
+    readonly languages: readonly OcrLanguage[];
+    readonly defaultQuality: OcrQuality;
+}
+
 export interface WhisperOptionSchema {
     readonly name: string;
     readonly label: string;
@@ -15,6 +43,8 @@ export interface WhisperOptionSchema {
 export interface WhisperCapabilities {
     readonly whisperVersion: string;
     readonly options: WhisperOptionSchema[];
+    /** Absent when communicating with a pre-OCR subtitle service. */
+    readonly ocr?: OcrCapabilities;
 }
 
 export type SubtitleGenerationJobState =
@@ -25,6 +55,8 @@ export type SubtitleGenerationJobState =
     | 'downloading'
     | 'loading-model'
     | 'transcribing'
+    | 'analyzing-video'
+    | 'recognizing-text'
     | 'completed'
     | 'failed'
     | 'cancelled';
@@ -40,6 +72,7 @@ export interface GeneratedSubtitleCacheEntry {
 export interface SubtitleGenerationJob {
     readonly id: string;
     readonly state: SubtitleGenerationJobState;
+    readonly generator?: SubtitleGenerator;
     readonly progress?: number;
     /** Native Whisper model-download counter, such as `380M`. */
     readonly modelDownloaded?: string;
@@ -57,6 +90,7 @@ export interface SubtitleGenerationJob {
 export interface SubtitleGenerationUiState {
     readonly sourceUrl?: string;
     readonly state: SubtitleGenerationJobState;
+    readonly generator?: SubtitleGenerator;
     readonly capabilities?: WhisperCapabilities;
     readonly job?: SubtitleGenerationJob;
     readonly error?: string;

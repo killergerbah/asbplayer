@@ -14,19 +14,19 @@ const configuredServer = (configuration: WhisperServerConfiguration) => {
     try {
         url = new URL(configuration.url.trim());
     } catch {
-        return { error: 'Enter a valid Whisper service URL.' };
+        return { error: 'Enter a valid subtitle generation service URL.' };
     }
 
     if (url.username || url.password || url.search || url.hash || (url.pathname !== '' && url.pathname !== '/')) {
-        return { error: 'The Whisper service URL must not include a path, query, or fragment.' };
+        return { error: 'The subtitle generation service URL must not include a path, query, or fragment.' };
     }
 
     const loopback = isLoopbackHost(url.hostname);
     if (url.protocol !== 'https:' && !(loopback && url.protocol === 'http:')) {
-        return { error: 'Remote Whisper services must use an HTTPS URL.' };
+        return { error: 'Remote subtitle generation services must use an HTTPS URL.' };
     }
     if (!loopback && !configuration.authToken.trim()) {
-        return { error: 'An authorization token is required for a remote Whisper service.' };
+        return { error: 'An authorization token is required for a remote subtitle generation service.' };
     }
 
     return { baseUrl: url.origin, loopback };
@@ -36,10 +36,10 @@ const responseError = (error: unknown, baseUrl: string, loopback: boolean): Subt
     if (error instanceof TypeError && /failed to fetch/i.test(error.message)) {
         return loopback
             ? {
-                  error: 'Cannot reach the local Whisper service at 127.0.0.1:8767. Install and start asbplayer-whisper-server, then try again.',
+                  error: 'Cannot reach the local subtitle generation service at 127.0.0.1:8767. Install and start asbplayer-whisper-server, then try again.',
               }
             : {
-                  error: `Cannot reach the remote Whisper service at ${baseUrl}. Check that its Colab runtime and secure tunnel are still running.`,
+                  error: `Cannot reach the remote subtitle generation service at ${baseUrl}. Check that its runtime and secure tunnel are still running.`,
               };
     }
 
@@ -63,7 +63,7 @@ const fetchJson = async (baseUrl: string, authToken: string, path: string, init?
     const body = contentType.includes('application/json') ? await response.json() : { error: await response.text() };
 
     if (!response.ok) {
-        throw new Error(body.error || body.detail || `Whisper service returned ${response.status}`);
+        throw new Error(body.error || body.detail || `Subtitle generation service returned ${response.status}`);
     }
 
     return body;
@@ -115,7 +115,9 @@ export const requestWhisperServer = async (
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             sourceUrl: message.sourceUrl,
+                            generator: message.generator ?? 'whisper',
                             whisperOptions: message.whisperOptions ?? {},
+                            ocrOptions: message.ocrOptions ?? {},
                         }),
                     }),
                 };
@@ -146,7 +148,9 @@ export const requestWhisperServer = async (
                     authorizedRequest(undefined, configuration.authToken)
                 );
                 if (!response.ok)
-                    throw new Error((await response.text()) || `Whisper service returned ${response.status}`);
+                    throw new Error(
+                        (await response.text()) || `Subtitle generation service returned ${response.status}`
+                    );
                 const disposition = response.headers.get('content-disposition') ?? '';
                 const fileName = /filename="?([^";]+)"?/.exec(disposition)?.[1] ?? 'generated-subtitles.srt';
                 return { srtBase64: arrayBufferToBase64(await response.arrayBuffer()), fileName };

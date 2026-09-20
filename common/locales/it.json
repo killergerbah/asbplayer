@@ -265,6 +265,7 @@
             "rememberTrackPreference": "Ricorda le scelte di traccia per questo sito",
             "selectSubtitles": "Seleziona sottotitoli",
             "generateSubtitles": "Genera sottotitoli",
+            "extractBurnedInSubtitles": "Estrai sottotitoli impressi (OCR)",
             "subtitleTrack": "Traccia sottotitoli",
             "videoName": "Nome video",
             "genericPage": "Use generic subtitle detection for this site",
@@ -290,6 +291,22 @@
             "generate": "Genera",
             "advancedOptions": "Opzioni avanzate di Whisper",
             "close": "Chiudi"
+        },
+        "ocrExtraction": {
+            "title": "Estrai sottotitoli impressi",
+            "instructions": "Metti in pausa su un fotogramma rappresentativo, quindi trascina per selezionare l'area dei sottotitoli. L'area viene usata solo per questo video.",
+            "previewUnavailable": "Impossibile acquisire il fotogramma video corrente. Metti in pausa il video e riapri Seleziona sottotitoli.",
+            "language": "Lingua dei sottotitoli",
+            "simplifiedChinese": "Cinese (semplificato)",
+            "traditionalChinese": "Cinese (tradizionale)",
+            "quality": "Qualità di riconoscimento",
+            "medium": "Media — più accurata",
+            "small": "Piccola — più veloce",
+            "extract": "Estrai SRT",
+            "downloadingVideo": "Download del video…",
+            "loadingModel": "Caricamento del modello PaddleOCR…",
+            "analyzingVideo": "Analisi dei fotogrammi dei sottotitoli…",
+            "recognizingText": "Riconoscimento del testo dei sottotitoli…"
         },
         "videoSelect": {
             "multipleVideoElements": "Rilevati più elementi video",

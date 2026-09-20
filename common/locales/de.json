@@ -265,6 +265,7 @@
             "rememberTrackPreference": "Remember these track choices for this site",
             "selectSubtitles": "Untertitel auswählen",
             "generateSubtitles": "Untertitel generieren",
+            "extractBurnedInSubtitles": "Eingebrannte Untertitel extrahieren (OCR)",
             "subtitleTrack": "Untertitelspur",
             "videoName": "Videotitel",
             "genericPage": "Use generic subtitle detection for this site",
@@ -290,6 +291,22 @@
             "generate": "Erstellen",
             "advancedOptions": "Erweiterte Whisper-Optionen",
             "close": "Schließen"
+        },
+        "ocrExtraction": {
+            "title": "Eingebrannte Untertitel extrahieren",
+            "instructions": "Pausiere bei einem repräsentativen Untertitelbild und ziehe dann den Untertitelbereich auf. Der Bereich wird nur für dieses Video verwendet.",
+            "previewUnavailable": "Das aktuelle Videobild konnte nicht aufgenommen werden. Pausiere das Video und öffne Untertitel auswählen erneut.",
+            "language": "Untertitelsprache",
+            "simplifiedChinese": "Chinesisch (vereinfacht)",
+            "traditionalChinese": "Chinesisch (traditionell)",
+            "quality": "Erkennungsqualität",
+            "medium": "Mittel — genaueste",
+            "small": "Klein — schneller",
+            "extract": "SRT extrahieren",
+            "downloadingVideo": "Video wird heruntergeladen…",
+            "loadingModel": "PaddleOCR-Modell wird geladen…",
+            "analyzingVideo": "Untertitelbilder werden analysiert…",
+            "recognizingText": "Untertiteltext wird erkannt…"
         },
         "videoSelect": {
             "multipleVideoElements": "Mehrere Video-Elemente gefunden",

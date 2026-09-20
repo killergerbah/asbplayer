@@ -2,9 +2,9 @@
 sidebar_position: 10
 ---
 
-# Generate subtitles with Whisper
+# Generate subtitles with Whisper or OCR
 
-asbplayer can generate an SRT subtitle track for a streaming video using a Whisper service running on your own computer or an authenticated remote GPU service. The service downloads audio through `yt-dlp`, then Whisper uses FFmpeg to decode and preprocess it. asbplayer does not run this workload on its own servers.
+asbplayer can generate an SRT subtitle track for a streaming video using a subtitle-generation service running on your own computer or an authenticated remote GPU service. Whisper jobs download audio through `yt-dlp`; burned-in subtitle OCR jobs download video and recognize the selected subtitle region. asbplayer does not run either workload on its own servers.
 
 YouTube is supported directly. Other streaming sites are supported when `yt-dlp` can extract their audio; DRM-protected and unsupported sites cannot be processed.
 
@@ -18,6 +18,12 @@ python3 -m venv .venv
 python -m pip install --upgrade pip
 python -m pip install ./scripts/whisper-server
 asbplayer-whisper-server
+```
+
+To extract subtitles which are visibly burned into a video, install the optional OCR dependencies instead:
+
+```bash
+python -m pip install "./scripts/whisper-server[ocr]"
 ```
 
 On Windows, activate the virtual environment with `.venv\\Scripts\\activate` instead. The first transcription downloads the selected Whisper model, which can take time and disk space.
@@ -39,7 +45,7 @@ This service is separate from the optional WebSocket/AnkiConnect companion serve
 
 ## Use a remote GPU service
 
-The extension defaults to the local service. To use a remote service, open **Settings** → **Streaming Video** → **Whisper subtitle service**, enter its HTTPS URL and bearer token, then choose **Save Whisper service**. Chrome asks for permission for that HTTPS host at this point.
+The extension defaults to the local service. To use a remote service, open **Settings** → **Streaming Video** → **Subtitle generation service**, enter its HTTPS URL and bearer token, then choose **Save subtitle generation service**. Chrome asks for permission for that HTTPS host at this point.
 
 - Remote services must use HTTPS and require a token. The extension sends it in the `Authorization: Bearer …` header for every service request.
 - The token is stored only in local extension settings and is excluded from settings exports.
@@ -59,7 +65,7 @@ Google Colab is an experimental, temporary option rather than a reliable persist
 
 1. Open `scripts/whisper-server/asbplayer-whisper-colab.ipynb` in Colab and select a GPU runtime.
 2. Run every cell. It installs the server with CUDA as the default device, prompts you for a private token, and prints a temporary HTTPS tunnel URL.
-3. Paste that URL and the token into **Whisper subtitle service** in extension settings, then choose **Save Whisper service**.
+3. Paste that URL and the token into **Subtitle generation service** in extension settings, then choose **Save subtitle generation service**.
 4. Generate subtitles normally. Keep the notebook connected until the job completes.
 
 When Colab disconnects, rerun the notebook and update the remote URL/token in extension settings. For a persistent GPU cache and endpoint, use a VM or hosted GPU service that you control instead.
@@ -71,10 +77,20 @@ When Colab disconnects, rerun the notebook and update the remote URL/token in ex
 3. Configure Whisper and choose **Generate**. The dialog reports audio download, Whisper model download/loading, and transcription state; canceling the dialog cancels its job.
 4. When finished, the generated SRT is loaded automatically and the pop-out closes.
 
+### Extract burned-in subtitles with OCR
+
+1. Pause the video on a frame where its burned-in subtitles are visible, then open **Select Subtitles**.
+2. Choose **Extract Burned-in Subtitles (OCR)** and drag over the subtitle area in the captured preview. The default is the lower 35% of the video.
+3. Choose Simplified or Traditional Chinese and a PP-OCRv6 quality tier. **Medium** is the accurate default; **Small** is faster on local CPUs.
+4. Choose **Extract SRT**. The service downloads a non-DRM video stream up to 1080p, samples the selected area at four frames per second, and automatically loads the resulting SRT.
+
+OCR text and timing are estimates. The crop excludes channel logos and interface text, while adjacent matching frames prevent a static subtitle from being emitted repeatedly. Very brief subtitles can be timed within approximately 125 ms of their displayed boundaries.
+
 The service stores completed SRT files in its user cache directory. A revisit to the same video lists cached variants and selects the newest available result while that service remains available. Cache identity includes the video and output-affecting Whisper options, so changing a model or decoding setting creates a separate result while changing a runtime setting such as CPU thread count does not.
 
 ## Notes
 
 - The generator is not available for local video files or mobile extension builds.
-- The popup exposes every option from the version-pinned Whisper command line except input audio, output directory/format, and verbose output. asbplayer supplies the current page URL, always requests an SRT, and uses Whisper's native frame counter and time estimate for progress.
+- The Whisper popup exposes every option from the version-pinned Whisper command line except input audio, output directory/format, and verbose output. asbplayer supplies the current page URL, always requests an SRT, and uses Whisper's native frame counter and time estimate for progress.
+- OCR is desktop streaming-only, like Whisper generation. It requires a source that yt-dlp can download as video; DRM-protected and unsupported sources cannot be processed. The service cache stores OCR results separately from Whisper results, keyed by video, crop, Chinese language, quality, and OCR pipeline version.
 - Long videos can take substantial time, CPU/GPU memory, and disk space. The service runs one job at a time to avoid competing Whisper processes. Set `ASBPLAYER_WHISPER_DEVICE=cuda` before starting a GPU service to make CUDA its default device.

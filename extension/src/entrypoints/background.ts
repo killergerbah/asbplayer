@@ -17,6 +17,7 @@ import AsbplayerHeartbeatHandler from '@/handlers/asbplayerv2/asbplayer-heartbea
 import RefreshSettingsHandler from '@/handlers/popup/refresh-settings-handler';
 import type { CommandHandler } from '@/handlers/command-handler';
 import TakeScreenshotHandler from '@/handlers/video/take-screenshot-handler';
+import CaptureOcrPreviewHandler from '@/handlers/video/capture-ocr-preview-handler';
 import AudioRecorderService from '@/services/audio-recorder-service';
 import AudioBase64Handler from '@/handlers/offscreen-document/audio-base-64-handler';
 import AckTabsHandler from '@/handlers/asbplayerv2/ack-tabs-handler';
@@ -182,6 +183,7 @@ export default defineBackground(() => {
         new StartRecordingMediaHandler(audioRecorder, imageCapturer, cardPublisher, settings),
         new StopRecordingMediaHandler(audioRecorder, imageCapturer, cardPublisher, settings),
         new TakeScreenshotHandler(imageCapturer, cardPublisher),
+        new CaptureOcrPreviewHandler(imageCapturer),
         new ToggleSubtitlesHandler(settings, tabRegistry),
         new SyncHandler(tabRegistry),
         new HttpPostHandler(),

@@ -16,6 +16,7 @@ from asbplayer_whisper_server.main import (
     request_is_authorized,
     source_identity_from_downloader_info,
     source_key,
+    validate_ocr_options,
     validate_options,
     whisper_tqdm_frame_counts,
     whisper_tqdm_model_download,
@@ -61,6 +62,43 @@ class WhisperServerTests(unittest.TestCase):
         self.assertEqual(source_key(identity), source_key(identity))
         self.assertEqual(cache_key(identity, standard), cache_key(identity, accelerated))
         self.assertNotEqual(cache_key(identity, standard), cache_key(identity, different_model))
+
+    def test_validates_ocr_options_and_keeps_them_separate_from_whisper_cache_entries(self):
+        identity = {"extractor": "Bilibili", "id": "video-id", "url": "https://www.bilibili.tv/video/video-id"}
+        medium = validate_ocr_options(
+            {"crop": {"left": 0, "top": 0.65, "width": 1, "height": 0.35}, "language": "ch", "quality": "medium"}
+        )
+        small = validate_ocr_options(
+            {"crop": {"left": 0, "top": 0.65, "width": 1, "height": 0.35}, "language": "chinese_cht", "quality": "small"}
+        )
+
+        self.assertNotEqual(cache_key(identity, {}, "ocr", medium), cache_key(identity, {}, "ocr", small))
+        self.assertNotEqual(cache_key(identity, validate_options({"model": "small"})), cache_key(identity, {}, "ocr", medium))
+
+    def test_rejects_invalid_ocr_crop(self):
+        with self.assertRaisesRegex(ValueError, "fit inside"):
+            validate_ocr_options(
+                {"crop": {"left": 0.75, "top": 0.65, "width": 0.5, "height": 0.35}, "language": "ch", "quality": "medium"}
+            )
+        with self.assertRaisesRegex(ValueError, "Unsupported OCR option"):
+            validate_ocr_options({"not-an-option": True})
+
+    def test_merges_stable_ocr_samples_into_srt_cues(self):
+        srt = JobManager._srt_from_ocr_samples(
+            [
+                (0.0, "你好"),
+                (0.25, "你好"),
+                (0.5, "你好"),
+                (0.75, "世界"),
+                (1.0, "世界"),
+                (1.25, None),
+            ]
+        )
+
+        self.assertEqual(
+            srt,
+            "1\n00:00:00,000 --> 00:00:00,625\n你好\n\n2\n00:00:00,625 --> 00:00:01,125\n世界\n",
+        )
 
     def test_derives_the_canonical_identity_from_the_download_result(self):
         self.assertEqual(

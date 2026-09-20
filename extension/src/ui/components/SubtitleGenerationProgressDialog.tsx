@@ -4,7 +4,6 @@ import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import LinearProgress from '@mui/material/LinearProgress';
 import Typography from '@mui/material/Typography';
@@ -20,7 +19,14 @@ interface Props {
     onClose: () => void;
 }
 
-const activeStates = new Set(['queued', 'downloading', 'loading-model', 'transcribing']);
+const activeStates = new Set([
+    'queued',
+    'downloading',
+    'loading-model',
+    'transcribing',
+    'analyzing-video',
+    'recognizing-text',
+]);
 const jobPollIntervalMs = 1_000;
 
 const formatRemainingTime = (seconds: number) => {
@@ -33,7 +39,7 @@ const formatRemainingTime = (seconds: number) => {
     return hours > 0 ? `${hours}:${paddedMinutes}:${paddedSeconds}` : `${minutes}:${paddedSeconds}`;
 };
 
-/** A non-editable progress window displayed for the lifetime of a Whisper job. */
+/** A non-editable progress window displayed for the lifetime of a subtitle job. */
 export default function SubtitleGenerationProgressDialog({ open, generation, onPoll, onCancel, onClose }: Props) {
     const { t } = useTranslation();
     const activeJob = generation.job && activeStates.has(generation.job.state) ? generation.job : undefined;
@@ -51,22 +57,35 @@ export default function SubtitleGenerationProgressDialog({ open, generation, onP
         onClose();
     };
 
+    const ocr = (activeJob?.generator ?? generation.generator) === 'ocr';
     const stateText =
-        activeJob?.state === 'downloading' && activeJob.progress !== undefined
-            ? t('extension.subtitleGeneration.downloading', { progress: activeJob.progress })
-            : activeJob?.state === 'loading-model' && activeJob.progress !== undefined
-              ? t('extension.subtitleGeneration.downloadingModel', { progress: activeJob.progress })
-              : activeJob?.state === 'loading-model'
-                ? t('extension.subtitleGeneration.loadingModel')
-                : activeJob?.state === 'transcribing'
-                  ? activeJob.progress === undefined
-                      ? t('extension.subtitleGeneration.transcribing')
-                      : `${t('extension.subtitleGeneration.transcribing')} (${activeJob.progress}%)`
-                  : t('extension.subtitleGeneration.queued');
+        ocr && activeJob?.state === 'downloading' && activeJob.progress !== undefined
+            ? `${t('extension.ocrExtraction.downloadingVideo')} (${activeJob.progress}%)`
+            : ocr && activeJob?.state === 'downloading'
+              ? t('extension.ocrExtraction.downloadingVideo')
+              : ocr && activeJob?.state === 'loading-model'
+                ? t('extension.ocrExtraction.loadingModel')
+                : ocr && activeJob?.state === 'analyzing-video'
+                  ? t('extension.ocrExtraction.analyzingVideo')
+                  : ocr && activeJob?.state === 'recognizing-text'
+                    ? activeJob.progress === undefined
+                        ? t('extension.ocrExtraction.recognizingText')
+                        : `${t('extension.ocrExtraction.recognizingText')} (${activeJob.progress}%)`
+                    : activeJob?.state === 'downloading' && activeJob.progress !== undefined
+                      ? t('extension.subtitleGeneration.downloading', { progress: activeJob.progress })
+                      : activeJob?.state === 'loading-model' && activeJob.progress !== undefined
+                        ? t('extension.subtitleGeneration.downloadingModel', { progress: activeJob.progress })
+                        : activeJob?.state === 'loading-model'
+                          ? t('extension.subtitleGeneration.loadingModel')
+                          : activeJob?.state === 'transcribing'
+                            ? activeJob.progress === undefined
+                                ? t('extension.subtitleGeneration.transcribing')
+                                : `${t('extension.subtitleGeneration.transcribing')} (${activeJob.progress}%)`
+                            : t('extension.subtitleGeneration.queued');
 
     return (
         <Dialog open={open} onClose={close} fullWidth maxWidth="sm">
-            <DialogTitle>{t('extension.subtitleGeneration.title')}</DialogTitle>
+            <DialogTitle>{t(ocr ? 'extension.ocrExtraction.title' : 'extension.subtitleGeneration.title')}</DialogTitle>
             <DialogContent>
                 {generation.error && (
                     <Alert severity="error" sx={{ mb: 2 }}>

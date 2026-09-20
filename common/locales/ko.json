@@ -265,6 +265,7 @@
             "rememberTrackPreference": "이 사이트에 대한 트랙 선택을 기억하기",
             "selectSubtitles": "자막 선택",
             "generateSubtitles": "자막 생성",
+            "extractBurnedInSubtitles": "영상 내 자막 추출 (OCR)",
             "subtitleTrack": "자막 트랙",
             "videoName": "영상 이름",
             "genericPage": "Use generic subtitle detection for this site",
@@ -290,6 +291,22 @@
             "generate": "생성",
             "advancedOptions": "Whisper 고급 옵션",
             "close": "닫기"
+        },
+        "ocrExtraction": {
+            "title": "영상 내 자막 추출",
+            "instructions": "대표 자막 프레임에서 일시 정지한 뒤 자막 영역을 드래그해 선택하세요. 이 영역은 이 동영상에만 사용됩니다.",
+            "previewUnavailable": "현재 동영상 프레임을 캡처할 수 없습니다. 동영상을 일시 정지하고 자막 선택을 다시 여세요.",
+            "language": "자막 언어",
+            "simplifiedChinese": "중국어(간체)",
+            "traditionalChinese": "중국어(번체)",
+            "quality": "인식 품질",
+            "medium": "중간 — 가장 정확",
+            "small": "소형 — 더 빠름",
+            "extract": "SRT 추출",
+            "downloadingVideo": "동영상 다운로드 중…",
+            "loadingModel": "PaddleOCR 모델을 불러오는 중…",
+            "analyzingVideo": "자막 프레임 분석 중…",
+            "recognizingText": "자막 텍스트 인식 중…"
         },
         "videoSelect": {
             "multipleVideoElements": "다수의 영상 요소가 감지되었습니다.",
