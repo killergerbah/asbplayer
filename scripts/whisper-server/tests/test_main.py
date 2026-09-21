@@ -80,6 +80,18 @@ class WhisperServerTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Unsupported OCR option"):
             validate_ocr_options({"not-an-option": True})
 
+    def test_ocr_cache_lookup_does_not_require_whisper_options(self):
+        with tempfile.TemporaryDirectory() as cache_root:
+            manager = JobManager(Path(cache_root))
+            entry = manager._matching_cached_entry(
+                "https://www.bilibili.tv/video/video-id",
+                "ocr",
+                {},
+                validate_ocr_options({"language": "ch", "quality": "medium"}),
+            )
+
+        self.assertIsNone(entry)
+
     def test_merges_stable_ocr_samples_into_srt_cues(self):
         srt = JobManager._srt_from_ocr_samples(
             [

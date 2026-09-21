@@ -993,7 +993,9 @@ class JobManager:
         options: dict[str, Any],
         ocr_options: dict[str, Any] | None,
     ) -> dict[str, Any] | None:
-        expected_options = output_options(options)
+        # OCR jobs intentionally have no Whisper options. Only derive this
+        # signature for the legacy Whisper-cache comparison below.
+        expected_options = output_options(options) if generator == "whisper" else {}
         for metadata_path in self.entries_root.glob("*/metadata.json"):
             try:
                 metadata = json.loads(metadata_path.read_text())
