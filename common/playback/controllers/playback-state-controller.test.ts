@@ -1,8 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import type { IndexedSubtitleModel, PlaybackState } from '@project/common';
 import PlaybackStateController from '@project/common/playback/controllers/playback-state-controller';
-import { configureLogProvider, LogProvider } from '@project/common/util/log';
-import type { LogLine } from '@project/common/util/log-utils';
 
 const subtitles: readonly IndexedSubtitleModel[] = [
     {
@@ -44,17 +42,8 @@ const makeController = () => {
 };
 
 describe('PlaybackStateController', () => {
-    it('traces layout transitions without repeating traces for periodic or forced notifications', async () => {
-        const lines: LogLine[] = [];
+    it('publishes pause and layout changes immediately between forced notifications', () => {
         const playbackStates: PlaybackState[] = [];
-        const provider = new LogProvider({
-            append: async (batch) => {
-                lines.push(...batch);
-            },
-            getLogs: async () => ({ lines }),
-        });
-        await configureLogProvider(provider);
-        lines.length = 0;
         let visible = true;
         let paused = false;
         const controller = new PlaybackStateController({
@@ -67,29 +56,38 @@ describe('PlaybackStateController', () => {
         });
         controller.bind();
         controller.notify(500, { force: false });
+        controller.notify(525, { force: false });
         controller.notify(550, { force: true });
         paused = true;
         controller.notify(575, { force: false });
         controller.notify(600, { force: false });
+        controller.notify(625, { force: false });
         visible = false;
         controller.notify(700, { force: false });
+        controller.notify(750, { force: false });
         controller.notify(800, { force: true });
 
-        const traces = (await provider.getLogLines()).filter((line) => line.label === 'playback/subtitles');
-        expect(traces.map((line) => JSON.parse(line.msg.slice(line.msg.indexOf('{'))))).toEqual([
+        expect(playbackStates).toEqual([
             {
                 timestampMs: 500,
                 paused: false,
                 showingSubtitleIndexes: [0],
-                invisibleSubtitleIndexes: [],
-                hiddenSubtitleIndexes: [],
+            },
+            {
+                timestampMs: 550,
+                paused: false,
+                showingSubtitleIndexes: [0],
+            },
+            {
+                timestampMs: 575,
+                paused: true,
+                showingSubtitleIndexes: [0],
             },
             {
                 timestampMs: 600,
                 paused: true,
                 showingSubtitleIndexes: [0],
                 invisibleSubtitleIndexes: [1],
-                hiddenSubtitleIndexes: [],
             },
             {
                 timestampMs: 700,
@@ -98,9 +96,14 @@ describe('PlaybackStateController', () => {
                 invisibleSubtitleIndexes: [1],
                 hiddenSubtitleIndexes: [0, 1],
             },
+            {
+                timestampMs: 800,
+                paused: true,
+                showingSubtitleIndexes: [0],
+                invisibleSubtitleIndexes: [1],
+                hiddenSubtitleIndexes: [0, 1],
+            },
         ]);
-        expect(playbackStates.map(({ timestampMs }) => timestampMs)).toEqual([500, 550, 575, 600, 700, 800]);
-        expect(playbackStates[2]).toMatchObject({ paused: true });
     });
 
     it('publishes invisible indexes for layout placeholders', () => {

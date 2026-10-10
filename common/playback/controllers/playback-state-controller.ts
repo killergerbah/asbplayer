@@ -117,25 +117,15 @@ export default class PlaybackStateController<T extends IndexedSubtitleModel> {
             paused: this.paused(),
         };
         const previousState = this.lastNotifiedState;
-        const layoutChanged =
+        const stateChanged =
             previousState === undefined ||
+            previousState.paused !== state.paused ||
             !arrayEquals(previousState.showingSubtitleIndexes, state.showingSubtitleIndexes) ||
             !arrayEquals(previousState.invisibleSubtitleIndexes, state.invisibleSubtitleIndexes) ||
             !arrayEquals(previousState.hiddenSubtitleIndexes, state.hiddenSubtitleIndexes);
-        const stateChanged = layoutChanged || previousState?.paused !== state.paused;
         const now = this.now();
         if (!options.force && !stateChanged && this.lastNotifiedAt !== undefined && now - this.lastNotifiedAt < 1000) {
             return;
-        }
-
-        if (layoutChanged) {
-            asbTrace('playback/subtitles', 'Subtitle layout state changed', {
-                timestampMs,
-                paused: state.paused,
-                showingSubtitleIndexes,
-                invisibleSubtitleIndexes,
-                hiddenSubtitleIndexes: hiddenSubtitleIndexes ?? [],
-            });
         }
 
         this.lastNotifiedAt = now;
