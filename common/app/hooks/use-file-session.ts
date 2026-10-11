@@ -78,8 +78,8 @@ export const useFileSession = () => {
 
     const saveCachedSubtitleFilesToSession = useCallback(
         async (files: FileWithId[]) => {
-            await fileSessionRepository?.setCachedSubtitleFiles(files);
-            if (files.length > 0) {
+            const didSave = await fileSessionRepository?.setCachedSubtitleFiles(files);
+            if (files.length > 0 && didSave) {
                 setCanRestoreLastSession(true);
             }
         },

@@ -1768,7 +1768,7 @@ function App({
                         closeSubtitleTrackSelector();
                     }
                 } catch (e) {
-                    asbError('app/session', 'Failed to cache online subtitles:', e);
+                    asbError('app/selector', 'Failed to confirm track selection:', e);
                     handleError(e);
                 } finally {
                     setSubtitleTrackSelectorDisabled(false);
