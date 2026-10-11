@@ -2,6 +2,15 @@ import Dexie from 'dexie';
 import { v4 as uuidv4 } from 'uuid';
 import type { FileWithId } from '@project/common/file-selector';
 import { AsyncSemaphore } from '@project/common/util';
+import { asbError, asbWarn } from '@project/common/util/log';
+
+const totalSize = (files: FileWithId[]) => {
+    let size = 0;
+    for (const f of files) {
+        size += f.file.size;
+    }
+    return size;
+};
 
 export interface FileSessionRecord {
     id: number;
@@ -59,7 +68,7 @@ export interface FileSessionRepository {
     merge: (
         incoming: Pick<FileSessionRecord, 'videoHandle' | 'subtitleHandles' | 'bufferedSubtitleHandles'>
     ) => Promise<void>;
-    setCachedSubtitleFiles: (files: FileWithId[]) => Promise<void>;
+    setCachedSubtitleFiles: (files: FileWithId[]) => Promise<boolean>;
     clear: () => Promise<void>;
 }
 
@@ -72,6 +81,14 @@ export class IndexedDBFileSessionRepository implements FileSessionRepository {
             await this._db.sessions.clear();
             await this._db.sessions.add(record);
         });
+    }
+
+    private async _bestEffortReplace(record: FileSessionRecord, errorMessage: string) {
+        try {
+            await this._replace(record);
+        } catch (e) {
+            asbError('file-session/repository', errorMessage, e);
+        }
     }
 
     async fetch(): Promise<FileSessionRecord | undefined> {
@@ -185,25 +202,81 @@ export class IndexedDBFileSessionRepository implements FileSessionRepository {
 
     async setCachedSubtitleFiles(cachedSubtitleFiles: FileWithId[]) {
         const permit = await this._semaphore.acquire();
+        let newRecord: FileSessionRecord | undefined;
 
         try {
             const existing = await this.fetch();
 
             if (!existing && cachedSubtitleFiles.length === 0) {
-                return;
+                return false;
             }
 
-            await this._replace({
+            newRecord = {
                 videoHandle: existing?.videoHandle,
                 subtitleHandles: existing?.subtitleHandles ?? [],
                 bufferedSubtitleHandles: existing?.bufferedSubtitleHandles,
                 cachedSubtitleFiles,
                 id: 1,
                 timestamp: Date.now(),
-            });
+            };
+
+            if (cachedSubtitleFiles.length > 0) {
+                const existingTotalFileSize = totalSize(existing?.cachedSubtitleFiles ?? []);
+                const fileSizeLimit = await this._fileSizeLimit(existingTotalFileSize);
+                const newTotalFileSize = totalSize(cachedSubtitleFiles);
+
+                if (newTotalFileSize >= fileSizeLimit) {
+                    asbWarn('file-session/repository', 'Did not cache file because it exceeds the size limit', {
+                        newTotalFileSize,
+                        fileSizeLimit,
+                    });
+                    await this._bestEffortReplace(
+                        { ...newRecord, cachedSubtitleFiles: [] },
+                        'failed to clear cached subtitle files after file size limit check failed'
+                    );
+
+                    return false;
+                }
+            }
+
+            await this._replace(newRecord);
+            return true;
+        } catch (e) {
+            // Best effort
+            asbError('file-session/repository', 'failed to save subtitle files:', e);
+            if (newRecord !== undefined) {
+                await this._bestEffortReplace(
+                    { ...newRecord, cachedSubtitleFiles: [] },
+                    'failed to clear old cached subtitle files after attempting to save new ones'
+                );
+            }
+            return false;
         } finally {
             void this._semaphore.release(permit);
         }
+    }
+
+    async _fileSizeLimit(usedBytesAboutToBeReplaced: number) {
+        const paddedRemainingQuotaRatio = 0.5;
+        const defaultLimit = 200 * 1024 * 1024;
+        let limit = defaultLimit;
+
+        try {
+            const estimate = await navigator.storage.estimate();
+            if (estimate.quota !== undefined) {
+                if (estimate.usage !== undefined) {
+                    const effectiveUsage = estimate.usage - usedBytesAboutToBeReplaced;
+                    limit = Math.min(limit, Math.max(0, (estimate.quota - effectiveUsage) * paddedRemainingQuotaRatio));
+                } else {
+                    limit = Math.min(limit, estimate.quota * paddedRemainingQuotaRatio);
+                }
+            }
+        } catch (e) {
+            // Defensive catch, it's technically possible for estimate() to throw
+            asbWarn('file-session/repository', 'failed to call navigator.storage.estimate:', e);
+        }
+
+        return limit;
     }
 
     async clear(): Promise<void> {
