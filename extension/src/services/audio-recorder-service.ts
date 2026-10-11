@@ -1,16 +1,15 @@
-import {
+import type {
     ExtensionToAsbPlayerCommand,
     ExtensionToVideoCommand,
     NotifyErrorMessage,
     RecordingFinishedMessage,
     RecordingStartedMessage,
     RequestActiveTabPermissionMessage,
-    StartRecordingErrorCode,
     StartRecordingResponse,
-    StopRecordingErrorCode,
 } from '@project/common';
-import TabRegistry from './tab-registry';
-import { AudioRecorderDelegate } from './audio-recorder-delegate';
+import { StartRecordingErrorCode, StopRecordingErrorCode } from '@project/common';
+import type TabRegistry from '@project/extension/src/services/tab-registry';
+import type { AudioRecorderDelegate } from '@project/extension/src/services/audio-recorder-delegate';
 import { v4 as uuidv4 } from 'uuid';
 
 interface Requester {
@@ -112,7 +111,8 @@ export default class AudioRecorderService {
     }
 
     async stop(encodeAsMp3: boolean, requester: Requester): Promise<string> {
-        if (this.audioBase64Promise === undefined) {
+        const audioBase64Promise = this.audioBase64Promise; // Audio delivery can clear the shared promise before the stop acknowledgment arrives.
+        if (audioBase64Promise === undefined) {
             // Benign no-op: If the user spams cancel on a bulk export,
             // we can get a cancel request on a non-recording state.
             this._notifyRecordingFinished(requester);
@@ -132,7 +132,7 @@ export default class AudioRecorderService {
         }
 
         this._notifyRecordingFinished(requester);
-        return this.audioBase64Promise;
+        return audioBase64Promise;
     }
 
     private _notifyRecordingStarted({ tabId, src }: Requester) {

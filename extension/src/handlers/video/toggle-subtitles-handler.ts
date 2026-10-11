@@ -1,6 +1,7 @@
-import { ExtensionToVideoCommand, SettingsUpdatedMessage } from '@project/common';
-import { SettingsProvider } from '@project/common/settings';
-import TabRegistry from '../../services/tab-registry';
+import type { ExtensionToVideoCommand, SettingsUpdatedMessage } from '@project/common';
+import type { SettingsProvider } from '@project/common/settings';
+import { asbTrace } from '@project/common/util/log';
+import type TabRegistry from '@project/extension/src/services/tab-registry';
 
 export default class ToggleSubtitlesHandler {
     private readonly settings: SettingsProvider;
@@ -22,6 +23,7 @@ export default class ToggleSubtitlesHandler {
     async handle() {
         const displaySubtitles = await this.settings.getSingle('streamingDisplaySubtitles');
         await this.settings.set({ streamingDisplaySubtitles: !displaySubtitles });
+        asbTrace('playback/subtitles', 'Toggled streaming subtitle display', { displaySubtitles: !displaySubtitles });
 
         void this.tabRegistry.publishCommandToVideoElements((videoElement) => {
             const settingsUpdatedCommand: ExtensionToVideoCommand<SettingsUpdatedMessage> = {

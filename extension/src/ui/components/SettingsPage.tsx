@@ -1,4 +1,5 @@
-import { CardModel, HttpFetcher } from '@project/common';
+import type { CardModel } from '@project/common';
+import { HttpFetcher } from '@project/common';
 import { useCallback, useMemo } from 'react';
 import { makeStyles } from '@mui/styles';
 import { useTranslation } from 'react-i18next';
@@ -7,17 +8,20 @@ import SettingsForm from '@project/common/components/SettingsForm';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
-import { useCommandKeyBinds } from '../hooks/use-command-key-binds';
+import { useCommandKeyBinds } from '@project/extension/src/ui/hooks/use-command-key-binds';
 import { useLocalFontFamilies } from '@project/common/hooks';
-import { useI18n } from '../hooks/use-i18n';
+import { useI18n } from '@project/extension/src/ui/hooks/use-i18n';
 import Paper from '@mui/material/Paper';
 import { Anki } from '@project/common/anki';
-import { useSupportedLanguages } from '../hooks/use-supported-languages';
+import { useSupportedLanguages } from '@project/extension/src/ui/hooks/use-supported-languages';
 import SettingsProfileSelectMenu from '@project/common/components/SettingsProfileSelectMenu';
-import { AsbplayerSettings, Profile, testCard } from '@project/common/settings';
-import { useTheme, type Theme } from '@mui/material/styles';
+import type { AsbplayerSettings, Profile } from '@project/common/settings';
+import { testCard } from '@project/common/settings';
+import { useTheme } from '@mui/material/styles';
+import type { Theme } from '@mui/material/styles';
 import { settingsPageConfigs } from '@/services/pages';
-import { DictionaryProvider } from '@project/common/dictionary-db';
+import type { DictionaryProvider } from '@project/common/dictionary-db';
+import type { LogProvider } from '@project/common/util/log';
 import { useLocationHash } from '@project/common/hooks/use-location-hash';
 
 const useStyles = makeStyles<Theme>((theme) => ({
@@ -37,6 +41,7 @@ const useStyles = makeStyles<Theme>((theme) => ({
 
 interface Props {
     dictionaryProvider: DictionaryProvider;
+    logProvider: LogProvider;
     settings: AsbplayerSettings;
     onSettingsChanged: (settings: Partial<AsbplayerSettings>) => void;
     profiles: Profile[];
@@ -58,6 +63,7 @@ const extensionTestCard: () => Promise<CardModel> = () => {
 
 const SettingsPage = ({
     dictionaryProvider,
+    logProvider,
     settings,
     inTutorial,
     inAnnotationTutorial,
@@ -115,7 +121,10 @@ const SettingsPage = ({
                         extensionSupportsOrderableAnkiFields
                         extensionSupportsTrackSpecificSettings
                         extensionSupportsSubtitlesWidthSetting
+                        extensionSupportsSubtitlesWidthInPixels
                         extensionSupportsPauseOnHover
+                        extensionSupportsPlaybackEngine
+                        extensionSupportsAutoPauseResume
                         extensionSupportsExportCardBind
                         extensionSupportsPageSettings
                         extensionSupportsDictionary
@@ -127,10 +136,13 @@ const SettingsPage = ({
                         extensionSupportsDictionaryTokenStatusDisplayAlpha
                         extensionSupportsDictionaryYomitanMecab
                         extensionSupportsSubtitleTrackSelectorInWebApp
+                        extensionSupportsSubtitleListCustomization
+                        extensionSupportsUpdateLastWithSameSubtitleText
                         chromeKeyBinds={commands}
                         onOpenChromeExtensionShortcuts={handleOpenExtensionShortcuts}
                         onSettingsChanged={onSettingsChanged}
                         dictionaryProvider={dictionaryProvider}
+                        logProvider={logProvider}
                         settings={settings}
                         profiles={profileContext.profiles}
                         activeProfile={profileContext.activeProfile}

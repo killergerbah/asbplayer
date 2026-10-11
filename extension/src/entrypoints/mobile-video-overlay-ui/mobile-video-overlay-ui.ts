@@ -1,9 +1,14 @@
 import { renderMobileVideoOverlay } from '@/ui/mobile-video-overlay';
+import { configureExtensionLogProvider } from '@/services/extension-log-provider';
+
+configureExtensionLogProvider();
+
+const params = new URLSearchParams(location.search);
 
 window.addEventListener('load', () => {
     const root = document.getElementById('root')!;
-    const params = new URLSearchParams(location.search);
     const anchor = params.get('anchor');
+
     const scrollBufferDiv = document.createElement('div');
     scrollBufferDiv.className = 'asbplayer-mobile-video-overlay-scroll-buffer';
 

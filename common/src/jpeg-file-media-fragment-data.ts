@@ -1,13 +1,13 @@
-import { resizeCanvas } from './image-transformer';
+import { resizeCanvas, trimBlackBarsFromCanvas } from '@project/common/src/image-transformer';
 import {
     CancelledMediaFragmentDataRenderingError,
     createVideoElement,
     disposeVideoElement,
     makeMediaFragmentFileName,
-    type MediaFragmentData,
     mediaFragmentErrorForFile,
-} from './media-fragment';
-import { FileModel, MediaFragmentErrorCode } from './model';
+} from '@project/common/src/media-fragment';
+import type { MediaFragmentData } from '@project/common/src/media-fragment';
+import type { FileModel, MediaFragmentErrorCode } from '@project/common/src/model';
 
 export const defaultJpegCompressionQuality = 0.85;
 
@@ -24,6 +24,7 @@ export class JpegFileMediaFragmentData implements MediaFragmentData {
     private readonly _timestamp: number;
     private readonly _maxWidth: number;
     private readonly _maxHeight: number;
+    private readonly _trimBlackBars: boolean;
     private readonly _name: string;
     private readonly _jpegCompressionQuality: number;
     private _video?: HTMLVideoElement;
@@ -36,6 +37,7 @@ export class JpegFileMediaFragmentData implements MediaFragmentData {
         timestamp: number,
         maxWidth: number,
         maxHeight: number,
+        trimBlackBars: boolean,
         jpegCompressionQuality: number = defaultJpegCompressionQuality,
         video?: HTMLVideoElement,
         canvas?: HTMLCanvasElement
@@ -45,6 +47,7 @@ export class JpegFileMediaFragmentData implements MediaFragmentData {
         this._timestamp = timestamp;
         this._maxWidth = maxWidth;
         this._maxHeight = maxHeight;
+        this._trimBlackBars = trimBlackBars;
         this._jpegCompressionQuality = resolveJpegCompressionQuality(jpegCompressionQuality);
         this._video = video;
         this._canvas = canvas;
@@ -83,6 +86,7 @@ export class JpegFileMediaFragmentData implements MediaFragmentData {
             timestamp,
             this._maxWidth,
             this._maxHeight,
+            this._trimBlackBars,
             this._jpegCompressionQuality,
             this._video,
             this._canvas
@@ -214,6 +218,10 @@ export class JpegFileMediaFragmentData implements MediaFragmentData {
         canvas.height = video.videoHeight;
         const ctx = canvas.getContext('2d');
         ctx!.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        if (this._trimBlackBars) {
+            trimBlackBarsFromCanvas(canvas, ctx!);
+        }
 
         if (this._maxWidth > 0 || this._maxHeight > 0) {
             await resizeCanvas(canvas, ctx!, this._maxWidth, this._maxHeight);

@@ -1,29 +1,34 @@
-import TextField from './SettingsTextField';
-import React, { useEffect, useState } from 'react';
+import TextField from '@project/common/components/SettingsTextField';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
 import FormLabel from '@mui/material/FormLabel';
 import InputAdornment from '@mui/material/InputAdornment';
 import MenuItem from '@mui/material/MenuItem';
-import LabelWithHoverEffect from './LabelWithHoverEffect';
-import SwitchLabelWithHoverEffect from './SwitchLabelWithHoverEffect';
+import LabelWithHoverEffect from '@project/common/components/LabelWithHoverEffect';
+import SwitchLabelWithHoverEffect from '@project/common/components/SwitchLabelWithHoverEffect';
 import Radio from '@mui/material/Radio';
 import { isWebmMediaFragmentSupported, PostMineAction, PostMinePlayback } from '@project/common';
-import { AsbplayerSettings } from '@project/common/settings';
+import type { AsbplayerSettings } from '@project/common/settings';
 import Switch from '@mui/material/Switch';
 import RadioGroup from '@mui/material/RadioGroup';
 import Stack from '@mui/material/Stack';
 import FormControl from '@mui/material/FormControl';
-import SettingsSection from './SettingsSection';
+import SettingsSection from '@project/common/components/SettingsSection';
+import NumericSettingInput from '@project/common/components/NumericSettingInput';
 
 interface Props {
     settings: AsbplayerSettings;
     onSettingChanged: <K extends keyof AsbplayerSettings>(key: K, value: AsbplayerSettings[K]) => Promise<void>;
     showWebmMediaFragmentSettings?: boolean;
+    supportsUpdateLastWithSameSubtitleText?: boolean;
 }
 
-const integerValueRegex = /^-?\d+$/;
-
-const MiningSettingsTab: React.FC<Props> = ({ settings, onSettingChanged, showWebmMediaFragmentSettings = true }) => {
+const MiningSettingsTab: React.FC<Props> = ({
+    settings,
+    onSettingChanged,
+    supportsUpdateLastWithSameSubtitleText,
+    showWebmMediaFragmentSettings = true,
+}) => {
     const { t } = useTranslation();
     const webmCaptureSupported = showWebmMediaFragmentSettings && isWebmMediaFragmentSupported();
     const {
@@ -35,6 +40,7 @@ const MiningSettingsTab: React.FC<Props> = ({ settings, onSettingChanged, showWe
         mediaFragmentTrimStart,
         mediaFragmentTrimEnd,
         mediaFragmentMaxClipLength,
+        trimBlackBars,
         streamingScreenshotDelay,
         surroundingSubtitlesCountRadius,
         surroundingSubtitlesTimeRadius,
@@ -43,13 +49,9 @@ const MiningSettingsTab: React.FC<Props> = ({ settings, onSettingChanged, showWe
         recordWithAudioPlayback,
         preferMp3,
         copyToClipboardOnMine,
+        alwaysUseSubtitleForSentence,
+        updateLastCardForSameSubtitle,
     } = settings;
-    const [screenshotDelayInput, setScreenshotDelayInput] = useState(String(streamingScreenshotDelay));
-
-    useEffect(() => {
-        setScreenshotDelayInput(String(streamingScreenshotDelay));
-    }, [streamingScreenshotDelay]);
-
     return (
         <Stack spacing={1}>
             <FormControl>
@@ -180,6 +182,30 @@ const MiningSettingsTab: React.FC<Props> = ({ settings, onSettingChanged, showWe
                 label={t('settings.copyOnMine')}
                 labelPlacement="start"
             />
+            <SwitchLabelWithHoverEffect
+                control={
+                    <Switch
+                        checked={alwaysUseSubtitleForSentence}
+                        onChange={(event) => onSettingChanged('alwaysUseSubtitleForSentence', event.target.checked)}
+                    />
+                }
+                label={t('settings.alwaysUseSubtitleForSentence')}
+                labelPlacement="start"
+            />
+            {supportsUpdateLastWithSameSubtitleText && (
+                <SwitchLabelWithHoverEffect
+                    control={
+                        <Switch
+                            checked={updateLastCardForSameSubtitle}
+                            onChange={(event) =>
+                                onSettingChanged('updateLastCardForSameSubtitle', event.target.checked)
+                            }
+                        />
+                    }
+                    label={t('settings.updateLastCardForSameSubtitle')}
+                    labelPlacement="start"
+                />
+            )}
             <SettingsSection>{t('settings.audio')}</SettingsSection>
             <SwitchLabelWithHoverEffect
                 control={
@@ -202,13 +228,12 @@ const MiningSettingsTab: React.FC<Props> = ({ settings, onSettingChanged, showWe
                 labelPlacement="start"
             />
 
-            <TextField
-                type="number"
+            <NumericSettingInput
                 label={t('settings.audioPaddingStart')}
                 fullWidth
                 value={audioPaddingStart}
                 color="primary"
-                onChange={(event) => onSettingChanged('audioPaddingStart', Number(event.target.value))}
+                onValueChange={(value) => void onSettingChanged('audioPaddingStart', value)}
                 slotProps={{
                     htmlInput: {
                         min: 0,
@@ -219,13 +244,12 @@ const MiningSettingsTab: React.FC<Props> = ({ settings, onSettingChanged, showWe
                     },
                 }}
             />
-            <TextField
-                type="number"
+            <NumericSettingInput
                 label={t('settings.audioPaddingEnd')}
                 fullWidth
                 value={audioPaddingEnd}
                 color="primary"
-                onChange={(event) => onSettingChanged('audioPaddingEnd', Number(event.target.value))}
+                onValueChange={(value) => void onSettingChanged('audioPaddingEnd', value)}
                 slotProps={{
                     htmlInput: {
                         step: 1,
@@ -254,13 +278,12 @@ const MiningSettingsTab: React.FC<Props> = ({ settings, onSettingChanged, showWe
                     <MenuItem value="webm">{t('settings.mediaFragmentFormatVideoClip')}</MenuItem>
                 </TextField>
             )}
-            <TextField
-                type="number"
+            <NumericSettingInput
                 label={t('settings.maxImageWidth')}
                 fullWidth
                 value={maxImageWidth}
                 color="primary"
-                onChange={(event) => onSettingChanged('maxImageWidth', Number(event.target.value))}
+                onValueChange={(value) => void onSettingChanged('maxImageWidth', value)}
                 slotProps={{
                     htmlInput: {
                         min: 0,
@@ -268,13 +291,12 @@ const MiningSettingsTab: React.FC<Props> = ({ settings, onSettingChanged, showWe
                     },
                 }}
             />
-            <TextField
-                type="number"
+            <NumericSettingInput
                 label={t('settings.maxImageHeight')}
                 fullWidth
                 value={maxImageHeight}
                 color="primary"
-                onChange={(event) => onSettingChanged('maxImageHeight', Number(event.target.value))}
+                onValueChange={(value) => void onSettingChanged('maxImageHeight', value)}
                 slotProps={{
                     htmlInput: {
                         min: 0,
@@ -282,15 +304,24 @@ const MiningSettingsTab: React.FC<Props> = ({ settings, onSettingChanged, showWe
                     },
                 }}
             />
+            <SwitchLabelWithHoverEffect
+                control={
+                    <Switch
+                        checked={trimBlackBars}
+                        onChange={(event) => onSettingChanged('trimBlackBars', event.target.checked)}
+                    />
+                }
+                label={t('settings.trimBlackBars')}
+                labelPlacement="start"
+            />
             {showWebmMediaFragmentSettings && mediaFragmentFormat === 'webm' && webmCaptureSupported && (
                 <>
-                    <TextField
-                        type="number"
+                    <NumericSettingInput
                         label={t('settings.mediaFragmentTrimStart')}
                         fullWidth
                         value={mediaFragmentTrimStart}
                         color="primary"
-                        onChange={(event) => onSettingChanged('mediaFragmentTrimStart', Number(event.target.value))}
+                        onValueChange={(value) => void onSettingChanged('mediaFragmentTrimStart', value)}
                         slotProps={{
                             htmlInput: {
                                 step: 100,
@@ -300,13 +331,12 @@ const MiningSettingsTab: React.FC<Props> = ({ settings, onSettingChanged, showWe
                             },
                         }}
                     />
-                    <TextField
-                        type="number"
+                    <NumericSettingInput
                         label={t('settings.mediaFragmentTrimEnd')}
                         fullWidth
                         value={mediaFragmentTrimEnd}
                         color="primary"
-                        onChange={(event) => onSettingChanged('mediaFragmentTrimEnd', Number(event.target.value))}
+                        onValueChange={(value) => void onSettingChanged('mediaFragmentTrimEnd', value)}
                         slotProps={{
                             htmlInput: {
                                 step: 100,
@@ -316,13 +346,12 @@ const MiningSettingsTab: React.FC<Props> = ({ settings, onSettingChanged, showWe
                             },
                         }}
                     />
-                    <TextField
-                        type="number"
+                    <NumericSettingInput
                         label={t('settings.mediaFragmentMaxClipLength')}
                         fullWidth
                         value={mediaFragmentMaxClipLength}
                         color="primary"
-                        onChange={(event) => onSettingChanged('mediaFragmentMaxClipLength', Number(event.target.value))}
+                        onValueChange={(value) => void onSettingChanged('mediaFragmentMaxClipLength', value)}
                         slotProps={{
                             htmlInput: {
                                 min: 0,
@@ -336,25 +365,13 @@ const MiningSettingsTab: React.FC<Props> = ({ settings, onSettingChanged, showWe
                 </>
             )}
             {(!showWebmMediaFragmentSettings || mediaFragmentFormat === 'jpeg') && (
-                <TextField
-                    type="number"
+                <NumericSettingInput
                     label={t('extension.settings.screenshotCaptureDelay')}
                     fullWidth
-                    value={screenshotDelayInput}
+                    value={streamingScreenshotDelay}
                     color="primary"
-                    onChange={(event) => {
-                        const value = event.target.value;
-                        setScreenshotDelayInput(value);
-
-                        if (integerValueRegex.test(value)) {
-                            void onSettingChanged('streamingScreenshotDelay', Number(value));
-                        }
-                    }}
-                    onBlur={() => {
-                        if (!integerValueRegex.test(screenshotDelayInput)) {
-                            setScreenshotDelayInput(String(streamingScreenshotDelay));
-                        }
-                    }}
+                    integerOnly
+                    onValueChange={(value) => void onSettingChanged('streamingScreenshotDelay', value)}
                     slotProps={{
                         htmlInput: {
                             step: 100,
@@ -366,13 +383,12 @@ const MiningSettingsTab: React.FC<Props> = ({ settings, onSettingChanged, showWe
                 />
             )}
             <SettingsSection>{t('settings.exportDialog')}</SettingsSection>
-            <TextField
-                type="number"
+            <NumericSettingInput
                 label={t('settings.surroundingSubtitlesCountRadius')}
                 fullWidth
                 value={surroundingSubtitlesCountRadius}
                 color="primary"
-                onChange={(event) => onSettingChanged('surroundingSubtitlesCountRadius', Number(event.target.value))}
+                onValueChange={(value) => void onSettingChanged('surroundingSubtitlesCountRadius', value)}
                 slotProps={{
                     htmlInput: {
                         min: 1,
@@ -380,13 +396,12 @@ const MiningSettingsTab: React.FC<Props> = ({ settings, onSettingChanged, showWe
                     },
                 }}
             />
-            <TextField
-                type="number"
+            <NumericSettingInput
                 label={t('settings.surroundingSubtitlesTimeRadius')}
                 fullWidth
                 value={surroundingSubtitlesTimeRadius}
                 color="primary"
-                onChange={(event) => onSettingChanged('surroundingSubtitlesTimeRadius', Number(event.target.value))}
+                onValueChange={(value) => void onSettingChanged('surroundingSubtitlesTimeRadius', value)}
                 slotProps={{
                     htmlInput: {
                         min: 0,

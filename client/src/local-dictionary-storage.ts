@@ -1,4 +1,4 @@
-import {
+import type {
     CardExportedDialogMessage,
     CardUpdatedDialogMessage,
     DictionaryRequestStatisticsSnapshotMessage,
@@ -15,9 +15,8 @@ import {
     ExtensionToVideoCommand,
     Message,
 } from '@project/common';
-import { DictionaryStatisticsSnapshot } from '@project/common/dictionary-statistics';
-import {
-    DictionaryDB,
+import type { DictionaryStatisticsSnapshot } from '@project/common/dictionary-statistics';
+import type {
     DictionaryLocalTokenInput,
     DictionaryStorage,
     DictionaryTokenKey,
@@ -27,7 +26,8 @@ import {
     DictionaryRecordUpdateResult,
     DictionaryRecordsResult,
 } from '@project/common/dictionary-db';
-import { ApplyStrategy, SettingsProvider } from '@project/common/settings';
+import { DictionaryDB } from '@project/common/dictionary-db';
+import type { ApplyStrategy, SettingsProvider } from '@project/common/settings';
 
 type ExtensionDictionaryStatisticsCommand<T extends Message> =
     | ExtensionToAsbPlayerCommand<T>
@@ -82,7 +82,7 @@ export class LocalDictionaryStorage implements DictionaryStorage {
 
     saveRecordLocalBulk(
         profile: string | undefined,
-        localTokenInputs: DictionaryLocalTokenInput[],
+        localTokenInputs: readonly DictionaryLocalTokenInput[],
         applyStates: ApplyStrategy
     ) {
         return this.dictionaryDB.saveRecordLocalBulk(profile, localTokenInputs, applyStates);
@@ -212,7 +212,7 @@ export class LocalDictionaryStorage implements DictionaryStorage {
         };
     }
 
-    publishStatisticsSnapshot(mediaId: string, snapshot?: DictionaryStatisticsSnapshot) {
+    async publishStatisticsSnapshot(mediaId: string, snapshot?: DictionaryStatisticsSnapshot) {
         const message: ExtensionToAsbPlayerCommand<DictionaryStatisticsMessage> = {
             sender: 'asbplayer-extension-to-player',
             message: { command: 'dictionary-statistics', mediaId, snapshot },
@@ -241,7 +241,7 @@ export class LocalDictionaryStorage implements DictionaryStorage {
         };
     }
 
-    requestStatisticsSnapshot(mediaId?: string) {
+    async requestStatisticsSnapshot(mediaId?: string) {
         const message: ExtensionToAsbPlayerCommand<DictionaryRequestStatisticsSnapshotMessage> = {
             sender: 'asbplayer-extension-to-player',
             message: { command: 'dictionary-request-statistics-snapshot', mediaId },
@@ -274,7 +274,7 @@ export class LocalDictionaryStorage implements DictionaryStorage {
         };
     }
 
-    requestStatisticsGeneration(mediaId?: string) {
+    async requestStatisticsGeneration(mediaId?: string) {
         const message: ExtensionToAsbPlayerCommand<DictionaryRequestStatisticsGenerationMessage> = {
             sender: 'asbplayer-extension-to-player',
             message: { command: 'dictionary-request-statistics-generation', mediaId },
@@ -307,7 +307,7 @@ export class LocalDictionaryStorage implements DictionaryStorage {
         };
     }
 
-    requestStatisticsSeek(mediaId: string, timestamp: number) {
+    async requestStatisticsSeek(mediaId: string, timestamp: number) {
         const message: ExtensionToAsbPlayerCommand<DictionaryRequestStatisticsSeekMessage> = {
             sender: 'asbplayer-extension-to-player',
             message: {
@@ -340,7 +340,7 @@ export class LocalDictionaryStorage implements DictionaryStorage {
         };
     }
 
-    requestStatisticsMineSentences(mediaId: string, indexes: number[]) {
+    async requestStatisticsMineSentences(mediaId: string, indexes: number[]) {
         const message: ExtensionToAsbPlayerCommand<DictionaryRequestStatisticsMineSentencesMessage> = {
             sender: 'asbplayer-extension-to-player',
             message: {

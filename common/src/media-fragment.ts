@@ -1,8 +1,10 @@
-import { CardModel, FileModel, MediaFragmentErrorCode } from './model';
-import { isActiveBlobUrl } from '../blob-url';
-import { download } from '../util/util';
-import { JpegFileMediaFragmentData } from './jpeg-file-media-fragment-data';
-import { WebmFileMediaFragmentData } from './webm-file-media-fragment-data';
+import { asbWarn } from '@project/common/util/log';
+import type { CardModel, FileModel } from '@project/common/src/model';
+import { MediaFragmentErrorCode } from '@project/common/src/model';
+import { isActiveBlobUrl } from '@project/common/blob-url';
+import { download } from '@project/common/util/util';
+import { JpegFileMediaFragmentData } from '@project/common/src/jpeg-file-media-fragment-data';
+import { WebmFileMediaFragmentData } from '@project/common/src/webm-file-media-fragment-data';
 
 const maxPrefixLength = 24;
 const videoReadyTimeoutMs = 5_000;
@@ -132,8 +134,9 @@ export const createVideoElement = async (blobUrl: string): Promise<HTMLVideoElem
             }
 
             if (timedOut && !isFullySeekable) {
-                console.warn(
-                    `[MediaFragment] Video did not become ready within ${videoReadyTimeoutMs}ms. Continuing with fallback initialization.`
+                asbWarn(
+                    'media-fragment',
+                    `Video did not become ready within ${videoReadyTimeoutMs}ms. Continuing with fallback initialization.`
                 );
             }
 
@@ -277,7 +280,8 @@ export default class MediaFragment {
         mediaFragmentFormat: MediaFragmentFormat,
         mediaFragmentTrimStart: number,
         mediaFragmentTrimEnd: number,
-        mediaFragmentMaxClipLength: number
+        mediaFragmentMaxClipLength: number,
+        trimBlackBars: boolean
     ): MediaFragment | undefined;
     static fromCard(
         card: CardModel,
@@ -286,7 +290,8 @@ export default class MediaFragment {
         mediaFragmentFormat: MediaFragmentFormat = 'jpeg',
         mediaFragmentTrimStart: number = 0,
         mediaFragmentTrimEnd: number = 0,
-        mediaFragmentMaxClipLength: number = 0
+        mediaFragmentMaxClipLength: number = 0,
+        trimBlackBars: boolean = false
     ) {
         if (card.file && mediaFragmentFormat === 'webm' && isWebmMediaFragmentSupported()) {
             const { startTimestamp, endTimestamp } = resolveWebmMediaFragmentRange(
@@ -311,7 +316,13 @@ export default class MediaFragment {
         }
 
         if (card.file) {
-            return MediaFragment.fromFile(card.file, card.mediaTimestamp ?? card.subtitle.start, maxWidth, maxHeight);
+            return MediaFragment.fromFile(
+                card.file,
+                card.mediaTimestamp ?? card.subtitle.start,
+                maxWidth,
+                maxHeight,
+                trimBlackBars
+            );
         }
 
         return undefined;
@@ -329,8 +340,8 @@ export default class MediaFragment {
         return new MediaFragment(new Base64MediaFragmentData(mediaFragmentName, timestamp, base64, extension, error));
     }
 
-    static fromFile(file: FileModel, timestamp: number, maxWidth: number, maxHeight: number) {
-        return new MediaFragment(new JpegFileMediaFragmentData(file, timestamp, maxWidth, maxHeight));
+    static fromFile(file: FileModel, timestamp: number, maxWidth: number, maxHeight: number, trimBlackBars: boolean) {
+        return new MediaFragment(new JpegFileMediaFragmentData(file, timestamp, maxWidth, maxHeight, trimBlackBars));
     }
 
     static fromWebmFile(

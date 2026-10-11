@@ -1,8 +1,11 @@
 import {
+    areSubtitleModelsEqual,
     areTokenizationsEqual,
+    adjacentSubtitle,
     arrayEquals,
     AsyncSemaphore,
     buildSubtitleTracks,
+    clamp,
     compareSubtitlesForDisplay,
     computeStyles,
     computeStyleString,
@@ -10,12 +13,16 @@ import {
     ensureStoragePersisted,
     extractText,
     filterAsync,
+    formatAsSigned,
+    formatAsSignedMs,
     fromBatches,
+    getContiguousReading,
     getCurrentTimeString,
     getKanaMoras,
     hex2ToPercent,
     hexToRgb,
     humanReadableTime,
+    mapSubtitlesForDisplay,
     inBatches,
     isKanaOnly,
     isKanaMoraPitchHigh,
@@ -24,12 +31,18 @@ import {
     isNumeric,
     iterateOverStringInBlocks,
     joinSubtitles,
-    localizedDate,
+    keysAreEqual,
+    localizeDateTime,
     mapAsync,
     mockSurroundingSubtitles,
+    normalizeFinite,
     normalizeForSearch,
+    normalizeNonNegative,
+    normalizeNonPositive,
     normalizedLookupTerms,
     percentToHex2,
+    readableCharacterCount,
+    removeSubtitleHtml,
     seekWithNudge,
     sourceString,
     subtitleIntersectsTimeInterval,
@@ -39,8 +52,9 @@ import {
     timeDurationDisplay,
     clampMediaTimestamp,
 } from '@project/common/util';
-import { TextSubtitleSettings } from '@project/common/settings';
-import { Progress } from '@project/common';
+import type { TextSubtitleSettings } from '@project/common/settings';
+import { calculateSeekableTracksValue } from '@project/common/settings';
+import type { Progress } from '@project/common';
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 
 function subtitle(text: string, start: number, end: number, track = 0, index = 0) {
@@ -65,6 +79,60 @@ function textSubtitleSettings(overrides: Partial<TextSubtitleSettings> = {}): Te
         ...overrides,
     };
 }
+
+describe('removeSubtitleHtml', () => {
+    it('removes presentation markup while preserving and decoding its text', () => {
+        expect(removeSubtitleHtml('<b>foo</b> &amp;<br class="line"> <i>bar</i>')).toBe('foo &\n bar');
+    });
+
+    it('removes ruby readings and fallback text while preserving the base text', () => {
+        expect(removeSubtitleHtml('<ruby><b>漢</b><rp>(</rp><rt>かん</rt><rp>)</rp></ruby><i>字')).toBe('漢字');
+    });
+});
+
+describe('readableCharacterCount', () => {
+    it('excludes whitespace and invisible formatting controls', () => {
+        expect(readableCharacterCount('')).toBe(0);
+        expect(readableCharacterCount('  foo\n\tbar&nbsp;\u200b\u202a\u202c')).toBe(6);
+    });
+
+    it('counts canonically equivalent text and combined emoji as grapheme clusters', () => {
+        expect(readableCharacterCount('e\u0301')).toBe(1);
+        expect(readableCharacterCount('é')).toBe(1);
+        expect(readableCharacterCount('👨‍👩‍👧‍👦👍🏽')).toBe(2);
+    });
+
+    it('counts visible punctuation but excludes markup and ruby annotations', () => {
+        expect(readableCharacterCount('<b>Hi!</b>&amp;<ruby>漢<rp>(</rp><rt>かん</rt><rp>)</rp></ruby>')).toBe(5);
+    });
+});
+
+describe('numeric normalization', () => {
+    it('normalizes non-finite values to zero', () => {
+        expect(normalizeFinite(Number.NaN)).toBe(0);
+        expect(normalizeFinite(Number.POSITIVE_INFINITY)).toBe(0);
+        expect(normalizeFinite(Number.NaN, -5)).toBe(-5);
+        expect(normalizeFinite(-5)).toBe(-5);
+    });
+
+    it('normalizes values to the non-negative range', () => {
+        expect(normalizeNonNegative(-5)).toBe(0);
+        expect(normalizeNonNegative(Number.NaN)).toBe(0);
+        expect(normalizeNonNegative(5)).toBe(5);
+    });
+
+    it('normalizes values to the non-positive range', () => {
+        expect(normalizeNonPositive(5)).toBe(0);
+        expect(normalizeNonPositive(Number.NaN)).toBe(0);
+        expect(normalizeNonPositive(-5)).toBe(-5);
+    });
+
+    it('clamps values to a bounded range', () => {
+        expect(clamp(-1, 0, 10)).toBe(0);
+        expect(clamp(5, 0, 10)).toBe(5);
+        expect(clamp(11, 0, 10)).toBe(10);
+    });
+});
 
 describe('arrayEquals', () => {
     it('returns true for 0 items', () => {
@@ -91,6 +159,34 @@ describe('arrayEquals', () => {
                 (lhs, rhs) => lhs.value === rhs.value
             )
         ).toBe(false);
+    });
+});
+
+describe('keysAreEqual', () => {
+    it('treats 0-key objects as equal', () => {
+        expect(keysAreEqual({}, {})).toBe(true);
+    });
+
+    it('returns true for 1 matching key even when values differ', () => {
+        expect(keysAreEqual({ a: 1 }, { a: undefined })).toBe(true);
+    });
+
+    it('returns false when one side has an extra key', () => {
+        expect(keysAreEqual({ a: 1 }, { a: 1, b: 2 })).toBe(false);
+        expect(keysAreEqual({ a: 1, b: 2 }, { a: 1 })).toBe(false);
+    });
+
+    it('compares all keys for 2-key objects', () => {
+        expect(keysAreEqual({ a: 1, b: 2 }, { a: 3, b: 4 })).toBe(true);
+        expect(keysAreEqual({ a: 1, b: 2 }, { a: 3, c: 4 })).toBe(false);
+    });
+
+    it('compares own keys without counting inherited prototype keys', () => {
+        const objectWithInheritedKey = Object.create({ inherited: 1 });
+        objectWithInheritedKey.a = 1;
+
+        expect(keysAreEqual(objectWithInheritedKey, { a: 2 })).toBe(true);
+        expect(keysAreEqual(objectWithInheritedKey, { a: 2, inherited: 3 })).toBe(false);
     });
 });
 
@@ -129,7 +225,42 @@ describe('humanReadableTime', () => {
     });
 
     it('formats localized dates with hour, minute, and second fields', () => {
-        expect(localizedDate(Date.UTC(2026, 0, 1, 13, 2, 3), 'en-US', 'UTC')).toBe('01:02:03 PM');
+        expect(localizeDateTime(Date.UTC(2026, 0, 1, 13, 2, 3), { locales: 'en-US', timeZone: 'UTC' })).toBe(
+            '01:02:03 PM'
+        );
+    });
+
+    it('formats localized dates with milliseconds when requested', () => {
+        expect(
+            localizeDateTime(Date.UTC(2026, 0, 1, 13, 2, 3, 123), {
+                locales: 'en-US',
+                timeZone: 'UTC',
+                includeMilliseconds: true,
+            })
+        ).toBe('01:02:03.123 PM');
+    });
+
+    it('formats localized dates in 24-hour time when requested', () => {
+        expect(
+            localizeDateTime(Date.UTC(2026, 0, 1, 13, 2, 3, 123), {
+                locales: 'en-US',
+                timeZone: 'UTC',
+                hour12: false,
+                includeMilliseconds: true,
+            })
+        ).toBe('13:02:03.123');
+    });
+
+    it('includes the date in the requested time zone', () => {
+        expect(
+            localizeDateTime(Date.UTC(2026, 0, 1, 0, 30, 0, 123), {
+                locales: 'en-US',
+                timeZone: 'America/New_York',
+                hour12: false,
+                includeMilliseconds: true,
+                includeDate: true,
+            })
+        ).toBe('12/31/2025 19:30:00.123');
     });
 
     it('formats 0 milliseconds', () => {
@@ -154,6 +285,26 @@ describe('humanReadableTime', () => {
         jest.useFakeTimers().setSystemTime(new Date(2026, 4, 1, 2, 3, 4));
 
         expect(getCurrentTimeString()).toBe('2026-5-1-2-3-4');
+    });
+});
+
+describe('formatAsSigned', () => {
+    it('adds a plus sign to non-negative values and preserves negative values', () => {
+        expect(formatAsSigned(0)).toBe('+0');
+        expect(formatAsSigned(1.5)).toBe('+1.5');
+        expect(formatAsSigned(-1.5)).toBe('-1.5');
+    });
+
+    it('supports fixed decimal formatting', () => {
+        expect(formatAsSigned(1.5, 2)).toBe('+1.50');
+        expect(formatAsSigned(-1.5, 2)).toBe('-1.50');
+    });
+});
+
+describe('formatAsSignedMs', () => {
+    it('formats milliseconds with a sign and unit', () => {
+        expect(formatAsSignedMs(100)).toBe('+100 ms');
+        expect(formatAsSignedMs(-100)).toBe('-100 ms');
     });
 });
 
@@ -251,6 +402,41 @@ describe('clampMediaTimestamp', () => {
         expect(clampMediaTimestamp(100, -1)).toBe(100);
         expect(clampMediaTimestamp(100, Number.NaN)).toBe(100);
         expect(clampMediaTimestamp(100, Number.POSITIVE_INFINITY)).toBe(100);
+    });
+});
+
+describe('adjacentSubtitle', () => {
+    const subtitles = [
+        subtitle('189', 439_560, 440_580),
+        subtitle('190', 440_580, 441_360),
+        subtitle('191', 441_360, 446_059),
+        subtitle('192', 446_059, 448_459),
+    ];
+
+    it('returns cue 190 at the exact boundary where cue 191 starts', () => {
+        expect(adjacentSubtitle(false, 441_360, subtitles, 1)?.text).toBe('190');
+    });
+
+    it('returns cue 191 at the exact boundary where cue 192 starts', () => {
+        expect(adjacentSubtitle(false, 446_059, subtitles, 1)?.text).toBe('191');
+    });
+
+    it('skips an unseekable cue when selecting the previous seekable cue', () => {
+        const subtitles = [
+            subtitle('previous', 1_000, 2_000, 0),
+            subtitle('unseekable', 3_000, 4_000, 1),
+            subtitle('current', 5_000, 6_000, 0),
+        ];
+        const seekableTracks = calculateSeekableTracksValue([0]);
+
+        expect(adjacentSubtitle(false, 5_500, subtitles, seekableTracks)).toEqual(subtitles[0]);
+    });
+
+    it('returns null when only unseekable cues precede the current cue', () => {
+        const subtitles = [subtitle('unseekable', 3_000, 4_000, 1), subtitle('current', 5_000, 6_000, 0)];
+        const seekableTracks = calculateSeekableTracksValue([0]);
+
+        expect(adjacentSubtitle(false, 5_500, subtitles, seekableTracks)).toBeNull();
     });
 });
 
@@ -438,11 +624,17 @@ describe('extractText', () => {
 
 describe('computeStyles and computeStyleString', () => {
     it('returns base styles when optional decorations are disabled', () => {
-        expect(computeStyles(textSubtitleSettings())).toEqual({
+        const settings = textSubtitleSettings();
+
+        expect(computeStyles(settings)).toEqual({
             color: '#FFFFFF',
             fontSize: '32px',
             fontWeight: '700',
+            WebkitTextStroke: '0 transparent',
+            textShadow: 'none',
         });
+        expect(computeStyleString(settings)).toContain('-webkit-text-stroke: 0 transparent !important');
+        expect(computeStyleString(settings)).toContain('text-shadow: none !important');
     });
 
     it('applies outline, shadow, background, font family, and custom styles while ignoring numeric keys', () => {
@@ -737,7 +929,10 @@ describe('ensureStoragePersisted', () => {
         });
 
         await expect(ensureStoragePersisted()).resolves.toBe(false);
-        expect(warn).toHaveBeenCalledWith('Storage could not be persisted, data may be cleared by the browser');
+        expect(warn).toHaveBeenCalledWith(
+            expect.stringContaining('[asbplayer][storage]'),
+            'Storage could not be persisted, data may be cleared by the browser'
+        );
     });
 });
 
@@ -797,6 +992,116 @@ describe('iterateOverStringInBlocks', () => {
     });
 });
 
+describe('getContiguousReading', () => {
+    it('returns the original token text when there are no readings', () => {
+        expect(getContiguousReading('飛び切り', { readings: [] })).toBe('飛び切り');
+    });
+
+    it('combines one reading with the unannotated text around it', () => {
+        expect(
+            getContiguousReading('お飛び切りだ', {
+                readings: [{ pos: [1, 5], reading: 'とびきり' }],
+            })
+        ).toBe('おとびきりだ');
+    });
+
+    it('combines adjacent readings without adding separators', () => {
+        expect(
+            getContiguousReading('語学', {
+                readings: [
+                    { pos: [0, 1], reading: 'ご' },
+                    { pos: [1, 2], reading: 'がく' },
+                ],
+            })
+        ).toBe('ごがく');
+    });
+});
+
+describe('areSubtitleModelsEqual', () => {
+    const subtitle = {
+        text: 'subtitle',
+        displayTime: '00:01.000',
+        displayEndTime: '00:02.000',
+        originalText: 'original subtitle',
+        textImage: {
+            dataUrl: 'data:image/png;base64,image',
+            screen: { width: 100, height: 50 },
+            image: { width: 200, height: 100 },
+        },
+        start: 1000,
+        end: 2000,
+        originalStart: 1000,
+        originalEnd: 2000,
+        track: 0,
+        index: 1,
+        tokenization: {
+            tokens: [
+                {
+                    pos: [0, 4],
+                    states: [],
+                    readings: [],
+                    frequency: 1,
+                },
+            ],
+        },
+    } as any;
+
+    it('compares independently allocated nested values', () => {
+        expect(
+            areSubtitleModelsEqual(subtitle, {
+                ...subtitle,
+                textImage: {
+                    dataUrl: subtitle.textImage.dataUrl,
+                    screen: { ...subtitle.textImage.screen },
+                    image: { ...subtitle.textImage.image },
+                },
+                tokenization: {
+                    tokens: [
+                        {
+                            ...subtitle.tokenization.tokens[0],
+                            pos: [...subtitle.tokenization.tokens[0].pos],
+                            states: [...subtitle.tokenization.tokens[0].states],
+                            readings: [...subtitle.tokenization.tokens[0].readings],
+                        },
+                    ],
+                },
+            })
+        ).toBe(true);
+    });
+
+    it.each([
+        ['text', { text: 'different' }],
+        ['display time', { displayTime: '00:02.000' }],
+        ['display end time', { displayEndTime: '00:03.000' }],
+        ['original text', { originalText: 'different original subtitle' }],
+        [
+            'text image',
+            {
+                textImage: {
+                    ...subtitle.textImage,
+                    image: { ...subtitle.textImage.image, width: 201 },
+                },
+            },
+        ],
+        ['start', { start: 1001 }],
+        ['end', { end: 2001 }],
+        ['original start', { originalStart: 1001 }],
+        ['original end', { originalEnd: 2001 }],
+        ['track', { track: 1 }],
+        ['index', { index: 2 }],
+        [
+            'tokenization',
+            {
+                tokenization: {
+                    tokens: [{ ...subtitle.tokenization.tokens[0], frequency: 2 }],
+                },
+            },
+        ],
+    ])('detects a change to the %s field', (_field, change) => {
+        expect(areSubtitleModelsEqual(subtitle, { ...subtitle, ...change })).toBe(false);
+    });
+});
+
 describe('areTokenizationsEqual', () => {
     const tokenization = {
         error: false,
@@ -807,6 +1112,7 @@ describe('areTokenizationsEqual', () => {
                 states: ['ignored'],
                 readings: [{ pos: [0, 1], reading: 'a' }],
                 frequency: 1,
+                gloss: 'first',
                 groupingKey: 'group-a',
             },
         ],
@@ -826,6 +1132,7 @@ describe('areTokenizationsEqual', () => {
                     pos: [...token.pos],
                     states: [...token.states],
                     readings: token.readings.map((reading: any) => ({ ...reading, pos: [...reading.pos] })),
+                    gloss: token.gloss,
                 })),
             })
         ).toBe(true);
@@ -966,5 +1273,23 @@ it('sorts subtitles by track first, regardless of source index', () => {
     expect([...cues].sort(compareSubtitlesForDisplay)).toEqual([
         { track: 0, index: 1 },
         { track: 1, index: 0 },
+    ]);
+});
+
+it('maps showing and invisible subtitles in display order with their visibility', () => {
+    const showing = [
+        { track: 0, index: 1 },
+        { track: 2, index: 0 },
+    ];
+    const invisible = [
+        { track: 1, index: 3 },
+        { track: 2, index: 2 },
+    ];
+
+    expect(mapSubtitlesForDisplay(showing, invisible, (subtitle, visible) => ({ ...subtitle, visible }))).toEqual([
+        { track: 0, index: 1, visible: true },
+        { track: 1, index: 3, visible: false },
+        { track: 2, index: 0, visible: true },
+        { track: 2, index: 2, visible: false },
     ]);
 });

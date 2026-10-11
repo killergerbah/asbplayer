@@ -4,8 +4,8 @@ import {
     minWebmMediaFragmentDurationMs,
     preferredWebmMediaFragmentMimeType,
     resolveWebmMediaFragmentRange,
-} from './media-fragment';
-import { CardModel } from './model';
+} from '@project/common/src/media-fragment';
+import type { CardModel } from '@project/common/src/model';
 import { afterEach, expect, it } from '@jest/globals';
 
 const originalMediaRecorder = (globalThis as any).MediaRecorder;
@@ -141,7 +141,8 @@ it('exposes the resolved WebM end timestamp on the media fragment', () => {
         'webm',
         200,
         300,
-        10_000
+        10_000,
+        false
     );
 
     expect(mediaFragment?.timestamp).toEqual(1_200);

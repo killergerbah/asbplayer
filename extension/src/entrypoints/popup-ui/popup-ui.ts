@@ -1,6 +1,10 @@
+import { asbError } from '@project/common/util/log';
 import { ExtensionSettingsStorage } from '@/services/extension-settings-storage';
 import { renderPopupUi } from '@/ui/popup';
 import { SettingsProvider } from '@project/common/settings';
+import { configureExtensionLogProvider } from '@/services/extension-log-provider';
+
+configureExtensionLogProvider();
 
 const fetchShortcuts = () => {
     return new Promise((resolve) => {
@@ -32,5 +36,5 @@ document.addEventListener('DOMContentLoaded', () => {
         const commands = await commandsPromise;
         const rootElement = document.getElementById('root')!;
         await renderPopupUi(rootElement, { currentSettings, commands });
-    })().catch(console.error);
+    })().catch((error) => asbError('popup', error));
 });

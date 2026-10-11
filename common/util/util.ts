@@ -1,9 +1,79 @@
+import { asbWarn } from '@project/common/util/log';
 import sanitize from 'sanitize-filename';
-import { Rgb, SubtitleModel, SubtitleTrack, Token, Tokenization, TokenReading } from '../src/model';
-import { TextSubtitleSettings, TokenStatus } from '../settings/settings';
-import { Progress } from '..';
-import { TokenStatusInfo } from '../dictionary-db';
-import { PitchAccentPosition } from '../yomitan';
+export { arrayEquals } from '@project/common/util/array-equals'; // Necessary to break an import cycle between settings and util
+import { arrayEquals } from '@project/common/util/array-equals';
+import type {
+    DimensionsModel,
+    Rgb,
+    SubtitleModel,
+    SubtitleTextImage,
+    SubtitleTrack,
+    Token,
+    Tokenization,
+    TokenReading,
+} from '@project/common/src/model';
+import type { SeekableTracks, TextSubtitleSettings } from '@project/common/settings';
+import { isTrackSeekable, TokenStatus } from '@project/common/settings';
+import type { Progress } from '..';
+import type { TokenStatusInfo } from '@project/common/dictionary-db';
+import type { PitchAccentPosition } from '@project/common/yomitan';
+
+export interface AnimationFrameRetryOptions {
+    runImmediately?: boolean;
+}
+
+/** Runs an operation until it succeeds or its animation-frame attempt limit is reached. */
+export const retryWithAnimationFrame = (
+    operation: () => boolean,
+    maxAttempts: number,
+    { runImmediately = false }: AnimationFrameRetryOptions = {}
+): (() => void) => {
+    let animationFrame: number | undefined;
+    let attempts = 0;
+    let cancelled = false;
+
+    const attempt = () => {
+        animationFrame = undefined;
+        if (cancelled || operation() || ++attempts >= maxAttempts) return;
+        animationFrame = requestAnimationFrame(attempt);
+    };
+
+    if (maxAttempts > 0) {
+        if (runImmediately) attempt();
+        else animationFrame = requestAnimationFrame(attempt);
+    }
+
+    return () => {
+        cancelled = true;
+        if (animationFrame !== undefined) {
+            cancelAnimationFrame(animationFrame);
+            animationFrame = undefined;
+        }
+    };
+};
+
+let subtitleHtmlHelperElement: HTMLDivElement | undefined;
+const subtitleGraphemeSegmenter = new Intl.Segmenter(undefined, { granularity: 'grapheme' });
+const invisibleGraphemePattern = /^[\s\p{Default_Ignorable_Code_Point}]*$/u;
+
+/** Removes presentation markup, ruby readings, and ruby fallback text from subtitle text. */
+export const removeSubtitleHtml = (text: string): string => {
+    subtitleHtmlHelperElement ??= document.createElement('div');
+    subtitleHtmlHelperElement.innerHTML = text;
+    for (const element of subtitleHtmlHelperElement.querySelectorAll('br')) element.replaceWith('\n');
+    for (const element of subtitleHtmlHelperElement.querySelectorAll('rt, rp')) element.remove();
+    return subtitleHtmlHelperElement.textContent ?? subtitleHtmlHelperElement.innerText;
+};
+
+/** Counts visible subtitle graphemes, excluding markup, ruby annotations, whitespace, and formatting controls. */
+export const readableCharacterCount = (text: string): number => {
+    const readableText = removeSubtitleHtml(text).normalize('NFC');
+    let count = 0;
+    for (const { segment } of subtitleGraphemeSegmenter.segment(readableText)) {
+        if (!invisibleGraphemePattern.test(segment)) count++;
+    }
+    return count;
+};
 
 // Cues on the same track can share a start time (e.g. Netflix splitting one line into
 // multiple cues), and SubtitleCollection does not guarantee source order in that case, so
@@ -15,27 +85,67 @@ export function compareSubtitlesForDisplay(
     return s1.track - s2.track || (s1.index ?? 0) - (s2.index ?? 0);
 }
 
-export function arrayEquals<T>(
-    a: readonly T[] | undefined,
-    b: readonly T[] | undefined,
-    equals = (lhs: T, rhs: T) => lhs === rhs
-): boolean {
-    if (a === b) return true;
-    if (!a || !b) return false;
-    if (a.length !== b.length) return false;
-    for (let i = 0; i < a.length; ++i) {
-        if (!equals(a[i], b[i])) return false;
+/** Maps separately sorted showing and invisible subtitles into canonical display order. */
+export function mapSubtitlesForDisplay<T extends Pick<SubtitleModel, 'track' | 'index'>, R>(
+    showingSubtitles: readonly T[],
+    invisibleSubtitles: readonly T[],
+    map: (subtitle: T, visible: boolean, sourceIndex: number) => R
+): R[] {
+    const result: R[] = [];
+    let showingIndex = 0;
+    let invisibleIndex = 0;
+    while (showingIndex < showingSubtitles.length || invisibleIndex < invisibleSubtitles.length) {
+        const showingSubtitle = showingSubtitles[showingIndex];
+        const invisibleSubtitle = invisibleSubtitles[invisibleIndex];
+        if (
+            invisibleSubtitle === undefined ||
+            (showingSubtitle !== undefined && compareSubtitlesForDisplay(showingSubtitle, invisibleSubtitle) < 0)
+        ) {
+            result.push(map(showingSubtitle, true, showingIndex));
+            showingIndex++;
+        } else {
+            result.push(map(invisibleSubtitle, false, invisibleIndex));
+            invisibleIndex++;
+        }
     }
-    return true;
+    return result;
 }
 
-export const localizedDate = (timestamp: number, locales: Intl.LocalesArgument = [], timeZone?: string) => {
-    return new Date(timestamp).toLocaleTimeString(locales, {
+export function keysAreEqual(a: any, b: any) {
+    const aKeys = Object.keys(a);
+    const bKeys = Object.keys(b);
+    if (aKeys.length !== bKeys.length) return false;
+    return aKeys.every((key) => Object.prototype.hasOwnProperty.call(b, key));
+}
+
+export interface LocalizeDateTimeOptions {
+    locales?: Intl.LocalesArgument;
+    timeZone?: string;
+    hour12?: boolean;
+    includeMilliseconds?: boolean;
+    includeDate?: boolean;
+}
+
+export const localizeDateTime = (timestamp: number, options: LocalizeDateTimeOptions = {}) => {
+    const date = new Date(timestamp);
+    const locales = options.locales ?? [];
+    const time = date.toLocaleTimeString(locales, {
         hour: '2-digit',
         minute: '2-digit',
         second: '2-digit',
-        timeZone,
+        hour12: options.hour12,
+        fractionalSecondDigits: options.includeMilliseconds ? 3 : undefined,
+        timeZone: options.timeZone,
     });
+    if (!options.includeDate) return time;
+
+    const calendarDate = date.toLocaleDateString(locales, {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        timeZone: options.timeZone,
+    });
+    return calendarDate + ' ' + time;
 };
 
 export const MS_PER_DAY = 24 * 60 * 60 * 1000;
@@ -79,6 +189,15 @@ export function humanReadableTime(timestamp: number, nearestTenth = false, fully
     }
 }
 
+export function formatAsSigned(value: number, decimalPlaces?: number): string {
+    const stringValue = decimalPlaces === undefined ? String(value) : value.toFixed(decimalPlaces);
+    return value >= 0 ? `+${stringValue}` : stringValue;
+}
+
+export function formatAsSignedMs(milliseconds: number): string {
+    return `${formatAsSigned(milliseconds)} ms`;
+}
+
 export function timeDurationDisplay(
     milliseconds: number,
     totalMilliseconds: number,
@@ -117,9 +236,64 @@ export function clampMediaTimestamp(timestamp: number, mediaLength?: number): nu
     return Math.min(clampedTimestamp, mediaLength);
 }
 
+export const clamp = (value: number, min: number, max: number): number => Math.max(min, Math.min(max, value));
+
+export function normalizeFinite(value: number): number;
+export function normalizeFinite(value: number, fallback: number): number;
+export function normalizeFinite(value: number, fallback: undefined): number | undefined;
+export function normalizeFinite(value: number, fallback?: number): number | undefined {
+    return Number.isFinite(value) ? value : arguments.length > 1 ? fallback : 0;
+}
+
+export const normalizeNonNegative = (value: number): number => Math.max(0, normalizeFinite(value));
+
+export const normalizeNonPositive = (value: number): number => Math.min(0, normalizeFinite(value));
+
 export function getCurrentTimeString(): string {
     const now = new Date();
     return `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}-${now.getHours()}-${now.getMinutes()}-${now.getSeconds()}`;
+}
+
+export function adjacentSubtitle(
+    forward: boolean,
+    time: number,
+    subtitles: SubtitleModel[],
+    seekableTracks: SeekableTracks
+) {
+    const now = time;
+    let adjacentSubtitleIndex = -1;
+    let minDiff = Number.MAX_SAFE_INTEGER;
+
+    if (forward) {
+        for (let i = 0; i < subtitles.length; ++i) {
+            const s = subtitles[i];
+            if (!isTrackSeekable(seekableTracks, s.track)) continue;
+
+            const diff = s.start - now;
+            if (minDiff <= diff) continue;
+
+            if (now < s.start) {
+                minDiff = diff;
+                adjacentSubtitleIndex = i;
+            }
+        }
+    } else {
+        for (let i = subtitles.length - 1; i >= 0; --i) {
+            const s = subtitles[i];
+            if (!isTrackSeekable(seekableTracks, s.track)) continue;
+
+            const diff = now - s.end;
+            if (minDiff <= diff) continue;
+
+            if (now >= s.end) {
+                minDiff = diff;
+                adjacentSubtitleIndex = i;
+            }
+        }
+    }
+
+    if (adjacentSubtitleIndex !== -1) return subtitles[adjacentSubtitleIndex];
+    return null;
 }
 
 export function surroundingSubtitles(
@@ -309,6 +483,28 @@ function withinBoundaryAroundInterval(
     return false;
 }
 
+export function errorMessageFromVideo(element: HTMLMediaElement): string {
+    let error: string;
+    switch (element.error?.code) {
+        case 1:
+            error = 'MEDIA_ERR_ABORTED';
+            break;
+        case 2:
+            error = 'MEDIA_ERR_ABORTED';
+            break;
+        case 3:
+            error = 'MEDIA_ERR_DECODE';
+            break;
+        case 4:
+            error = 'MEDIA_ERR_SRC_NOT_SUPPORTED';
+            break;
+        default:
+            error = 'Unknown error';
+            break;
+    }
+    return error + ': ' + (element.error?.message || '<details missing>');
+}
+
 export function subtitleTimestampWithDelay(subtitle: Pick<SubtitleModel, 'start' | 'end'>, delay: number): number {
     const start = Math.min(subtitle.start, subtitle.end);
     const end = Math.max(subtitle.start, subtitle.end);
@@ -382,6 +578,8 @@ export function computeStyles(
         color: subtitleColor,
         fontSize: `${subtitleSize}px`,
         fontWeight: String(subtitleThickness),
+        WebkitTextStroke: '0 transparent',
+        textShadow: 'none',
     };
 
     if (subtitleOutlineThickness > 0) {
@@ -698,7 +896,7 @@ export async function ensureStoragePersisted(): Promise<boolean | undefined> {
     if (!navigator.storage?.persist) return;
     if (await navigator.storage.persisted()) return true;
     const persisted = await navigator.storage.persist();
-    if (!persisted) console.warn('Storage could not be persisted, data may be cleared by the browser');
+    if (!persisted) asbWarn('storage', 'Storage could not be persisted, data may be cleared by the browser');
     return persisted;
 }
 
@@ -745,13 +943,109 @@ export function iterateOverStringInBlocks<B extends Block>(
     }
 }
 
-export const areTokenizationsEqual = (a: Tokenization | undefined, b: Tokenization | undefined) => {
+/** Combines a token's readings with any unannotated spans into one searchable/displayable reading. */
+export const getContiguousReading = (tokenText: string, token: Pick<Token, 'readings'>): string => {
+    let readingText = '';
+    iterateOverStringInBlocks(
+        tokenText,
+        (_, blockIndex) => token.readings[blockIndex],
+        (left, right, reading) => {
+            readingText += reading === undefined ? tokenText.substring(left, right) : reading.reading;
+        }
+    );
+    return readingText;
+};
+
+type DimensionsComparators = {
+    [K in keyof DimensionsModel]: (a: DimensionsModel[K], b: DimensionsModel[K]) => boolean;
+};
+
+const dimensionsComparators: DimensionsComparators = {
+    width: (a, b) => a === b,
+    height: (a, b) => a === b,
+};
+
+function compareDimensionsField<K extends keyof DimensionsModel>(key: K, a: DimensionsModel, b: DimensionsModel) {
+    return dimensionsComparators[key](a[key], b[key]);
+}
+
+function areDimensionsEqual(a: DimensionsModel, b: DimensionsModel): boolean {
+    if (a === b) return true;
+    for (const key in dimensionsComparators) {
+        if (!compareDimensionsField(key as keyof DimensionsModel, a, b)) return false;
+    }
+    return true;
+}
+
+type SubtitleTextImageComparators = {
+    [K in keyof SubtitleTextImage]: (a: SubtitleTextImage[K], b: SubtitleTextImage[K]) => boolean;
+};
+
+const subtitleTextImageComparators: SubtitleTextImageComparators = {
+    dataUrl: (a, b) => a === b,
+    screen: (a, b) => areDimensionsEqual(a, b),
+    image: (a, b) => areDimensionsEqual(a, b),
+};
+
+function compareSubtitleTextImageField<K extends keyof SubtitleTextImage>(
+    key: K,
+    a: SubtitleTextImage,
+    b: SubtitleTextImage
+) {
+    return subtitleTextImageComparators[key](a[key], b[key]);
+}
+
+function areSubtitleTextImagesEqual(a: SubtitleTextImage | undefined, b: SubtitleTextImage | undefined): boolean {
+    if (a === b) return true;
+    if (!a || !b) return false;
+    for (const key in subtitleTextImageComparators) {
+        if (!compareSubtitleTextImageField(key as keyof SubtitleTextImage, a, b)) return false;
+    }
+    return true;
+}
+
+type SubtitleModelComparators = {
+    [K in keyof SubtitleModel]: (a: SubtitleModel[K], b: SubtitleModel[K]) => boolean;
+};
+
+const subtitleModelComparators: SubtitleModelComparators = {
+    text: (a, b) => a === b,
+    originalText: (a, b) => a === b,
+    textImage: (a, b) => areSubtitleTextImagesEqual(a, b),
+    start: (a, b) => a === b,
+    end: (a, b) => a === b,
+    originalStart: (a, b) => a === b,
+    originalEnd: (a, b) => a === b,
+    displayTime: (a, b) => a === b,
+    displayEndTime: (a, b) => a === b,
+    track: (a, b) => a === b,
+    index: (a, b) => a === b,
+    tokenization: (a, b) => areTokenizationsEqual(a, b),
+} satisfies Required<SubtitleModelComparators>;
+
+export function compareSubtitleModelField<K extends keyof SubtitleModel>(
+    key: K,
+    a: SubtitleModel,
+    b: SubtitleModel
+): boolean {
+    return subtitleModelComparators[key]!(a[key], b[key]);
+}
+
+export function areSubtitleModelsEqual(a: SubtitleModel, b: SubtitleModel): boolean {
+    if (a === b) return true;
+    for (const key in subtitleModelComparators) {
+        if (!compareSubtitleModelField(key as keyof SubtitleModel, a, b)) return false;
+    }
+    return true;
+}
+
+export function areTokenizationsEqual(a: Tokenization | undefined, b: Tokenization | undefined) {
     if (a === b) return true;
     if (!a || !b) return false;
 
     if (a.error !== b.error) return false;
     return arrayEquals(a.tokens, b.tokens, areTokensEqual);
-};
+}
 
 type TokenReadingComparators = {
     [K in keyof TokenReading]: (a: TokenReading[K], b: TokenReading[K]) => boolean;
@@ -786,6 +1080,7 @@ const tokenComparators: TokenComparators = {
     status: (a, b) => a === b,
     readings: (a, b) => arrayEquals(a, b, areTokenReadingsEqual),
     frequency: (a, b) => a === b,
+    gloss: (a, b) => a === b,
     pitchAccent: (a, b) => a === b,
     groupingKey: (a, b) => a === b,
     lemmasGroupingKey: (a, b) => a === b,
@@ -913,7 +1208,7 @@ export class AsyncSemaphore {
     release(id: number): void {
         if (!this.acquired.has(id)) return;
         this.acquired.delete(id);
-        clearTimeout(this.timers.get(id)!);
+        clearTimeout(this.timers.get(id));
         this.timers.delete(id);
 
         if (this.waiting.size > 0) {

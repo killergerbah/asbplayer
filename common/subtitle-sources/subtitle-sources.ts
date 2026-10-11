@@ -73,18 +73,25 @@ const parseOptionalFloat = (value: string | null): number | undefined => {
 
 export interface JimakuClientOptions {
     apiKey: string;
+    clientId: string;
     baseUrl?: string;
     minRequestIntervalMs?: number;
 }
 
 export class JimakuClient {
     private readonly _apiKey: string;
+    private readonly _clientId: string;
     private readonly _baseUrl: string;
     private readonly _minRequestIntervalMs: number;
     private _lastRequestTimestampMs?: number;
     private _lastRateLimit?: JimakuRateLimit;
 
-    constructor({ apiKey, baseUrl = defaultJimakuBaseUrl, minRequestIntervalMs = 1000 }: JimakuClientOptions) {
+    constructor({
+        apiKey,
+        clientId,
+        baseUrl = defaultJimakuBaseUrl,
+        minRequestIntervalMs = 1000,
+    }: JimakuClientOptions) {
         const trimmedApiKey = apiKey.trim();
 
         if (trimmedApiKey.length === 0) {
@@ -92,13 +99,20 @@ export class JimakuClient {
         }
 
         this._apiKey = trimmedApiKey;
+        this._clientId = clientId;
         this._baseUrl = baseUrl;
         this._minRequestIntervalMs = minRequestIntervalMs;
     }
 
     async searchEntries(query: string, anime?: boolean): Promise<JimakuResponse<JimakuEntry[]>> {
         const searchParams = new URLSearchParams();
-        searchParams.set('query', query);
+        // Jimaku only matches an apostrophe or dash of the same kind (' vs ’, - vs –), but ignores them when omitted
+        const normalizedQuery = query
+            .replace(/['’‘`´]/g, '')
+            .replace(/[-–—]/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+        searchParams.set('query', normalizedQuery);
         if (anime !== undefined) {
             searchParams.set('anime', `${anime}`);
         }
@@ -131,6 +145,7 @@ export class JimakuClient {
         const response = await fetch(new URL(endpoint, `${this._baseUrl}/`).toString(), {
             headers: {
                 Authorization: this._apiKey,
+                'X-Client-ID': this._clientId,
             },
         });
         this._lastRequestTimestampMs = Date.now();

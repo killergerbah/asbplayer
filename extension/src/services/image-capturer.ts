@@ -1,6 +1,6 @@
-import { CropAndResizeMessage, ExtensionToVideoCommand, ImageCaptureParams, RectModel } from '@project/common';
-import { SettingsProvider } from '@project/common/settings';
-import { captureVisibleTab } from './capture-visible-tab';
+import type { CropAndResizeMessage, ExtensionToVideoCommand, ImageCaptureParams, RectModel } from '@project/common';
+import type { SettingsProvider } from '@project/common/settings';
+import { captureVisibleTab } from '@project/extension/src/services/capture-visible-tab';
 
 export interface CaptureOptions {
     maxWidth: number;
@@ -105,7 +105,8 @@ export default class ImageCapturer {
     ): Promise<string> {
         const cropScreenshot = await this.settings.getSingle('streamingCropScreenshot');
 
-        if (!cropScreenshot) {
+        // Trimming black bars only makes sense on the video area, so it implies cropping to the video
+        if (!cropScreenshot && !imageCaptureParams.trimBlackBars) {
             return dataUrl;
         }
 

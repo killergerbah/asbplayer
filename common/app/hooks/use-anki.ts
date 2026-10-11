@@ -1,6 +1,6 @@
-import { Fetcher } from '../..';
-import { Anki } from '../../anki';
-import { AnkiSettings } from '../../settings';
+import type { Fetcher } from '@project/common';
+import { Anki } from '@project/common/anki';
+import type { AnkiSettings } from '@project/common/settings';
 import { useMemo } from 'react';
 
 class SettingsAccessor {
@@ -70,6 +70,12 @@ class SettingsAccessor {
     get preferMp3() {
         return this.settings.preferMp3;
     }
+    get alwaysUseSubtitleForSentence() {
+        return this.settings.alwaysUseSubtitleForSentence;
+    }
+    get updateLastCardForSameSubtitle() {
+        return this.settings.updateLastCardForSameSubtitle;
+    }
     get audioPaddingStart() {
         return this.settings.audioPaddingStart;
     }
@@ -94,6 +100,9 @@ class SettingsAccessor {
     get mediaFragmentMaxClipLength() {
         return this.settings.mediaFragmentMaxClipLength;
     }
+    get trimBlackBars() {
+        return this.settings.trimBlackBars;
+    }
     get surroundingSubtitlesCountRadius() {
         return this.settings.surroundingSubtitlesCountRadius;
     }
@@ -102,6 +111,9 @@ class SettingsAccessor {
     }
     get recordWithAudioPlayback() {
         return this.settings.recordWithAudioPlayback;
+    }
+    get ankiRefreshBrowserAfterUpdate() {
+        return this.settings.ankiRefreshBrowserAfterUpdate;
     }
 }
 

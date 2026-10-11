@@ -1,11 +1,12 @@
-import {
+import { asbError } from '@project/common/util/log';
+import type {
     CloseSidePanelMessage,
     Command,
     ExtensionToAsbPlayerCommand,
     Message,
     ToggleSidePanelMessage,
 } from '@project/common';
-import TabRegistry from '../../services/tab-registry';
+import type TabRegistry from '@project/extension/src/services/tab-registry';
 import { setAppRequestedLocation } from '@/services/side-panel';
 import { isFirefoxBuild } from '@/services/build-flags';
 
@@ -58,14 +59,20 @@ export default class ToggleSidePanelHandler {
 
         if (sidePanelOpen) {
             // Side panel is open, we can change its location
-            void setAppRequestedLocation(appRequestedLocation!);
+            void setAppRequestedLocation(appRequestedLocation!).catch((error) =>
+                asbError('side-panel', 'Failed to save the requested panel location:', error)
+            );
         } else if (!sidePanelOpen) {
             // Open the side panel at the app-requested location
-            void setAppRequestedLocation(appRequestedLocation!);
+            void setAppRequestedLocation(appRequestedLocation!).catch((error) =>
+                asbError('side-panel', 'Failed to save the requested panel location:', error)
+            );
             if (!isFirefoxBuild) {
                 browser.windows.getLastFocused((w) => {
                     const windowId = w.id;
-                    void browser.sidePanel.open({ windowId: windowId! });
+                    void browser.sidePanel
+                        .open({ windowId: windowId! })
+                        .catch((error) => asbError('side-panel', 'Failed to open the side panel:', error));
                 });
             }
         }

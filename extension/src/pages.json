@@ -10,10 +10,20 @@
             }
         },
         {
+            "key": "crunchyroll",
+            "host": "(www\\.)?crunchyroll\\.com",
+            "pageScript": "crunchyroll-page.js",
+            "syncAllowedAtPath": "watch",
+            "autoSync": {
+                "enabled": true
+            }
+        },
+        {
             "key": "youtube",
             "host": "(m|www)\\.youtube\\.com",
             "pageScript": "youtube-page.js",
             "syncAllowedAtPath": "watch|shorts|embed",
+            "preferredVideoElementSelector": "#movie_player video",
             "autoSync": {
                 "enabled": true
             }
@@ -126,6 +136,7 @@
             "key": "embyJellyfin",
             "host": "(jellyfin.*)|(emby.*)|(:8096$)",
             "pageScript": "emby-jellyfin-page.js",
+            "videoSrcChangesIndicateNewVideo": true,
             "syncAllowedAtHash": "#!/videoosd/videoosd.html|#/video",
             "autoSync": {
                 "enabled": true
@@ -202,8 +213,8 @@
         },
         {
             "key": "cijapanese",
-            "host": "cijapanese\\.com",
-            "pageScript": "cijapanese-page.js",
+            "host": "nijapanese\\.com",
+            "pageScript": "nijapanese-page.js",
             "syncAllowedAtPath": "video",
             "autoSync": {
                 "enabled": true
@@ -231,6 +242,50 @@
             "key": "archive",
             "host": "archive\\.org",
             "searchShadowRootsForVideoElements": true
+        },
+        {
+            "key": "rutube",
+            "host": "(www\\.)?rutube\\.ru",
+            "pageScript": "rutube-page.js",
+            "syncAllowedAtPath": "video",
+            "autoSync": {
+                "enabled": true
+            }
+        },
+        {
+            "key": "okru",
+            "host": "ok\\.ru",
+            "pageScript": "okru-page.js",
+            "subtitleDiscoveryRequestTarget": "video",
+            "syncAllowedAtPath": "video",
+            "refreshSubtitleDataOnPickerOpen": true,
+            "searchShadowRootsForVideoElements": true,
+            "autoSync": {
+                "enabled": true
+            }
+        },
+        {
+            "key": "vkvideo",
+            "host": "vkvideo\\.ru",
+            "pageScript": "vkvideo-page.js",
+            "subtitleDiscoveryRequestTarget": "video",
+            "syncAllowedAtPath": "video|clip",
+            "refreshSubtitleDataOnPickerOpen": true,
+            "searchShadowRootsForVideoElements": true,
+            "autoSync": {
+                "enabled": true
+            }
+        },
+        {
+            "key": "dreaming",
+            "host": "app\\.dreaming\\.com",
+            "pageScript": "dreaming-page.js",
+            "subtitleDiscoveryRequestTarget": "video",
+            "syncAllowedAtPath": "watch",
+            "refreshSubtitleDataOnPickerOpen": true,
+            "autoSync": {
+                "enabled": true
+            }
         }
     ]
 }

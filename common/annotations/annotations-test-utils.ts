@@ -1,18 +1,17 @@
-import { type IndexedSubtitleModel, type Token } from '@project/common';
+import type { Fetcher, IndexedSubtitleModel, Token } from '@project/common';
 import { jest } from '@jest/globals';
 import { DictionaryProvider } from '@project/common/dictionary-db';
 import {
-    type AsbplayerSettings,
     defaultSettings,
-    type DictionaryTrack,
     SettingsProvider,
     TokenFrequencyAnnotation,
     TokenReadingAnnotation,
     TokenState,
     TokenStatus,
 } from '@project/common/settings';
+import type { AsbplayerSettings, DictionaryTrack } from '@project/common/settings';
 import { MockSettingsStorage } from '@project/common/settings/mock-settings-storage';
-import { SubtitleAnnotations } from './subtitle-annotations';
+import { SubtitleAnnotations } from '@project/common/annotations/subtitle-annotations';
 
 export const cloneAnnotationConfig = (track: DictionaryTrack) => ({
     ...track.dictionaryTokenAnnotationConfig,
@@ -20,12 +19,14 @@ export const cloneAnnotationConfig = (track: DictionaryTrack) => ({
         color: { ...track.dictionaryTokenAnnotationConfig.video.color },
         reading: { ...track.dictionaryTokenAnnotationConfig.video.reading },
         frequency: { ...track.dictionaryTokenAnnotationConfig.video.frequency },
+        gloss: { ...track.dictionaryTokenAnnotationConfig.video.gloss },
         pitchAccent: { ...track.dictionaryTokenAnnotationConfig.video.pitchAccent },
     },
     subtitlePlayer: {
         color: { ...track.dictionaryTokenAnnotationConfig.subtitlePlayer.color },
         reading: { ...track.dictionaryTokenAnnotationConfig.subtitlePlayer.reading },
         frequency: { ...track.dictionaryTokenAnnotationConfig.subtitlePlayer.frequency },
+        gloss: { ...track.dictionaryTokenAnnotationConfig.subtitlePlayer.gloss },
         pitchAccent: { ...track.dictionaryTokenAnnotationConfig.subtitlePlayer.pitchAccent },
     },
     onStatuses: track.dictionaryTokenAnnotationConfig.onStatuses.map((config) => ({ ...config })),
@@ -80,18 +81,17 @@ export const makeSettings = (dictionaryTracks = makeDictionaryTracks()): Asbplay
     dictionaryTracks,
 });
 
-export const makeSubtitle = (overrides: Record<string, unknown> = {}): IndexedSubtitleModel =>
-    ({
-        text: 'word',
-        originalText: 'word',
-        start: 0,
-        originalStart: 0,
-        end: 1000,
-        originalEnd: 1000,
-        track: 0,
-        index: 0,
-        ...overrides,
-    }) as IndexedSubtitleModel;
+export const makeSubtitle = (overrides: Record<string, unknown> = {}): IndexedSubtitleModel => ({
+    text: 'word',
+    originalText: 'word',
+    start: 0,
+    originalStart: 0,
+    end: 1000,
+    originalEnd: 1000,
+    track: 0,
+    index: 0,
+    ...overrides,
+});
 
 export const makeToken = (overrides: Partial<Token> = {}): Token => ({
     pos: [0, 4],
@@ -132,19 +132,21 @@ export const makeStorage = () => ({
     _removeCallback: jest.fn(),
 });
 
-export const makeSubtitleAnnotations = (settings = makeSettings()) => {
+export const makeSubtitleAnnotations = (settings = makeSettings(), fetcher?: Fetcher) => {
     const storage = makeStorage();
     const provider = new DictionaryProvider(storage as any);
     const settingsStorage = new MockSettingsStorage();
     settingsStorage.setData(settings);
     const settingsProvider = new SettingsProvider(settingsStorage);
-    const subtitleAnnotationsUpdated = jest.fn();
+    const subtitleAnnotationsUpdated = jest.fn<ConstructorParameters<typeof SubtitleAnnotations>[4]>();
     const subtitleAnnotations = new SubtitleAnnotations(
         provider,
         settingsProvider,
         { showingCheckRadiusMs: 150 },
         'media-id',
-        subtitleAnnotationsUpdated
+        subtitleAnnotationsUpdated,
+        undefined,
+        fetcher
     );
 
     return { subtitleAnnotations, storage, settingsProvider, subtitleAnnotationsUpdated };

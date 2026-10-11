@@ -18,12 +18,26 @@ export interface OnlineSubtitleSourceConfig {
     jimakuApiKey: string;
     jimakuSearchCategory: 'anime' | 'drama';
     jimakuRecentWorks?: JimakuCachedWork[];
+    jimakuEpisodeRegex?: string;
+}
+
+export type GenericParseType = 'off' | 'base' | 'aggressive';
+
+export interface GenericSubtitleParserState {
+    pages: {
+        [host: string]: {
+            parse: GenericParseType;
+        };
+    };
 }
 
 export const initialGlobalState: GlobalState = {
     ftueHasSeenAnkiDialogQuickSelectV2: false,
     ftueHasSeenSubtitleTrackSelector: false,
     ftueAnnotation: AnnotationTutorialState.hasNotSeen,
+    genericSubtitleParser: {
+        pages: {},
+    },
     onlineSubtitleSourceConfig: {
         jimakuApiKey: '',
         jimakuSearchCategory: 'anime',
@@ -35,6 +49,7 @@ export interface GlobalState {
     ftueHasSeenAnkiDialogQuickSelectV2: boolean;
     ftueHasSeenSubtitleTrackSelector: boolean;
     ftueAnnotation: AnnotationTutorialState;
+    genericSubtitleParser: GenericSubtitleParserState;
     onlineSubtitleSourceConfig: OnlineSubtitleSourceConfig;
 }
 

@@ -1,33 +1,36 @@
+import { asbError } from '@project/common/util/log';
 import FormHelperText from '@mui/material/FormHelperText';
-import AnkiConnectTutorialBubble from './AnkiConnectTutorialBubble';
-import DeckFieldTutorialBubble from './DeckFieldTutorialBubble';
-import SettingsTextField from './SettingsTextField';
+import AnkiConnectTutorialBubble from '@project/common/components/AnkiConnectTutorialBubble';
+import DeckFieldTutorialBubble from '@project/common/components/DeckFieldTutorialBubble';
+import SettingsTextField from '@project/common/components/SettingsTextField';
 import { Trans, useTranslation } from 'react-i18next';
-import AnkiSelect from './AnkiSelect';
+import AnkiSelect from '@project/common/components/AnkiSelect';
 import React, { useCallback, useEffect, useState } from 'react';
-import TutorialBubble from './TutorialBubble';
+import TutorialBubble from '@project/common/components/TutorialBubble';
 import AddIcon from '@mui/icons-material/Add';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import InputAdornment from '@mui/material/InputAdornment';
 import IconButton from '@mui/material/IconButton';
-import NoteTypeTutorialBubble from './NoteTypeTutorialBubble';
-import ListField from './ListField';
+import NoteTypeTutorialBubble from '@project/common/components/NoteTypeTutorialBubble';
+import ListField from '@project/common/components/ListField';
 import Button from '@mui/material/Button';
 import Link from '@mui/material/Link';
+import Switch from '@mui/material/Switch';
 import Tooltip from '@mui/material/Tooltip';
-import {
+import type {
     AnkiFieldSettings,
     AnkiFieldUiModel,
     AsbplayerSettings,
     CustomAnkiFieldSettings,
-    sortedAnkiFieldModels,
-} from '../settings';
-import { CardModel } from '../src/model';
-import { Direction, TutorialStep } from './settings-model';
-import { Anki, exportCard } from '../anki';
+} from '@project/common/settings';
+import { sortedAnkiFieldModels } from '@project/common/settings';
+import type { CardModel } from '@project/common/src/model';
+import { Direction, TutorialStep } from '@project/common/components/settings-model';
+import { Anki, exportCard } from '@project/common/anki';
 import Stack from '@mui/material/Stack';
+import SwitchLabelWithHoverEffect from '@project/common/components/SwitchLabelWithHoverEffect';
 
 const defaultDeckName = 'Sentences';
 const maskApiToken = (apiToken: string) => '•'.repeat(Array.from(apiToken).length);
@@ -174,6 +177,7 @@ const AnkiSettingsTab: React.FC<Props> = ({
     const {
         ankiConnectUrl,
         ankiConnectApiKey,
+        ankiRefreshBrowserAfterUpdate,
         deck,
         noteType,
         sentenceField,
@@ -222,7 +226,7 @@ const AnkiSettingsTab: React.FC<Props> = ({
             setAnkiConnectUrlError(undefined);
         } catch (e) {
             setAnkiConnectApiKeyRequired(apiKeyRequired || Anki.requiresApiKey(e));
-            console.error(e);
+            asbError('anki/connect', e);
             setDeckNames(undefined);
             setModelNames(undefined);
 
@@ -273,7 +277,7 @@ const AnkiSettingsTab: React.FC<Props> = ({
                     return;
                 }
 
-                console.error(e);
+                asbError('anki/connect', e);
                 setFieldNames(undefined);
 
                 if (e instanceof Error) {
@@ -356,7 +360,7 @@ const AnkiSettingsTab: React.FC<Props> = ({
         anki.createDeck(defaultDeckName)
             .then(() => requestAnkiConnect())
             .then(() => onSettingChanged('deck', defaultDeckName))
-            .catch(console.error);
+            .catch((error) => asbError('anki/connect', error));
     }, [anki, requestAnkiConnect, onSettingChanged]);
 
     useEffect(() => {
@@ -380,7 +384,7 @@ const AnkiSettingsTab: React.FC<Props> = ({
                     onSettingChanged('urlField', 'URL'),
                 ])
             )
-            .catch(console.error);
+            .catch((error) => asbError('anki/connect', error));
         if (tutorialStep === TutorialStep.ankiFields) {
             onTutorialStepChanged(TutorialStep.testCard);
         }
@@ -477,6 +481,17 @@ const AnkiSettingsTab: React.FC<Props> = ({
                     />
                 </FormHelperText>
             )}
+            <SwitchLabelWithHoverEffect
+                control={
+                    <Switch
+                        checked={ankiRefreshBrowserAfterUpdate}
+                        onChange={(event) => onSettingChanged('ankiRefreshBrowserAfterUpdate', event.target.checked)}
+                    />
+                }
+                label={t('settings.ankiRefreshBrowserAfterUpdate')}
+                labelPlacement="start"
+            />
+            <FormHelperText>{t('settings.ankiRefreshBrowserAfterUpdateHelperText')}</FormHelperText>
             <DeckFieldTutorialBubble
                 show={tutorialStep === TutorialStep.deck && !ankiConnectUrlError && !deck}
                 disabled={!inTutorial}

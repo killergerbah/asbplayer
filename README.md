@@ -6,7 +6,7 @@
 
 [![GitHub Workflow Status (with event)](https://img.shields.io/github/actions/workflow/status/asbplayer/asbplayer/verify.yml)](https://github.com/asbplayer/asbplayer/actions/workflows/verify.yml)
 [![Github All Releases](https://img.shields.io/github/downloads/asbplayer/asbplayer/total.svg)](https://github.com/asbplayer/asbplayer/releases)
-[![GitHub License](https://img.shields.io/github/license/asbplayer/asbplayer)](https://github.com/asbplayer/asbplayer?tab=MIT-1-ov-file)
+[![GitHub License](https://img.shields.io/github/license/asbplayer/asbplayer)](LICENSE)
 [![Discord](https://img.shields.io/discord/962412001810849814?color=%237785cc)](https://discord.gg/ad7VAQru7m)
 
 </div>
@@ -16,23 +16,27 @@
 **asbplayer** is a browser-based media player and Chrome extension developed for language learners who learn their target language through subtitled media. With asbplayer, you can:
 
 - **Easily create high-quality, multimedia flashcards** out of subtitled videos.
-- **Load text-selectable subtitles onto most video sources**, including streaming sources. You can use **auto-detected subtitles** on popular streaming services like Netflix and YouTube, or your own **subtitle files**.
+- **Load text-selectable subtitles onto most video sources**, including streaming sources. You can use **auto-detected subtitles** on popular streaming services like Netflix and YouTube, or your own **subtitle files**. A generic fallback subtitle detection algorithm allows asbplayer to detect subtitles on 85% of all other streaming services.
 - **Seek through subtitles** using a **navigable subtitle list**.
 - **Optimize language acquisition** with **playback modes** like:
-  - **Condensed playback**: Skip unsubtitled sections of video.
-  - **Fast-forward playback**: Fast-forward through unsubtitled sections of video.
-  - **Auto-pause**: Automatically pause at the beginning or end of every subtitle.
+    - **Condensed playback**: Skip unsubtitled sections of video.
+    - **Fast-forward playback**: Fast-forward through unsubtitled sections of video.
+    - **Auto-pause**: Automatically pause at the beginning or end of every subtitle.
+    - **Repeat**: Automatically repeat subtitles indefinitely or for a specified number of times.
 - **Use customizable keyboard shortcuts** to access most of asbplayer's features.
 - **Annotate subtitles** with the help of tools such as [Yomitan](https://yomitan.wiki/)
-  - **Word styling** (color/underline/outline, etc.) based on a word's status (uncollected/unknown/learning, etc.) synced from Anki, WaniKani, and/or tracked locally in asbplayer.
-  - **Reading annotation** for reading displayed above each word or based on status.
-  - **Accent annotation** such as pitch accent.
-  - **Frequency annotation** for rank-based frequency displayed below each word or based on status.
-  - **Statistics and Comprehension** on your known words for the current media.
-  - **Word browser** to manage local and view words synced from external sources.
-  - Many more features for future releases! Some planned features include:
-    - **Auto pause**, **Condensed playback**, and **Auto mining** on uncollected/unknown/learning words.
-    - **Statistics and Comprehension** on your known words across media.
+    - **Word styling** (color/underline/outline, etc.) based on a word's status (uncollected/unknown/learning, etc.) synced from Anki, WaniKani, and/or tracked locally in asbplayer.
+    - **Reading annotation** for reading displayed above each word or based on status.
+    - **Accent annotation** such as pitch accent.
+    - **Frequency annotation** for rank-based frequency displayed below each word or based on status.
+    - **Glossary annotation** for a short definition or explanation of the word.
+    - **Statistics and Comprehension** on your known words for the current media.
+    - **Word browser** to manage local and view words synced from external sources.
+    - Many more features for future releases! Some planned features include:
+        - **Adaptive Playback** that uses **playback modes** and the annotation data to optimize your learning experience.
+        - **Auto mining** on uncollected/unknown/learning words.
+        - **Rich Anki Card Creation** for generating high-quality flashcards from annotated subtitles.
+        - **Statistics and Comprehension** on your known words across media.
 
 ## Thanks
 
@@ -81,7 +85,11 @@ ags,
 Vannde3,
 Champ,
 marcman3001,
-[@vladysor](https://github.com/vladysor)
+[@vladysor](https://github.com/vladysor),
+[@Otto-Deviant1904](https://github.com/Otto-Deviant1904),
+[@Ayase-the-Dark](https://github.com/Ayase-the-Dark),
+shiki,
+kansha-gratitude
 
 and to those who have donated privately.
 
@@ -133,7 +141,13 @@ Thank you to all those who have contributed to asbplayer:
 [@Dr-TNineS](https://github.com/Dr-TNineS),
 [@thntx](https://github.com/thntx),
 [@Otto-Deviant1904](https://github.com/Otto-Deviant1904),
-[@Ayase-the-Dark](https://github.com/Ayase-the-Dark)
+[@Ayase-the-Dark](https://github.com/Ayase-the-Dark),
+[@aramrw](https://github.com/aramrw),
+[@steckums](https://github.com/steckums),
+[@eXaminator](https://github.com/eXaminator),
+[@rajpiskala](https://github.com/rajpiskala),
+[@gpressutto5](https://github.com/gpressutto5),
+[@chadzimmerman](https://github.com/chadzimmerman)
 
 Thank you to all those who have translated asbplayer:
 
@@ -141,7 +155,8 @@ Thank you to all those who have translated asbplayer:
 **Kai Böse** (German),
 **Triline**, **[@nekorushi](https://github.com/nekorushi)** (Polish),
 **NeverWinterSwor** (Simplified Chinese),
-**[@AkihaZhang](https://github.com/AkihaZhang)** (Simlified Chinese),
+**[@AkihaZhang](https://github.com/AkihaZhang)** (Simplified Chinese),
+**senorli** (Simplified Chinese),
 **Yagxter**, **[@chatterine](https://github.com/chatterine)** (Brazilian Portuguese),
 **Leo Gonzalez** (Spanish),
 **[@NovaKing007](https://github.com/NovaKing007)** (Spanish),
@@ -169,7 +184,7 @@ asbplayer's complete user guide is [here](https://docs.asbplayer.dev/docs/intro)
 > [!NOTE]  
 > asbplayer is both a subtitle control and flashcard creation tool. If you are not interested in flashcards, and only want to use asbplayer's subtitle features, just follow step 5.
 
-1. Install and set up a dictionary tool for your target language that allows you to do instant lookups. Popular ones are [Yomitan](https://chromewebstore.google.com/detail/yomitan/likgccmbimhjbgkjambclfkhldnlhbnn) (see [supported languages](https://yomitan.wiki/other/supported-languages/)) and [VocabSieve](https://github.com/FreeLanguageTools/vocabsieve) (tuned for European languages. Works with Asian languages too but doesn't automatically detect word boundaries).
+1. Install and set up a dictionary tool for your target language that allows you to do instant lookups such as [Yomitan](https://chromewebstore.google.com/detail/yomitan/likgccmbimhjbgkjambclfkhldnlhbnn).
 2. Install [Anki](https://apps.ankiweb.net/), and create a deck and note type. More details on [Refold's guide](https://refold.la/roadmap/stage-1/a/anki-setup).
 3. Install the [AnkiConnect](https://ankiweb.net/shared/info/2055492159) plugin for Anki.
 4. [Configure](https://app.asbplayer.dev/?view=settings) asbplayer to create cards via AnkiConnect using your deck and note type.
@@ -190,20 +205,22 @@ Submit bugs or feature requests from the [issues page](https://github.com/asbpla
 
 ### Environment
 
-```
-node 22.17.1
-yarn 3.2.0
-```
+node 24.21.0
+pnpm 11.27.0
 
 ### Building
 
-```
+```sh
 # Install dependencies
-yarn
+pnpm install
 
 # Builds Firefox extension to extension/.output/asbplayer-<version>-firefox.zip
-yarn workspace @project/extension run wxt zip -b firefox
+pnpm --filter @project/extension run wxt zip -b firefox
 
 # Builds Firefox for Android extension to extension/.output/asbplayer-<version>-firefox-android.zip
-yarn workspace @project/extension run wxt zip -b firefox-android --mv2
+pnpm --filter @project/extension run wxt zip -b firefox-android --mv2
 ```
+
+## License
+
+asbplayer is licensed under the GNU Affero General Public License version 3 or later (AGPL-3.0-or-later). Portions of this software are licensed under the MIT License.

@@ -1,5 +1,5 @@
 import { defineConfig } from 'wxt';
-import type { ResolvedPublicFile, UserManifest, Wxt } from 'wxt';
+import type { PublicPathEntry, ResolvedPublicFile, UserManifest, Wxt } from 'wxt';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -12,13 +12,13 @@ const moveToPublicAssets = (srcPath: string, destPath: string, files: ResolvedPu
     const srcFiles = fs.readdirSync(srcPath);
     for (const file of srcFiles) {
         files.push({
-            absoluteSrc: path.resolve(srcPath, file) as string,
+            absoluteSrc: path.resolve(srcPath, file),
             relativeDest: `${destPath}/${file}`,
         });
     }
 };
 
-const addToPublicPathsType = (srcPath: string, destPath: string, paths: string[]) => {
+const addToPublicPathsType = (srcPath: string, destPath: string, paths: PublicPathEntry[]) => {
     const srcFiles = fs.readdirSync(srcPath);
     for (const file of srcFiles) {
         paths.push(`${destPath}/${file}`);
@@ -31,6 +31,15 @@ const extName = 'asbplayer';
 export default defineConfig({
     modules: ['@wxt-dev/module-react'],
     srcDir: 'src',
+    // WXT auto-imports globals like `browser` and `storage` via unimport, which scans source files
+    // for bare identifiers matching those names and injects a matching `import` statement. This should
+    // only happen in the extension's own source, not other packages like `common` that don't have wxt
+    // installed. Scanning those too can inject unresolvable imports and break the build.
+    imports: {
+        // `include` is consumed by unimport's unplugin but missing from WXT's type.
+        // @ts-expect-error -- honored at runtime
+        include: [/extension\/src\//],
+    },
     vite: () => ({
         plugins: [
             {
@@ -40,10 +49,13 @@ export default defineConfig({
                 },
             },
         ],
+        build: {
+            sourcemap: true,
+        },
     }),
     zip: {
         sourcesRoot: '..',
-        includeSources: ['.yarn/patches/**'],
+        includeSources: ['patches/**'],
         artifactTemplate: `${extName}-{{version}}-{{browser}}.zip`,
         sourcesTemplate: `${extName}-{{version}}-sources.zip`,
     },
@@ -53,7 +65,7 @@ export default defineConfig({
                 moveToPublicAssets(srcDir, destDir, files);
             }
         },
-        'prepare:publicPaths': (wxt: Wxt, paths: string[]) => {
+        'prepare:publicPaths': (wxt: Wxt, paths: PublicPathEntry[]) => {
             for (const { srcDir, destDir } of commonAssets) {
                 addToPublicPathsType(srcDir, destDir, paths);
             }
@@ -61,7 +73,7 @@ export default defineConfig({
         },
     },
     manifest: ({ browser, mode }) => {
-        const version = '1.19.0';
+        const version = '1.22.0';
         const isDev = mode === 'development';
         const devLabel = isDev ? ' (Dev)' : '';
         const title = `${extName}${devLabel}`;
@@ -86,6 +98,7 @@ export default defineConfig({
                         'asbplayer-locales/*',
                         'icon/image.png',
                         'netflix-page.js',
+                        'crunchyroll-page.js',
                         'youtube-page.js',
                         'stremio-page.js',
                         'tver-page.js',
@@ -104,10 +117,16 @@ export default defineConfig({
                         'plex-page.js',
                         'areena-yle-page.js',
                         'hbo-max-page.js',
-                        'cijapanese-page.js',
+                        'nijapanese-page.js',
+                        'base-generic-page.js',
+                        'aggressive-generic-page.js',
                         'svt-play-page.js',
                         'ur-play-page.js',
                         'hulu-jp-page.js',
+                        'rutube-page.js',
+                        'okru-page.js',
+                        'vkvideo-page.js',
+                        'dreaming-page.js',
                         'anki-ui.js',
                         'mp3-encoder-worker.js',
                         'pgs-parser-worker.js',
@@ -120,6 +139,7 @@ export default defineConfig({
                         'statistics-overlay-one-uncollected-ui.js',
                         'page-favicons/*',
                         'content-scripts/video.css',
+                        'js/ui-frame-head.js',
                     ],
                     matches: ['<all_urls>'],
                 },
@@ -192,7 +212,7 @@ export default defineConfig({
         }
 
         if (browser === 'firefox') {
-            permissions = [...permissions, 'contextMenus', 'webRequest', 'webRequestBlocking', 'clipboardWrite'];
+            permissions = [...permissions, 'contextMenus', 'clipboardWrite'];
 
             commands = {
                 _execute_sidebar_action: {
@@ -223,7 +243,7 @@ export default defineConfig({
         }
 
         if (browser === 'firefox-android') {
-            permissions = [...permissions, 'webRequest', 'webRequestBlocking', 'clipboardWrite'];
+            permissions = [...permissions, 'clipboardWrite'];
 
             const geckoId = isDev
                 ? `${extName}-android-dev-${version}@example.com`

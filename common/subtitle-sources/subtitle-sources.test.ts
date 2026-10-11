@@ -1,4 +1,4 @@
-import { JimakuClient } from './subtitle-sources';
+import { JimakuClient } from '@project/common/subtitle-sources/subtitle-sources';
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
 
 const originalFetch = globalThis.fetch;
@@ -37,7 +37,9 @@ afterEach(() => {
 
 describe('JimakuClient', () => {
     it('validates api key at construction', () => {
-        expect(() => new JimakuClient({ apiKey: '   ' })).toThrow('Jimaku API key cannot be empty or whitespace-only');
+        expect(() => new JimakuClient({ apiKey: '   ', clientId: 'test-client' })).toThrow(
+            'Jimaku API key cannot be empty or whitespace-only'
+        );
     });
 
     it('searches entries with authorization header', async () => {
@@ -52,12 +54,12 @@ describe('JimakuClient', () => {
             })
         );
         global.fetch = fetchMock;
-        const client = new JimakuClient({ apiKey: 'test-key', minRequestIntervalMs: 0 });
+        const client = new JimakuClient({ apiKey: 'test-key', clientId: 'test-client', minRequestIntervalMs: 0 });
 
         const response = await client.searchEntries('Sousou no Frieren');
 
         expect(fetchMock).toHaveBeenCalledWith('https://jimaku.cc/api/entries/search?query=Sousou+no+Frieren', {
-            headers: { Authorization: 'test-key' },
+            headers: { Authorization: 'test-key', 'X-Client-ID': 'test-client' },
         });
         expect(response.data).toHaveLength(1);
         expect(response.data[0].id).toBe(729);
@@ -78,25 +80,39 @@ describe('JimakuClient', () => {
             })
         );
         global.fetch = fetchMock;
-        const client = new JimakuClient({ apiKey: 'test-key', minRequestIntervalMs: 0 });
+        const client = new JimakuClient({ apiKey: 'test-key', clientId: 'test-client', minRequestIntervalMs: 0 });
 
         const response = await client.searchEntries('Some Drama', false);
 
         expect(fetchMock).toHaveBeenCalledWith('https://jimaku.cc/api/entries/search?query=Some+Drama&anime=false', {
-            headers: { Authorization: 'test-key' },
+            headers: { Authorization: 'test-key', 'X-Client-ID': 'test-client' },
         });
         expect(response.data[0].name).toBe('Some Drama');
+    });
+
+    it('strips apostrophes and dashes from search queries', async () => {
+        const fetchMock = jest.fn<typeof fetch>().mockResolvedValue(createResponse({ jsonData: [] }));
+        global.fetch = fetchMock;
+        const client = new JimakuClient({ apiKey: 'test-key', clientId: 'test-client', minRequestIntervalMs: 0 });
+
+        await client.searchEntries("Frieren: Beyond Journey's End");
+        await client.searchEntries('Chainsaw Man – The Movie');
+
+        expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
+            'https://jimaku.cc/api/entries/search?query=Frieren%3A+Beyond+Journeys+End',
+            'https://jimaku.cc/api/entries/search?query=Chainsaw+Man+The+Movie',
+        ]);
     });
 
     it('requests files with optional filters', async () => {
         const fetchMock = jest.fn<typeof fetch>().mockResolvedValue(createResponse({ jsonData: [] }));
         global.fetch = fetchMock;
-        const client = new JimakuClient({ apiKey: 'test-key', minRequestIntervalMs: 0 });
+        const client = new JimakuClient({ apiKey: 'test-key', clientId: 'test-client', minRequestIntervalMs: 0 });
 
         await client.getFiles(729, { episode: 1 });
 
         expect(fetchMock).toHaveBeenCalledWith('https://jimaku.cc/api/entries/729/files?episode=1', {
-            headers: { Authorization: 'test-key' },
+            headers: { Authorization: 'test-key', 'X-Client-ID': 'test-client' },
         });
     });
 
@@ -116,7 +132,11 @@ describe('JimakuClient', () => {
                 )
                 .mockResolvedValueOnce(createResponse({ jsonData: [] }));
             global.fetch = fetchMock;
-            const client = new JimakuClient({ apiKey: 'test-key', minRequestIntervalMs: 10000 });
+            const client = new JimakuClient({
+                apiKey: 'test-key',
+                clientId: 'test-client',
+                minRequestIntervalMs: 10000,
+            });
 
             await client.searchEntries('first');
             const secondRequest = client.searchEntries('second');
@@ -128,7 +148,7 @@ describe('JimakuClient', () => {
             await secondRequest;
 
             expect(fetchMock).toHaveBeenNthCalledWith(2, 'https://jimaku.cc/api/entries/search?query=second', {
-                headers: { Authorization: 'test-key' },
+                headers: { Authorization: 'test-key', 'X-Client-ID': 'test-client' },
             });
         } finally {
             jest.useRealTimers();
@@ -151,7 +171,11 @@ describe('JimakuClient', () => {
                 )
                 .mockResolvedValueOnce(createResponse({ jsonData: [] }));
             global.fetch = fetchMock;
-            const client = new JimakuClient({ apiKey: 'test-key', minRequestIntervalMs: 10000 });
+            const client = new JimakuClient({
+                apiKey: 'test-key',
+                clientId: 'test-client',
+                minRequestIntervalMs: 10000,
+            });
 
             await client.searchEntries('first');
             const secondRequest = client.searchEntries('second');
@@ -172,7 +196,7 @@ describe('JimakuClient', () => {
                 .mockResolvedValueOnce(createResponse({ jsonData: [] }))
                 .mockResolvedValueOnce(createResponse({ jsonData: [] }));
             global.fetch = fetchMock;
-            const client = new JimakuClient({ apiKey: 'test-key', minRequestIntervalMs: 100 });
+            const client = new JimakuClient({ apiKey: 'test-key', clientId: 'test-client', minRequestIntervalMs: 100 });
 
             await client.searchEntries('first');
             await jest.advanceTimersByTimeAsync(40);
@@ -205,7 +229,7 @@ describe('JimakuClient', () => {
                 )
                 .mockResolvedValueOnce(createResponse({ jsonData: [] }));
             global.fetch = fetchMock;
-            const client = new JimakuClient({ apiKey: 'test-key', minRequestIntervalMs: 100 });
+            const client = new JimakuClient({ apiKey: 'test-key', clientId: 'test-client', minRequestIntervalMs: 100 });
 
             await client.searchEntries('first');
             const secondRequest = client.searchEntries('second');
@@ -227,7 +251,7 @@ describe('JimakuClient', () => {
             .fn<typeof fetch>()
             .mockResolvedValue(createResponse({ ok: false, status: 401, jsonData: { error: 'Unauthorized' } }));
         global.fetch = fetchMock;
-        const client = new JimakuClient({ apiKey: 'test-key', minRequestIntervalMs: 0 });
+        const client = new JimakuClient({ apiKey: 'test-key', clientId: 'test-client', minRequestIntervalMs: 0 });
 
         await expect(client.getEntry(123)).rejects.toThrow('Unauthorized');
     });
@@ -237,7 +261,7 @@ describe('JimakuClient', () => {
             .fn<typeof fetch>()
             .mockResolvedValue(createResponse({ ok: false, status: 503, textData: '<html/>' }));
         global.fetch = fetchMock;
-        const client = new JimakuClient({ apiKey: 'test-key', minRequestIntervalMs: 0 });
+        const client = new JimakuClient({ apiKey: 'test-key', clientId: 'test-client', minRequestIntervalMs: 0 });
 
         await expect(client.getEntry(123)).rejects.toThrow('Jimaku request failed with status 503');
     });
@@ -247,7 +271,7 @@ describe('JimakuClient', () => {
             .fn<typeof fetch>()
             .mockResolvedValue(createResponse({ ok: true, status: 200, textData: '<html/>' }));
         global.fetch = fetchMock;
-        const client = new JimakuClient({ apiKey: 'test-key', minRequestIntervalMs: 0 });
+        const client = new JimakuClient({ apiKey: 'test-key', clientId: 'test-client', minRequestIntervalMs: 0 });
 
         await expect(client.getEntry(123)).rejects.toThrow('Jimaku request failed: expected a JSON response body');
     });

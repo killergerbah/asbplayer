@@ -1,7 +1,10 @@
-import { CopySubtitleMessage, PostMineAction, SubtitleModel } from '@project/common';
-import { DefaultKeyBinder, KeyBinder } from '@project/common/key-binder';
-import { SeekableTracks, TokenStatus } from '@project/common/settings';
-import ChromeExtension, { ExtensionMessage } from './chrome-extension';
+import { asbError } from '@project/common/util/log';
+import type { CopySubtitleMessage, SubtitleModel } from '@project/common';
+import { PostMineAction } from '@project/common';
+import type { DefaultKeyBinder, KeyBinder } from '@project/common/key-binder';
+import type { SeekableTracks, TokenJumpTarget, TokenStatus } from '@project/common/settings';
+import type { ExtensionMessage } from '@project/common/app/services/chrome-extension';
+import type ChromeExtension from '@project/common/app/services/chrome-extension';
 
 export default class AppKeyBinder implements KeyBinder {
     private readonly defaultKeyBinder: DefaultKeyBinder;
@@ -39,7 +42,7 @@ export default class AppKeyBinder implements KeyBinder {
                             handlers = this.exportCardHandlers;
                             break;
                         default:
-                            console.error('Unknown post mine action ' + command.postMineAction);
+                            asbError('app/messages', 'Unknown post mine action ' + command.postMineAction);
                     }
                 } else if (message.data.command === 'take-screenshot') {
                     handlers = this.takeScreenshotHandlers;
@@ -304,6 +307,14 @@ export default class AppKeyBinder implements KeyBinder {
         return this.defaultKeyBinder.bindUnblurTrack(onUnblurTrack, disabledGetter, useCapture);
     }
 
+    bindOpenStatistics(
+        onOpenStatistics: (event: KeyboardEvent) => void,
+        disabledGetter: () => boolean,
+        useCapture?: boolean | undefined
+    ): () => void {
+        return this.defaultKeyBinder.bindOpenStatistics(onOpenStatistics, disabledGetter, useCapture);
+    }
+
     bindMarkHoveredToken(
         onMarkHoveredToken: (event: KeyboardEvent, tokenStatus: TokenStatus) => void,
         disabledGetter: () => boolean,
@@ -324,12 +335,12 @@ export default class AppKeyBinder implements KeyBinder {
         );
     }
 
-    bindOpenStatistics(
-        onOpenStatistics: (event: KeyboardEvent) => void,
+    bindJumpToToken(
+        onJumpToToken: (event: KeyboardEvent, target: TokenJumpTarget, forward: boolean) => boolean,
         disabledGetter: () => boolean,
         useCapture?: boolean | undefined
     ): () => void {
-        return this.defaultKeyBinder.bindOpenStatistics(onOpenStatistics, disabledGetter, useCapture);
+        return this.defaultKeyBinder.bindJumpToToken(onJumpToToken, disabledGetter, useCapture);
     }
 
     bindPlay(
@@ -378,6 +389,30 @@ export default class AppKeyBinder implements KeyBinder {
         useCapture?: boolean | undefined
     ): () => void {
         return this.defaultKeyBinder.bindToggleRepeat(onToggleRepeat, disabledGetter, useCapture);
+    }
+
+    bindCycleAutoPauseResumeMode(
+        onCycleAutoPauseResumeMode: (event: KeyboardEvent) => void,
+        disabledGetter: () => boolean,
+        useCapture?: boolean | undefined
+    ): () => void {
+        return this.defaultKeyBinder.bindCycleAutoPauseResumeMode(
+            onCycleAutoPauseResumeMode,
+            disabledGetter,
+            useCapture
+        );
+    }
+
+    bindToggleSubtitleVisibility(
+        onToggleSubtitleVisibility: (event: KeyboardEvent) => void,
+        disabledGetter: () => boolean,
+        useCapture?: boolean | undefined
+    ): () => void {
+        return this.defaultKeyBinder.bindToggleSubtitleVisibility(
+            onToggleSubtitleVisibility,
+            disabledGetter,
+            useCapture
+        );
     }
 
     bindAdjustSubtitlePositionOffset(

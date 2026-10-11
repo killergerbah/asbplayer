@@ -8,10 +8,10 @@ import type {
     SubtitleSettings,
     TokenState,
     TokenStatus,
-} from '../settings/settings';
-import type { GlobalState, OnlineSubtitleSourceConfig } from '../global-state';
-import type { DictionaryStatisticsSnapshot } from '../dictionary-statistics';
-import {
+} from '@project/common/settings';
+import type { GenericParseType, GlobalState, OnlineSubtitleSourceConfig } from '@project/common/global-state';
+import type { DictionaryStatisticsSnapshot } from '@project/common/dictionary-statistics';
+import type {
     RectModel,
     SubtitleModel,
     SubtitleTrack,
@@ -29,14 +29,15 @@ import {
     AnkiExportMode,
     BrowserFeatures,
     IndexedSubtitleModel,
-} from './model';
-import { AsbPlayerToVideoCommandV2 } from './command';
-import {
+} from '@project/common/src/model';
+import type { AsbPlayerToVideoCommandV2 } from '@project/common/src/command';
+import type { LogLine, LogSnapshot } from '@project/common/util/log-utils';
+import type {
     DictionaryLocalTokenInput,
     DictionaryTokenKey,
     DictionaryTokenRecord,
     DictionaryRecordUpdateInput,
-} from '../dictionary-db/dictionary-db';
+} from '@project/common/dictionary-db/dictionary-db';
 
 export interface Message {
     readonly command: string;
@@ -125,11 +126,23 @@ export interface SettingsUpdatedMessage extends Message {
     readonly command: 'settings-updated';
 }
 
+export interface AppendLogsMessage extends MessageWithId {
+    readonly command: 'append-logs';
+    readonly lines: readonly LogLine[];
+}
+
+export interface GetLogsMessage extends MessageWithId {
+    readonly command: 'get-logs';
+}
+
+export type GetLogsResponse = LogSnapshot | { readonly error: string };
+
 export interface ImageCaptureParams {
     readonly maxWidth: number;
     readonly maxHeight: number;
     readonly rect: RectModel;
     readonly frameId?: string;
+    readonly trimBlackBars: boolean;
 }
 
 export interface RecordMediaAndForwardSubtitleMessage extends Message, CardTextFieldValues, ImageCaptureParams {
@@ -147,6 +160,7 @@ export interface RecordMediaAndForwardSubtitleMessage extends Message, CardTextF
     readonly playbackRate: number;
     readonly mediaTimestamp: number;
     readonly isBulkExport?: boolean;
+    readonly noteId?: number;
 }
 
 export interface StartRecordingMediaMessage extends Message, ImageCaptureParams {
@@ -196,6 +210,7 @@ export interface CopySubtitleMessage extends Message, CardTextFieldValues {
     readonly subtitle?: SubtitleModel;
     readonly surroundingSubtitles?: SubtitleModel[];
     readonly isBulkExport?: boolean;
+    readonly noteId?: number;
 }
 
 export interface CopySubtitleWithAdditionalFieldsMessage extends Message, CardTextFieldValues {
@@ -361,6 +376,11 @@ export interface ReadyFromVideoMessage extends Message {
     readonly playbackRate: number;
 }
 
+export interface DurationFromVideoMessage extends Message {
+    readonly command: 'duration';
+    readonly value: number;
+}
+
 export interface ReadyToVideoMessage extends Message {
     readonly command: 'ready';
     readonly duration: number;
@@ -381,6 +401,15 @@ export interface CurrentTimeFromVideoMessage extends Message {
     readonly command: 'currentTime';
     readonly value: number;
     readonly echo: boolean;
+}
+
+export interface PlaybackStateFromVideoMessage extends Message {
+    readonly command: 'playbackState';
+    readonly timestampMs: number;
+    readonly showingSubtitleIndexes: readonly number[];
+    readonly invisibleSubtitleIndexes?: readonly number[];
+    readonly hiddenSubtitleIndexes?: readonly number[];
+    readonly paused: boolean;
 }
 
 export interface CurrentTimeToVideoMessage extends Message {
@@ -418,7 +447,7 @@ export interface SubtitlesToVideoMessage extends Message {
 
 export interface SubtitlesUpdatedToVideoMessage extends Message {
     readonly command: 'subtitlesUpdated';
-    readonly subtitles: IndexedSubtitleModel[];
+    readonly subtitles: readonly IndexedSubtitleModel[];
 }
 
 export interface RequestCurrentSubtitleMessage extends Message {
@@ -431,7 +460,7 @@ export interface RequestSubtitlesMessage extends Message {
 
 export interface SubtitlesUpdatedFromVideoMessage extends Message {
     readonly command: 'subtitlesUpdated';
-    readonly updatedSubtitles: IndexedSubtitleModel[];
+    readonly updatedSubtitles: readonly IndexedSubtitleModel[];
 }
 
 export interface RequestSubtitlesFromAppMessage extends MessageWithId {
@@ -546,6 +575,11 @@ export interface VideoDataUiBridgeOpenFileMessage extends Message {
 export interface VideoDataUiBridgeSetOnlineSubtitleSourceConfigMessage extends Message {
     readonly command: 'setOnlineSubtitleSourceConfig';
     readonly state: Partial<OnlineSubtitleSourceConfig>;
+}
+
+export interface VideoDataUiBridgeSetGenericSubtitleParserMessage extends Message {
+    readonly command: 'setGenericSubtitleParser';
+    readonly parse: GenericParseType;
 }
 
 export interface CropAndResizeMessage extends Message, ImageCaptureParams {
@@ -672,7 +706,7 @@ export interface RequestActiveTabPermissionMessage extends Message {
     readonly command: 'request-active-tab-permission';
 }
 
-export interface RequestingActiveTabPermsisionMessage extends Message {
+export interface RequestingActiveTabPermissionMessage extends Message {
     readonly command: 'requesting-active-tab-permission';
     readonly requesting: boolean;
 }
@@ -789,6 +823,7 @@ export interface NotifyErrorMessage extends Message {
 
 export interface RequestMobileOverlayModelMessage extends Message {
     readonly command: 'request-mobile-overlay-model';
+    readonly overlayInstanceId: string;
 }
 
 export interface UpdateMobileOverlayModelMessage extends Message {
@@ -808,6 +843,14 @@ export interface NotificationDialogMessage extends Message {
 
 export interface HiddenMessage extends Message {
     readonly command: 'hidden';
+}
+
+export interface PlaybackModeSelectorOpenedMessage extends Message {
+    readonly command: 'playback-mode-selector-opened';
+}
+
+export interface PlaybackModeSelectorClosedMessage extends Message {
+    readonly command: 'playback-mode-selector-closed';
 }
 
 export interface RequestCopyHistoryMessage extends MessageWithId {
@@ -850,7 +893,7 @@ export interface DictionaryGetByLemmaBulkMessage extends MessageWithId {
 export interface DictionarySaveRecordLocalBulkMessage extends MessageWithId {
     readonly command: 'dictionary-save-record-local-bulk';
     readonly profile: string | undefined;
-    readonly localTokenInputs: DictionaryLocalTokenInput[];
+    readonly localTokenInputs: readonly DictionaryLocalTokenInput[];
     readonly applyStates: ApplyStrategy;
 }
 
@@ -1121,5 +1164,10 @@ export interface MoveStatisticsOverlayMessage extends Message {
 
 export interface CloseStatisticsOverlayMessage extends Message {
     readonly command: 'close-statistics-overlay';
+    readonly mediaId: string;
+}
+
+export interface ElementExistsStatisticsOverlayMessage extends Message {
+    readonly command: 'element-exists';
     readonly mediaId: string;
 }

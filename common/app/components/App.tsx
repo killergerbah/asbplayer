@@ -1,19 +1,20 @@
-import React, { useCallback, useEffect, useState, useMemo, useRef, ComponentProps } from 'react';
+import { asbError, asbWarn } from '@project/common/util/log';
+import { humanReadableTime, download, extractText, timeDurationDisplay } from '@project/common/util';
+import type { ComponentProps } from 'react';
+import React, { useCallback, useEffect, useState, useMemo, useRef } from 'react';
 import { makeStyles } from '@mui/styles';
-import { type Theme } from '@mui/material/styles';
+import type { Theme } from '@mui/material/styles';
 import ThemeProvider from '@mui/material/styles/ThemeProvider';
-import { useWindowSize } from '../hooks/use-window-size';
+import { useWindowSize } from '@project/common/app/hooks/use-window-size';
 import { useLocationHash } from '@project/common/hooks/use-location-hash';
-import {
-    MediaFragment,
+import type {
     OpenStatisticsOverlayMessage,
     RequestLocalSubtitlesMessage,
     SubtitleModel,
+    DisplaySubtitleModel,
     VideoTabModel,
     LegacyPlayerSyncMessage,
     PlayerSyncMessage,
-    PostMineAction,
-    PlayMode,
     CopyHistoryItem,
     Fetcher,
     CardModel,
@@ -22,69 +23,72 @@ import {
     DownloadImageMessage,
     DownloadAudioMessage,
     CardTextFieldValues,
-    MediaFragmentErrorCode,
     RequestSubtitlesResponse,
-    VideoDataUiOpenReason,
     ConfirmedVideoDataSubtitleTrack,
 } from '@project/common';
+import { MediaFragment, PostMineAction, MediaFragmentErrorCode, VideoDataUiOpenReason } from '@project/common';
 import { createTheme } from '@project/common/theme';
-import { AsbplayerSettings, DictionaryTrack, Profile, SettingsProvider } from '@project/common/settings';
-import { humanReadableTime, download, extractText, timeDurationDisplay } from '@project/common/util';
+import type { AsbplayerSettings, DictionaryTrack, Profile, SettingsProvider } from '@project/common/settings';
 import { AudioClip, Mp3Encoder } from '@project/common/audio-clip';
-import { ExportParams } from '@project/common/anki';
+import type { ExportParams } from '@project/common/anki';
 import { SubtitleReader } from '@project/common/subtitle-reader';
 import { v4 as uuidv4 } from 'uuid';
 import clsx from 'clsx';
-import Alert from './Alert';
+import Alert from '@project/common/app/components/Alert';
 import AnkiDialog from '@project/common/components/AnkiDialog';
 import Paper from '@mui/material/Paper';
-import DragOverlay from './DragOverlay';
-import Bar from './Bar';
-import ChromeExtension, { ExtensionMessage } from '../services/chrome-extension';
-import CopyHistory from './CopyHistory';
+import DragOverlay from '@project/common/app/components/DragOverlay';
+import Bar from '@project/common/app/components/Bar';
+import type { ExtensionMessage } from '@project/common/app/services/chrome-extension';
+import type ChromeExtension from '@project/common/app/services/chrome-extension';
+import CopyHistory from '@project/common/app/components/CopyHistory';
 import StatisticsDrawer from '@project/common/components/StatisticsDrawer';
-import LandingPage from './LandingPage';
-import Player, { MediaSources } from './Player';
-import SettingsDialog from './SettingsDialog';
-import VideoPlayer, { SeekRequest } from './VideoPlayer';
-import { type AlertColor } from '@mui/material/Alert';
-import VideoChannel from '../services/video-channel';
-import { addBlobUrl, createBlobUrl, revokeBlobUrl } from '../../blob-url';
+import LandingPage from '@project/common/app/components/LandingPage';
+import type { MediaSources, PlayerRef } from '@project/common/app/components/Player';
+import Player from '@project/common/app/components/Player';
+import SettingsDialog from '@project/common/app/components/SettingsDialog';
+import type { SeekRequest } from '@project/common/app/components/VideoPlayer';
+import VideoPlayer from '@project/common/app/components/VideoPlayer';
+import type { AlertColor } from '@mui/material/Alert';
+import type VideoChannel from '@project/common/app/services/video-channel';
+import { addBlobUrl, createBlobUrl, revokeBlobUrl } from '@project/common/blob-url';
 import { useTranslation } from 'react-i18next';
-import { LocalizedError } from './localized-error';
-import { DisplaySubtitleModel } from './SubtitlePlayer';
-import { useCopyHistory } from '../hooks/use-copy-history';
-import { useFileSession } from '../hooks/use-file-session';
-import { useI18n } from '../hooks/use-i18n';
-import { useAppKeyBinder } from '../hooks/use-app-key-binder';
-import { useAnki } from '../hooks/use-anki';
-import { usePlaybackPreferences } from '../hooks/use-playback-preferences';
-import { MiningContext } from '../services/mining-context';
-import { useAppWebSocketClient } from '../hooks/use-app-web-socket-client';
-import { LoadSubtitlesCommand } from '../../web-socket-client';
-import { ExtensionBridgedCopyHistoryRepository } from '../services/extension-bridged-copy-history-repository';
-import { IndexedDBCopyHistoryRepository } from '../../copy-history';
+import { LocalizedError } from '@project/common/app/components/localized-error';
+import { useCopyHistory } from '@project/common/app/hooks/use-copy-history';
+import { useFileSession } from '@project/common/app/hooks/use-file-session';
+import { useI18n } from '@project/common/app/hooks/use-i18n';
+import { useAppKeyBinder } from '@project/common/app/hooks/use-app-key-binder';
+import { useAnki } from '@project/common/app/hooks/use-anki';
+import { usePlaybackPreferences } from '@project/common/app/hooks/use-playback-preferences';
+import { MiningContext } from '@project/common/app/services/mining-context';
+import { useAppWebSocketClient } from '@project/common/app/hooks/use-app-web-socket-client';
+import type { LoadSubtitlesCommand } from '@project/common/web-socket-client';
+import { ExtensionBridgedCopyHistoryRepository } from '@project/common/app/services/extension-bridged-copy-history-repository';
+import { IndexedDBCopyHistoryRepository } from '@project/common/copy-history';
+import type { FileSystemFileHandleWithId } from '@project/common/file-system-access';
 import {
     supportsFileSystemAccess,
     showFilePicker,
     requestPermissions,
     resolveFiles,
-    FileSystemFileHandleWithId,
-} from '../../file-system-access';
+} from '@project/common/file-system-access';
 import { isMobile } from 'react-device-detect';
-import { GlobalState } from '../../global-state';
-import mp3WorkerFactory from '../../audio-clip/mp3-encoder-worker.ts?worker';
-import pgsParserWorkerFactory from '../../subtitle-reader/pgs-parser-worker.ts?worker';
+import type { GlobalState } from '@project/common/global-state';
+import mp3WorkerFactory from '@project/common/audio-clip/mp3-encoder-worker.ts?worker';
+import pgsParserWorkerFactory from '@project/common/subtitle-reader/pgs-parser-worker.ts?worker';
 import CssBaseline from '@mui/material/CssBaseline';
 import { StyledEngineProvider } from '@mui/material/styles';
-import { useServiceWorker } from '../hooks/use-service-worker';
-import NeedRefreshDialog from './NeedRefreshDialog';
-import { DictionaryProvider } from '../../dictionary-db';
-import { isFirefox } from '../../browser-detection';
-import StatisticsOverlay, { StatisticsOverlayProps } from '../../components/StatisticsOverlay';
-import OneUncollectedSentenceDetailsDialog from '../../components/OneUncollectedSentenceDetailsDialog';
-import VideoDataSyncDialog, { useVideoDataSyncDialogState } from '../../components/VideoDataSyncDialog';
-import { DefaultFileSelector, FileWithId } from '../../file-selector';
+import { useServiceWorker } from '@project/common/app/hooks/use-service-worker';
+import NeedRefreshDialog from '@project/common/app/components/NeedRefreshDialog';
+import type { DictionaryProvider } from '@project/common/dictionary-db';
+import type { LogProvider } from '@project/common/util/log';
+import { isFirefox } from '@project/common/browser-detection';
+import type { StatisticsOverlayProps } from '@project/common/components/StatisticsOverlay';
+import StatisticsOverlay from '@project/common/components/StatisticsOverlay';
+import OneUncollectedSentenceDetailsDialog from '@project/common/components/OneUncollectedSentenceDetailsDialog';
+import VideoDataSyncDialog, { useVideoDataSyncDialogState } from '@project/common/components/VideoDataSyncDialog';
+import type { FileWithId } from '@project/common/file-selector';
+import { DefaultFileSelector } from '@project/common/file-selector';
 
 const latestExtensionVersion = '1.16.0';
 const extensionUrl =
@@ -163,7 +167,7 @@ async function extractDropFileHandles(items: DataTransferItemList): Promise<File
             }
         } catch (e) {
             // Best-effort only; if handle access fails, keep loading dropped files normally.
-            console.warn('Failed to read dropped file handle:', e);
+            asbWarn('app/files', 'Failed to read dropped file handle:', e);
             return undefined;
         }
     }
@@ -207,6 +211,7 @@ function extractSources(files: FileWithId[]): MediaSources {
 
 interface RenderVideoProps {
     searchParams: URLSearchParams;
+    settingsProvider: SettingsProvider;
     settings: AsbplayerSettings;
     extension: ChromeExtension;
     miningContext: MiningContext;
@@ -223,9 +228,9 @@ interface RenderVideoProps {
         timestamp: number
     ) => void;
     onSettingsChanged: (settings: Partial<AsbplayerSettings>) => void;
+    profile?: string;
     onAnkiDialogRewind: () => void;
     onError: (error: string) => void;
-    onPlayModeChangedViaBind: (playModes: Set<PlayMode>, targetMode: PlayMode) => void;
 }
 
 function RenderVideo({ searchParams, ...props }: RenderVideoProps) {
@@ -322,11 +327,13 @@ interface Props {
     logoUrl: string;
     settingsProvider: SettingsProvider;
     dictionaryProvider: DictionaryProvider;
+    logProvider: LogProvider;
     settings: AsbplayerSettings;
     globalState?: GlobalState;
     extension: ChromeExtension;
     fetcher: Fetcher;
     onSettingsChanged: (settings: Partial<AsbplayerSettings>) => void;
+    profile?: string;
     profiles: Profile[];
     activeProfile?: string;
     onNewProfile: (name: string) => void;
@@ -339,12 +346,14 @@ function App({
     origin,
     logoUrl,
     dictionaryProvider,
+    logProvider,
     settingsProvider,
     settings,
     globalState,
     extension,
     fetcher,
     onSettingsChanged,
+    profile,
     onGlobalStateChanged,
     ...profilesContext
 }: Props) {
@@ -366,7 +375,7 @@ function App({
     const webSocketClient = useAppWebSocketClient({ settings });
     const supportsDictionaryStatistics = !extension.installed || extension.supportsDictionaryStatistics;
     const [subtitles, setSubtitles] = useState<DisplaySubtitleModel[]>([]);
-    const playbackPreferences = usePlaybackPreferences(settings, extension);
+    const playbackPreferences = usePlaybackPreferences();
     const theme = useMemo<Theme>(() => createTheme(settings.themeType), [settings.themeType]);
     const anki = useAnki({ settings, fetcher });
     const searchParams = useMemo(() => new URLSearchParams(location.search), []);
@@ -431,17 +440,19 @@ function App({
         saveBufferedHandlesToSession: saveBufferedHandlesToFileSession,
         promoteBufferedHandlesInSession: promoteBufferedHandlesInFileSession,
         clearBufferedHandlesInSession: clearBufferedHandlesInFileSession,
-        retainHandlesInSession: retainHandlesInFileSession,
+        saveCachedSubtitleFilesToSession: saveCachedSubtitleFilesToFileSession,
+        retainSourcesInSession: retainSourcesInFileSession,
     } = useFileSession();
 
     const [lastError, setLastError] = useState<any>();
+    const playerRef = useRef<PlayerRef>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const bufferedFileInputRef = useRef<HTMLInputElement>(null);
     const { subtitleFiles } = sources;
 
     const handleError = useCallback(
         (message: any) => {
-            console.error(message);
+            asbError('app/errors', message);
             setLastError(message);
             setAlertSeverity('error');
 
@@ -640,7 +651,8 @@ function App({
                             settingsRef.current.mediaFragmentFormat,
                             settingsRef.current.mediaFragmentTrimStart,
                             settingsRef.current.mediaFragmentTrimEnd,
-                            settingsRef.current.mediaFragmentMaxClipLength
+                            settingsRef.current.mediaFragmentMaxClipLength,
+                            settingsRef.current.trimBlackBars
                         ),
                         word: newCard.word ?? '',
                         source: `${newCard.subtitleFileName} (${humanReadableTime(card.mediaTimestamp)})`,
@@ -831,7 +843,8 @@ function App({
                     settings.mediaFragmentFormat,
                     settings.mediaFragmentTrimStart,
                     settings.mediaFragmentTrimEnd,
-                    settings.mediaFragmentMaxClipLength
+                    settings.mediaFragmentMaxClipLength,
+                    settings.trimBlackBars
                 )!;
 
                 if (image.error === undefined) {
@@ -853,6 +866,7 @@ function App({
             settings.mediaFragmentTrimStart,
             settings.mediaFragmentTrimEnd,
             settings.mediaFragmentMaxClipLength,
+            settings.trimBlackBars,
             t,
         ]
     );
@@ -1055,7 +1069,7 @@ function App({
                     });
                     setLoadingSources(loadingSources);
 
-                    void retainHandlesInFileSession([
+                    void retainSourcesInFileSession([
                         ...sources.subtitleFiles.map((f) => f.id),
                         ...(sources.videoFile === undefined ? [] : [sources.videoFile.id]),
                     ]);
@@ -1074,7 +1088,7 @@ function App({
                 return false;
             }
         },
-        [handleError, retainHandlesInFileSession]
+        [handleError, retainSourcesInFileSession]
     );
 
     const persistFileSessionHandles = useCallback(
@@ -1100,7 +1114,7 @@ function App({
 
             // Persist in background so session saving never blocks current file loading.
             void saveFileSession({ videoHandle, subtitleHandles }).catch((e) => {
-                console.error('Failed to save file session:', e);
+                asbError('app/session', 'Failed to save file session:', e);
                 handleError(e);
             });
         },
@@ -1115,7 +1129,7 @@ function App({
 
             // Persist in background so session saving never blocks current file loading.
             void saveBufferedHandlesToFileSession(handles).catch((e) => {
-                console.error('Failed to save file session:', e);
+                asbError('app/session', 'Failed to save file session:', e);
                 handleError(e);
             });
         },
@@ -1135,18 +1149,19 @@ function App({
                 return;
             }
 
-            const { files, errors } = await resolveFiles(granted);
+            const { files: resolvedFiles, errors } = await resolveFiles(granted);
             if (errors.length > 0) {
                 handleError(t('error.restoreSessionFailed'));
                 await clearFileSession();
                 return;
             }
 
+            const files = [...resolvedFiles, ...(record.cachedSubtitleFiles ?? [])];
             if (!handleFiles({ files })) {
                 await clearFileSession();
             }
         } catch (e) {
-            console.error('Failed to restore last session:', e);
+            asbError('app/session', 'Failed to restore last session:', e);
             handleError(e);
         }
     }, [fetchFileSession, clearFileSession, handleFiles, handleError, t]);
@@ -1231,7 +1246,8 @@ function App({
 
                 if (tabs.length === 0) {
                     if (message.src) {
-                        console.error(
+                        asbError(
+                            'app/messages',
                             'Received sync request but the requesting tab ID ' +
                                 message.tabId +
                                 ' with src ' +
@@ -1239,7 +1255,8 @@ function App({
                                 ' was not found'
                         );
                     } else {
-                        console.error(
+                        asbError(
+                            'app/messages',
                             'Received sync request but the requesting tab ID ' + message.tabId + ' was not found'
                         );
                     }
@@ -1269,7 +1286,7 @@ function App({
                     );
                     flatten = syncMessage.flatten ?? false;
                 } else {
-                    console.error('Unknown message ' + message.data.command);
+                    asbError('app/messages', 'Unknown message ' + message.data.command);
                     return;
                 }
 
@@ -1371,38 +1388,6 @@ function App({
         });
     }, [extension, inVideoPlayer, handleDownloadAudio]);
 
-    const handlePlayModeChangedViaBind = useCallback(
-        (playModes: Set<PlayMode>, targetMode: PlayMode) => {
-            if (targetMode === PlayMode.normal) {
-                if (playModes.size === 1 && playModes.has(PlayMode.normal)) {
-                    return;
-                }
-
-                setAlert(t('info.disabledAllPlayModes'));
-            } else {
-                const enabling = !playModes.has(targetMode);
-                switch (targetMode) {
-                    case PlayMode.autoPause:
-                        setAlert(t(enabling ? 'info.enabledAutoPause' : 'info.disabledAutoPause'));
-                        break;
-                    case PlayMode.condensed:
-                        setAlert(t(enabling ? 'info.enabledCondensedPlayback' : 'info.disabledCondensedPlayback'));
-                        break;
-                    case PlayMode.fastForward:
-                        setAlert(t(enabling ? 'info.enabledFastForwardPlayback' : 'info.disabledFastForwardPlayback'));
-                        break;
-                    case PlayMode.repeat:
-                        setAlert(t(enabling ? 'info.enabledRepeatPlayback' : 'info.disabledRepeatPlayback'));
-                        break;
-                }
-
-                setAlertSeverity('info');
-                setAlertOpen(true);
-            }
-        },
-        [t]
-    );
-
     const handleDrop = useCallback(
         (e: React.DragEvent) => {
             if (ankiDialogOpen) {
@@ -1455,7 +1440,7 @@ function App({
                             persistFileSessionHandles(handlesWithId);
                         })
                         .catch((e) => {
-                            console.warn('Failed to collect dropped file handles:', e);
+                            asbWarn('app/files', 'Failed to collect dropped file handles:', e);
                         });
                 }
             }
@@ -1496,7 +1481,7 @@ function App({
                     return files;
                 }
             } catch (e) {
-                console.error('Failed to pick files via File System Access API:', e);
+                asbError('app/files', 'Failed to pick files via File System Access API:', e);
                 handleError(e);
             }
         },
@@ -1547,6 +1532,7 @@ function App({
                             subtitles.map((s, i) => ({
                                 ...s,
                                 displayTime: timeDurationDisplay(s.start, length),
+                                displayEndTime: timeDurationDisplay(s.end, length),
                                 index: i,
                             }))
                         );
@@ -1580,6 +1566,10 @@ function App({
             `${fileName}.srt`
         );
     }, [fileName, sources.subtitleFiles, subtitleReader]);
+
+    const handleDownloadSubtitleTimeline = useCallback(() => {
+        playerRef.current?.downloadSubtitleTimeline();
+    }, []);
 
     const handleDragOver = useCallback(
         (e: React.DragEvent<HTMLDivElement>) => {
@@ -1653,7 +1643,9 @@ function App({
     }, [sources.videoFile, alert, alertSeverity, alertOpen]);
 
     const handleCopyToClipboard = useCallback((blob: Blob) => {
-        navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]).catch(console.error);
+        navigator.clipboard
+            .write([new ClipboardItem({ [blob.type]: blob })])
+            .catch((error) => asbError('app/clipboard', error));
     }, []);
 
     useEffect(() => {
@@ -1748,6 +1740,7 @@ function App({
                 setSubtitleTrackSelectorDisabled(false);
                 try {
                     const files: FileWithId[] = [];
+                    const cachedSubtitleFiles: FileWithId[] = [];
                     for (const t of tracks) {
                         if (t.file !== undefined) {
                             files.push({ file: t.file, id: t.id });
@@ -1756,16 +1749,26 @@ function App({
                             const blob = await (await fetch(url)).blob();
                             const isEmptyTrack = t.id === '-';
                             const file = new File([blob], isEmptyTrack ? '.srt' : `${t.name}.${t.extension}`);
-                            files.push({ file, id: t.id });
+                            const fileWithId = { file, id: t.id };
+                            files.push(fileWithId);
+                            if (!isEmptyTrack) {
+                                cachedSubtitleFiles.push(fileWithId);
+                            }
                         } else {
-                            console.warn('unexpected url array when downloading subtitle track selection', t);
+                            asbWarn(
+                                'app/subtitles',
+                                'unexpected url array when downloading subtitle track selection',
+                                t
+                            );
                         }
                     }
                     if (handleFiles({ files })) {
-                        void promoteBufferedHandlesInFileSession(files.map((f) => f.id));
+                        await saveCachedSubtitleFilesToFileSession(cachedSubtitleFiles);
+                        await promoteBufferedHandlesInFileSession(files.map((f) => f.id));
                         closeSubtitleTrackSelector();
                     }
                 } catch (e) {
+                    asbError('app/selector', 'Failed to confirm track selection:', e);
                     handleError(e);
                 } finally {
                     setSubtitleTrackSelectorDisabled(false);
@@ -1777,6 +1780,7 @@ function App({
             handleError,
             closeSubtitleTrackSelector,
             promoteBufferedHandlesInFileSession,
+            saveCachedSubtitleFilesToFileSession,
             setSubtitleTrackSelectorDisabled,
         ]
     );
@@ -1838,13 +1842,8 @@ function App({
                     onDragEnter={handleDragEnter}
                     onDragLeave={handleDragLeave}
                 >
-                    {!sources.videoFile && (
-                        <Alert
-                            open={alertOpen}
-                            onClose={handleAlertClosed}
-                            autoHideDuration={3000}
-                            severity={alertSeverity}
-                        >
+                    {!sources.videoFile && !inVideoPlayer && (
+                        <Alert open={alertOpen} useAppLogo={false} onClose={handleAlertClosed} severity={alertSeverity}>
                             {alert}
                         </Alert>
                     )}
@@ -1852,16 +1851,17 @@ function App({
                         <>
                             <RenderVideo
                                 searchParams={searchParams}
+                                settingsProvider={settingsProvider}
                                 settings={settings}
                                 extension={extension}
                                 miningContext={miningContext}
                                 ankiDialogOpen={ankiDialogOpen}
                                 seekRequest={videoPlayerSeekRequest}
                                 onSettingsChanged={onSettingsChanged}
+                                profile={profile}
                                 onAnkiDialogRequest={handleAnkiDialogRequestFromVideoPlayer}
                                 onAnkiDialogRewind={handleAnkiDialogRewindFromVideoPlayer}
                                 onError={handleError}
-                                onPlayModeChangedViaBind={handlePlayModeChangedViaBind}
                             />
                             {ankiDialogCard && (
                                 <AnkiDialog
@@ -1935,6 +1935,7 @@ function App({
                                 onSettingsChanged={onSettingsChanged}
                                 onClose={handleCloseSettings}
                                 dictionaryProvider={dictionaryProvider}
+                                logProvider={logProvider}
                                 settings={settings}
                                 activeProfile={profilesContext.activeProfile}
                                 scrollToId={settingsDialogScrollToId}
@@ -1955,6 +1956,7 @@ function App({
                                     profiles={profilesContext.profiles}
                                     activeProfile={profilesContext.activeProfile}
                                     onlineSubtitleSourceConfig={globalState.onlineSubtitleSourceConfig}
+                                    clientId="asbplayer-app"
                                     hasSeenFtue={true}
                                     hideRememberTrackPreferenceToggle={true}
                                     hideVideoNameTextField={true}
@@ -1990,6 +1992,7 @@ function App({
                                 onOpenCopyHistory={handleOpenCopyHistory}
                                 onOpenStatistics={supportsDictionaryStatistics ? handleOpenStatistics : undefined}
                                 onDownloadSubtitleFilesAsSrt={handleDownloadSubtitleFilesAsSrt}
+                                onDownloadSubtitleTimeline={handleDownloadSubtitleTimeline}
                                 onOpenSettings={handleOpenSettings}
                                 lastError={lastError}
                                 onCopyLastError={handleCopyLastError}
@@ -2036,6 +2039,7 @@ function App({
                                     />
                                 </Paper>
                                 <Player
+                                    ref={playerRef}
                                     origin={origin}
                                     subtitleReader={subtitleReader}
                                     subtitles={subtitles}
@@ -2043,6 +2047,8 @@ function App({
                                     settings={settings}
                                     dictionaryProvider={dictionaryProvider}
                                     settingsProvider={settingsProvider}
+                                    onSettingsChanged={onSettingsChanged}
+                                    profile={profile}
                                     playbackPreferences={playbackPreferences}
                                     onCopy={handleCopy}
                                     onError={handleError}
@@ -2054,7 +2060,6 @@ function App({
                                     onAppBarToggle={handleAppBarToggle}
                                     onHideSubtitlePlayer={handleHideSubtitlePlayer}
                                     onVideoPopOut={handleVideoPopOut}
-                                    onPlayModeChangedViaBind={handlePlayModeChangedViaBind}
                                     onSubtitles={
                                         setSubtitles as React.Dispatch<
                                             React.SetStateAction<DisplaySubtitleModel[] | undefined>
@@ -2093,6 +2098,30 @@ function App({
                                     miningContext={miningContext}
                                     keyBinder={keyBinder}
                                     webSocketClient={webSocketClient}
+                                    playbackTimelineFileName={fileName}
+                                    playbackTimelineModeLabels={{
+                                        normal: t('controls.normalMode'),
+                                        fastForward: t('controls.fastForwardMode'),
+                                        condensed: t('controls.condensedMode'),
+                                        autoPauseAtStart: t('settings.autoPauseAtSubtitleStart'),
+                                        autoPauseAtEnd: t('settings.autoPauseAtSubtitleEnd'),
+                                        repeat: t('controls.repeatMode'),
+                                    }}
+                                    playbackTimelineOptionLabels={{
+                                        title: t('settings.playbackModes'),
+                                        subtitleTrack: (trackNumber) =>
+                                            t('settings.subtitleTrackChoice', { trackNumber }),
+                                        subtitleTriggerStartOffset: t('settings.subtitleTriggerStartOffset'),
+                                        subtitleTriggerEndOffset: t('settings.subtitleTriggerEndOffset'),
+                                        subtitleTriggerGapEndOffset: t('settings.subtitleTriggerGapEndOffset'),
+                                        subtitleTriggerGapStartOffset: t('settings.subtitleTriggerGapStartOffset'),
+                                        condensedPlaybackMinimumSkipInterval: t(
+                                            'settings.condensedPlaybackMinimumSkipInterval'
+                                        ),
+                                        fastForwardPlaybackMinimumSkipInterval: t(
+                                            'settings.fastForwardPlaybackMinimumSkipInterval'
+                                        ),
+                                    }}
                                 />
                             </Content>
                         </Paper>

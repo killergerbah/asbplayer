@@ -15,17 +15,18 @@ import Typography from '@mui/material/Typography';
 import makeStyles from '@mui/styles/makeStyles';
 import Switch from '@mui/material/Switch';
 import LabelWithHoverEffect from '@project/common/components/LabelWithHoverEffect';
-import { ConfirmedVideoDataSubtitleTrack, VideoDataSubtitleTrack, VideoDataUiOpenReason } from '@project/common';
+import type { ConfirmedVideoDataSubtitleTrack, VideoDataSubtitleTrack } from '@project/common';
+import { VideoDataUiOpenReason } from '@project/common';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import MiniProfileSelector from '@project/common/components/MiniProfileSelector';
 import type { Profile } from '@project/common/settings';
 import Alert from '@mui/material/Alert';
-import { type ButtonBaseActions } from '@mui/material';
-import { OnlineSubtitleSourceConfig } from '../global-state';
-import OnlineSubtitleSourceDialog from './OnlineSubtitleSourceDialog';
-import { TFunction } from 'i18next';
-import { FileSelector, FileWithId } from '@project/common/file-selector';
+import type { ButtonBaseActions } from '@mui/material';
+import type { GenericParseType, OnlineSubtitleSourceConfig } from '@project/common/global-state';
+import OnlineSubtitleSourceDialog from '@project/common/components/OnlineSubtitleSourceDialog';
+import type { TFunction } from 'i18next';
+import type { FileSelector, FileWithId } from '@project/common/file-selector';
 
 const createClasses = makeStyles(() => ({
     relative: {
@@ -156,9 +157,13 @@ interface Props {
     profiles: Profile[];
     activeProfile?: string;
     onlineSubtitleSourceConfig: OnlineSubtitleSourceConfig;
+    clientId: string;
     hasSeenFtue?: boolean;
     hideRememberTrackPreferenceToggle?: boolean;
     hideVideoNameTextField?: boolean;
+    isGenericPage?: boolean;
+    showGenericPageOption?: boolean;
+    genericSubtitleParser?: GenericParseType;
     fileSelector: FileSelector;
     onCancel: () => void;
     onOpenSettings: () => void;
@@ -166,6 +171,7 @@ interface Props {
     onSetActiveProfile: (profile: string | undefined) => void;
     onOnlineSourceConfigChanged: (state: Partial<OnlineSubtitleSourceConfig>) => void;
     onDismissFtue: () => void;
+    onGenericSubtitleParserChange?: (parse: GenericParseType) => void;
     onOpenFiles: (files: FileWithId[]) => void;
     onSubtitleTracks: (tracks: VideoDataSubtitleTrack[]) => void;
     onSelectedSubtitleTrackIds: (trackIds: string[]) => void;
@@ -184,9 +190,13 @@ export default function VideoDataSyncDialog({
     profiles,
     activeProfile,
     onlineSubtitleSourceConfig,
+    clientId,
     hasSeenFtue,
     hideRememberTrackPreferenceToggle,
     hideVideoNameTextField,
+    isGenericPage,
+    showGenericPageOption,
+    genericSubtitleParser,
     fileSelector,
     onCancel,
     onOpenSettings,
@@ -194,6 +204,7 @@ export default function VideoDataSyncDialog({
     onSetActiveProfile,
     onOnlineSourceConfigChanged,
     onDismissFtue,
+    onGenericSubtitleParserChange,
     onOpenFiles,
     onSubtitleTracks,
     onSelectedSubtitleTrackIds,
@@ -201,6 +212,7 @@ export default function VideoDataSyncDialog({
     const { t } = useTranslation();
     const [name, setName] = useState('');
     const [shouldRememberTrackChoices, setShouldRememberTrackChoices] = useState(false);
+    const [genericSubtitleParserChanged, setGenericSubtitleParserChanged] = useState(false);
     const trimmedName = name.trim();
     const classes = createClasses();
 
@@ -209,6 +221,10 @@ export default function VideoDataSyncDialog({
             setShouldRememberTrackChoices(defaultCheckboxState);
         }
     }, [open, defaultCheckboxState]);
+
+    useEffect(() => {
+        if (open) setGenericSubtitleParserChanged(false);
+    }, [open]);
 
     useEffect(() => {
         setName((name) => {
@@ -250,6 +266,11 @@ export default function VideoDataSyncDialog({
 
     function handleRememberTrackChoices() {
         setShouldRememberTrackChoices(!shouldRememberTrackChoices);
+    }
+
+    function handleGenericSubtitleParserChange(parse: GenericParseType) {
+        onGenericSubtitleParserChange?.(parse);
+        setGenericSubtitleParserChanged(true);
     }
 
     function allSelectedSubtitleTracks() {
@@ -506,6 +527,74 @@ export default function VideoDataSyncDialog({
                                     />
                                 </Grid>
                             )}
+                            {showGenericPageOption && (
+                                <>
+                                    <Grid item>
+                                        <LabelWithHoverEffect
+                                            control={
+                                                <Switch
+                                                    checked={genericSubtitleParser !== 'off'}
+                                                    disabled={genericSubtitleParser === 'aggressive'}
+                                                    onChange={(event) =>
+                                                        handleGenericSubtitleParserChange(
+                                                            event.target.checked ? 'base' : 'off'
+                                                        )
+                                                    }
+                                                    color="primary"
+                                                />
+                                            }
+                                            label={t('extension.videoDataSync.genericPage')}
+                                            labelPlacement="start"
+                                            style={{
+                                                display: 'flex',
+                                                marginLeft: 'auto',
+                                                marginRight: '-13px',
+                                                width: 'fit-content',
+                                            }}
+                                        />
+                                    </Grid>
+                                    {genericSubtitleParser !== 'off' && (
+                                        <Grid item>
+                                            <LabelWithHoverEffect
+                                                control={
+                                                    <Switch
+                                                        checked={genericSubtitleParser === 'aggressive'}
+                                                        onChange={(event) =>
+                                                            handleGenericSubtitleParserChange(
+                                                                event.target.checked ? 'aggressive' : 'base'
+                                                            )
+                                                        }
+                                                        color="primary"
+                                                    />
+                                                }
+                                                label={t('extension.videoDataSync.aggressiveGenericPage')}
+                                                labelPlacement="start"
+                                                style={{
+                                                    display: 'flex',
+                                                    marginLeft: 'auto',
+                                                    marginRight: '-13px',
+                                                    width: 'fit-content',
+                                                }}
+                                            />
+                                        </Grid>
+                                    )}
+                                    <Grid item>
+                                        <Alert
+                                            severity={
+                                                genericSubtitleParserChanged || !isGenericPage ? 'info' : 'warning'
+                                            }
+                                        >
+                                            {genericSubtitleParserChanged
+                                                ? t('info.refreshForChangesToTakeEffect')
+                                                : t(
+                                                      isGenericPage
+                                                          ? 'extension.videoDataSync.genericPageWarning'
+                                                          : 'extension.videoDataSync.genericPageInfo'
+                                                  )}
+                                        </Alert>
+                                    </Grid>
+                                </>
+                            )}
                         </Grid>
                     </form>
                 </DialogContent>
@@ -530,6 +619,7 @@ export default function VideoDataSyncDialog({
                 onClose={handleOnlineDialogClose}
                 onImport={handleImportOnlineFile}
                 detectedTitleHint={detectedTitleHint}
+                clientId={clientId}
                 jimakuApiKey={onlineSubtitleSourceConfig.jimakuApiKey}
                 onJimakuApiKeyChange={(jimakuApiKey) =>
                     onOnlineSourceConfigChanged({
@@ -543,6 +633,8 @@ export default function VideoDataSyncDialog({
                 }
                 jimakuRecentWorks={onlineSubtitleSourceConfig.jimakuRecentWorks ?? []}
                 onJimakuRecentWorksChange={(jimakuRecentWorks) => onOnlineSourceConfigChanged({ jimakuRecentWorks })}
+                jimakuEpisodeRegex={onlineSubtitleSourceConfig.jimakuEpisodeRegex ?? ''}
+                onJimakuEpisodeRegexChange={(jimakuEpisodeRegex) => onOnlineSourceConfigChanged({ jimakuEpisodeRegex })}
             />
         </>
     );

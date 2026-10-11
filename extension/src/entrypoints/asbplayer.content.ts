@@ -1,3 +1,4 @@
+import { asbError } from '@project/common/util/log';
 import type {
     AddProfileMessage,
     DictionaryBuildAnkiCacheMessage,
@@ -30,6 +31,7 @@ import type {
 import { ExtensionDictionaryStorage } from '@/services/extension-dictionary-storage';
 import { ExtensionSettingsStorage } from '@/services/extension-settings-storage';
 import { ExtensionGlobalStateProvider } from '@/services/extension-global-state-provider';
+import { configureExtensionLogProvider } from '@/services/extension-log-provider';
 
 const matches = ['*://app.asbplayer.dev/*'];
 
@@ -44,6 +46,8 @@ export default defineContentScript({
     runAt: 'document_start',
 
     main() {
+        configureExtensionLogProvider();
+
         const sendMessageToPlayer = (message: any) => {
             window.postMessage({
                 sender: 'asbplayer-extension-to-player',
@@ -312,12 +316,25 @@ export default defineContentScript({
                             });
                             break;
                         }
+                        case 'append-logs':
+                        case 'get-logs': {
+                            try {
+                                const response = await browser.runtime.sendMessage(command);
+                                sendMessageToPlayer({ response, messageId: command.message.messageId });
+                            } catch (error) {
+                                sendMessageToPlayer({
+                                    response: { error: error instanceof Error ? error.message : String(error) },
+                                    messageId: command.message.messageId,
+                                });
+                            }
+                            break;
+                        }
                         default:
                             void browser.runtime.sendMessage(command);
                             break;
                     }
                 }
-            })().catch(console.error);
+            })().catch((error) => asbError('content', error));
         });
 
         browser.runtime.onMessage.addListener((request) => {
@@ -360,7 +377,7 @@ export default defineContentScript({
                 };
 
                 sendMessageToPlayer(versionMessage);
-            })().catch(console.error);
+            })().catch((error) => asbError('content', error));
         });
     },
 });

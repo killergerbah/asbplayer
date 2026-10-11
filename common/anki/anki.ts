@@ -1,9 +1,10 @@
-import { AudioClip } from '@project/common/audio-clip';
-import { AnkiExportMode, CardModel, MediaFragment, Progress } from '@project/common';
-import { HttpFetcher, Fetcher } from '@project/common';
-import { AnkiSettings, AnkiSettingsFieldKey } from '@project/common/settings';
-import sanitize from 'sanitize-filename';
+import { asbError, asbInfo } from '@project/common/util/log';
 import { extractText, fromBatches, sourceString } from '@project/common/util';
+import { AudioClip } from '@project/common/audio-clip';
+import type { AnkiExportMode, CardModel, Progress, Fetcher } from '@project/common';
+import { MediaFragment, HttpFetcher } from '@project/common';
+import type { AnkiSettings, AnkiSettingsFieldKey } from '@project/common/settings';
+import sanitize from 'sanitize-filename';
 
 const ANKI_CARDS_INFO_BATCH_SIZE = 10;
 const ANKI_NOTES_INFO_BATCH_SIZE = 100;
@@ -16,7 +17,7 @@ const unsafeURLChars = /[:/?#[\]@!$&'()*+,;= "<>%{}|\\^`]/g;
 const replacement = '_';
 
 const logMediaCreationTime = (type: string, extension: string, durationMs: number, fileName: string) => {
-    console.info(`[asbplayer] ${type} creation took ${durationMs}ms (${fileName}, .${extension})`);
+    asbInfo('anki/media', `${type} creation took ${durationMs}ms (${fileName}, .${extension})`);
 };
 
 const timedMediaBase64 = async (
@@ -113,6 +114,14 @@ const tagContent = (html: string) => {
 
 const containsHtmlTag = (value: string) => anyHtmlTagRegex.test(value);
 
+const normalizeSubtitleForComparison = (text: string) =>
+    text
+        .replace(/<br\s*\/?>/gi, ' ')
+        .replace(/<[^>]+>/g, '')
+        .replace(/&nbsp;/g, ' ')
+        .replace(/\n/g, ' ')
+        .trim();
+
 export const inheritHtmlMarkup = (original: string, markedUp: string) => {
     const htmlTagRegex = new RegExp(htmlTagRegexString, 'ig');
     const markedUpWithoutBreaklines = markedUp.replaceAll('<br>', '');
@@ -178,7 +187,8 @@ export async function exportCard(
     card: CardModel,
     ankiSettings: AnkiSettings,
     exportMode: AnkiExportMode = 'default',
-    fetcher?: Fetcher
+    fetcher?: Fetcher,
+    noteId?: number
 ): Promise<string> {
     const anki = new Anki(ankiSettings, fetcher);
     const source = sourceString(card.subtitleFileName, card.mediaTimestamp);
@@ -218,6 +228,7 @@ export async function exportCard(
         customFieldValues: card.customFieldValues ?? {},
         tags: ankiSettings.tags,
         mode: exportMode,
+        noteId,
     });
 }
 
@@ -502,7 +513,7 @@ export class Anki {
         ankiConnectUrl,
         noteId,
     }: ExportParams) {
-        const fields = {};
+        const fields: { [key: string]: string } = {};
 
         this._appendField(fields, this.settingsProvider.sentenceField, text, true);
         this._appendField(fields, this.settingsProvider.track1Field, track1, true);
@@ -542,9 +553,12 @@ export class Anki {
 
         const gui = mode === 'gui';
         const updateLast = mode === 'updateLast';
-        const isUpdate = mode === 'updateLast' || mode === 'updateSpecific';
+        const isUpdate = updateLast || mode === 'updateSpecific';
+        const updateLastForSameLine = updateLast && this.settingsProvider.updateLastCardForSameSubtitle;
 
-        const recentNotes = updateLast ? await this.findNotes('added:1', ankiConnectUrl) : [];
+        const recentNotes = updateLast
+            ? await this.findNotes(updateLastForSameLine ? 'added:2' : 'added:1', ankiConnectUrl)
+            : [];
         if (updateLast && recentNotes.length === 0) {
             throw new Error('Could not find note to update');
         }
@@ -579,7 +593,13 @@ export class Anki {
                     throw new Error('Could not find note to update');
                 }
 
-                return this._updateNoteFields(lastNoteId, params, tags, ankiConnectUrl);
+                const result = await this._updateNoteFields(lastNoteId, params, tags, ankiConnectUrl);
+
+                if (updateLastForSameLine && text && this.settingsProvider.sentenceField) {
+                    await this._updateSameSubtitleNotes(recentNotes, lastNoteId, text, fields, tags, ankiConnectUrl);
+                }
+
+                return result;
             }
             case 'updateSpecific': {
                 if (noteId === undefined) {
@@ -725,6 +745,60 @@ export class Anki {
         );
     }
 
+    private async _updateSameSubtitleNotes(
+        recentNotes: number[],
+        lastNoteId: number,
+        text: string,
+        fields: { [key: string]: string },
+        tags: string[],
+        ankiConnectUrl?: string
+    ) {
+        // Include the previous day to handle cards mined across Anki's day boundary.
+        // Stop at the first different subtitle so earlier mining sessions are not updated.
+        const precedingNoteIds = recentNotes.filter((id) => id < lastNoteId).sort((a, b) => b - a);
+        if (precedingNoteIds.length === 0) return;
+
+        const normalizedSubtitle = normalizeSubtitleForComparison(text);
+        const sentenceFieldName = this.settingsProvider.sentenceField;
+        const precedingInfo = await this.notesInfo(precedingNoteIds, ankiConnectUrl);
+
+        for (const otherInfo of precedingInfo) {
+            const otherSentenceHtml = otherInfo.fields?.[sentenceFieldName]?.value;
+            if (!otherSentenceHtml) break;
+
+            const otherSentencePlain = normalizeSubtitleForComparison(otherSentenceHtml);
+
+            if (
+                otherSentencePlain.length === 0 ||
+                (!normalizedSubtitle.includes(otherSentencePlain) && !otherSentencePlain.includes(normalizedSubtitle))
+            ) {
+                break;
+            }
+
+            // Only update image/audio fields for preceding cards.
+            const otherFields: { [key: string]: string } = {};
+            for (const fieldName of [this.settingsProvider.audioField, this.settingsProvider.imageField]) {
+                if (fieldName && fields[fieldName]) otherFields[fieldName] = fields[fieldName];
+            }
+
+            if (Object.keys(otherFields).length === 0) continue;
+
+            await this._executeAction(
+                'updateNoteFields',
+                { note: { id: otherInfo.noteId, fields: otherFields } },
+                ankiConnectUrl
+            );
+
+            if (tags.length > 0) {
+                await this._executeAction(
+                    'addTags',
+                    { notes: [otherInfo.noteId], tags: tags.join(' ') },
+                    ankiConnectUrl
+                );
+            }
+        }
+    }
+
     private async _updateNoteFields(noteId: number, params: any, tags: string[], ankiConnectUrl?: string) {
         params.note['id'] = noteId;
         const infoResponse = await this._executeAction('notesInfo', { notes: [noteId] }, ankiConnectUrl);
@@ -746,6 +820,10 @@ export class Anki {
             await this._executeAction('addTags', { notes: [noteId], tags: tags.join(' ') }, ankiConnectUrl);
         }
 
+        if (this.settingsProvider.ankiRefreshBrowserAfterUpdate) {
+            await this._refreshBrowser(noteId, ankiConnectUrl);
+        }
+
         if (!this.settingsProvider.wordField || !info.fields) {
             return info.noteId;
         }
@@ -757,6 +835,15 @@ export class Anki {
         }
 
         return wordField.value;
+    }
+
+    private async _refreshBrowser(noteId: number, ankiConnectUrl?: string) {
+        try {
+            await this._executeAction('guiBrowse', { query: 'nid:1' }, ankiConnectUrl);
+            await this._executeAction('guiBrowse', { query: `nid:${noteId}` }, ankiConnectUrl);
+        } catch (e) {
+            asbError('anki/connect', 'Failed to refresh Anki card browser after updating note:', e);
+        }
     }
 
     private _inheritHtmlMarkupFromField(fieldKey: AnkiSettingsFieldKey, info: any, params: any) {

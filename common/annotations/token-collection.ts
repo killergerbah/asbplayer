@@ -1,18 +1,18 @@
+import type { TokenState, DictionaryTrack } from '@project/common/settings';
 import {
     DictionaryTokenSource,
     dictionaryTokenSourcePriority,
     externalWordSourcePriority,
     isExternalWordSource,
     TokenMatchStrategy,
-    TokenState,
     TokenStatus,
     isWordSource,
     TokenMatchStrategyPriority,
-    DictionaryTrack,
 } from '@project/common/settings';
-import { TokenStatusInfo } from '@project/common/dictionary-db';
+import type { TokenStatusInfo } from '@project/common/dictionary-db';
+import { asbTrace } from '@project/common/util/log';
 import { getTokenStatus, dedupeTokenStatusInfos, isKanaOnly, normalizeToken } from '@project/common/util';
-import type { TrackState } from '@project/common/annotations';
+import type { TrackState } from '@project/common/annotations/track-state';
 
 /**
  * The processed data from the db.
@@ -171,6 +171,9 @@ export class TokenCollection extends TokenCollectionBase<TokenStatusResult> {
     ): void {
         const normalizedKey = normalizeToken(key);
         this.updateTokenStates(normalizedKey, states);
+        if (source === DictionaryTokenSource.LOCAL && statuses.every((s) => s.status === TokenStatus.UNCOLLECTED)) {
+            return;
+        }
         const statusResult = this.tokenStatusResult(statuses, source, externalCandidateStatuses);
         const existing = this.collection.get(normalizedKey);
         this.collection.set(
@@ -180,7 +183,7 @@ export class TokenCollection extends TokenCollectionBase<TokenStatusResult> {
     }
 
     private resolve(
-        normalizedTokens: string[],
+        normalizedTokens: readonly string[],
         sourceMatches: (source: DictionaryTokenSource) => boolean
     ): TokenStatusResult[] {
         const statusResults: TokenStatusResult[] = [];
@@ -191,12 +194,12 @@ export class TokenCollection extends TokenCollectionBase<TokenStatusResult> {
         return statusResults;
     }
 
-    resolveForWord(normalizedTokens: string[]): TokenStatusResult[] {
+    resolveForWord(normalizedTokens: readonly string[]): TokenStatusResult[] {
         if (!this.wordEnabled) return [];
         return this.resolve(normalizedTokens, (source) => isWordSource(source));
     }
 
-    resolveForSentence(normalizedTokens: string[]): TokenStatusResult[] {
+    resolveForSentence(normalizedTokens: readonly string[]): TokenStatusResult[] {
         if (!this.sentenceEnabled) return [];
         return this.resolve(normalizedTokens, (source) => !isWordSource(source));
     }
@@ -213,6 +216,9 @@ export class TokenCollectionArray extends TokenCollectionBase<TokenStatusResult[
     ): void {
         const normalizedToken = normalizeToken(token);
         this.updateTokenStates(normalizedToken, states);
+        if (source === DictionaryTokenSource.LOCAL && statuses.every((s) => s.status === TokenStatus.UNCOLLECTED)) {
+            return;
+        }
         const statusResult = this.tokenStatusResult(statuses, source, externalCandidateStatuses, normalizedToken);
         const statusResults = this.collection.get(normalizedKey);
         if (!statusResults) {
@@ -234,7 +240,7 @@ export class TokenCollectionArray extends TokenCollectionBase<TokenStatusResult[
      */
     private getStatusResults(
         normalizedToken: string,
-        normalizedLemmas: string[],
+        normalizedLemmas: readonly string[],
         sourceMatches: (source: DictionaryTokenSource) => boolean
     ): TokenStatusResult[] {
         const tokenIsKanaOnly = isKanaOnly(normalizedToken);
@@ -259,13 +265,13 @@ export class TokenCollectionArray extends TokenCollectionBase<TokenStatusResult[
         return normalizedToken === normalizedKey;
     }
 
-    private tokenMatchesAnyKey(normalizedToken: string, normalizedKeys: string[]): boolean {
+    private tokenMatchesAnyKey(normalizedToken: string, normalizedKeys: readonly string[]): boolean {
         return normalizedKeys.some((normalizedKey) => this.tokenMatchesKey(normalizedToken, normalizedKey));
     }
 
     private resolve(
         normalizedToken: string,
-        lemmas: string[],
+        lemmas: readonly string[],
         sourceMatches: (source: DictionaryTokenSource) => boolean,
         exactPriority: boolean | null
     ): TokenStatusResult[] {
@@ -285,12 +291,20 @@ export class TokenCollectionArray extends TokenCollectionBase<TokenStatusResult[
         return statusResults;
     }
 
-    resolveForWord(normalizedToken: string, lemmas: string[], exactPriority: boolean | null): TokenStatusResult[] {
+    resolveForWord(
+        normalizedToken: string,
+        lemmas: readonly string[],
+        exactPriority: boolean | null
+    ): TokenStatusResult[] {
         if (!this.wordEnabled) return [];
         return this.resolve(normalizedToken, lemmas, (source) => isWordSource(source), exactPriority);
     }
 
-    resolveForSentence(normalizedToken: string, lemmas: string[], exactPriority: boolean | null): TokenStatusResult[] {
+    resolveForSentence(
+        normalizedToken: string,
+        lemmas: readonly string[],
+        exactPriority: boolean | null
+    ): TokenStatusResult[] {
         if (!this.sentenceEnabled) return [];
         return this.resolve(normalizedToken, lemmas, (source) => !isWordSource(source), exactPriority);
     }
@@ -303,7 +317,13 @@ export async function resolveTokenStatus(
 ): Promise<ResolvedTokenStatusResult | null> {
     if (!ts.yt) throw new Error('Yomitan uninitialized - cannot calculate token status');
     const lemmas = await ts.lemmatizeForScript(trimmedToken);
-    if (!lemmas) return null;
+    if (!lemmas) {
+        asbTrace('annotations/status', 'Unable to resolve token status because lemma resolution was unavailable', {
+            token: trimmedToken,
+            track: ts.track,
+        });
+        return null;
+    }
 
     let tokenStatusResult: ResolvedTokenStatusResult | null;
     switch (ts.dt.dictionaryTokenMatchStrategyPriority) {
@@ -331,7 +351,7 @@ export async function resolveTokenStatus(
 
 async function handlePriorityExact(
     normalizedToken: string,
-    lemmas: string[],
+    lemmas: readonly string[],
     ts: TrackState
 ): Promise<ResolvedTokenStatusResult | null> {
     const statusResults: TokenStatusResult[] = [];
@@ -355,7 +375,7 @@ async function handlePriorityExact(
 
 async function handlePriorityLemma(
     normalizedToken: string,
-    lemmas: string[],
+    lemmas: readonly string[],
     ts: TrackState
 ): Promise<ResolvedTokenStatusResult | null> {
     const statusResults: TokenStatusResult[] = [];
@@ -379,7 +399,7 @@ async function handlePriorityLemma(
 
 async function handlePriorityKnown(
     normalizedToken: string,
-    lemmas: string[],
+    lemmas: readonly string[],
     ts: TrackState,
     cmp: (tokenStatuses: TokenStatus[]) => TokenStatus
 ): Promise<ResolvedTokenStatusResult | null> {

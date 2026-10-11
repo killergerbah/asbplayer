@@ -1,15 +1,19 @@
-import {
+import { asbError, asbTrace } from '@project/common/util/log';
+import { ensureStoragePersisted, retryWithAnimationFrame } from '@project/common/util';
+import type {
     OpenStatisticsMessage,
-    PlayMode,
     SettingsUpdatedMessage,
     ToggleSubtitlesInListFromVideoMessage,
     ToggleSubtitlesMessage,
     VideoToExtensionCommand,
 } from '@project/common';
-import { ApplyStrategy, KeyBindSet, TokenState } from '@project/common/settings';
+import { PlayMode } from '@project/common';
+import type { KeyBindSet } from '@project/common/settings';
+import { ApplyStrategy, TokenState } from '@project/common/settings';
 import { DefaultKeyBinder } from '@project/common/key-binder';
-import Binding from './binding';
-import { ensureStoragePersisted } from '@project/common/util';
+import { findAdjacentTokenJumpMatch } from '@project/common/annotations/token-navigation';
+import type { TokenSelectionLocation } from '@project/common/annotations/token-navigation';
+import type Binding from '@project/extension/src/services/binding';
 
 type Unbinder = (() => void) | false;
 
@@ -32,11 +36,15 @@ export default class KeyBindings {
     private _unbindResetOffset?: Unbinder = false;
     private _unbindAdjustPlaybackRate?: Unbinder = false;
     private _unbindToggleRepeat: Unbinder = false;
+    private _unbindCycleAutoPauseResumeMode: Unbinder = false;
+    private _unbindToggleSubtitleVisibility: Unbinder = false;
     private _unbindAdjustSubtitlePositionOffset: Unbinder = false;
     private _unbindAdjustTopSubtitlePositionOffset: Unbinder = false;
+    private _unbindOpenStatistics?: Unbinder = false;
     private _unbindMarkHoveredToken?: Unbinder = false;
     private _unbindToggleHoveredTokenIgnored?: Unbinder = false;
-    private _unbindOpenStatistics?: Unbinder = false;
+    private _unbindJumpToToken?: Unbinder = false;
+    private _cancelTokenSelectionRetry?: () => void;
 
     private _bound: boolean;
 
@@ -78,7 +86,6 @@ export default class KeyBindings {
             (event) => {
                 event.preventDefault();
                 event.stopImmediatePropagation();
-
                 context.togglePlayMode(PlayMode.autoPause);
             },
             () => context.subtitleController.subtitles.length === 0,
@@ -89,7 +96,6 @@ export default class KeyBindings {
             (event) => {
                 event.preventDefault();
                 event.stopImmediatePropagation();
-
                 context.togglePlayMode(PlayMode.condensed);
             },
             () => context.subtitleController.subtitles.length === 0,
@@ -100,11 +106,27 @@ export default class KeyBindings {
             (event) => {
                 event.preventDefault();
                 event.stopImmediatePropagation();
-                const [currentSubtitle] = context.subtitleController.currentSubtitle();
+                context.togglePlayMode(PlayMode.repeat);
+            },
+            () => context.subtitleController.subtitles.length === 0,
+            true
+        );
 
-                if (currentSubtitle) {
-                    context.togglePlayMode(PlayMode.repeat);
-                }
+        this._unbindCycleAutoPauseResumeMode = this._keyBinder.bindCycleAutoPauseResumeMode(
+            (event) => {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                context.cycleAutoPauseResumeMode();
+            },
+            () => context.subtitleController.subtitles.length === 0,
+            true
+        );
+
+        this._unbindToggleSubtitleVisibility = this._keyBinder.bindToggleSubtitleVisibility(
+            (event) => {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                context.toggleSubtitleVisibility();
             },
             () => context.subtitleController.subtitles.length === 0,
             true
@@ -114,7 +136,6 @@ export default class KeyBindings {
             (event) => {
                 event.preventDefault();
                 event.stopImmediatePropagation();
-
                 context.togglePlayMode(PlayMode.fastForward);
             },
             () => context.subtitleController.subtitles.length === 0,
@@ -125,10 +146,10 @@ export default class KeyBindings {
             (event, subtitle) => {
                 event.preventDefault();
                 event.stopImmediatePropagation();
-                context.seek(subtitle.start / 1000);
+                void context.seek(subtitle.start);
             },
             () => context.subtitleController.subtitles.length === 0,
-            () => context.contentTimeMs,
+            () => context.currentTimeMs,
             () => context.subtitleController.subtitles,
             () => context.seekableTracks,
             true
@@ -140,9 +161,9 @@ export default class KeyBindings {
                 event.stopImmediatePropagation();
 
                 if (forward) {
-                    context.seek(context.contentTimeMs / 1000 + context.seekDuration);
+                    void context.seek(context.currentTimeMs + context.seekDurationMs);
                 } else {
-                    context.seek(Math.max(0, context.contentTimeMs / 1000 - context.seekDuration));
+                    void context.seek(Math.max(0, context.currentTimeMs - context.seekDurationMs));
                 }
             },
             () => !context.synced,
@@ -153,11 +174,11 @@ export default class KeyBindings {
             (event, subtitle) => {
                 event.preventDefault();
                 event.stopImmediatePropagation();
-                context.seek(subtitle.start / 1000);
+                void context.seek(subtitle.start);
                 if (context.alwaysPlayOnSubtitleRepeat) void context.play();
             },
             () => context.subtitleController.subtitles.length === 0,
-            () => context.contentTimeMs,
+            () => context.currentTimeMs,
             () => context.subtitleController.subtitles,
             () => context.seekableTracks,
             true
@@ -188,6 +209,11 @@ export default class KeyBindings {
                 event.stopImmediatePropagation();
                 context.subtitleController.disabledSubtitleTracks[track] =
                     !context.subtitleController.disabledSubtitleTracks[track];
+                asbTrace('playback/subtitles', 'Toggled subtitle track display', {
+                    track,
+                    disabled: context.subtitleController.disabledSubtitleTracks[track],
+                });
+                context.subtitleController.refreshShowingSubtitles();
             },
             () => context.subtitleController.subtitles.length === 0,
             true
@@ -200,6 +226,25 @@ export default class KeyBindings {
                 context.subtitleController.unblur(track);
             },
             () => context.subtitleController.subtitles.length === 0,
+            true
+        );
+
+        this._unbindOpenStatistics = this._keyBinder.bindOpenStatistics(
+            (event) => {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+
+                const command: VideoToExtensionCommand<OpenStatisticsMessage> = {
+                    sender: 'asbplayer-video',
+                    message: {
+                        command: 'open-statistics',
+                    },
+                    src: context.registeredVideoSrc,
+                };
+
+                void browser.runtime.sendMessage(command);
+            },
+            () => false,
             true
         );
 
@@ -241,22 +286,35 @@ export default class KeyBindings {
             true
         );
 
-        this._unbindOpenStatistics = this._keyBinder.bindOpenStatistics(
-            (event) => {
+        this._unbindJumpToToken = this._keyBinder.bindJumpToToken(
+            (event, target, forward) => {
+                const subtitles = context.subtitleController.subtitles;
+                const currentSelection = context.subtitleController.currentTokenSelectionLocation();
+                const match = findAdjacentTokenJumpMatch(
+                    subtitles,
+                    target,
+                    forward,
+                    context.currentTimeMs,
+                    context.seekableTracks,
+                    currentSelection
+                );
+                asbTrace('annotations/navigation', 'Resolved streaming token jump', {
+                    target,
+                    forward,
+                    timestampMs: context.currentTimeMs,
+                    seekableTracks: context.seekableTracks,
+                    currentSelection,
+                    match: match ? { subtitleIndex: match.subtitleIndex, tokenStart: match.tokenStart } : null,
+                });
+                if (!match) return false;
+
                 event.preventDefault();
                 event.stopImmediatePropagation();
-
-                const command: VideoToExtensionCommand<OpenStatisticsMessage> = {
-                    sender: 'asbplayer-video',
-                    message: {
-                        command: 'open-statistics',
-                    },
-                    src: context.registeredVideoSrc,
-                };
-
-                void browser.runtime.sendMessage(command);
+                void context.seek(match.subtitle.start);
+                this._requestTokenSelection(context, match);
+                return true;
             },
-            () => false,
+            () => context.subtitleController.subtitles.length === 0,
             true
         );
 
@@ -282,10 +340,10 @@ export default class KeyBindings {
             (event, offset) => {
                 event.preventDefault();
                 event.stopImmediatePropagation();
-                context.subtitleController.offset(offset);
+                context.subtitleOffsetChanged(offset, { notifyPlayer: true });
             },
             () => context.subtitleController.subtitles.length === 0,
-            () => context.contentTimeMs,
+            () => context.currentTimeMs,
             () => context.subtitleController.subtitles,
             () => context.seekableTracks,
             true
@@ -295,7 +353,7 @@ export default class KeyBindings {
             (event, offset) => {
                 event.preventDefault();
                 event.stopImmediatePropagation();
-                context.subtitleController.offset(offset);
+                context.subtitleOffsetChanged(offset, { notifyPlayer: true });
             },
             () => context.subtitleController.subtitles.length === 0,
             () => context.subtitleController.subtitles,
@@ -306,7 +364,7 @@ export default class KeyBindings {
             (event) => {
                 event.preventDefault();
                 event.stopImmediatePropagation();
-                context.subtitleController.offset(0);
+                context.subtitleOffsetChanged(0, { notifyPlayer: true });
             },
             () => context.subtitleController.subtitles.length === 0,
             true
@@ -317,15 +375,7 @@ export default class KeyBindings {
                 event.preventDefault();
                 event.stopImmediatePropagation();
 
-                const currentSpeed = context.video.playbackRate;
-                const speedOffset = context.speedChangeStep * 10;
-
-                context.togglePlayMode(PlayMode.normal);
-                if (increase) {
-                    context.video.playbackRate = Math.min(5, Math.round(currentSpeed * 10 + speedOffset) / 10);
-                } else {
-                    context.video.playbackRate = Math.max(0.1, Math.round(currentSpeed * 10 - speedOffset) / 10);
-                }
+                context.adjustPlaybackRate(increase ? context.speedChangeStep : -context.speedChangeStep);
             },
             () => !context.synced,
             true
@@ -351,7 +401,7 @@ export default class KeyBindings {
                         };
                         void browser.runtime.sendMessage(settingsUpdatedCommand);
                     })
-                    .catch(console.error);
+                    .catch((error) => asbError('key-bindings', error));
             },
             () => context.subtitleController.subtitles.length === 0,
             true
@@ -378,7 +428,7 @@ export default class KeyBindings {
                         };
                         void browser.runtime.sendMessage(settingsUpdatedCommand);
                     })
-                    .catch(console.error);
+                    .catch((error) => asbError('key-bindings', error));
             },
             () => context.subtitleController.subtitles.length === 0,
             true
@@ -463,6 +513,16 @@ export default class KeyBindings {
             this._unbindToggleRepeat = false;
         }
 
+        if (this._unbindCycleAutoPauseResumeMode) {
+            this._unbindCycleAutoPauseResumeMode();
+            this._unbindCycleAutoPauseResumeMode = false;
+        }
+
+        if (this._unbindToggleSubtitleVisibility) {
+            this._unbindToggleSubtitleVisibility();
+            this._unbindToggleSubtitleVisibility = false;
+        }
+
         if (this._unbindAdjustPlaybackRate) {
             this._unbindAdjustPlaybackRate();
             this._unbindAdjustPlaybackRate = false;
@@ -478,6 +538,11 @@ export default class KeyBindings {
             this._unbindAdjustTopSubtitlePositionOffset = false;
         }
 
+        if (this._unbindOpenStatistics) {
+            this._unbindOpenStatistics();
+            this._unbindOpenStatistics = false;
+        }
+
         if (this._unbindMarkHoveredToken) {
             this._unbindMarkHoveredToken();
             this._unbindMarkHoveredToken = false;
@@ -488,11 +553,41 @@ export default class KeyBindings {
             this._unbindToggleHoveredTokenIgnored = false;
         }
 
-        if (this._unbindOpenStatistics) {
-            this._unbindOpenStatistics();
-            this._unbindOpenStatistics = false;
+        if (this._unbindJumpToToken) {
+            this._unbindJumpToToken();
+            this._unbindJumpToToken = false;
         }
 
+        this._cancelTokenSelectionRetry?.();
+        this._cancelTokenSelectionRetry = undefined;
+
         this._bound = false;
+    }
+
+    private _requestTokenSelection(context: Binding, target: TokenSelectionLocation) {
+        this._cancelTokenSelectionRetry?.();
+        const maxAttempts = 60;
+        let attempts = 0;
+        asbTrace('annotations/selection', 'Requested streaming token selection', {
+            subtitleIndex: target.subtitleIndex,
+            tokenStart: target.tokenStart,
+            maxAttempts,
+        });
+        this._cancelTokenSelectionRetry = retryWithAnimationFrame(
+            () => {
+                attempts++;
+                const selected = context.subtitleController.selectToken(target, { focusContainer: false });
+                if (selected || attempts >= maxAttempts) {
+                    asbTrace(
+                        'annotations/selection',
+                        selected ? 'Selected streaming token' : 'Streaming token selection retry limit reached',
+                        { subtitleIndex: target.subtitleIndex, tokenStart: target.tokenStart, attempts }
+                    );
+                }
+                return selected;
+            },
+            maxAttempts,
+            { runImmediately: true }
+        );
     }
 }

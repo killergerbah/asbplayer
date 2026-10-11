@@ -1,5 +1,6 @@
-import ImageCapturer from '../../services/image-capturer';
-import {
+import { asbError } from '@project/common/util/log';
+import type ImageCapturer from '@project/extension/src/services/image-capturer';
+import type {
     Command,
     Message,
     VideoToExtensionCommand,
@@ -8,9 +9,9 @@ import {
     TakeScreenshotFromExtensionMessage,
     AnkiUiSavedState,
     ImageModel,
-    ImageErrorCode,
 } from '@project/common';
-import { CardPublisher } from '../../services/card-publisher';
+import { ImageErrorCode } from '@project/common';
+import type { CardPublisher } from '@project/extension/src/services/card-publisher';
 
 export default class TakeScreenshotHandler {
     private readonly _imageCapturer: ImageCapturer;
@@ -43,13 +44,14 @@ export default class TakeScreenshotHandler {
                 maxHeight,
                 rect,
                 frameId,
+                trimBlackBars: takeScreenshotCommand.message.trimBlackBars,
             });
             imageModel = {
                 base64: imageBase64,
                 extension: 'jpeg',
             };
         } catch (e) {
-            console.error(e);
+            asbError('recording/screenshot', e);
             imageModel = {
                 base64: '',
                 extension: 'jpeg',

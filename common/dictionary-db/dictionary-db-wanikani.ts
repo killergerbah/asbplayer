@@ -1,49 +1,42 @@
-import {
+import { asbError } from '@project/common/util/log';
+import { HAS_LETTER_REGEX, inBatches } from '@project/common/util';
+import type {
     DictionaryBuildWaniKaniCacheProgress,
     DictionaryBuildWaniKaniCacheStart,
     DictionaryBuildWaniKaniCacheState,
     DictionaryBuildWaniKaniCacheStateError as DictionaryBuildWaniKaniCacheError,
-    DictionaryBuildWaniKaniCacheStateErrorCode,
-    DictionaryBuildWaniKaniCacheStateType,
     DictionaryBuildWaniKaniCacheStats,
     Progress,
 } from '@project/common';
-import {
-    AsbplayerSettings,
-    dictionaryStatusCollectionEnabled,
-    DictionaryTokenSource,
-    isWaniKaniSource,
-} from '@project/common/settings';
-import { HAS_LETTER_REGEX, inBatches } from '@project/common/util';
-import {
-    WaniKani,
-    WaniKaniApiError,
-    WaniKaniAssignment,
-    WaniKaniSpacedRepetitionSystem,
-    WaniKaniSubject,
-} from '@project/common/wanikani';
+import { DictionaryBuildWaniKaniCacheStateErrorCode, DictionaryBuildWaniKaniCacheStateType } from '@project/common';
+import type { AsbplayerSettings } from '@project/common/settings';
+import { dictionaryStatusCollectionEnabled, DictionaryTokenSource, isWaniKaniSource } from '@project/common/settings';
+import type { WaniKaniAssignment, WaniKaniSpacedRepetitionSystem, WaniKaniSubject } from '@project/common/wanikani';
+import { WaniKani, WaniKaniApiError } from '@project/common/wanikani';
 import { Yomitan } from '@project/common/yomitan';
 import { v4 as uuidv4 } from 'uuid';
-import {
+import type {
     _DictionaryDatabase,
-    BUILD_MIN_EXPIRATION_MS,
-    _buildIdExpiration,
-    _buildIdHealthCheck,
-    _clearBuildIds,
     DictionaryMetaKey,
     DictionaryTokenRecord,
     DictionaryWaniKaniAssignmentKey,
     DictionaryWaniKaniAssignmentRecord,
     DictionaryWaniKaniSubjectKey,
     DictionaryWaniKaniSubjectRecord,
+    TrackStateForDB,
+    WaniKaniDataUpdatedAt,
+    WaniKaniMetaBuildChanges,
+} from '@project/common/dictionary-db';
+import {
+    BUILD_MIN_EXPIRATION_MS,
+    _buildIdExpiration,
+    _buildIdHealthCheck,
+    _clearBuildIds,
     _ensureBuildId,
     _gatherModifiedTokensForTrack,
     _getFromSourceBulk,
     _newWaniKaniMeta,
     _saveRecordBulk,
-    TrackStateForDB,
-    WaniKaniDataUpdatedAt,
-    WaniKaniMetaBuildChanges,
 } from '@project/common/dictionary-db';
 
 /**
@@ -127,7 +120,7 @@ export async function buildWaniKaniCachePipeline(
             });
             if (existingBuild !== undefined) {
                 const expiration = _buildIdExpiration(existingBuild, 'waniKani');
-                console.error(`Build already in progress - expires at ${expiration}`);
+                asbError('dictionary/wanikani', `Build already in progress - expires at ${expiration}`);
                 statusUpdates({
                     type: DictionaryBuildWaniKaniCacheStateType.error,
                     body: {
@@ -168,7 +161,7 @@ export async function buildWaniKaniCachePipeline(
             try {
                 await yomitan.version();
             } catch (e) {
-                console.error(e);
+                asbError('dictionary/wanikani', e);
                 statusUpdates({
                     type: DictionaryBuildWaniKaniCacheStateType.error,
                     body: {
@@ -280,7 +273,7 @@ export async function buildWaniKaniCachePipeline(
                 });
                 if (clearTokens || clearResources) tracksWithClearedData.add(track);
             } catch (e) {
-                console.error(e);
+                asbError('dictionary/wanikani', e);
                 statusUpdates({
                     type: DictionaryBuildWaniKaniCacheStateType.error,
                     body: {
@@ -380,7 +373,7 @@ export async function buildWaniKaniCachePipeline(
 
         _publishWaniKaniTrackStats(statusUpdates, buildTs, trackStats);
     } catch (e) {
-        console.error(e);
+        asbError('dictionary/wanikani', e);
         const errorTracks = tracksWithStatus.size ? tracksWithStatus : currentTrack === undefined ? [] : [currentTrack];
         _publishWaniKaniTrackErrors(statusUpdates, errorTracks, e, modifiedTokensByTrack);
     } finally {
@@ -564,7 +557,7 @@ export async function _processWaniKaniTracks(
         await _saveWaniKaniTrackMetadataForDB(db, profile, buildId, activeTracks, trackStates);
     } catch (e) {
         error = e;
-        console.error(e);
+        asbError('dictionary/wanikani', e);
     } finally {
         await _clearBuildIds(db, activeTracks, buildId, 'waniKani');
         if (error) {

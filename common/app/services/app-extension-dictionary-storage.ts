@@ -1,5 +1,5 @@
-import { ChromeExtension } from '@project/common/app';
-import {
+import type { ChromeExtension } from '@project/common/app';
+import type {
     DictionaryLocalTokenInput,
     DictionaryStorage,
     DictionaryTokenKey,
@@ -9,8 +9,8 @@ import {
     DictionaryRecordUpdateResult,
     DictionaryRecordsResult,
 } from '@project/common/dictionary-db';
-import { ApplyStrategy, AsbplayerSettings } from '@project/common/settings';
-import {
+import type { ApplyStrategy, AsbplayerSettings } from '@project/common/settings';
+import type {
     CardExportedDialogMessage,
     CardUpdatedDialogMessage,
     DictionaryRequestStatisticsSnapshotMessage,
@@ -27,7 +27,7 @@ import {
     Message,
     ExtensionToVideoCommand,
 } from '@project/common';
-import { DictionaryStatisticsSnapshot } from '@project/common/dictionary-statistics';
+import type { DictionaryStatisticsSnapshot } from '@project/common/dictionary-statistics';
 
 type ExtensionDictionaryStatisticsCommand<T extends Message> =
     | ExtensionToAsbPlayerCommand<T>
@@ -82,7 +82,7 @@ export class AppExtensionDictionaryStorage implements DictionaryStorage {
 
     saveRecordLocalBulk(
         profile: string | undefined,
-        localTokenInputs: DictionaryLocalTokenInput[],
+        localTokenInputs: readonly DictionaryLocalTokenInput[],
         applyStates: ApplyStrategy
     ) {
         return this._extension.dictionarySaveRecordLocalBulk(profile, localTokenInputs, applyStates);
@@ -199,7 +199,7 @@ export class AppExtensionDictionaryStorage implements DictionaryStorage {
         };
     }
 
-    publishStatisticsSnapshot(mediaId: string, snapshot?: DictionaryStatisticsSnapshot) {
+    async publishStatisticsSnapshot(mediaId: string, snapshot?: DictionaryStatisticsSnapshot) {
         this._extension.publishStatisticsSnapshot(mediaId, snapshot);
     }
 
@@ -224,7 +224,7 @@ export class AppExtensionDictionaryStorage implements DictionaryStorage {
         };
     }
 
-    requestStatisticsSnapshot(mediaId?: string) {
+    async requestStatisticsSnapshot(mediaId?: string) {
         this._extension.requestStatisticsSnapshot(mediaId);
     }
 
@@ -253,7 +253,7 @@ export class AppExtensionDictionaryStorage implements DictionaryStorage {
         };
     }
 
-    requestStatisticsGeneration(mediaId?: string) {
+    async requestStatisticsGeneration(mediaId?: string) {
         this._extension.requestStatisticsGeneration(mediaId);
     }
 
@@ -282,7 +282,7 @@ export class AppExtensionDictionaryStorage implements DictionaryStorage {
         };
     }
 
-    requestStatisticsSeek(mediaId: string, timestamp: number) {
+    async requestStatisticsSeek(mediaId: string, timestamp: number) {
         this._extension.requestStatisticsSeek(mediaId, timestamp);
     }
 
@@ -307,7 +307,7 @@ export class AppExtensionDictionaryStorage implements DictionaryStorage {
         };
     }
 
-    requestStatisticsMineSentences(mediaId: string, indexes: number[]) {
+    async requestStatisticsMineSentences(mediaId: string, indexes: number[]) {
         this._extension.requestStatisticsMineSentences(mediaId, indexes);
     }
 
