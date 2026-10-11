@@ -23,6 +23,7 @@ import KeyboardShortcutsSettingsTab, {
 } from '@project/common/components/KeyboardShortcutsSettingsTab';
 import type { KeyboardShortcutSection } from '@project/common/components/KeyboardShortcutsSettingsTab';
 import StreamingVideoSettingsTab from '@project/common/components/StreamingVideoSettingsTab';
+import type { WhisperServiceSettingsClient } from '@project/common/components/StreamingVideoSettingsTab';
 import MiscSettingsTab from '@project/common/components/MiscSettingsTab';
 import type { DictionaryProvider } from '@project/common/dictionary-db';
 import type { LogProvider } from '@project/common/util/log';
@@ -171,6 +172,7 @@ interface SettingsFormPageConfig extends PageConfig {
 export type PageConfigMap = { [K in keyof PageSettings]: SettingsFormPageConfig };
 
 interface Props {
+    whisperServiceClient?: WhisperServiceSettingsClient;
     anki: Anki;
     extensionInstalled: boolean;
     extensionVersion?: string;
@@ -223,6 +225,7 @@ interface Props {
 }
 
 export default function SettingsForm({
+    whisperServiceClient,
     anki,
     dictionaryProvider,
     logProvider,
@@ -583,6 +586,7 @@ export default function SettingsForm({
                 </TabPanel>
                 <TabPanel value={tabIndex} index={tabIndicesById['streaming-video']} tabsOrientation={tabsOrientation}>
                     <StreamingVideoSettingsTab
+                        whisperServiceClient={whisperServiceClient}
                         settings={settings}
                         onSettingChanged={handleSettingChanged}
                         onSettingsChanged={onSettingsChanged}

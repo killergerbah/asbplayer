@@ -206,6 +206,8 @@ export default defineConfig({
             manifest = {
                 ...manifest,
                 ...key,
+                host_permissions: ['http://127.0.0.1/*', 'http://localhost/*'],
+                optional_host_permissions: ['https://*/*'],
                 minimum_chrome_version: '116',
                 commands,
             };

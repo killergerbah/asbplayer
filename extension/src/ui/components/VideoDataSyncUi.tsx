@@ -1,6 +1,6 @@
 import CssBaseline from '@mui/material/CssBaseline';
 import ThemeProvider from '@mui/material/styles/ThemeProvider';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
 import VideoDataSyncDialog, {
@@ -19,6 +19,9 @@ import type {
     VideoDataUiBridgeSetGenericSubtitleParserMessage,
     VideoDataUiModel,
     ActiveProfileMessage,
+    SubtitleGenerationMessage,
+    SubtitleGenerationUiState,
+    WhisperOptionValue,
 } from '@project/common';
 import { VideoDataUiOpenReason } from '@project/common';
 import type { GenericParseType, OnlineSubtitleSourceConfig } from '@project/common/global-state';
@@ -30,6 +33,8 @@ import type { Profile } from '@project/common/settings';
 import { StyledEngineProvider } from '@mui/material/styles';
 import type { FileWithId } from '@project/common/file-selector';
 import { DefaultFileSelector } from '@project/common/file-selector';
+import SubtitleGenerationDialog from '@project/extension/src/ui/components/SubtitleGenerationDialog';
+import SubtitleGenerationProgressDialog from '@project/extension/src/ui/components/SubtitleGenerationProgressDialog';
 
 interface Props {
     bridge: Bridge;
@@ -55,6 +60,10 @@ export default function VideoDataSyncUi({ bridge }: Props) {
         jimakuApiKey: '',
         jimakuSearchCategory: 'anime',
     });
+    const [subtitleGeneration, setSubtitleGeneration] = useState<SubtitleGenerationUiState>({ state: 'idle' });
+    const [subtitleGenerationOpen, setSubtitleGenerationOpen] = useState(false);
+    const [subtitleGenerationProgressOpen, setSubtitleGenerationProgressOpen] = useState(false);
+    const [pendingGeneratedTrackId, setPendingGeneratedTrackId] = useState<string>();
     const trackedLocalObjectUrlsRef = useRef(new Set<string>());
     const fileInputRef = useRef<HTMLInputElement>(null);
     const fileSelector = useMemo<DefaultFileSelector>(
@@ -88,9 +97,19 @@ export default function VideoDataSyncUi({ bridge }: Props) {
         bridge.sendMessageFromServer({ command: 'openSettings' });
     }, [bridge]);
     const handleCancel = useCallback(() => {
+        const job = subtitleGeneration.job;
+        if (job && ['queued', 'downloading', 'loading-model', 'transcribing'].includes(job.state)) {
+            bridge.sendMessageFromServer({
+                command: 'subtitle-generation',
+                operation: 'cancel',
+                jobId: job.id,
+            } as SubtitleGenerationMessage);
+        }
+        setSubtitleGenerationOpen(false);
+        setSubtitleGenerationProgressOpen(false);
         closeSubtitleTrackSelector();
         bridge.sendMessageFromServer({ command: 'cancel' });
-    }, [bridge, closeSubtitleTrackSelector]);
+    }, [bridge, closeSubtitleTrackSelector, subtitleGeneration.job]);
     const handleConfirm = useCallback(
         (data: ConfirmedVideoDataSubtitleTrack[], shouldRememberTrackChoices: boolean) => {
             closeSubtitleTrackSelector();
@@ -205,6 +224,20 @@ export default function VideoDataSyncUi({ bridge }: Props) {
             if (model.onlineSubtitleSourceConfig !== undefined) {
                 setOnlineSubtitleSourceConfig(model.onlineSubtitleSourceConfig);
             }
+
+            if (model.subtitleGeneration !== undefined) {
+                setSubtitleGeneration((current) =>
+                    model.subtitleGeneration?.state === 'idle' ||
+                    model.subtitleGeneration?.state === 'loading' ||
+                    model.subtitleGeneration?.state === 'ready'
+                        ? model.subtitleGeneration
+                        : { ...current, ...model.subtitleGeneration }
+                );
+            }
+
+            if (model.generatedSubtitleEntryId !== undefined) {
+                setPendingGeneratedTrackId(model.generatedSubtitleEntryId);
+            }
         });
     }, [
         bridge,
@@ -286,6 +319,24 @@ export default function VideoDataSyncUi({ bridge }: Props) {
         setHasSeenFtue(true);
         bridge.sendMessageFromServer({ command: 'dismissFtue' });
     }, [bridge]);
+
+    useEffect(() => {
+        if (
+            !pendingGeneratedTrackId ||
+            !subtitleTrackSelectorTracks.some((track) => track.id === pendingGeneratedTrackId)
+        ) {
+            return;
+        }
+        setSubtitleTrackSelectorSelectedTrackIds((selected) => {
+            if (selected.includes(pendingGeneratedTrackId)) return selected;
+            const emptyIndex = selected.findIndex((id) => id === '-');
+            if (emptyIndex < 0) return selected;
+            const next = [...selected];
+            next[emptyIndex] = pendingGeneratedTrackId;
+            return next;
+        });
+        setPendingGeneratedTrackId(undefined);
+    }, [pendingGeneratedTrackId, subtitleTrackSelectorTracks, setSubtitleTrackSelectorSelectedTrackIds]);
     const handleOnlineSubtitleSourceConfigChanged = useCallback(
         (state: Partial<OnlineSubtitleSourceConfig>) => {
             setOnlineSubtitleSourceConfig((current) => ({ ...current, ...state }));
@@ -307,6 +358,34 @@ export default function VideoDataSyncUi({ bridge }: Props) {
             bridge.sendMessageFromServer(message);
         },
         [bridge]
+    );
+
+    const sendSubtitleGeneration = useCallback(
+        (message: Omit<SubtitleGenerationMessage, 'command'>) => {
+            bridge.sendMessageFromServer({ command: 'subtitle-generation', ...message });
+        },
+        [bridge]
+    );
+    const handleOpenSubtitleGeneration = useCallback(() => {
+        setSubtitleGenerationProgressOpen(false);
+        setSubtitleGenerationOpen(true);
+        sendSubtitleGeneration({ operation: 'capabilities' });
+    }, [sendSubtitleGeneration]);
+    const handleStartSubtitleGeneration = useCallback(
+        (whisperOptions: Record<string, WhisperOptionValue>) => {
+            setSubtitleGenerationOpen(false);
+            setSubtitleGenerationProgressOpen(true);
+            sendSubtitleGeneration({ operation: 'start', whisperOptions });
+        },
+        [sendSubtitleGeneration]
+    );
+    const handleCancelSubtitleGeneration = useCallback(
+        (jobId: string) => sendSubtitleGeneration({ operation: 'cancel', jobId }),
+        [sendSubtitleGeneration]
+    );
+    const handlePollSubtitleGeneration = useCallback(
+        (jobId: string) => sendSubtitleGeneration({ operation: 'status', jobId }),
+        [sendSubtitleGeneration]
     );
 
     return (
@@ -334,6 +413,8 @@ export default function VideoDataSyncUi({ bridge }: Props) {
                     isGenericPage={isGenericPage}
                     showGenericPageOption={showGenericPageOption}
                     genericSubtitleParser={genericSubtitleParser}
+                    canGenerateSubtitles={Boolean(subtitleGeneration.sourceUrl)}
+                    onGenerateSubtitles={handleOpenSubtitleGeneration}
                     fileSelector={fileSelector}
                     onCancel={handleCancel}
                     onOpenFiles={handleOpenFiles}
@@ -343,6 +424,19 @@ export default function VideoDataSyncUi({ bridge }: Props) {
                     onSetActiveProfile={handleSetActiveProfile}
                     onDismissFtue={handleDismissFtue}
                     onGenericSubtitleParserChange={handleGenericSubtitleParserChange}
+                />
+                <SubtitleGenerationDialog
+                    open={subtitleTrackSelectorOpen && subtitleGenerationOpen}
+                    generation={subtitleGeneration}
+                    onStart={handleStartSubtitleGeneration}
+                    onClose={() => setSubtitleGenerationOpen(false)}
+                />
+                <SubtitleGenerationProgressDialog
+                    open={subtitleTrackSelectorOpen && subtitleGenerationProgressOpen}
+                    generation={subtitleGeneration}
+                    onPoll={handlePollSubtitleGeneration}
+                    onCancel={handleCancelSubtitleGeneration}
+                    onClose={() => setSubtitleGenerationProgressOpen(false)}
                 />
                 <input
                     ref={fileInputRef}

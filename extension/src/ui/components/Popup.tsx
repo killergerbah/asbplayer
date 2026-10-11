@@ -3,6 +3,7 @@ import type { Command, HttpPostMessage, OpenStatisticsOverlayMessage, PopupToExt
 import type { AsbplayerSettings, Profile } from '@project/common/settings';
 import { chromeCommandBindsToKeyBinds, dictionaryTrackEnabled } from '@project/common/settings';
 import SettingsForm from '@project/common/components/SettingsForm';
+import { whisperServiceSettingsClient } from '@/services/whisper-settings-client';
 import PanelIcon from '@project/common/components/PanelIcon';
 import LaunchIcon from '@mui/icons-material/Launch';
 import SettingsIcon from '@mui/icons-material/Settings';
@@ -215,6 +216,7 @@ const Popup = ({
                 >
                     {!statisticsOpen && (
                         <SettingsForm
+                            whisperServiceClient={whisperServiceSettingsClient}
                             heightConstrained
                             extensionInstalled
                             extensionVersion={browser.runtime.getManifest().version}

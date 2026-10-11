@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=75.8.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "asbplayer-whisper-server"
+version = "0.1.0"
+description = "Local Whisper subtitle generation service for asbplayer"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi==0.115.12",
+    "openai-whisper==20250625",
+    "uvicorn==0.34.0",
+    # Streaming extractors evolve independently of asbplayer. Keep the
+    # supported downloader current rather than pinning a known-stale release.
+    "yt-dlp[default,curl-cffi]>=2025.2.19",
+    "yt-dlp-ejs",
+]
+
+[project.scripts]
+asbplayer-whisper-server = "asbplayer_whisper_server.main:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

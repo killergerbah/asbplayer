@@ -2,6 +2,7 @@ import type { AnkiSettings, TokenState, TokenStatus } from '@project/common/sett
 import type { GenericParseType, OnlineSubtitleSourceConfig } from '@project/common/global-state';
 import type { TokenStatusInfo } from '@project/common/dictionary-db';
 import type { PitchAccentPosition } from '@project/common/yomitan';
+import type { SubtitleGenerationUiState } from '@project/common/whisper';
 
 type Profile = { name: string };
 
@@ -219,6 +220,8 @@ export interface VideoDataSubtitleTrackDef {
     file?: File;
     extension: string;
     capturedDuringPlayback?: boolean;
+    /** Opaque local Whisper service cache ID. Resolved by the extension background. */
+    generatedSubtitleCacheId?: string;
 }
 
 export interface VideoDataSubtitleTrack extends VideoDataSubtitleTrackDef {
@@ -264,6 +267,8 @@ export interface VideoDataUiModel {
     isGenericPage: boolean;
     showGenericPageOption: boolean;
     genericSubtitleParser: GenericParseType;
+    subtitleGeneration?: SubtitleGenerationUiState;
+    generatedSubtitleEntryId?: string;
 }
 
 export interface SubtitleTrack {

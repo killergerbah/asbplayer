@@ -13,13 +13,25 @@ export const enqueueUpdateAlert = async () => {
 };
 
 export const shouldShowUpdateAlert = async () => {
-    const result = await browser.storage.local.get({ [shouldShowKey]: false });
-    const shouldShow = result ? result[shouldShowKey] : false;
-
-    if (shouldShow) {
-        await browser.storage.local.remove(shouldShowKey);
-        await browser.storage.local.set({ [lastUpdateAlertVersionKey]: browser.runtime.getManifest().version });
+    // A content script can outlive a development reload. In that brief period
+    // the extension API object remains present but its storage namespace has
+    // already been invalidated.
+    const storage = browser.storage?.local;
+    if (!storage) {
+        return false;
     }
 
-    return shouldShow;
+    try {
+        const result = await storage.get({ [shouldShowKey]: false });
+        const shouldShow = result ? result[shouldShowKey] : false;
+
+        if (shouldShow) {
+            await storage.remove(shouldShowKey);
+            await storage.set({ [lastUpdateAlertVersionKey]: browser.runtime.getManifest().version });
+        }
+
+        return shouldShow;
+    } catch {
+        return false;
+    }
 };

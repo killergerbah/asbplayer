@@ -121,6 +121,7 @@ it('excludes credentials from settings exports without mutating the settings', (
     const settings = {
         ...defaultSettings,
         ankiConnectApiKey: 'anki-secret',
+        whisperServerAuthToken: 'whisper-secret',
         dictionaryTracks: defaultSettings.dictionaryTracks.map((track, index) => ({
             ...track,
             dictionaryWaniKaniApiToken: `wanikani-secret-${index}`,
@@ -130,6 +131,7 @@ it('excludes credentials from settings exports without mutating the settings', (
     const exportedSettings = settingsForExport(settings);
 
     expect(exportedSettings).not.toHaveProperty('ankiConnectApiKey');
+    expect(exportedSettings).not.toHaveProperty('whisperServerAuthToken');
     expect(exportedSettings).not.toHaveProperty('streamingPages');
     expect(exportedSettings.dictionaryTracks).toHaveLength(3);
     expect(exportedSettings.dictionaryTracks).toEqual([
@@ -138,6 +140,7 @@ it('excludes credentials from settings exports without mutating the settings', (
         expect.not.objectContaining({ dictionaryWaniKaniApiToken: expect.any(String) }),
     ]);
     expect(settings.ankiConnectApiKey).toBe('anki-secret');
+    expect(settings.whisperServerAuthToken).toBe('whisper-secret');
     expect(settings.dictionaryTracks[0].dictionaryWaniKaniApiToken).toBe('wanikani-secret-0');
 });
 
@@ -145,6 +148,7 @@ it('restores omitted credentials when importing a redacted export', () => {
     const currentSettings = {
         ...defaultSettings,
         ankiConnectApiKey: 'anki-secret',
+        whisperServerAuthToken: 'whisper-secret',
         dictionaryTracks: defaultSettings.dictionaryTracks.map((track, index) => ({
             ...track,
             dictionaryWaniKaniApiToken: `wanikani-secret-${index}`,
@@ -156,6 +160,7 @@ it('restores omitted credentials when importing a redacted export', () => {
     const validatedSettings = validateSettings(importedSettings);
 
     expect(validatedSettings.ankiConnectApiKey).toBe('anki-secret');
+    expect(validatedSettings.whisperServerAuthToken).toBe('whisper-secret');
     expect(validatedSettings.dictionaryTracks?.map((track) => track.dictionaryWaniKaniApiToken)).toEqual([
         'wanikani-secret-0',
         'wanikani-secret-1',
@@ -168,6 +173,7 @@ it('preserves current ignored values when they are explicitly present in an impo
     const currentSettings = {
         ...defaultSettings,
         ankiConnectApiKey: 'existing-anki-secret',
+        whisperServerAuthToken: 'existing-whisper-secret',
         dictionaryTracks: defaultSettings.dictionaryTracks.map((track) => ({
             ...track,
             dictionaryWaniKaniApiToken: 'existing-wanikani-secret',
@@ -176,6 +182,7 @@ it('preserves current ignored values when they are explicitly present in an impo
     const importedSettings = {
         ...settingsForExport(currentSettings),
         ankiConnectApiKey: '',
+        whisperServerAuthToken: '',
         dictionaryTracks: currentSettings.dictionaryTracks.map((track) => ({
             ...track,
             dictionaryWaniKaniApiToken: '',
@@ -189,6 +196,7 @@ it('preserves current ignored values when they are explicitly present in an impo
     const mergedSettings = mergeImportedSettings(importedSettings, currentSettings);
 
     expect(mergedSettings.ankiConnectApiKey).toBe('existing-anki-secret');
+    expect(mergedSettings.whisperServerAuthToken).toBe('existing-whisper-secret');
     expect(mergedSettings.dictionaryTracks?.map((track) => track.dictionaryWaniKaniApiToken)).toEqual([
         'existing-wanikani-secret',
         'existing-wanikani-secret',

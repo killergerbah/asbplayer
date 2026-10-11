@@ -81,6 +81,8 @@ import BrowserFeaturesHandler from '@/handlers/asbplayerv2/browser-features-hand
 import OpenStatisticsHandler from '@/handlers/video/open-statistics-handler';
 import StatisticsOverlayForwarderHandler from '@/handlers/statistics-overlay/statistics-overlay-forwarder-handler';
 import OpenStatisticsOverlayHandler from '@/handlers/open-statistics-overlay-handler';
+import SubtitleGenerationHandler from '@/handlers/video/subtitle-generation-handler';
+import WhisperServiceHealthHandler from '@/handlers/settings/whisper-service-health-handler';
 
 export default defineBackground(() => {
     const logStore = new SessionLogStorage();
@@ -199,6 +201,8 @@ export default defineBackground(() => {
         new ToggleSidePanelHandler(tabRegistry),
         new OpenStatisticsHandler(tabRegistry),
         new OpenStatisticsOverlayHandler(tabRegistry),
+        new SubtitleGenerationHandler(settings),
+        new WhisperServiceHealthHandler(),
         new OpenAsbplayerSettingsHandler(),
         new CopyToClipboardHandler(),
         new EncodeMp3Handler(),

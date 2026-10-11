@@ -5,4 +5,5 @@ export type * from './src/command';
 export * from './src/model';
 export * from './src/message';
 export * from './src/fetcher';
+export type * from './src/whisper';
 export { default as OffscreenDomCache } from './src/offscreen-dom-cache';

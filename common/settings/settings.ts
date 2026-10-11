@@ -646,6 +646,10 @@ export interface StreamingVideoSettings {
     readonly streamingSubtitleListPreference: SubtitleListPreference;
     readonly streamingEnableOverlay: boolean;
     readonly streamingPages: PageSettings;
+    /** Local loopback by default; an authenticated HTTPS endpoint may be used for remote GPU inference. */
+    readonly whisperServerUrl: string;
+    /** Never exported with settings because it authorizes access to a remote Whisper service. */
+    readonly whisperServerAuthToken: string;
 }
 
 export type KeyBindName = keyof KeyBindSet;

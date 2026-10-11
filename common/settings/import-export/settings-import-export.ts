@@ -771,6 +771,12 @@ const settingsSchema = {
         streamingEnableOverlay: {
             type: 'boolean',
         },
+        whisperServerUrl: {
+            type: 'string',
+        },
+        whisperServerAuthToken: {
+            type: 'string',
+        },
         webSocketClientEnabled: {
             type: 'boolean',
         },
@@ -806,6 +812,7 @@ export type IgnorePath = readonly IgnorePathSegment[];
 
 const ignorePaths: readonly IgnorePath[] = [
     ['ankiConnectApiKey'],
+    ['whisperServerAuthToken'],
     ['dictionaryTracks', '*', 'dictionaryWaniKaniApiToken'],
     ['streamingPages'], // Ignored due to security risk (e.g. disable CSP)
 ];

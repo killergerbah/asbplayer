@@ -14,6 +14,10 @@ import type {
     VideoDataUiBridgeSetOnlineSubtitleSourceConfigMessage,
     VideoDataUiModel,
     VideoToExtensionCommand,
+    SubtitleGenerationMessage,
+    SubtitleGenerationResponse,
+    GeneratedSubtitleCacheEntry,
+    SubtitleGenerationUiState,
 } from '@project/common';
 import { VideoDataUiOpenReason } from '@project/common';
 import type { AsbplayerSettings, SettingsProvider } from '@project/common/settings';
@@ -29,6 +33,7 @@ import { isOnTutorialPage } from '@/services/tutorial';
 import { subtitleFileExtensionForUrl } from '@/pages/util';
 import { frameColorSchemeStyleBlock } from '@/services/frame-color-scheme';
 import { setGenericSubtitleParserOptionsForHost } from '@/services/generic-subtitle-parser';
+import { isMobile } from '@project/common/device-detection/mobile';
 
 declare global {
     function cloneInto(obj: any, targetScope: any, options?: any): any;
@@ -97,6 +102,8 @@ export default class VideoDataSyncController {
     private _dataReceivedListener?: (event: Event) => void;
     private _dataReceivedEventTarget?: EventTarget;
     private _isTutorial: boolean;
+    private _generationJobId?: string;
+    private _applyingGeneratedSubtitleCacheId?: string;
 
     constructor(context: Binding, settings: SettingsProvider) {
         this._context = context;
@@ -136,6 +143,7 @@ export default class VideoDataSyncController {
         this._dataReceivedEventTarget = undefined;
         this._syncedData = undefined;
         this._refreshingOpenPicker = false;
+        this._cancelActiveGeneration();
         this._cleanupPlayBlocker();
         this._openedLocation = undefined;
         this._frame.unbind();
@@ -189,6 +197,7 @@ export default class VideoDataSyncController {
                     locationChanged,
                     videoChanged: request.videoChanged,
                 });
+                this._cancelActiveGeneration();
                 this._hideAndResume();
             } else {
                 return;
@@ -266,6 +275,8 @@ export default class VideoDataSyncController {
         this._prepareShow();
         client.updateState(model);
 
+        void this._refreshGeneratedSubtitleTracks();
+
         const pageDelegate = await currentPageDelegate();
         if (pageDelegate.config.refreshSubtitleDataOnPickerOpen === true) {
             void this.requestSubtitles({ kind: 'refresh-open-picker' });
@@ -299,6 +310,9 @@ export default class VideoDataSyncController {
         const showGenericPageOption =
             !this._isTutorial && (isGenericPage || pageDelegate.config.pageScript === undefined);
         const genericSubtitleParser = globalState.genericSubtitleParser.pages[window.location.host]?.parse ?? 'off';
+        const subtitleGeneration = this._subtitleGenerationSourceUrl()
+            ? ({ sourceUrl: this._subtitleGenerationSourceUrl(), state: 'idle' } satisfies SubtitleGenerationUiState)
+            : undefined;
         return this._syncedData
             ? {
                   isLoading: this._syncedData.subtitles === undefined,
@@ -318,6 +332,7 @@ export default class VideoDataSyncController {
                   isGenericPage,
                   showGenericPageOption,
                   genericSubtitleParser,
+                  subtitleGeneration,
                   onlineSubtitleSourceConfig,
                   ...additionalFields,
               }
@@ -339,6 +354,7 @@ export default class VideoDataSyncController {
                   isGenericPage,
                   showGenericPageOption,
                   genericSubtitleParser,
+                  subtitleGeneration,
                   onlineSubtitleSourceConfig,
                   ...additionalFields,
               };
@@ -392,6 +408,19 @@ export default class VideoDataSyncController {
 
     private async _setSyncedData(data: VideoData) {
         const previousData = this._syncedData;
+        const generatedTracks =
+            previousData?.subtitles?.filter((track) => track.generatedSubtitleCacheId !== undefined) ?? [];
+        if (generatedTracks.length > 0 && data.subtitles !== undefined) {
+            data = {
+                ...data,
+                subtitles: [
+                    ...data.subtitles,
+                    ...generatedTracks.filter(
+                        (generatedTrack) => !data.subtitles!.some((track) => track.id === generatedTrack.id)
+                    ),
+                ],
+            };
+        }
         this._syncedData = data;
 
         if (this._updateOpenPickerFromRefresh(previousData, data)) return;
@@ -532,7 +561,13 @@ export default class VideoDataSyncController {
                     }
 
                     if ('cancel' === message.command) {
+                        this._cancelActiveGeneration();
                         this._hideAndResume();
+                        return;
+                    }
+
+                    if ('subtitle-generation' === message.command) {
+                        await this._handleSubtitleGenerationMessage(message as SubtitleGenerationMessage);
                         return;
                     }
 
@@ -581,6 +616,7 @@ export default class VideoDataSyncController {
     }
 
     private _prepareShow() {
+        this._applyingGeneratedSubtitleCacheId = undefined;
         this._openedLocation = window.location.href;
         this._wasPaused = this._wasPaused ?? this._context.video.paused;
         this._context.pause();
@@ -661,6 +697,11 @@ export default class VideoDataSyncController {
 
             for (let i = 0; i < data.length; i++) {
                 const { extension, url, language, file } = data[i];
+                const generatedSubtitleCacheId = data[i].generatedSubtitleCacheId;
+                if (generatedSubtitleCacheId) {
+                    subtitles.push(await this._generatedSubtitleFile(generatedSubtitleCacheId, data[i].label));
+                    continue;
+                }
                 const subtitleFiles = await this._subtitlesForUrl(
                     this._defaultVideoName(this._syncedData?.basename, data[i]),
                     language,
@@ -693,6 +734,11 @@ export default class VideoDataSyncController {
 
             for (let i = 0; i < data.length; i++) {
                 const { name, language, extension, url, file } = data[i];
+                const generatedSubtitleCacheId = data[i].generatedSubtitleCacheId;
+                if (generatedSubtitleCacheId) {
+                    subtitles.push(await this._generatedSubtitleFile(generatedSubtitleCacheId, name));
+                    continue;
+                }
                 const subtitleFiles = await this._subtitlesForUrl(name, language, extension, url!, file !== undefined);
                 if (subtitleFiles !== undefined) {
                     subtitles.push(...subtitleFiles);
@@ -896,5 +942,155 @@ export default class VideoDataSyncController {
             error,
             themeType: themeType,
         });
+    }
+
+    private _subtitleGenerationSourceUrl() {
+        if (this._isTutorial || isMobile || !['http:', 'https:'].includes(window.location.protocol)) {
+            return undefined;
+        }
+
+        return window.location.href;
+    }
+
+    private async _requestSubtitleGeneration(message: SubtitleGenerationMessage): Promise<SubtitleGenerationResponse> {
+        return browser.runtime.sendMessage({
+            sender: 'asbplayer-video',
+            src: this._context.registeredVideoSrc,
+            message,
+        });
+    }
+
+    private _generatedTrack(entry: GeneratedSubtitleCacheEntry): VideoDataSubtitleTrack {
+        return {
+            id: `whisper-cache:${entry.id}`,
+            label: entry.label,
+            language: 'generated',
+            extension: 'srt',
+            generatedSubtitleCacheId: entry.id,
+        };
+    }
+
+    private async _refreshGeneratedSubtitleTracks() {
+        const sourceUrl = this._subtitleGenerationSourceUrl();
+        if (!sourceUrl || this.openedLocation !== sourceUrl) return;
+
+        const response = await this._requestSubtitleGeneration({
+            command: 'subtitle-generation',
+            operation: 'cached',
+            sourceUrl,
+        });
+        if (response.error || !response.entries?.length || this.openedLocation !== sourceUrl) return;
+
+        const existing = this._syncedData?.subtitles ?? [];
+        const newTracks = response.entries
+            .map((entry) => this._generatedTrack(entry))
+            .filter((track) => !existing.some((existingTrack) => existingTrack.id === track.id));
+        if (!newTracks.length) return;
+
+        this._syncedData = {
+            basename: this._syncedData?.basename ?? document.title,
+            subtitles: [...existing, ...newTracks],
+        };
+        this._frame.clientIfLoaded?.updateState({
+            subtitles: this._syncedData.subtitles,
+            generatedSubtitleEntryId: newTracks[0].id,
+        });
+    }
+
+    private async _handleSubtitleGenerationMessage(message: SubtitleGenerationMessage) {
+        const sourceUrl = this._subtitleGenerationSourceUrl();
+        if (!sourceUrl || this.openedLocation !== sourceUrl) {
+            await this._frame.client().then((client) =>
+                client.updateState({
+                    subtitleGeneration: {
+                        state: 'failed',
+                        error: 'The video changed before subtitles could be generated.',
+                    },
+                })
+            );
+            return;
+        }
+
+        if (message.operation === 'capabilities') {
+            this._frame.clientIfLoaded?.updateState({ subtitleGeneration: { sourceUrl, state: 'loading' } });
+        }
+
+        const response = await this._requestSubtitleGeneration({ ...message, sourceUrl });
+        if (response.error) {
+            this._frame.clientIfLoaded?.updateState({
+                subtitleGeneration: { sourceUrl, state: 'failed', error: response.error },
+            });
+            return;
+        }
+
+        if (response.job) {
+            this._generationJobId =
+                response.job.state === 'completed' ||
+                response.job.state === 'cancelled' ||
+                response.job.state === 'failed'
+                    ? undefined
+                    : response.job.id;
+            this._frame.clientIfLoaded?.updateState({
+                subtitleGeneration: { sourceUrl, state: response.job.state, job: response.job },
+            });
+
+            if (response.job.entry) {
+                const track = this._generatedTrack(response.job.entry);
+                const existing = this._syncedData?.subtitles ?? [];
+                const subtitles = existing.some((existingTrack) => existingTrack.id === track.id)
+                    ? existing
+                    : [...existing, track];
+                this._syncedData = { basename: this._syncedData?.basename ?? document.title, subtitles };
+                this._frame.clientIfLoaded?.updateState({
+                    subtitles,
+                    generatedSubtitleEntryId: track.id,
+                });
+
+                // A completed generated track is the user's explicit selection.
+                // Apply it through the same cache-backed subtitle path as the
+                // selector's Confirm action, then dismiss both generation and
+                // selector dialogs. Multiple in-flight status polls can report
+                // the completed job, so only apply a cache entry once.
+                if (
+                    response.job.state === 'completed' &&
+                    this._applyingGeneratedSubtitleCacheId !== response.job.entry.id
+                ) {
+                    this._applyingGeneratedSubtitleCacheId = response.job.entry.id;
+                    const dataWasSynced = await this._syncData([track]);
+                    if (dataWasSynced) {
+                        this._hideAndResume();
+                    } else {
+                        this._applyingGeneratedSubtitleCacheId = undefined;
+                    }
+                }
+            }
+            return;
+        }
+
+        if (response.capabilities) {
+            this._frame.clientIfLoaded?.updateState({
+                subtitleGeneration: { sourceUrl, state: 'ready', capabilities: response.capabilities },
+            });
+        }
+    }
+
+    private async _generatedSubtitleFile(cacheEntryId: string, fallbackName: string): Promise<SerializedSubtitleFile> {
+        const response = await this._requestSubtitleGeneration({
+            command: 'subtitle-generation',
+            operation: 'download',
+            cacheEntryId,
+        });
+        if (!response.srtBase64) {
+            throw new Error(response.error ?? 'Unable to retrieve generated subtitles.');
+        }
+
+        return { name: response.fileName || `${fallbackName}.srt`, base64: response.srtBase64 };
+    }
+
+    private _cancelActiveGeneration() {
+        if (!this._generationJobId) return;
+        const jobId = this._generationJobId;
+        this._generationJobId = undefined;
+        void this._requestSubtitleGeneration({ command: 'subtitle-generation', operation: 'cancel', jobId });
     }
 }

@@ -5,6 +5,7 @@ import { makeStyles } from '@mui/styles';
 import { useTranslation } from 'react-i18next';
 import Box from '@mui/material/Box';
 import SettingsForm from '@project/common/components/SettingsForm';
+import { whisperServiceSettingsClient } from '@/services/whisper-settings-client';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
@@ -112,6 +113,7 @@ const SettingsPage = ({
                 <DialogTitle>{t('settings.title')}</DialogTitle>
                 <DialogContent className={classes.content}>
                     <SettingsForm
+                        whisperServiceClient={whisperServiceSettingsClient}
                         anki={anki}
                         extensionInstalled
                         extensionVersion={browser.runtime.getManifest().version}
