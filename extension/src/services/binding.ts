@@ -2063,16 +2063,29 @@ export default class Binding {
             asbTrace('playback/binding', 'Discarded subtitle refresh', { sourceChanged, settingsChanged });
             return;
         }
-        this._updateSubtitles(subtitles, this.subtitleController.subtitleFileNames ?? [], { isNewSource: false });
+        const subtitleFileNames = this.subtitleController.subtitleFileNames ?? [];
+        const nonEmptyTrackIndexes = this._nonEmptyTrackIndexes(subtitles);
+        asbTrace('playback/binding', 'Reloading media-owner subtitles', {
+            subtitleCount: subtitles.length,
+            trackCount: nonEmptyTrackIndexes.length,
+            fileCount: subtitleFileNames.length,
+        });
+        this.subtitleController.subtitles = subtitles;
+        this.subtitleController.cacheHtml();
+        this.subtitleController.refreshCurrentSubtitle = true;
+
+        this.playbackEngine.playbackPositionKeysChanged(
+            this._playbackPositionKeys(nonEmptyTrackIndexes, subtitleFileNames),
+            { isNewSource: false }
+        );
+        this.playbackEngine.subtitlesChanged(this.subtitleController.subtitles);
+
+        this.ankiUiSavedState = undefined;
+        void this.mobileVideoOverlayController.updateModel();
     }
 
-    private _updateSubtitles(
-        subtitles: IndexedSubtitleModel[],
-        subtitleFileNames: string[],
-        { isNewSource } = { isNewSource: true }
-    ) {
+    private _updateSubtitles(subtitles: IndexedSubtitleModel[], subtitleFileNames: string[]) {
         asbTrace('playback/binding', 'Updating media-owner subtitles', {
-            isNewSource,
             subtitleCount: subtitles.length,
             trackCount: this._nonEmptyTrackIndexes(subtitles).length,
             fileCount: subtitleFileNames.length,
@@ -2080,22 +2093,16 @@ export default class Binding {
         this.subtitleController.subtitles = subtitles;
         this.subtitleController.subtitleFileNames = subtitleFileNames;
         this.subtitleController.cacheHtml();
-        if (!isNewSource) this.subtitleController.refreshCurrentSubtitle = true;
 
         const nonEmptyTrackIndexes = this._nonEmptyTrackIndexes(subtitles);
         this.playbackEngine.playbackPositionKeysChanged(
             this._playbackPositionKeys(nonEmptyTrackIndexes, subtitleFileNames),
-            { isNewSource }
+            { isNewSource: true }
         );
         this.playbackEngine.subtitlesChanged(this.subtitleController.subtitles);
 
-        this.ankiUiSavedState = undefined;
-        if (!isNewSource) {
-            void this.mobileVideoOverlayController.updateModel();
-            return;
-        }
-
         this.subtitleController.showLoadedMessage(nonEmptyTrackIndexes);
+        this.ankiUiSavedState = undefined;
         this._synced = true;
         this._syncedTimestamp = Date.now();
         this._lastSyncedLocation = window.location.href;
