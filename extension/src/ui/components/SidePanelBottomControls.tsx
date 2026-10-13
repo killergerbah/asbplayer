@@ -34,6 +34,8 @@ const SidePanelBottomControls = ({
         }
 
         switch (postMineAction) {
+            case PostMineAction.mineNewJitenWords:
+                return t('jiten.mineNewWords');
             case PostMineAction.exportCard:
             case PostMineAction.showAnkiDialog:
             case PostMineAction.none:

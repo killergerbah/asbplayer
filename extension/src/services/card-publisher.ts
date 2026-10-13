@@ -1,5 +1,5 @@
 import { asbError } from '@project/common/util/log';
-import { humanReadableTime } from '@project/common/util';
+import { humanReadableTime, extractText, sourceString } from '@project/common/util';
 import type {
     CardExportedMessage,
     CardModel,
@@ -10,9 +10,14 @@ import type {
     ShowAnkiUiMessage,
     ShowCardSelectUiMessage,
 } from '@project/common';
-import { PostMineAction } from '@project/common';
+import { PostMineAction, MediaFragment } from '@project/common';
+import { AudioClip } from '@project/common/audio-clip';
+import { highlightJitenWord, jitenOutcomeMessage } from '@project/common/jiten/jiten';
+import type { JitenPending } from '@project/common/jiten/jiten';
+import i18n from 'i18next';
+import { getJitenClient } from '@project/extension/src/services/jiten-client';
 import type { AnkiSettings, SettingsProvider } from '@project/common/settings';
-import { ankiSettingsKeys } from '@project/common/settings';
+import { ankiSettingsKeys, jitenSettingsKeys } from '@project/common/settings';
 import { v4 as uuidv4 } from 'uuid';
 import { exportCard, DuplicateNoteError } from '@project/common/anki';
 import { IndexedDBCopyHistoryRepository } from '@project/common/copy-history';
@@ -20,6 +25,7 @@ import { IndexedDBCopyHistoryRepository } from '@project/common/copy-history';
 export class CardPublisher {
     private readonly _settingsProvider: SettingsProvider;
     bulkExportCancelled = false;
+    private _jitenSubmitting = false;
 
     constructor(settingsProvider: SettingsProvider) {
         this._settingsProvider = settingsProvider;
@@ -34,8 +40,24 @@ export class CardPublisher {
         }
 
         try {
-            if (postMineAction == PostMineAction.showAnkiDialog) {
-                this._showAnkiDialog(card, id, src, tabId);
+            const destination = card.miningDestination ?? (await this._settingsProvider.getSingle('miningDestination'));
+            if (destination === 'jiten' && postMineAction !== PostMineAction.none && postMineAction !== undefined) {
+                const captured = { ...card, miningDestination: destination };
+                if (
+                    postMineAction === PostMineAction.updateLastCard ||
+                    postMineAction === PostMineAction.mineNewJitenWords
+                ) {
+                    await this._attachJiten(captured, id, src, tabId, postMineAction);
+                } else {
+                    this._showAnkiDialog(captured, id, src, tabId);
+                }
+                return;
+            }
+            if (
+                postMineAction == PostMineAction.showAnkiDialog ||
+                postMineAction === PostMineAction.mineNewJitenWords
+            ) {
+                this._showAnkiDialog({ ...card, miningDestination: destination }, id, src, tabId);
             } else if (postMineAction == PostMineAction.updateLastCard) {
                 await this._updateCard(card, src, tabId, noteId);
             } else if (postMineAction === PostMineAction.showUpdateCardDialog) {
@@ -69,7 +91,13 @@ export class CardPublisher {
         await this._exportCardBulk(card, src, tabId);
     }
 
-    private _notifySaved(savePromise: Promise<any>, card: CardModel, src: string, tabId: number) {
+    private _notifySaved(
+        savePromise: Promise<any>,
+        card: CardModel,
+        src: string,
+        tabId: number,
+        notification?: string
+    ) {
         void savePromise.then((saved: boolean) => {
             if (saved) {
                 const cardSavedCommand: ExtensionToVideoCommand<CardSavedMessage> = {
@@ -77,6 +105,7 @@ export class CardPublisher {
                     message: {
                         ...card,
                         command: 'card-saved',
+                        notification,
                         cardName: card.subtitle.text || humanReadableTime(card.mediaTimestamp),
                     },
                     src: src,
@@ -185,11 +214,91 @@ export class CardPublisher {
         void browser.tabs.sendMessage(tabId, cardUpdatedCommand);
     }
 
-    private _showAnkiDialog(card: CardModel, id: string, src: string | undefined, tabId: number) {
+    private async _attachJiten(card: CardModel, id: string, src: string, tabId: number, action: PostMineAction) {
+        if (this._jitenSubmitting) return;
+        this._jitenSubmitting = true;
+        let pending: JitenPending | undefined;
+        try {
+            const settings = await this._settingsProvider.get([...jitenSettingsKeys]);
+            const client = await getJitenClient(this._settingsProvider);
+            if (action === PostMineAction.mineNewJitenWords) {
+                pending = {
+                    targets: await client.newWords(card.jitenWords ?? [], settings.jitenMiningDeckId),
+                    deckId: settings.jitenMiningDeckId,
+                };
+                if (!pending.targets.length) {
+                    this._notifySaved(Promise.resolve(true), card, src, tabId, String(i18n.t('jiten.noNewWords')));
+                    return;
+                }
+            }
+            const target = pending?.targets[0] ?? card.jitenTarget;
+            if (!target) throw new Error(String(i18n.t('jiten.mineInReaderFirst')));
+            const source = sourceString(card.subtitleFileName, card.subtitle.start);
+            const params = {
+                text: highlightJitenWord(card.text ?? extractText(card.subtitle, card.surroundingSubtitles), target),
+                source,
+                image:
+                    settings.jitenAttachVisual && card.image
+                        ? MediaFragment.fromBase64(
+                              source,
+                              card.subtitle.start,
+                              card.image.base64,
+                              card.image.extension,
+                              card.image.error
+                          )
+                        : undefined,
+                audioClip:
+                    settings.jitenAttachAudio && card.audio
+                        ? AudioClip.fromBase64(
+                              source,
+                              card.subtitle.start,
+                              card.subtitle.end,
+                              card.audio.playbackRate ?? 1,
+                              card.audio.base64,
+                              card.audio.extension,
+                              card.audio.error
+                          )
+                        : undefined,
+                track1: undefined,
+                track2: undefined,
+                track3: undefined,
+                word: card.word,
+                definition: card.definition,
+                url: card.url,
+                customFieldValues: card.customFieldValues ?? {},
+                tags: [],
+                mode: 'default' as const,
+            };
+            const submission = await client.submit(pending?.targets ?? [target], params, pending?.deckId);
+            const last = submission.outcomes.at(-1)!;
+            if (last.result.failed) {
+                this._showAnkiDialog({ ...card, text: submission.text, jitenTarget: last.target }, id, src, tabId, {
+                    jitenPending: pending ? { ...pending, targets: submission.remainingTargets } : undefined,
+                    jitenResult: last.result,
+                });
+            } else {
+                this._notifySaved(Promise.resolve(true), card, src, tabId, jitenOutcomeMessage(submission.outcomes));
+            }
+        } catch (error) {
+            this._notifyError(error, src, tabId);
+            this._showAnkiDialog(card, id, src, tabId, { jitenPending: pending });
+        } finally {
+            this._jitenSubmitting = false;
+        }
+    }
+
+    private _showAnkiDialog(
+        card: CardModel,
+        id: string,
+        src: string | undefined,
+        tabId: number,
+        retry?: Pick<ShowAnkiUiMessage, 'jitenPending' | 'jitenResult'>
+    ) {
         const showAnkiUiCommand: ExtensionToVideoCommand<ShowAnkiUiMessage> = {
             sender: 'asbplayer-extension-to-video',
             message: {
                 ...card,
+                ...retry,
                 id,
                 command: 'show-anki-ui',
             },

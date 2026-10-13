@@ -12,6 +12,7 @@ import StopRecordingMediaHandler from '@/handlers/video/stop-recording-media-han
 import ToggleSubtitlesHandler from '@/handlers/video/toggle-subtitles-handler';
 import SyncHandler from '@/handlers/video/sync-handler';
 import HttpPostHandler from '@/handlers/video/http-post-handler';
+import JitenRequestHandler from '@/handlers/video/jiten-request-handler';
 import VideoToAsbplayerCommandForwardingHandler from '@/handlers/video/video-to-asbplayer-command-forwarding-handler';
 import AsbplayerToVideoCommandForwardingHandler from '@/handlers/asbplayer/asbplayer-to-video-command-forwarding-handler';
 import AsbplayerV2ToVideoCommandForwardingHandler from '@/handlers/asbplayerv2/asbplayer-v2-to-video-command-forwarding-handler';
@@ -196,6 +197,7 @@ export default defineBackground(() => {
         new ToggleSubtitlesHandler(settings, tabRegistry),
         new SyncHandler(tabRegistry),
         new HttpPostHandler(),
+        new JitenRequestHandler(settings),
         new ToggleSidePanelHandler(tabRegistry),
         new OpenStatisticsHandler(tabRegistry),
         new OpenStatisticsOverlayHandler(tabRegistry),

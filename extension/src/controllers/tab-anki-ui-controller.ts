@@ -16,7 +16,8 @@ import type {
     CardExportedDialogMessage,
 } from '@project/common';
 import type { AnkiSettings, SettingsProvider } from '@project/common/settings';
-import { ankiSettingsKeys } from '@project/common/settings';
+import { readJitenCapture } from '@project/extension/src/services/jiten-reader';
+import { ankiSettingsKeys, jitenSettingsKeys } from '@project/common/settings';
 import type UiFrame from '@project/extension/src/services/ui-frame';
 import { uiFrameForHtml } from '@project/extension/src/services/ui-frame';
 import { fetchLocalization } from '@project/extension/src/services/localization-fetcher';
@@ -53,6 +54,7 @@ async function html(language: string) {
 export class TabAnkiUiController {
     private readonly _frame: UiFrame;
     private readonly _settings: SettingsProvider;
+    private _jitenApiKey?: string;
     private readonly _inTutorial = isOnTutorialPage();
 
     constructor(settings: SettingsProvider) {
@@ -61,16 +63,23 @@ export class TabAnkiUiController {
     }
 
     async show(card: CardModel) {
-        const { language, ...ankiDialogSettings } = await this._settings.get([
+        const { language, jitenApiKey, ...ankiDialogSettings } = await this._settings.get([
             'language',
+            'jitenApiKey',
             'themeType',
             'lastSelectedAnkiExportMode',
             ...ankiSettingsKeys,
+            ...jitenSettingsKeys,
         ]);
+        this._jitenApiKey = jitenApiKey;
         const profilesPromise = this._settings.profiles();
         const activeProfilePromise = this._settings.activeProfile();
         const globalStatePromise = globalStateProvider.getAll();
         const client = await this._client(language, ankiDialogSettings);
+        const capture =
+            ankiDialogSettings.miningDestination === 'jiten'
+                ? await readJitenCapture(card.subtitle, card.surroundingSubtitles)
+                : undefined;
         const state: AnkiUiInitialState = {
             type: 'initial',
             open: true,
@@ -79,6 +88,9 @@ export class TabAnkiUiController {
             source: sourceString(card.subtitleFileName, card.mediaTimestamp ?? 0),
             dialogRequestedTimestamp: 0,
             ...card,
+            miningDestination: ankiDialogSettings.miningDestination,
+            jitenTarget: card.jitenTarget ?? capture?.jitenTarget,
+            jitenWords: card.jitenWords?.length ? card.jitenWords : capture?.jitenWords,
             profiles: await profilesPromise,
             activeProfile: (await activeProfilePromise)?.name,
             ftueHasSeenAnkiDialogQuickSelect: (await globalStatePromise).ftueHasSeenAnkiDialogQuickSelectV2,
@@ -88,12 +100,16 @@ export class TabAnkiUiController {
     }
 
     async updateSettings() {
-        const ankiDialogSettings = await this._settings.get([
+        const { jitenApiKey, ...ankiDialogSettings } = await this._settings.get([
+            'jitenApiKey',
             'themeType',
             'lastSelectedAnkiExportMode',
             ...ankiSettingsKeys,
+            ...jitenSettingsKeys,
         ]);
 
+        const jitenAccountChanged = this._jitenApiKey !== jitenApiKey;
+        this._jitenApiKey = jitenApiKey;
         if (this._frame.bound) {
             void this._frame
                 .client()
@@ -102,6 +118,7 @@ export class TabAnkiUiController {
                     const activeProfilePromise = this._settings.activeProfile();
                     const message: AnkiDialogSettingsMessage = {
                         command: 'settings',
+                        jitenAccountChanged,
                         settings: ankiDialogSettings,
                         profiles: await profilesPromise,
                         activeProfile: (await activeProfilePromise)?.name,

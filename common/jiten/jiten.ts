@@ -27,7 +27,28 @@ export interface JitenAttachmentResult {
     visual: string;
     audio: string;
     failed: boolean;
+    sentenceId?: number;
 }
+
+export interface JitenPending {
+    targets: JitenTarget[];
+    deckId: number;
+}
+
+export interface JitenOutcome {
+    target: JitenTarget;
+    result: JitenAttachmentResult;
+}
+
+export const jitenOutcomeMessage = (outcomes: JitenOutcome[]) =>
+    outcomes
+        .map(
+            ({ target, result }) =>
+                `${target.spelling}: ${(['sentence', 'visual', 'audio'] as const)
+                    .map((kind) => `${message(kind)}: ${result[kind]}`)
+                    .join('; ')}`
+        )
+        .join('\n');
 
 const message = (key: string, options?: Record<string, unknown>) => String(i18n.t(`jiten.${key}`, options));
 export const stripJitenMarkers = (text: string) => text.replace(/\*\*/g, '');
@@ -70,22 +91,25 @@ export const jitenWordUrl = (target: JitenTarget) =>
 export class JitenClient {
     private retryAt = 0;
 
-    constructor(private readonly apiKey: string) {}
+    constructor(
+        private readonly apiKey: string | undefined,
+        private readonly fetcher: typeof fetch = globalThis.fetch.bind(globalThis)
+    ) {}
 
     clearRetry() {
         this.retryAt = 0;
     }
 
-    private async request<T>(path: string, method = 'GET', body?: object | FormData): Promise<T> {
-        if (!this.apiKey.trim()) throw new Error(message('apiKeyRequired'));
+    async request<T>(path: string, method = 'GET', body?: object | FormData): Promise<T> {
+        if (this.apiKey !== undefined && !this.apiKey.trim()) throw new Error(message('apiKeyRequired'));
         if (Date.now() < this.retryAt) {
             throw new Error(message('rateLimited', { seconds: Math.ceil((this.retryAt - Date.now()) / 1000) }));
         }
         const multipart = body instanceof FormData;
-        const response = await fetch(`https://api.jiten.moe/api${path}`, {
+        const response = await this.fetcher(`https://api.jiten.moe/api${path}`, {
             method,
             headers: {
-                'X-Api-Key': this.apiKey,
+                ...(this.apiKey !== undefined ? { 'X-Api-Key': this.apiKey } : {}),
                 ...(!multipart && body ? { 'Content-Type': 'application/json' } : {}),
             },
             body: body ? (multipart ? body : JSON.stringify(body)) : undefined,
@@ -144,7 +168,7 @@ export class JitenClient {
         );
     }
 
-    async mine(target: JitenTarget, deckId: number, params: ExportParams) {
+    async mine(target: JitenTarget, deckId: number, params: ExportParams, sentenceId?: number) {
         const error = jitenValidationError(target, params.text ?? '', params.source ?? '');
         if (error) throw new Error(error);
         const state = await this.request<{ decks: number[][] }>('/reader/lookup-vocabulary', 'POST', {
@@ -158,7 +182,40 @@ export class JitenClient {
                 occurrences: 1,
             });
         }
-        return this.attach(target, params);
+        return this.attach(target, params, sentenceId);
+    }
+
+    async submit(targets: JitenTarget[], params: ExportParams, deckId?: number, sentenceId?: number) {
+        const outcomes: JitenOutcome[] = [];
+        const baseText = stripJitenMarkers(params.text ?? '');
+        for (let index = 0; index < targets.length; index++) {
+            const target = targets[index];
+            const text =
+                index === 0
+                    ? params.text
+                    : baseText === stripJitenMarkers(target.sentence ?? '')
+                      ? target.sentence
+                      : highlightJitenWord(baseText, target);
+            let result: JitenAttachmentResult;
+            const savedId = index === 0 ? sentenceId : undefined;
+            try {
+                result =
+                    deckId === undefined
+                        ? await this.attach(target, { ...params, text }, savedId)
+                        : await this.mine(target, deckId, { ...params, text }, savedId);
+            } catch (error) {
+                result = {
+                    sentence: error instanceof Error ? error.message : String(error),
+                    visual: message('notSent'),
+                    audio: message('notSent'),
+                    failed: true,
+                    sentenceId: savedId,
+                };
+            }
+            outcomes.push({ target, result });
+            if (result.failed) return { outcomes, remainingTargets: targets.slice(index), text };
+        }
+        return { outcomes, remainingTargets: [], text: params.text };
     }
 
     private async media(target: JitenTarget) {
@@ -172,12 +229,13 @@ export class JitenClient {
         return item;
     }
 
-    async attach(target: JitenTarget, params: ExportParams): Promise<JitenAttachmentResult> {
+    async attach(target: JitenTarget, params: ExportParams, sentenceId?: number): Promise<JitenAttachmentResult> {
         const result: JitenAttachmentResult = {
             sentence: message('notSent'),
             visual: message('omitted'),
             audio: message('omitted'),
             failed: false,
+            sentenceId,
         };
         const text = params.text ?? '';
         const source = params.source ?? '';
@@ -185,18 +243,20 @@ export class JitenClient {
         if (error) throw new Error(error);
         try {
             const path = `/user/example-sentences/${target.wordId}/${target.readingIndex}`;
-            const examples = target.sentence
-                ? await this.request<{ userExampleSentenceId: number; text: string }[]>(path)
-                : [];
+            const examples =
+                sentenceId === undefined && target.sentence
+                    ? await this.request<{ userExampleSentenceId: number; text: string }[]>(path)
+                    : [];
             const matching = examples.filter(
                 (example) => stripJitenMarkers(example.text) === stripJitenMarkers(target.sentence ?? '')
             );
-            const id = matching.length === 1 ? matching[0].userExampleSentenceId : undefined;
-            await this.request(
+            const id = sentenceId ?? (matching.length === 1 ? matching[0].userExampleSentenceId : undefined);
+            const saved = await this.request<{ userExampleSentenceId: number }>(
                 id === undefined ? path : `/user/example-sentences/${id}`,
                 id === undefined ? 'POST' : 'PUT',
                 { text, source }
             );
+            result.sentenceId = saved.userExampleSentenceId;
             result.sentence = message('saved');
         } catch (error) {
             result.sentence = String(error instanceof Error ? error.message : error);

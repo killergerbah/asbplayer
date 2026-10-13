@@ -1711,6 +1711,18 @@ export default function VideoPlayer({
         return playerChannel.onCopy(inferAndExecuteMiningBehavior);
     }, [playerChannel, inferAndExecuteMiningBehavior]);
 
+    useEffect(
+        () =>
+            keyBinder.bindMineNewJitenWords(
+                (event) => {
+                    event.preventDefault();
+                    inferAndExecuteMiningBehavior(PostMineAction.mineNewJitenWords);
+                },
+                () => ankiDialogOpen
+            ),
+        [keyBinder, inferAndExecuteMiningBehavior, ankiDialogOpen]
+    );
+
     useEffect(() => {
         return keyBinder.bindAnkiExport(
             (event) => {

@@ -10,6 +10,7 @@ export default class AppKeyBinder implements KeyBinder {
     private readonly defaultKeyBinder: DefaultKeyBinder;
     private readonly extension: ChromeExtension;
     private readonly copyHandlers: ((event: KeyboardEvent) => void)[] = [];
+    private readonly mineNewJitenWordsHandlers: ((event: KeyboardEvent) => void)[] = [];
     private readonly ankiExportHandlers: ((event: KeyboardEvent) => void)[] = [];
     private readonly updateLastCardHandlers: ((event: KeyboardEvent) => void)[] = [];
     private readonly exportCardHandlers: ((event: KeyboardEvent) => void)[] = [];
@@ -29,6 +30,9 @@ export default class AppKeyBinder implements KeyBinder {
                     const command = message.data as CopySubtitleMessage;
 
                     switch (command.postMineAction) {
+                        case PostMineAction.mineNewJitenWords:
+                            handlers = this.mineNewJitenWordsHandlers;
+                            break;
                         case PostMineAction.none:
                             handlers = this.copyHandlers;
                             break;
@@ -60,6 +64,14 @@ export default class AppKeyBinder implements KeyBinder {
             };
             this._unsubscribeExtension = extension.subscribe(listener);
         }
+    }
+
+    bindMineNewJitenWords(onMine: (event: KeyboardEvent) => void, disabledGetter: () => boolean) {
+        const handler = (event: KeyboardEvent) => {
+            if (!disabledGetter()) onMine(event);
+        };
+        this.mineNewJitenWordsHandlers.push(handler);
+        return () => this._remove(handler, this.mineNewJitenWordsHandlers);
     }
 
     bindCopy<T extends SubtitleModel = SubtitleModel>(

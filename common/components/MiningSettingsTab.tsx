@@ -21,7 +21,6 @@ interface Props {
     onSettingChanged: <K extends keyof AsbplayerSettings>(key: K, value: AsbplayerSettings[K]) => Promise<void>;
     showWebmMediaFragmentSettings?: boolean;
     supportsUpdateLastWithSameSubtitleText?: boolean;
-    showJitenSettings?: boolean;
 }
 
 const MiningSettingsTab: React.FC<Props> = ({
@@ -29,10 +28,9 @@ const MiningSettingsTab: React.FC<Props> = ({
     onSettingChanged,
     supportsUpdateLastWithSameSubtitleText,
     showWebmMediaFragmentSettings = true,
-    showJitenSettings = false,
 }) => {
     const { t } = useTranslation();
-    const jiten = showJitenSettings && settings.miningDestination === 'jiten';
+    const jiten = settings.miningDestination === 'jiten';
     const webmCaptureSupported = showWebmMediaFragmentSettings && isWebmMediaFragmentSupported();
     const {
         audioPaddingStart,
@@ -57,19 +55,15 @@ const MiningSettingsTab: React.FC<Props> = ({
     } = settings;
     return (
         <Stack spacing={1}>
-            {showJitenSettings && (
-                <TextField
-                    select
-                    label={t('jiten.destination')}
-                    value={settings.miningDestination}
-                    onChange={(event) =>
-                        void onSettingChanged('miningDestination', event.target.value as 'anki' | 'jiten')
-                    }
-                >
-                    <MenuItem value="anki">Anki</MenuItem>
-                    <MenuItem value="jiten">Jiten</MenuItem>
-                </TextField>
-            )}
+            <TextField
+                select
+                label={t('jiten.destination')}
+                value={settings.miningDestination}
+                onChange={(event) => void onSettingChanged('miningDestination', event.target.value as 'anki' | 'jiten')}
+            >
+                <MenuItem value="anki">Anki</MenuItem>
+                <MenuItem value="jiten">Jiten</MenuItem>
+            </TextField>
             <FormControl>
                 <FormLabel component="legend">{t('settings.clickToMineDefaultAction')}</FormLabel>
                 <RadioGroup row={false}>

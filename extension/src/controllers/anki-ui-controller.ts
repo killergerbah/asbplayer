@@ -1,3 +1,4 @@
+import { readJitenCapture } from '@project/extension/src/services/jiten-reader';
 import { asbError } from '@project/common/util/log';
 import { sourceString } from '@project/common/util';
 import type {
@@ -65,6 +66,7 @@ export default class AnkiUiController {
     private activeElement?: Element;
     private focusInListener?: (event: FocusEvent) => void;
     private _settings?: AnkiDialogSettings;
+    private _jitenApiKey?: string;
     private _inTutorial: boolean;
 
     constructor() {
@@ -76,7 +78,9 @@ export default class AnkiUiController {
         return this._settings;
     }
 
-    updateSettings(settings: AnkiDialogSettings, settingsProvider: SettingsProvider) {
+    updateSettings(settings: AnkiDialogSettings, settingsProvider: SettingsProvider, jitenApiKey: string) {
+        const jitenAccountChanged = this._jitenApiKey !== jitenApiKey;
+        this._jitenApiKey = jitenApiKey;
         this._settings = settings;
 
         if (this.frame?.bound) {
@@ -87,6 +91,7 @@ export default class AnkiUiController {
                     const activeProfilePromise = settingsProvider.activeProfile();
                     const message: AnkiDialogSettingsMessage = {
                         command: 'settings',
+                        jitenAccountChanged,
                         settings,
                         profiles: await profilesPromise,
                         activeProfile: (await activeProfilePromise)?.name,
@@ -103,12 +108,32 @@ export default class AnkiUiController {
 
     async show(
         context: Binding,
-        { subtitle, surroundingSubtitles, image, audio, text, definition, word, customFieldValues }: ShowAnkiUiMessage
+        {
+            subtitle,
+            surroundingSubtitles,
+            image,
+            audio,
+            text,
+            definition,
+            word,
+            customFieldValues,
+            jitenTarget,
+            jitenWords,
+            miningDestination,
+            jitenPending,
+            jitenResult,
+        }: ShowAnkiUiMessage
     ) {
         if (!this._settings) {
             throw new Error('Unable to show Anki UI because settings are missing.');
         }
 
+        const hasSnapshot = miningDestination !== undefined;
+        const destination = hasSnapshot ? miningDestination : this._settings.miningDestination;
+        const capture =
+            !hasSnapshot && destination === 'jiten'
+                ? await readJitenCapture(subtitle, surroundingSubtitles)
+                : undefined;
         this._prepareShow(context);
         const client = await this._client(context);
         const url = context.url(subtitle.start, subtitle.end);
@@ -129,6 +154,12 @@ export default class AnkiUiController {
             word,
             definition,
             customFieldValues,
+            ...capture,
+            jitenTarget: hasSnapshot ? jitenTarget : (jitenTarget ?? capture?.jitenTarget),
+            jitenWords: hasSnapshot ? jitenWords : jitenWords?.length ? jitenWords : capture?.jitenWords,
+            miningDestination: destination,
+            jitenPending,
+            jitenResult,
             inTutorial: this._inTutorial,
             ...(await this._additionalUiState(context)),
         };
@@ -152,6 +183,10 @@ export default class AnkiUiController {
             throw new Error('Unable to show card select UI because settings are missing.');
         }
 
+        const capture =
+            this._settings.miningDestination === 'jiten'
+                ? await readJitenCapture(subtitle, surroundingSubtitles)
+                : undefined;
         this._prepareShow(context);
         const client = await this._client(context);
         const state: AnkiUiInitialState = {
@@ -171,6 +206,7 @@ export default class AnkiUiController {
             word,
             definition,
             customFieldValues,
+            ...capture,
             inTutorial: this._inTutorial,
             ...(await this._additionalUiState(context)),
         };
@@ -390,6 +426,8 @@ export default class AnkiUiController {
                         case 'resume': {
                             const resumeMessage = message as AnkiUiBridgeResumeMessage;
                             context.ankiUiSavedState = resumeMessage.uiState;
+                            if (resumeMessage.notification)
+                                context.subtitleController.notification({ text: resumeMessage.notification });
 
                             if (resumeMessage.cardExported && resumeMessage.uiState.dialogRequestedTimestamp !== 0) {
                                 const seekTo = resumeMessage.uiState.dialogRequestedTimestamp;

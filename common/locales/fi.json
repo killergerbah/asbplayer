@@ -829,7 +829,7 @@
         "tier": "Jiten+ tier: {{tier}}",
         "storage": "Media storage: {{used}} / {{maximum}} MiB",
         "reader": "This is designed to work with Jiten Reader",
-        "account": "Jiten account settings",
+        "account": "Create decks in Jiten account settings",
         "miningDialog": "Mining dialog",
         "showMiningDialog": "Show mining dialog",
         "mineInReaderFirst": "Mine a word in Jiten Reader first, in the app's subtitle frame.",

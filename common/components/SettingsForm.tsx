@@ -315,8 +315,8 @@ export default function SettingsForm({
     const { noteType } = settings;
     const tabIndicesById = useMemo(() => {
         const tabs = [
-            'anki-settings',
             'mining-settings',
+            'anki-settings',
             'subtitle-appearance',
             'keyboard-shortcuts',
             'annotation',
@@ -325,13 +325,11 @@ export default function SettingsForm({
             'about',
         ];
 
-        if (insideApp) [tabs[0], tabs[1]] = [tabs[1], tabs[0]];
-
         if (!extensionSupportsAppIntegration) tabs.splice(tabs.indexOf('streaming-video'), 1);
         if (!supportsDictionary) tabs.splice(tabs.indexOf('annotation'), 1);
 
         return Object.fromEntries(tabs.map((tab, i) => [tab, i]));
-    }, [extensionSupportsAppIntegration, supportsDictionary, insideApp]);
+    }, [extensionSupportsAppIntegration, supportsDictionary]);
 
     useEffect(() => {
         if (!scrollToId) {
@@ -468,13 +466,12 @@ export default function SettingsForm({
                         marginRight: smallScreen ? 'auto' : 0,
                     }}
                 >
-                    {insideApp && <Tab tabIndex={0} label={t('settings.mining')} id="mining-settings" />}
+                    <Tab tabIndex={0} label={t('settings.mining')} id="mining-settings" />
                     <Tab
-                        tabIndex={insideApp ? 1 : 0}
-                        label={insideApp && settings.miningDestination === 'jiten' ? 'Jiten' : t('settings.anki')}
+                        tabIndex={1}
+                        label={settings.miningDestination === 'jiten' ? 'Jiten' : t('settings.anki')}
                         id="anki-settings"
                     />
-                    {!insideApp && <Tab tabIndex={1} label={t('settings.mining')} id="mining-settings" />}
                     <Tab tabIndex={2} label={t('settings.subtitleAppearance')} id="subtitle-appearance" />
                     <Tab tabIndex={3} label={t('settings.keyboardShortcuts')} id="keyboard-shortcuts" />
                     {supportsDictionary && (
@@ -509,7 +506,7 @@ export default function SettingsForm({
                     index={tabIndicesById['anki-settings']}
                     tabsOrientation={tabsOrientation}
                 >
-                    {insideApp && settings.miningDestination === 'jiten' ? (
+                    {settings.miningDestination === 'jiten' ? (
                         <JitenSettingsTab settings={settings} onSettingChanged={handleSettingChanged} />
                     ) : (
                         <AnkiSettingsTab
@@ -530,7 +527,6 @@ export default function SettingsForm({
                 </TabPanel>
                 <TabPanel value={tabIndex} index={tabIndicesById['mining-settings']} tabsOrientation={tabsOrientation}>
                     <MiningSettingsTab
-                        showJitenSettings={Boolean(insideApp)}
                         settings={settings}
                         onSettingChanged={handleSettingChanged}
                         showWebmMediaFragmentSettings={Boolean(insideApp)}

@@ -5,6 +5,7 @@ import { isTrackSeekable, TokenState, TokenStatus } from '@project/common/settin
 import { adjacentSubtitle } from '@project/common/util';
 
 export interface KeyBinder {
+    bindMineNewJitenWords?: (onMine: (event: KeyboardEvent) => void, disabledGetter: () => boolean) => () => void;
     bindCopy<T extends SubtitleModel = SubtitleModel>(
         onCopy: (event: KeyboardEvent, subtitle: T) => void,
         disabledGetter: () => boolean,

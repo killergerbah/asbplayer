@@ -1290,6 +1290,15 @@ export default function SubtitlePlayer({
         );
     }, [mineCard, keyBinder, disableKeyEvents, disableMiningBinds]);
 
+    useEffect(
+        () =>
+            keyBinder.bindMineNewJitenWords?.(
+                (event) => mineCard(event, PostMineAction.mineNewJitenWords),
+                () => disableKeyEvents || disableMiningBinds
+            ),
+        [mineCard, keyBinder, disableKeyEvents, disableMiningBinds]
+    );
+
     useEffect(() => {
         return keyBinder.bindUpdateLastCard(
             (event) => mineCard(event, PostMineAction.updateLastCard),

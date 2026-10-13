@@ -650,6 +650,18 @@ export interface StreamingVideoSettings {
 
 export type KeyBindName = keyof KeyBindSet;
 
+export const jitenSettingsKeys = [
+    'miningDestination',
+    'jitenMiningDeckId',
+    'jitenAttachVisual',
+    'jitenAttachAudio',
+] as const;
+export const extractJitenSettings = (settings: JitenSettings): Omit<JitenSettings, 'jitenApiKey'> =>
+    Object.fromEntries(jitenSettingsKeys.map((key) => [key, settings[key]])) as unknown as Omit<
+        JitenSettings,
+        'jitenApiKey'
+    >;
+
 export interface JitenSettings {
     readonly miningDestination: 'anki' | 'jiten';
     readonly jitenApiKey: string;

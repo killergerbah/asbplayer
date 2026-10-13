@@ -36,7 +36,13 @@ import { v4 as uuidv4 } from 'uuid';
 import clsx from 'clsx';
 import Alert from '@project/common/app/components/Alert';
 import AnkiDialog from '@project/common/components/AnkiDialog';
-import { JitenClient, highlightJitenWord, jitenValidationError, stripJitenMarkers } from '@project/common/jiten/jiten';
+import {
+    JitenClient,
+    jitenOutcomeMessage,
+    highlightJitenWord,
+    jitenValidationError,
+    stripJitenMarkers,
+} from '@project/common/jiten/jiten';
 import { readJitenWords } from '@project/common/jiten/reader-words';
 import type { JitenTarget, JitenAttachmentResult } from '@project/common/jiten/jiten';
 import { readJitenTarget, useJitenTarget } from '@project/common/app/hooks/use-jiten-target';
@@ -437,6 +443,7 @@ function App({
     useEffect(() => {
         setDialogJitenBatch(undefined);
         jitenClient.clearRetry();
+        setJitenResult(undefined);
     }, [jitenClient, profile]);
     const miningContext = useMemo(() => new MiningContext(), []);
     const [settingsDialogOpen, setSettingsDialogOpen] = useState<boolean>(false);
@@ -565,7 +572,12 @@ function App({
     );
 
     const handleJitenAttach = useCallback(
-        async (params: ExportParams, target: JitenTarget, batch?: { targets: JitenTarget[]; deckId: number }) => {
+        async (
+            params: ExportParams,
+            target: JitenTarget,
+            batch?: { targets: JitenTarget[]; deckId: number },
+            sentenceId?: number
+        ) => {
             if (jitenSubmitting.current) return;
             jitenSubmitting.current = true;
             setAnkiDialogDisabled(true);
@@ -574,56 +586,28 @@ function App({
             setAlert(t('jiten.attaching'));
             setAlertOpen(true);
             try {
-                const targets = batch?.targets ?? [target];
-                const outcomes: string[] = [];
-                let result: JitenAttachmentResult | undefined;
-                for (let index = 0; index < targets.length; index++) {
-                    const current = targets[index];
-                    const baseText = stripJitenMarkers(params.text ?? '');
-                    const text =
-                        index === 0
-                            ? params.text
-                            : baseText === stripJitenMarkers(current.sentence ?? '')
-                              ? current.sentence
-                              : highlightJitenWord(baseText, current);
-                    const attachment = {
+                const submission = await jitenClient.submit(
+                    batch?.targets ?? [target],
+                    {
                         ...params,
-                        text,
                         image: settings.jitenAttachVisual ? params.image : undefined,
                         audioClip: settings.jitenAttachAudio ? params.audioClip : undefined,
-                    };
-                    try {
-                        result = batch
-                            ? await jitenClient.mine(current, batch.deckId, attachment)
-                            : await jitenClient.attach(current, attachment);
-                    } catch (error) {
-                        if (!batch) throw error;
-                        result = {
-                            sentence: error instanceof Error ? error.message : String(error),
-                            visual: t('jiten.notSent'),
-                            audio: t('jiten.notSent'),
-                            failed: true,
-                        };
-                    }
-                    const wordResult = result;
-                    outcomes.push(
-                        `${batch ? `${current.spelling}: ` : ''}${(['sentence', 'visual', 'audio'] as const)
-                            .map((kind) => `${t(`jiten.${kind}`)}: ${wordResult[kind]}`)
-                            .join('; ')}`
-                    );
-                    if (result.failed) {
-                        if (batch) {
-                            setDialogJitenBatch({ ...batch, targets: targets.slice(index) });
-                            setDialogJitenTarget(current);
-                        }
-                        break;
-                    }
+                    },
+                    batch?.deckId,
+                    sentenceId
+                );
+                const last = submission.outcomes.at(-1);
+                if (!last) return;
+                const { result } = last;
+                if (result.failed && batch) {
+                    setDialogJitenBatch({ ...batch, targets: submission.remainingTargets });
+                    setDialogJitenTarget(last.target);
+                } else if (!result.failed) {
+                    setDialogJitenBatch(undefined);
                 }
-                if (!result) return;
-                if (!result.failed) setDialogJitenBatch(undefined);
                 setJitenResult(result);
                 setAlertSeverity(result.failed ? 'warning' : 'success');
-                setAlert(outcomes.join('\n'));
+                setAlert(jitenOutcomeMessage(submission.outcomes));
                 setAlertOpen(true);
                 setAnkiDialogOpen(result.failed);
                 setDisableKeyEvents(result.failed);
@@ -679,13 +663,25 @@ function App({
             await handleJitenAttach(
                 {
                     ...params,
-                    text: highlightJitenWord(stripJitenMarkers(params.text ?? ''), target),
+                    text: dialogJitenBatch
+                        ? params.text
+                        : highlightJitenWord(stripJitenMarkers(params.text ?? ''), target),
                 },
                 target,
-                batch
+                batch,
+                dialogJitenBatch ? jitenResult?.sentenceId : undefined
             );
         },
-        [ankiDialogCard, dialogJitenBatch, settings.jitenMiningDeckId, jitenClient, handleError, handleJitenAttach, t]
+        [
+            ankiDialogCard,
+            dialogJitenBatch,
+            jitenResult,
+            settings.jitenMiningDeckId,
+            jitenClient,
+            handleError,
+            handleJitenAttach,
+            t,
+        ]
     );
 
     const handleAnkiDialogProceed = useCallback(
@@ -695,7 +691,7 @@ function App({
                     handleError(t('jiten.mineInReaderFirst'));
                     return;
                 }
-                await handleJitenAttach(params, dialogJitenTarget, dialogJitenBatch);
+                await handleJitenAttach(params, dialogJitenTarget, dialogJitenBatch, jitenResult?.sentenceId);
                 return;
             }
             setAnkiDialogDisabled(true);
@@ -738,6 +734,7 @@ function App({
             dialogDestination,
             dialogJitenTarget,
             dialogJitenBatch,
+            jitenResult,
             handleJitenAttach,
             miningContext,
             settings.lastSelectedAnkiExportMode,

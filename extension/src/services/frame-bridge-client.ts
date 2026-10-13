@@ -1,5 +1,11 @@
 import { asbError } from '@project/common/util/log';
-import type { HttpPostMessage, Message, TabToExtensionCommand, VideoToExtensionCommand } from '@project/common';
+import type {
+    HttpPostMessage,
+    JitenRequestMessage,
+    Message,
+    TabToExtensionCommand,
+    VideoToExtensionCommand,
+} from '@project/common';
 
 export interface FetchOptions {
     videoSrc?: string;
@@ -97,8 +103,8 @@ export default class FrameBridgeClient {
                         resolve();
                         break;
                     case 'onServerMessage':
-                        if (message.message.command === 'http-post') {
-                            this._resolveHttpPost(message.message as HttpPostMessage);
+                        if (message.message.command === 'http-post' || message.message.command === 'jiten-request') {
+                            this._resolveHttpPost(message.message as HttpPostMessage | JitenRequestMessage);
                         } else {
                             if (this.serverMessageListener) {
                                 void this.serverMessageListener(message.message).catch((error) =>
@@ -124,22 +130,20 @@ export default class FrameBridgeClient {
         });
     }
 
-    _resolveHttpPost(message: HttpPostMessage) {
+    _resolveHttpPost(message: HttpPostMessage | JitenRequestMessage) {
         if (this.fetchOptions === undefined) {
             return;
         }
 
-        if (this.fetchOptions.allowedFetchUrl === undefined || message.url !== this.fetchOptions.allowedFetchUrl) {
+        if (
+            message.command === 'http-post' &&
+            (this.fetchOptions.allowedFetchUrl === undefined || message.url !== this.fetchOptions.allowedFetchUrl)
+        ) {
             return;
         }
 
-        let httpPostCommand: VideoToExtensionCommand<HttpPostMessage> | TabToExtensionCommand<HttpPostMessage>;
-        const httpPostMessage: HttpPostMessage = {
-            command: 'http-post',
-            url: message.url,
-            body: message.body,
-            messageId: message.messageId,
-        };
+        let httpPostCommand: VideoToExtensionCommand<Message> | TabToExtensionCommand<Message>;
+        const httpPostMessage = message;
 
         if (this.fetchOptions.videoSrc === undefined) {
             httpPostCommand = {

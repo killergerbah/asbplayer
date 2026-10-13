@@ -22,6 +22,10 @@ import type {
     AnkiUiBridgeExportedMessage,
     AnkiDialogDismissedQuickSelectFtueMessage,
 } from '@project/common';
+import { useTranslation } from 'react-i18next';
+import { JitenClient, highlightJitenWord, stripJitenMarkers, jitenOutcomeMessage } from '@project/common/jiten/jiten';
+import type { JitenTarget, JitenAttachmentResult } from '@project/common/jiten/jiten';
+import { jitenFetcher } from '@project/extension/src/ui/jiten-fetcher';
 import { createTheme } from '@project/common/theme';
 import type { Profile } from '@project/common/settings';
 import ThemeProvider from '@mui/material/styles/ThemeProvider';
@@ -57,6 +61,13 @@ const blobToDataUrl = async (blob: Blob): Promise<string> => {
 };
 
 export default function AnkiUi({ bridge }: Props) {
+    const { t } = useTranslation();
+    const [destination, setDestination] = useState<'anki' | 'jiten'>('anki');
+    const [jitenTarget, setJitenTarget] = useState<JitenTarget>();
+    const [jitenWords, setJitenWords] = useState<JitenTarget[]>([]);
+    const [jitenPending, setJitenPending] = useState<{ targets: JitenTarget[]; deckId: number }>();
+    const [jitenResult, setJitenResult] = useState<JitenAttachmentResult>();
+    const submitting = useRef(false);
     const [open, setOpen] = useState<boolean>(false);
     const [disabled, setDisabled] = useState<boolean>(false);
     const [canRerecord, setCanRerecord] = useState<boolean>(false);
@@ -91,6 +102,7 @@ export default function AnkiUi({ bridge }: Props) {
         () => (settings ? new Anki(settings, new BridgeFetcher(bridge)) : undefined),
         [settings, bridge]
     );
+    const jitenClient = useMemo(() => new JitenClient(undefined, jitenFetcher(bridge)), [bridge]);
     const dialogStateRef = useRef<AnkiDialogState>(undefined);
     const openCardSelectDialogActionRef = useRef<() => void>(undefined);
     const [initialCardSelectDialogOpen, setInitialCardSelectDialogOpen] = useState<boolean>(false);
@@ -99,6 +111,9 @@ export default function AnkiUi({ bridge }: Props) {
         const dialogState = dialogStateRef.current!;
         const savedState: AnkiUiSavedState = {
             subtitle: subtitle!,
+            jitenTarget,
+            jitenWords,
+            miningDestination: destination,
             text: dialogState.text,
             surroundingSubtitles: dialogState.surroundingSubtitles,
             definition: dialogState.definition,
@@ -117,7 +132,16 @@ export default function AnkiUi({ bridge }: Props) {
             dialogRequestedTimestamp: dialogRequestedTimestamp,
         };
         return savedState;
-    }, [subtitle, serializedImage, serializedAudio, file, dialogRequestedTimestamp]);
+    }, [
+        subtitle,
+        serializedImage,
+        serializedAudio,
+        file,
+        dialogRequestedTimestamp,
+        jitenTarget,
+        jitenWords,
+        destination,
+    ]);
 
     useEffect(() => {
         return bridge.addClientMessageListener((message: Message) => {
@@ -127,7 +151,12 @@ export default function AnkiUi({ bridge }: Props) {
 
             const s = (message as UpdateStateMessage).state as AnkiUiState;
 
+            setDestination(s.miningDestination ?? s.settings.miningDestination);
+            setJitenTarget(s.jitenTarget);
+            setJitenWords(s.jitenWords ?? []);
             if (s.type === 'initial') {
+                setJitenPending((s as AnkiUiInitialState).jitenPending);
+                setJitenResult((s as AnkiUiInitialState).jitenResult);
                 setTimestampInterval((s.audio?.start && s.audio?.end && [s.audio.start, s.audio.end]) || undefined);
                 setTimestampBoundaryInterval(undefined);
                 setInitialTimestampInterval(undefined);
@@ -171,8 +200,87 @@ export default function AnkiUi({ bridge }: Props) {
 
     useEffect(() => bridge.serverIsReady(), [bridge]);
 
+    const loadNewWords = useCallback(
+        () => jitenClient.newWords(jitenWords, settings?.jitenMiningDeckId ?? 0),
+        [jitenClient, jitenWords, settings?.jitenMiningDeckId]
+    );
+    const submitJiten = useCallback(
+        async (params: ExportParams, mine = false) => {
+            if (submitting.current) return;
+            submitting.current = true;
+            setDisabled(true);
+            try {
+                let pending = jitenPending;
+                if (mine && !pending) {
+                    const text = stripJitenMarkers(params.text ?? '');
+                    const candidates = jitenWords.filter(
+                        (target) => target.surfaceForm && text.includes(target.surfaceForm)
+                    );
+                    pending = {
+                        targets: await jitenClient.newWords(candidates, settings?.jitenMiningDeckId ?? 0),
+                        deckId: settings?.jitenMiningDeckId ?? 0,
+                    };
+                }
+                const targets = pending?.targets ?? (jitenTarget ? [jitenTarget] : []);
+                if (!targets.length) {
+                    setAlert(t(mine ? 'jiten.noNewWords' : 'jiten.mineInReaderFirst'));
+                    setAlertSeverity('info');
+                    setAlertOpen(true);
+                    return;
+                }
+                const submission = await jitenClient.submit(
+                    targets,
+                    {
+                        ...params,
+                        text:
+                            mine && !jitenPending
+                                ? highlightJitenWord(stripJitenMarkers(params.text ?? ''), targets[0])
+                                : params.text,
+                        image: settings?.jitenAttachVisual ? params.image : undefined,
+                        audioClip: settings?.jitenAttachAudio ? params.audioClip : undefined,
+                    },
+                    pending?.deckId,
+                    mine && !jitenPending ? undefined : jitenResult?.sentenceId
+                );
+                const last = submission.outcomes.at(-1)!;
+                setJitenResult(last.result);
+                const notification = jitenOutcomeMessage(submission.outcomes);
+                if (last.result.failed) {
+                    setJitenTarget(last.target);
+                    if (pending) setJitenPending({ ...pending, targets: submission.remainingTargets });
+                    setAlertSeverity('warning');
+                    setAlert(notification);
+                    setAlertOpen(true);
+                    return;
+                }
+                setJitenPending(undefined);
+                setOpen(false);
+                const resume: AnkiUiBridgeResumeMessage = {
+                    command: 'resume',
+                    uiState: savedState(),
+                    cardExported: true,
+                    notification,
+                };
+                bridge.sendMessageFromServer(resume);
+            } catch (error) {
+                setAlertSeverity('error');
+                setAlert(error instanceof Error ? error.message : String(error));
+                setAlertOpen(true);
+            } finally {
+                submitting.current = false;
+                setDisabled(false);
+            }
+        },
+        [jitenClient, jitenPending, jitenWords, jitenTarget, jitenResult, settings, bridge, savedState, t]
+    );
+    const mineNewWords = useCallback((params: ExportParams) => submitJiten(params, true), [submitJiten]);
+
     const handleProceed = useCallback(
         async (params: ExportParams) => {
+            if (destination === 'jiten') {
+                await submitJiten(params);
+                return;
+            }
             setDisabled(true);
 
             try {
@@ -214,7 +322,7 @@ export default function AnkiUi({ bridge }: Props) {
                 setDisabled(false);
             }
         },
-        [anki, bridge, savedState]
+        [anki, bridge, savedState, destination, submitJiten]
     );
 
     const handleCancel = useCallback(() => {
@@ -288,6 +396,11 @@ export default function AnkiUi({ bridge }: Props) {
                 lastFocusOutRef.current?.focus();
             } else if (message.command === 'settings') {
                 const settingsMessage = message as AnkiDialogSettingsMessage;
+                if (settingsMessage.jitenAccountChanged || settingsMessage.activeProfile !== activeProfile) {
+                    setJitenPending(undefined);
+                    setJitenResult(undefined);
+                    jitenClient.clearRetry();
+                }
                 setSettings(settingsMessage.settings);
                 setProfiles(settingsMessage.profiles);
                 setActiveProfile(settingsMessage.activeProfile);
@@ -295,7 +408,7 @@ export default function AnkiUi({ bridge }: Props) {
                 handleRewind();
             }
         });
-    }, [bridge, handleRewind]);
+    }, [bridge, handleRewind, activeProfile, jitenClient]);
 
     useEffect(() => {
         if (open) {
@@ -375,6 +488,17 @@ export default function AnkiUi({ bridge }: Props) {
                 </Snackbar>
                 {settings && card && anki && (
                     <AnkiDialog
+                        jiten={
+                            destination === 'jiten'
+                                ? {
+                                      target: jitenTarget,
+                                      targets: jitenPending?.targets,
+                                      result: jitenResult,
+                                      onMineNewWords: mineNewWords,
+                                      loadNewWords,
+                                  }
+                                : undefined
+                        }
                         open={open}
                         disabled={disabled}
                         card={card}

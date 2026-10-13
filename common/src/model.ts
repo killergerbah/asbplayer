@@ -1,7 +1,7 @@
-import type { AnkiSettings, TokenState, TokenStatus } from '@project/common/settings';
+import type { AnkiSettings, JitenSettings, TokenState, TokenStatus } from '@project/common/settings';
 import type { GenericParseType, OnlineSubtitleSourceConfig } from '@project/common/global-state';
 import type { TokenStatusInfo } from '@project/common/dictionary-db';
-import type { JitenTarget } from '@project/common/jiten/jiten';
+import type { JitenTarget, JitenPending, JitenAttachmentResult } from '@project/common/jiten/jiten';
 import type { PitchAccentPosition } from '@project/common/yomitan';
 
 type Profile = { name: string };
@@ -88,6 +88,8 @@ export interface TokenizedSubtitleModel extends IndexedSubtitleModel {
 }
 
 export interface CardTextFieldValues {
+    readonly jitenTarget?: JitenTarget;
+    readonly miningDestination?: 'anki' | 'jiten';
     readonly jitenWords?: JitenTarget[];
     readonly word?: string;
     readonly definition?: string;
@@ -152,7 +154,7 @@ export interface AudioModel {
 
 export type AnkiExportMode = 'gui' | 'updateLast' | 'updateSpecific' | 'default';
 
-export interface AnkiDialogSettings extends AnkiSettings {
+export interface AnkiDialogSettings extends AnkiSettings, Omit<JitenSettings, 'jitenApiKey'> {
     themeType: string;
     lastSelectedAnkiExportMode: AnkiExportMode;
 }
@@ -179,6 +181,8 @@ export interface AnkiUiState extends CardTextFieldValues {
 export interface AnkiUiInitialState extends AnkiUiState {
     readonly type: 'initial';
     readonly cardSelectOpen?: boolean;
+    readonly jitenPending?: JitenPending;
+    readonly jitenResult?: JitenAttachmentResult;
 }
 
 export interface AnkiUiResumeState extends AnkiUiState {
@@ -194,7 +198,7 @@ export interface AnkiUiResumeState extends AnkiUiState {
     readonly lastAppliedTimestampIntervalToAudio?: number[];
 }
 
-export interface AnkiUiSavedState {
+export interface AnkiUiSavedState extends CardTextFieldValues {
     subtitle: SubtitleModel;
     surroundingSubtitles: SubtitleModel[];
     text: string;

@@ -32,6 +32,7 @@ import type {
 } from '@project/common/src/model';
 import type { AsbPlayerToVideoCommandV2 } from '@project/common/src/command';
 import type { LogLine, LogSnapshot } from '@project/common/util/log-utils';
+import type { JitenPending, JitenAttachmentResult } from '@project/common/jiten/jiten';
 import type {
     DictionaryLocalTokenInput,
     DictionaryTokenKey,
@@ -100,6 +101,14 @@ export interface VideoHeartbeatMessage extends Message {
 
 export interface VideoDisappearedMessage extends Message {
     readonly command: 'video-disappeared';
+}
+
+export interface JitenRequestMessage extends MessageWithId {
+    readonly command: 'jiten-request';
+    readonly path: string;
+    readonly method: string;
+    readonly body?: string;
+    readonly file?: { name: string; type: string; base64: string };
 }
 
 export interface HttpPostMessage extends MessageWithId {
@@ -257,6 +266,7 @@ export interface CardExportedDialogMessage extends Message {
 export interface CardSavedMessage extends Message, CardModel {
     readonly command: 'card-saved';
     readonly cardName: string;
+    readonly notification?: string;
 }
 
 export interface ScreenshotTakenMessage extends Message {
@@ -265,6 +275,8 @@ export interface ScreenshotTakenMessage extends Message {
 }
 
 export interface ShowAnkiUiMessage extends Message, CardModel {
+    readonly jitenPending?: JitenPending;
+    readonly jitenResult?: JitenAttachmentResult;
     readonly command: 'show-anki-ui';
     readonly id: string;
 }
@@ -518,6 +530,7 @@ export interface AnkiSettingsToVideoMessage extends Message {
 
 export interface AnkiDialogSettingsMessage extends Message {
     readonly command: 'settings';
+    readonly jitenAccountChanged?: boolean;
     readonly settings: AnkiDialogSettings;
     readonly activeProfile?: string;
     readonly profiles?: { name: string }[];
@@ -546,6 +559,7 @@ export interface AnkiUiBridgeResumeMessage extends Message {
     readonly command: 'resume';
     readonly uiState: AnkiUiSavedState;
     readonly cardExported: boolean;
+    readonly notification?: string;
 }
 
 export interface AnkiUiBridgeRerecordMessage extends Message {

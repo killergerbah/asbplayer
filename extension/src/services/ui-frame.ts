@@ -2,9 +2,11 @@ import { isFirefoxBuild } from '@project/extension/src/services/build-flags';
 import type { FetchOptions } from '@project/extension/src/services/frame-bridge-client';
 import FrameBridgeClient from '@project/extension/src/services/frame-bridge-client';
 import { frameColorScheme, frameColorSchemeClass } from '@project/extension/src/services/frame-color-scheme';
+import { listenForJitenTarget } from '@project/extension/src/services/jiten-reader';
 
 export const uiFrameForHtml = (html: (lang: string) => Promise<string>) => {
     return new UiFrame(async (frame: HTMLIFrameElement, lang: string) => {
+        frame.addEventListener('load', () => listenForJitenTarget(frame.contentWindow!));
         if (isFirefoxBuild) {
             // Firefox does not allow document.write() into the about:blank iframe.
             frame.srcdoc = await html(lang);

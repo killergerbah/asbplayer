@@ -77,6 +77,7 @@ import type { AsbplayerSettings, SeekableTracks } from '@project/common/settings
 import {
     calculateSeekableTracksValue,
     extractAnkiSettings,
+    extractJitenSettings,
     PauseOnHoverMode,
     SettingsProvider,
     SubtitleListPreference,
@@ -113,6 +114,7 @@ import { pgsParserWorkerFactory } from '@project/extension/src/services/pgs-pars
 import { DictionaryProvider } from '@project/common/dictionary-db/dictionary-provider';
 import { ExtensionDictionaryStorage } from '@project/extension/src/services/extension-dictionary-storage';
 import { HoveredToken } from '@project/common/annotations';
+import { readJitenCapture } from '@project/extension/src/services/jiten-reader';
 import { v4 as uuidv4 } from 'uuid';
 import { debounced } from '@project/extension/src/services/debounced';
 import PlaybackEngine from '@project/common/playback/playback-engine';
@@ -1093,8 +1095,9 @@ export default class Binding {
                                 break;
                         }
                         this.subtitleController.notification({
-                            locKey,
-                            replacements: { result: request.message.cardName },
+                            ...('notification' in cardMessage && cardMessage.notification
+                                ? { text: cardMessage.notification }
+                                : { locKey, replacements: { result: cardMessage.cardName } }),
                         });
                         this.ankiUiSavedState = {
                             ...cardMessage,
@@ -1414,10 +1417,12 @@ export default class Binding {
         this.ankiUiController.updateSettings(
             {
                 ...extractAnkiSettings(currentSettings),
+                ...extractJitenSettings(currentSettings),
                 themeType: currentSettings.themeType,
                 lastSelectedAnkiExportMode: currentSettings.lastSelectedAnkiExportMode,
             },
-            this.settings
+            this.settings,
+            currentSettings.jitenApiKey
         );
         this.postMinePlayback = currentSettings.postMiningPlaybackState;
         this.keyBindings.setKeyBindSet(this, currentSettings.keyBindSet);
@@ -1601,6 +1606,10 @@ export default class Binding {
             void navigator.clipboard.writeText(subtitle.text);
         }
 
+        const jitenCapture =
+            this.ankiUiController.settings?.miningDestination === 'jiten'
+                ? await readJitenCapture(subtitle, surroundingSubtitles)
+                : { miningDestination: 'anki' as const };
         const mediaTimestamp = subtitleTimestampWithDelay(subtitle, this.imageDelay);
 
         if (this.takeScreenshot) {
@@ -1633,6 +1642,7 @@ export default class Binding {
             sender: 'asbplayer-video',
             message: {
                 command: 'record-media-and-forward-subtitle',
+                ...jitenCapture,
                 subtitle: subtitle,
                 surroundingSubtitles: surroundingSubtitles,
                 record: this.recordMedia,
