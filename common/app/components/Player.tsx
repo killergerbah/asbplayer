@@ -86,7 +86,7 @@ interface StylesProps {
 
 const useStyles = makeStyles<Theme, StylesProps>(() => ({
     root: ({ appBarHidden, appBarHeight }) => ({
-        height: appBarHidden ? '100vh' : `calc(100vh - ${appBarHeight}px)`,
+        height: appBarHidden ? '100dvh' : `calc(100dvh - ${appBarHeight}px)`,
         position: 'relative',
         overflowX: 'hidden',
     }),
@@ -1522,7 +1522,7 @@ function PlayerComponent(
     const shouldLoadVideoAspectRatio =
         videoInWindow && settings.videoSubtitleSplitBehavior !== VideoSubtitleSplitBehavior.rememberSplitPosition;
     const videoAspectRatio = useVideoAspectRatio(videoFileUrl, shouldLoadVideoAspectRatio);
-    const loaded = videoFileUrl || subtitles;
+    const loaded = videoFileUrl || (sources?.subtitleFiles.length ?? 0) > 0 || tab;
     const playerHeight = appBarHidden ? windowHeight : Math.max(0, windowHeight - appBarHeight);
     const aspectFitVideoWidth = videoAspectRatio
         ? Math.max(minVideoPlayerWidth, Math.round(playerHeight * videoAspectRatio))

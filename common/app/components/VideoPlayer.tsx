@@ -101,7 +101,7 @@ const useStyles = makeStyles<Theme>((theme) => ({
     root: {
         position: 'relative',
         backgroundColor: 'black',
-        height: '100vh',
+        height: '100dvh',
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
