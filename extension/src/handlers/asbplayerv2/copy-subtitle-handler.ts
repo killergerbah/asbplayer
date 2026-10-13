@@ -37,6 +37,7 @@ export default class CopySubtitleHandler {
                         postMineAction: copySubtitleCommand.message.postMineAction,
                         subtitle: copySubtitleCommand.message.subtitle,
                         surroundingSubtitles: copySubtitleCommand.message.surroundingSubtitles,
+                        jitenTarget: copySubtitleCommand.message.jitenTarget,
                         isBulkExport: copySubtitleCommand.message.isBulkExport,
                     },
                     src: videoElement.src,

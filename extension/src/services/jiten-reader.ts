@@ -1,12 +1,21 @@
 import type { SubtitleModel } from '@project/common';
+import type { JitenTarget } from '@project/common/jiten/jiten';
 import { isJitenTarget } from '@project/common/jiten/jiten';
 import { listenJitenTarget } from '@project/common/jiten/reader-events';
 import { readJitenWords } from '@project/common/jiten/reader-words';
 
 const targetKey = 'jiten-mined-target';
+const minedListeners = new Set<(target: JitenTarget) => void>();
+export const onJitenWordMined = (listener: (target: JitenTarget) => void) => {
+    minedListeners.add(listener);
+    return () => {
+        minedListeners.delete(listener);
+    };
+};
 export const listenForJitenTarget = (targetWindow: Window) =>
     listenJitenTarget((target) => {
         void browser.storage.local.set({ [targetKey]: target });
+        minedListeners.forEach((listener) => listener(target));
     }, targetWindow);
 
 listenForJitenTarget(window);

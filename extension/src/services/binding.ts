@@ -1,3 +1,4 @@
+import { findJitenSubtitle } from '@project/common/jiten/reader-events';
 import {
     adjacentSubtitle,
     buildSubtitleTracks,
@@ -114,7 +115,7 @@ import { pgsParserWorkerFactory } from '@project/extension/src/services/pgs-pars
 import { DictionaryProvider } from '@project/common/dictionary-db/dictionary-provider';
 import { ExtensionDictionaryStorage } from '@project/extension/src/services/extension-dictionary-storage';
 import { HoveredToken } from '@project/common/annotations';
-import { readJitenCapture } from '@project/extension/src/services/jiten-reader';
+import { readJitenCapture, onJitenWordMined } from '@project/extension/src/services/jiten-reader';
 import { v4 as uuidv4 } from 'uuid';
 import { debounced } from '@project/extension/src/services/debounced';
 import PlaybackEngine from '@project/common/playback/playback-engine';
@@ -218,6 +219,7 @@ export default class Binding {
     private _lastProfile?: string;
     private _subtitleSource?: SubtitleSource;
     private _subtitleRefreshId = 0;
+    private _unsubscribeJiten?: () => void;
 
     readonly video: HTMLMediaElement;
     readonly hasPageScript: boolean;
@@ -767,6 +769,26 @@ export default class Binding {
     }
 
     _subscribe() {
+        this._unsubscribeJiten = onJitenWordMined((target) => {
+            const settings = this.ankiUiController.settings;
+            if (!this._synced || settings?.miningDestination !== 'jiten' || !settings.jitenAutoAttach) return;
+            const matched = findJitenSubtitle(target, this.subtitleController.subtitles, this.currentTimeMs);
+            if (!matched) return;
+            const [subtitle, surroundingSubtitles] = this.subtitleController.subtitleAtIndex(matched.index);
+            if (!subtitle || !surroundingSubtitles) return;
+            void this._copySubtitle({
+                command: 'copy-subtitle',
+                postMineAction: PostMineAction.updateLastCard,
+                subtitle,
+                surroundingSubtitles,
+                jitenTarget: target,
+            }).catch((error) =>
+                this.subtitleController.notification({
+                    locKey: 'info.error',
+                    replacements: { message: String(error) },
+                })
+            );
+        });
         this.seekedListener = () => {
             const currentTimeCommand: VideoToExtensionCommand<CurrentTimeFromVideoMessage> = {
                 sender: 'asbplayer-video',
@@ -1475,6 +1497,8 @@ export default class Binding {
     }
 
     unbind() {
+        this._unsubscribeJiten?.();
+        this._unsubscribeJiten = undefined;
         this._subtitleSource = undefined;
         asbTrace('playback/binding', 'Unbinding media owner', {
             subscribed: this.subscribed,
@@ -1584,6 +1608,7 @@ export default class Binding {
     }
 
     async _copySubtitle({
+        jitenTarget,
         postMineAction,
         subtitle,
         surroundingSubtitles,
@@ -1643,6 +1668,7 @@ export default class Binding {
             message: {
                 command: 'record-media-and-forward-subtitle',
                 ...jitenCapture,
+                ...(jitenTarget ? { jitenTarget } : {}),
                 subtitle: subtitle,
                 surroundingSubtitles: surroundingSubtitles,
                 record: this.recordMedia,
