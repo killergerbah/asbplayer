@@ -6,7 +6,9 @@ import NoteAddIcon from '@site/src/components/NoteAddIcon';
 
 # Mining subtitles {#mining-subtitles}
 
-**Sentence mining** is the act of creating flashcards out of sentences. asbplayer allows you to create high-quality sentence flashcards by combining video, audio, and subtitles into a single card. asbplayer integrates with **Anki**, a popular flashcard application.
+**Sentence mining** is the act of creating flashcards out of sentences. asbplayer allows you to create high-quality sentence flashcards by combining video, audio, and subtitles into a single card. asbplayer supports **Anki** and **Jiten** as mining destinations.
+
+For Jiten, follow the [Mining to Jiten guide](../guides/jiten). The steps below describe the default Anki workflow.
 
 ## Setup Anki {#setup-anki}
 
@@ -63,7 +65,7 @@ import NoteAddIcon from '@site/src/components/NoteAddIcon';
 ## Configure asbplayer {#configure-asbplayer}
 
 1. Open [asbplayer's settings](https://app.asbplayer.dev/?view=settings).
-2. Select the **Deck** and **Note Type** you just created.
+2. Keep **Mining → Mining destination** set to **Anki**, then open the **Anki** tab and select the **Deck** and **Note Type** you just created.
 3. For each of the **Sentence**, **Definition**, **Word**, **Audio**, **Image**, **Source**, and **URL** fields, select the corresponding field in the note type.
 
 ## Install a dictionary app {#install-a-dictionary-app}

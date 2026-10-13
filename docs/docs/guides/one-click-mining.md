@@ -4,6 +4,13 @@ sidebar_position: 8
 
 # One-click mining {#one-click-mining}
 
+For Jiten, select **Mining → Mining destination → Jiten**, then choose either workflow:
+
+- Mine an individual word with Jiten Reader. [Automatic sentence and media attachment](./jiten#attach-context) is enabled by default, so no additional asbplayer mining click is needed.
+- Choose [**Mine new words to Jiten**](./jiten#mine-new-words) as the mining button's default action to mine all qualifying new words in a Reader-parsed subtitle with one click.
+
+The instructions below cover Anki and Yomitan.
+
 asbplayer is great at connecting subtitle and video content to AnkiConnect, but is not able to automatically provide word definitions on its own. For this reason, most sentence mining flows require at two or three mouse or keyboard inputs from the user.
 
 One-click mining is possible if asbplayer is combined with another application that:

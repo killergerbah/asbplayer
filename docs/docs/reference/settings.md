@@ -8,6 +8,8 @@ import NoteAddIcon from '@site/src/components/NoteAddIcon';
 
 ## [Anki](https://app.asbplayer.dev/?view=settings#anki-settings) {#anki}
 
+This tab is shown when **Mining destination** is **Anki**.
+
 ### AnkiConnect URL {#ankiconnect-url}
 
 URL to the AnkiConnect server running as on addon inside Anki.
@@ -52,7 +54,40 @@ Fields will appear in the **Anki Export Dialog** in the order that they appear i
 
 Default tags to supply with each card.
 
+## Jiten {#jiten}
+
+This tab replaces **Anki** when **Mining destination** is **Jiten**. See [Mining to Jiten](../guides/jiten) for setup and workflows.
+
+### Jiten API key {#jiten-api-key}
+
+Authenticates requests to Jiten. Copy your key from [Jiten settings](https://jiten.moe/settings#:~:text=API%20Key). The key is masked by default and can be revealed with the visibility button. A successful connection displays your Jiten+ tier and media storage usage.
+
+### Mining deck {#jiten-mining-deck}
+
+Custom word-list deck used by **Mine new words to Jiten**. No deck is selected by default. Create decks using the account settings link in this tab.
+
+### Automatically attach sentence and media when mining with Jiten Reader {#jiten-auto-attach}
+
+Enabled by default. With **Mining destination** set to **Jiten**, mining a word in Jiten Reader triggers capture and attachment of the matching subtitle sentence and enabled media. This works in the local player and browser extension, independently of the mining button's default action. It uses the same attachment settings and error handling as **Update last card**. Disable it to [review and attach context manually](../guides/jiten#attach-manually).
+
+Automatic attachment requires a matching loaded subtitle. See [subtitle matching](../guides/jiten#attach-context) if mining in Reader does not attach context.
+
+### Attach screenshot / video {#jiten-attach-visual}
+
+Send the captured screenshot or video clip to Jiten if the target word has no visual attachment. Enabled by default. Existing media is preserved.
+
+### Attach audio {#jiten-attach-audio}
+
+Send captured audio to Jiten if the target word has no audio attachment. Enabled by default. Existing media is preserved.
+
+### Limits {#jiten-limits}
+Media attachments require Jiten+ or an eligible trial; each uploaded file is limited to 5 MiB.
+
 ## [Mining](https://app.asbplayer.dev/?view=settings#mining-settings) {#mining}
+
+### Mining destination {#mining-destination}
+
+Choose **Anki** (default) or **Jiten**. This changes the destination settings tab, mining dialog, and available mining button actions.
 
 ### Mining button default action {#mining-button-default-action}
 
@@ -65,6 +100,13 @@ Default tags to supply with each card.
 | Show update card dialog | Record target subtitle in mining history and show the dialog for updating the last card with asbplayer-provided context                                                                                |
 | Export card             | Record target subtitle in mining history and export a card _only_ with asbplayer-provided context - all fields except the user-provided definition, word, and custom fields                            |
 | None                    | Record target subtitle in mining history                                                                                                                                                               |
+
+The table above describes Anki actions. With **Jiten** selected, the available actions are:
+
+- **Show mining dialog**: capture the subtitle and open the Jiten mining dialog to review context before sending it.
+- **Update last card**: attach the captured sentence and enabled media to the last word mined through Jiten Reader. Existing media is preserved.
+- **Mine new words to Jiten**: mine all qualifying new words from the Reader-parsed subtitle into the selected mining deck and attach context, bypassing the dialog unless correction is needed.
+- **None**: record the subtitle in mining history without sending it to Jiten.
 
 ### Post-mining playback state {#post-mining-playback-state}
 

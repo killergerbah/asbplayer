@@ -181,6 +181,8 @@ asbplayer's complete user guide is [here](https://docs.asbplayer.dev/docs/intro)
 
 ## Getting Started
 
+To mine to **Jiten**, follow the [Jiten setup and mining guide](https://docs.asbplayer.dev/docs/guides/jiten.md). It covers attaching context to Reader-mined words and mining all new words from a parsed subtitle, for local video and the browser extension. The steps below use **Anki**, the default mining destination.
+
 > [!NOTE]  
 > asbplayer is both a subtitle control and flashcard creation tool. If you are not interested in flashcards, and only want to use asbplayer's subtitle features, just follow step 5.
 
