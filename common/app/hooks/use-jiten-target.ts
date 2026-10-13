@@ -16,12 +16,13 @@ export const readJitenTarget = (): JitenTarget | undefined => {
     }
 };
 
-export const useJitenTarget = () => {
+export const useJitenTarget = (onMined?: (target: JitenTarget) => void) => {
     const [target, setTarget] = useState(readJitenTarget);
     useEffect(() => {
         const stop = listenJitenTarget((target) => {
             localStorage.setItem(storageKey, JSON.stringify(target));
             setTarget(target);
+            onMined?.(target);
         });
         const sync = (event: StorageEvent) => {
             if (event.key === storageKey) setTarget(readJitenTarget());
@@ -31,6 +32,6 @@ export const useJitenTarget = () => {
             stop();
             window.removeEventListener('storage', sync);
         };
-    }, []);
+    }, [onMined]);
     return target;
 };

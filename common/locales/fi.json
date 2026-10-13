@@ -838,6 +838,7 @@
         "highlightMismatch": "The selected highlight does not match the Reader surface form, spelling or reading. Your manual selection will be used.",
         "lengthLimit": "Sentence (including ** markers) and source must each be 150 characters or fewer. Shorten them before attaching.",
         "attach": "Attach to Jiten",
+        "autoAttach": "Automatically attach sentence and media when mining with Jiten Reader",
         "includeVisual": "Attach screenshot / video",
         "includeAudio": "Attach audio",
         "sentence": "Sentence",

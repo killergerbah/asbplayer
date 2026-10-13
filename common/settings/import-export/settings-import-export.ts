@@ -321,6 +321,9 @@ const settingsSchema = {
             type: 'integer',
             minimum: 0,
         },
+        jitenAutoAttach: {
+            type: 'boolean',
+        },
         jitenAttachVisual: {
             type: 'boolean',
         },

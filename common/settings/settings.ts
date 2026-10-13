@@ -653,6 +653,7 @@ export type KeyBindName = keyof KeyBindSet;
 export const jitenSettingsKeys = [
     'miningDestination',
     'jitenMiningDeckId',
+    'jitenAutoAttach',
     'jitenAttachVisual',
     'jitenAttachAudio',
 ] as const;
@@ -666,6 +667,7 @@ export interface JitenSettings {
     readonly miningDestination: 'anki' | 'jiten';
     readonly jitenApiKey: string;
     readonly jitenMiningDeckId: number;
+    readonly jitenAutoAttach: boolean;
     readonly jitenAttachVisual: boolean;
     readonly jitenAttachAudio: boolean;
 }

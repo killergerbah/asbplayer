@@ -1,3 +1,4 @@
+import { findJitenSubtitle } from '@project/common/jiten/reader-events';
 import type { MutableRefObject } from 'react';
 import React, { useEffect, useState, useMemo, useCallback, useRef, useImperativeHandle } from 'react';
 import { makeStyles } from '@mui/styles';
@@ -8,6 +9,7 @@ import { v4 as uuidv4 } from 'uuid';
 import type {
     AudioTrackModel,
     CardModel,
+    CopySubtitleMessage,
     CardTextFieldValues,
     IndexedSubtitleModel,
     PlaybackState,
@@ -16,6 +18,8 @@ import type {
     TokenizedSubtitleModel,
     VideoTabModel,
 } from '@project/common';
+import type { JitenTarget } from '@project/common/jiten/jiten';
+import { useJitenTarget } from '@project/common/app/hooks/use-jiten-target';
 import { readJitenWords } from '@project/common/jiten/reader-words';
 import { AutoPausePreference, PlayMode, PostMinePlayback, PostMineAction } from '@project/common';
 import type { AsbplayerSettings, SettingsProvider } from '@project/common/settings';
@@ -1267,6 +1271,39 @@ function PlayerComponent(
             playbackRate,
             settings.miningDestination,
         ]
+    );
+
+    useJitenTarget(
+        useCallback(
+            (target: JitenTarget) => {
+                if (settings.miningDestination !== 'jiten' || !settings.jitenAutoAttach || disableKeyEvents) return;
+                const timestamp = clock.time({ maxMs: calculateLengthMs(videoDurationRef) });
+                const subtitle = findJitenSubtitle(target, subtitlesRef.current ?? [], timestamp);
+                if (!subtitle) return;
+                const surrounding = surroundingSubtitles(
+                    subtitlesRef.current!,
+                    subtitle.index,
+                    settings.surroundingSubtitlesCountRadius,
+                    settings.surroundingSubtitlesTimeRadius
+                );
+                if (tab) {
+                    const message: CopySubtitleMessage = {
+                        command: 'copy-subtitle',
+                        postMineAction: PostMineAction.updateLastCard,
+                        subtitle,
+                        surroundingSubtitles: surrounding,
+                        jitenTarget: target,
+                    };
+                    extension.sendMessageToVideoElement(message, tab.id, tab.src);
+                } else {
+                    void handleCopyFromSubtitlePlayer(subtitle, surrounding, PostMineAction.updateLastCard, true, {
+                        jitenTarget: target,
+                        miningDestination: 'jiten',
+                    });
+                }
+            },
+            [settings, disableKeyEvents, clock, handleCopyFromSubtitlePlayer, tab, extension]
+        )
     );
 
     const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {

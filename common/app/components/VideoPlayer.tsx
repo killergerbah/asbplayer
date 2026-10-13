@@ -1,3 +1,6 @@
+import { findJitenSubtitle } from '@project/common/jiten/reader-events';
+import type { JitenTarget } from '@project/common/jiten/jiten';
+import { useJitenTarget } from '@project/common/app/hooks/use-jiten-target';
 import { readJitenWords } from '@project/common/jiten/reader-words';
 import type { MutableRefObject } from 'react';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -1590,6 +1593,35 @@ export default function VideoPlayer({
             videoFileName,
             lengthMs,
         ]
+    );
+
+    useJitenTarget(
+        useCallback(
+            (target: JitenTarget) => {
+                if (settings.miningDestination !== 'jiten' || !settings.jitenAutoAttach || ankiDialogOpen) return;
+                const subtitle = findJitenSubtitle(target, subtitles ?? [], clock.time({ maxMs: lengthMs }));
+                if (!subtitle) return;
+                mineCurrentSubtitle(
+                    PostMineAction.updateLastCard,
+                    subtitle,
+                    calculateSurroundingSubtitles(subtitle.index),
+                    {
+                        jitenTarget: target,
+                        miningDestination: 'jiten',
+                    }
+                );
+            },
+            [
+                settings.miningDestination,
+                settings.jitenAutoAttach,
+                ankiDialogOpen,
+                mineCurrentSubtitle,
+                subtitles,
+                clock,
+                lengthMs,
+                calculateSurroundingSubtitles,
+            ]
+        )
     );
 
     const toggleSelectMiningInterval = useCallback(

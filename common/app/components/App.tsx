@@ -45,7 +45,7 @@ import {
 } from '@project/common/jiten/jiten';
 import { readJitenWords } from '@project/common/jiten/reader-words';
 import type { JitenTarget, JitenAttachmentResult } from '@project/common/jiten/jiten';
-import { readJitenTarget, useJitenTarget } from '@project/common/app/hooks/use-jiten-target';
+import { readJitenTarget } from '@project/common/app/hooks/use-jiten-target';
 import Paper from '@mui/material/Paper';
 import DragOverlay from '@project/common/app/components/DragOverlay';
 import Bar from '@project/common/app/components/Bar';
@@ -388,7 +388,6 @@ function App({
     const playbackPreferences = usePlaybackPreferences();
     const theme = useMemo<Theme>(() => createTheme(settings.themeType), [settings.themeType]);
     const anki = useAnki({ settings, fetcher });
-    useJitenTarget();
     const jitenClient = useMemo(() => new JitenClient(settings.jitenApiKey), [settings.jitenApiKey]);
     const searchParams = useMemo(() => new URLSearchParams(location.search), []);
     const inVideoPlayer = useMemo(() => searchParams.get('video') !== null, [searchParams]);
@@ -521,7 +520,7 @@ function App({
 
             const item = ankiDialogItem ?? copyHistoryItemsRef.current[copyHistoryItemsRef.current.length - 1];
             setDialogDestination(settings.miningDestination);
-            setDialogJitenTarget(readJitenTarget());
+            setDialogJitenTarget(item.jitenTarget ?? readJitenTarget());
             setDialogJitenBatch(undefined);
             setJitenResult(undefined);
             setAnkiDialogCard({
@@ -826,7 +825,7 @@ function App({
                             jitenSubmitting.current = false;
                         }
                     }
-                    const target = batch?.targets[0] ?? readJitenTarget();
+                    const target = batch?.targets[0] ?? card.jitenTarget ?? readJitenTarget();
                     const text = jiten
                         ? highlightJitenWord(
                               extractText(card.subtitle, card.surroundingSubtitles) || target?.sentence || '',
@@ -1160,7 +1159,7 @@ function App({
         (card: CardModel) => {
             if (jitenSubmitting.current) return;
             setDialogDestination(settings.miningDestination);
-            setDialogJitenTarget(readJitenTarget());
+            setDialogJitenTarget(card.jitenTarget ?? readJitenTarget());
             setDialogJitenBatch(undefined);
             setJitenResult(undefined);
             setAnkiDialogCard(card);

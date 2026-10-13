@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { IconButton, InputAdornment, Link, MenuItem, Stack, Switch, Typography } from '@mui/material';
+import { IconButton, InputAdornment, Link, MenuItem, Stack, Switch, Typography, Checkbox } from '@mui/material';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import SettingsTextField from '@project/common/components/SettingsTextField';
@@ -48,7 +48,19 @@ export default function JitenSettingsTab({ settings, onSettingChanged }: Props) 
                 type={showKey ? 'text' : 'password'}
                 value={settings.jitenApiKey}
                 error={Boolean(error)}
-                helperText={error}
+                helperText={
+                    <>
+                        <Link href="https://jiten.moe/settings#:~:text=API%20Key" target="_blank" rel="noreferrer">
+                            {t('jiten.apiKey')}
+                        </Link>
+                        {error && (
+                            <>
+                                <br />
+                                {error}
+                            </>
+                        )}
+                    </>
+                }
                 onChange={(event) => void onSettingChanged('jitenApiKey', event.target.value)}
                 InputProps={{
                     endAdornment: (
@@ -80,6 +92,16 @@ export default function JitenSettingsTab({ settings, onSettingChanged }: Props) 
                     </MenuItem>
                 ))}
             </SettingsTextField>
+            <SwitchLabelWithHoverEffect
+                label={t('jiten.autoAttach')}
+                labelPlacement="start"
+                control={
+                    <Checkbox
+                        checked={settings.jitenAutoAttach}
+                        onChange={(_, checked) => void onSettingChanged('jitenAutoAttach', checked)}
+                    />
+                }
+            />
             <SwitchLabelWithHoverEffect
                 label={t('jiten.includeVisual')}
                 labelPlacement="start"

@@ -123,6 +123,7 @@ export const defaultSettings: AsbplayerSettings = {
     miningDestination: 'anki',
     jitenApiKey: '',
     jitenMiningDeckId: 0,
+    jitenAutoAttach: true,
     jitenAttachVisual: true,
     jitenAttachAudio: true,
     ankiConnectUrl: 'http://127.0.0.1:8765',

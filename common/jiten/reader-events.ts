@@ -1,3 +1,4 @@
+import type { SubtitleModel } from '@project/common';
 import { isJitenTarget, jitenSurfaceForm, stripJitenMarkers } from '@project/common/jiten/jiten';
 import type { JitenTarget } from '@project/common/jiten/jiten';
 
@@ -41,4 +42,14 @@ export function listenJitenTarget(onTarget: (target: JitenTarget) => void, targe
     };
     targetWindow.addEventListener('message', receive);
     return () => targetWindow.removeEventListener('message', receive);
+}
+
+export function findJitenSubtitle<T extends SubtitleModel>(target: JitenTarget, subtitles: T[], timestamp: number) {
+    const sentence = stripJitenMarkers(target.sentence ?? '').trim();
+    const matching = sentence ? subtitles.filter((subtitle) => subtitle.text.trim() === sentence) : [];
+    if (matching.length === 1) return matching[0];
+    const surface = jitenSurfaceForm(target) || target.spelling;
+    return (matching.length ? matching : subtitles).find(
+        (subtitle) => subtitle.start <= timestamp && timestamp < subtitle.end && subtitle.text.includes(surface)
+    );
 }
