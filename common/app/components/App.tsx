@@ -1161,6 +1161,7 @@ function App({
             if (jitenSubmitting.current) return;
             setDialogDestination(settings.miningDestination);
             setDialogJitenTarget(readJitenTarget());
+            setDialogJitenBatch(undefined);
             setJitenResult(undefined);
             setAnkiDialogCard(card);
             setAnkiDialogOpen(true);
