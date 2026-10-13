@@ -78,6 +78,7 @@ const MiningSettingsTab: React.FC<Props> = ({
                             <Radio
                                 checked={
                                     clickToMineDefaultAction === PostMineAction.showAnkiDialog ||
+                                    (!jiten && clickToMineDefaultAction === PostMineAction.mineNewJitenWords) ||
                                     (jiten &&
                                         (clickToMineDefaultAction === PostMineAction.showUpdateCardDialog ||
                                             clickToMineDefaultAction === PostMineAction.exportCard))
@@ -104,6 +105,24 @@ const MiningSettingsTab: React.FC<Props> = ({
                         }
                         label={t('postMineAction.updateLastCard')}
                     />
+                    {jiten && (
+                        <LabelWithHoverEffect
+                            control={
+                                <Radio
+                                    checked={clickToMineDefaultAction === PostMineAction.mineNewJitenWords}
+                                    value={PostMineAction.mineNewJitenWords}
+                                    onChange={(event) =>
+                                        event.target.checked &&
+                                        void onSettingChanged(
+                                            'clickToMineDefaultAction',
+                                            PostMineAction.mineNewJitenWords
+                                        )
+                                    }
+                                />
+                            }
+                            label={t('jiten.mineNewWords')}
+                        />
+                    )}
                     {!jiten && (
                         <LabelWithHoverEffect
                             control={

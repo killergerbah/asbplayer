@@ -653,6 +653,7 @@ export type KeyBindName = keyof KeyBindSet;
 export interface JitenSettings {
     readonly miningDestination: 'anki' | 'jiten';
     readonly jitenApiKey: string;
+    readonly jitenMiningDeckId: number;
     readonly jitenAttachVisual: boolean;
     readonly jitenAttachAudio: boolean;
 }

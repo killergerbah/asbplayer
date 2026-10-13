@@ -1,3 +1,4 @@
+import { readJitenWords } from '@project/common/jiten/reader-words';
 import type { MutableRefObject } from 'react';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { isMobile } from 'react-device-detect';
@@ -1473,6 +1474,16 @@ export default function VideoPlayer({
             cardTextFieldValues: CardTextFieldValues,
             timestamp: number
         ) => {
+            if (
+                postMineAction === PostMineAction.mineNewJitenWords ||
+                (postMineAction === PostMineAction.showAnkiDialog && settings.miningDestination === 'jiten')
+            ) {
+                const words = readJitenWords(subtitle, surroundingSubtitles);
+                cardTextFieldValues = {
+                    ...cardTextFieldValues,
+                    jitenWords: words.length ? words : cardTextFieldValues?.jitenWords,
+                };
+            }
             switch (postMineAction) {
                 case PostMineAction.showAnkiDialog:
                     playerChannel.copy(
@@ -1522,7 +1533,7 @@ export default function VideoPlayer({
                 timestamp,
             });
         },
-        [onAnkiDialogRequest, playerChannel]
+        [onAnkiDialogRequest, playerChannel, settings.miningDestination]
     );
 
     const mineCurrentSubtitle = useCallback(

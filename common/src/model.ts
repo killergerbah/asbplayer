@@ -1,6 +1,7 @@
 import type { AnkiSettings, TokenState, TokenStatus } from '@project/common/settings';
 import type { GenericParseType, OnlineSubtitleSourceConfig } from '@project/common/global-state';
 import type { TokenStatusInfo } from '@project/common/dictionary-db';
+import type { JitenTarget } from '@project/common/jiten/jiten';
 import type { PitchAccentPosition } from '@project/common/yomitan';
 
 type Profile = { name: string };
@@ -87,6 +88,7 @@ export interface TokenizedSubtitleModel extends IndexedSubtitleModel {
 }
 
 export interface CardTextFieldValues {
+    readonly jitenWords?: JitenTarget[];
     readonly word?: string;
     readonly definition?: string;
     readonly text?: string;
@@ -301,6 +303,7 @@ export enum PostMineAction {
     updateLastCard = 2,
     exportCard = 3,
     showUpdateCardDialog = 4,
+    mineNewJitenWords = 5,
 }
 
 export enum PostMinePlayback {

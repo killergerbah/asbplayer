@@ -16,6 +16,12 @@ export interface JitenStatus {
     quota: { usedBytes: number; maxBytes: number };
 }
 
+export interface JitenDeck {
+    userStudyDeckId: number;
+    name: string;
+    deckType: number;
+}
+
 export interface JitenAttachmentResult {
     sentence: string;
     visual: string;
@@ -66,6 +72,10 @@ export class JitenClient {
 
     constructor(private readonly apiKey: string) {}
 
+    clearRetry() {
+        this.retryAt = 0;
+    }
+
     private async request<T>(path: string, method = 'GET', body?: object | FormData): Promise<T> {
         if (!this.apiKey.trim()) throw new Error(message('apiKeyRequired'));
         if (Date.now() < this.retryAt) {
@@ -108,6 +118,47 @@ export class JitenClient {
 
     status() {
         return this.request<JitenStatus>('/jiten-plus/status');
+    }
+
+    async decks() {
+        const decks = await this.request<JitenDeck[]>('/srs/reader-study-decks', 'POST');
+        return decks.filter((deck) => deck.deckType === 2);
+    }
+
+    async newWords(targets: JitenTarget[], deckId: number) {
+        if (!deckId) throw new Error(message('deckRequired'));
+        if (!targets.length) throw new Error(message('parseFirst'));
+        const states = await this.request<{ result: number[][]; decks: number[][] }>(
+            '/reader/lookup-vocabulary',
+            'POST',
+            { words: targets.map((target) => [target.wordId, target.readingIndex]) }
+        );
+        if (states.result?.length !== targets.length || states.decks?.length !== targets.length) {
+            throw new Error(message('wordLookupFailed'));
+        }
+        return targets.filter(
+            (_, index) =>
+                states.result[index].length === 1 &&
+                states.result[index][0] === 0 &&
+                !states.decks[index].includes(deckId)
+        );
+    }
+
+    async mine(target: JitenTarget, deckId: number, params: ExportParams) {
+        const error = jitenValidationError(target, params.text ?? '', params.source ?? '');
+        if (error) throw new Error(error);
+        const state = await this.request<{ decks: number[][] }>('/reader/lookup-vocabulary', 'POST', {
+            words: [[target.wordId, target.readingIndex]],
+        });
+        if (!Array.isArray(state.decks?.[0])) throw new Error(message('wordLookupFailed'));
+        if (!state.decks[0].includes(deckId)) {
+            await this.request(`/srs/study-decks/${deckId}/words`, 'POST', {
+                wordId: target.wordId,
+                readingIndex: target.readingIndex,
+                occurrences: 1,
+            });
+        }
+        return this.attach(target, params);
     }
 
     private async media(target: JitenTarget) {

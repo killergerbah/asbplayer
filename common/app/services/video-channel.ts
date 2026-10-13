@@ -248,11 +248,11 @@ export default class VideoChannel {
                 case 'copy':
                     for (const callback of this.copyCallbacks) {
                         const copyMessage = event.data as CopyMessage;
-                        const { word, text, definition, customFieldValues } = copyMessage;
+                        const { word, text, definition, customFieldValues, jitenWords } = copyMessage;
                         callback(
                             copyMessage.subtitle,
                             copyMessage.surroundingSubtitles,
-                            { word, text, definition, customFieldValues },
+                            { word, text, definition, customFieldValues, jitenWords },
                             copyMessage.audio,
                             copyMessage.image,
                             copyMessage.url,

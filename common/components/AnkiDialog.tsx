@@ -196,7 +196,13 @@ export interface AnkiDialogState {
 }
 
 interface AnkiDialogProps {
-    jiten?: { target?: JitenTarget; result?: JitenAttachmentResult };
+    jiten?: {
+        target?: JitenTarget;
+        targets?: JitenTarget[];
+        result?: JitenAttachmentResult;
+        onMineNewWords?: (params: ExportParams) => Promise<void>;
+        loadNewWords?: () => Promise<JitenTarget[]>;
+    };
     open: boolean;
     disabled: boolean;
     card: CardModel;
@@ -225,6 +231,32 @@ interface AnkiDialogProps {
     onDismissShowQuickSelectFtue?: () => void;
     inTutorial?: boolean;
 }
+
+const renderJitenWord = (target: JitenTarget) => {
+    const reading = target.reading;
+    const rubyReading: React.ReactNode[] = [];
+    let readingOffset = 0;
+    for (const match of reading.matchAll(/([一-鿿０-ｚ々ヵヶ]+)\[([぀-ゟ゠-ヿ]+)\]/g)) {
+        rubyReading.push(
+            reading.slice(readingOffset, match.index),
+            <ruby key={match.index} lang="ja">
+                {match[1]}
+                <rp>(</rp>
+                <rt>{match[2]}</rt>
+                <rp>)</rp>
+            </ruby>
+        );
+        readingOffset = match.index + match[0].length;
+    }
+    if (rubyReading.length) return [...rubyReading, reading.slice(readingOffset)];
+    return (
+        target.surfaceForm ?? (
+            <>
+                {target.spelling} ({reading})
+            </>
+        )
+    );
+};
 
 const AnkiDialog = ({
     jiten,
@@ -292,8 +324,33 @@ const AnkiDialog = ({
     const jitenMode = jiten !== undefined;
     const jitenText = highlightJitenWord(text, jiten?.target);
     const jitenError = jitenMode ? jitenValidationError(jiten.target, jitenText, source) : undefined;
+    const [newWords, setNewWords] = useState<JitenTarget[]>();
+    const [newWordsError, setNewWordsError] = useState<string>();
+    const loadNewWords = jiten?.loadNewWords;
+    const pendingWords = jiten?.targets;
+    useEffect(() => {
+        if (!open || !loadNewWords || pendingWords) return;
+        let active = true;
+        setNewWords(undefined);
+        setNewWordsError(undefined);
+        void loadNewWords().then(
+            (words) => active && setNewWords(words),
+            (error: Error) => active && setNewWordsError(error.message)
+        );
+        return () => {
+            active = false;
+        };
+    }, [open, loadNewWords, pendingWords]);
+    const mineWords = (newWords ?? []).filter((target) => {
+        const form = jitenSurfaceForm(target);
+        return form && stripJitenMarkers(jitenText).includes(form);
+    });
     const [sentenceSelection, setSentenceSelection] = useState<[number, number]>();
     useEffect(() => setSentenceSelection(undefined), [jitenText, open]);
+    const batchWord = jiten?.targets ? jiten.target : undefined;
+    useEffect(() => {
+        if (batchWord) setText((text) => highlightJitenWord(stripJitenMarkers(text), batchWord));
+    }, [batchWord]);
     const handleHighlightWord = () => {
         if (!sentenceSelection) return;
         const [start, end] = sentenceSelection;
@@ -309,22 +366,6 @@ const AnkiDialog = ({
         jiten?.target &&
         highlighted &&
         ![jitenSurfaceForm(jiten.target), jiten.target.spelling, jiten.target.reading].includes(highlighted);
-    const reading = jiten?.target?.reading ?? '';
-    const rubyReading: React.ReactNode[] = [];
-    let readingOffset = 0;
-    for (const match of reading.matchAll(/([一-鿿０-ｚ々ヵヶ]+)\[([぀-ゟ゠-ヿ]+)\]/g)) {
-        rubyReading.push(
-            reading.slice(readingOffset, match.index),
-            <ruby key={match.index} lang="ja">
-                {match[1]}
-                <rp>(</rp>
-                <rt>{match[2]}</rt>
-                <rp>)</rp>
-            </ruby>
-        );
-        readingOffset = match.index + match[0].length;
-    }
-    if (rubyReading.length) rubyReading.push(reading.slice(readingOffset));
 
     const buildExportParams = useCallback(
         (mode: AnkiExportMode, noteId?: number): ExportParams => ({
@@ -953,17 +994,40 @@ const AnkiDialog = ({
                 <DialogContent ref={dialogRefCallback}>
                     {jiten && (
                         <>
+                            {loadNewWords && !jiten.targets && (
+                                <Typography sx={{ mb: 1 }}>
+                                    {t('jiten.wordsToMine')}:{' '}
+                                    {newWordsError ??
+                                        (newWords === undefined
+                                            ? t('jiten.checkingWords')
+                                            : mineWords.length
+                                              ? mineWords.map((target, index) => (
+                                                    <React.Fragment key={`${target.wordId}/${target.readingIndex}`}>
+                                                        {index > 0 && ', '}
+                                                        <Link
+                                                            href={jitenWordUrl(target)}
+                                                            target="_blank"
+                                                            rel="noreferrer"
+                                                        >
+                                                            {renderJitenWord(target)}
+                                                        </Link>
+                                                    </React.Fragment>
+                                                ))
+                                              : t('jiten.noNewWords'))}
+                                </Typography>
+                            )}
+                            {jiten.targets && (
+                                <Typography sx={{ mb: 1 }}>
+                                    {t('jiten.pendingWords', {
+                                        words: jiten.targets.map((target) => target.spelling).join(', '),
+                                    })}
+                                </Typography>
+                            )}
                             {jiten.target && (
                                 <Typography sx={{ mb: 1 }}>
-                                    {rubyReading.length ? (
-                                        rubyReading
-                                    ) : (
-                                        <>
-                                            {jiten.target.spelling} ({reading})
-                                        </>
-                                    )}{' '}
+                                    {!jiten.targets && <>{t('jiten.attachmentTarget')}: </>}
                                     <Link href={jitenWordUrl(jiten.target)} target="_blank" rel="noreferrer">
-                                        {t('jiten.openWord')}
+                                        {renderJitenWord(jiten.target)}
                                     </Link>
                                 </Typography>
                             )}
@@ -1232,6 +1296,16 @@ const AnkiDialog = ({
                             <Button disabled={disabled} onClick={onCancel}>
                                 {t('action.cancel')}
                             </Button>
+                            {jiten?.onMineNewWords && (
+                                <AnkiDialogButton
+                                    disabled={disabled || (!jiten.targets && mineWords.length === 0)}
+                                    focusVisible={false}
+                                    onBlurVisible={handleActionBlur}
+                                    onClick={() => void jiten.onMineNewWords?.(buildExportParams('default'))}
+                                >
+                                    {t('jiten.mineNewWords')}
+                                </AnkiDialogButton>
+                            )}
                             <AnkiDialogButton
                                 ref={exportButtonRef}
                                 disabled={disabled || Boolean(jitenError)}

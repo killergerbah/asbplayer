@@ -317,6 +317,10 @@ const settingsSchema = {
         jitenApiKey: {
             type: 'string',
         },
+        jitenMiningDeckId: {
+            type: 'integer',
+            minimum: 0,
+        },
         jitenAttachVisual: {
             type: 'boolean',
         },

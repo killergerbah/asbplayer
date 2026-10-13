@@ -270,8 +270,8 @@ export default class PlayerChannel {
                     const copyMessage = event.data as CopyToVideoMessage;
 
                     for (const callback of this.copyCallbacks) {
-                        const { text, word, definition, customFieldValues } = copyMessage;
-                        const cardTextFieldValues = { text, word, definition, customFieldValues };
+                        const { text, word, definition, customFieldValues, jitenWords } = copyMessage;
+                        const cardTextFieldValues = { text, word, definition, customFieldValues, jitenWords };
                         callback(
                             copyMessage.postMineAction,
                             copyMessage.subtitle,

@@ -11,13 +11,13 @@ import type {
     CardTextFieldValues,
     IndexedSubtitleModel,
     PlaybackState,
-    PostMineAction,
     SubtitleModel,
     DisplaySubtitleModel,
     TokenizedSubtitleModel,
     VideoTabModel,
 } from '@project/common';
-import { AutoPausePreference, PlayMode, PostMinePlayback } from '@project/common';
+import { readJitenWords } from '@project/common/jiten/reader-words';
+import { AutoPausePreference, PlayMode, PostMinePlayback, PostMineAction } from '@project/common';
 import type { AsbplayerSettings, SettingsProvider } from '@project/common/settings';
 import { ApplyStrategy, isTrackAutoCopyable, TokenState, VideoSubtitleSplitBehavior } from '@project/common/settings';
 import type { DictionaryProvider } from '@project/common/dictionary-db';
@@ -1218,6 +1218,14 @@ function PlayerComponent(
             forceUseGivenSubtitle?: boolean,
             cardTextFieldValues?: CardTextFieldValues
         ) => {
+            if (
+                settings.miningDestination === 'jiten' &&
+                (postMineAction === PostMineAction.mineNewJitenWords ||
+                    postMineAction === PostMineAction.showAnkiDialog)
+            ) {
+                const words = readJitenWords(subtitle, surroundingSubtitles);
+                cardTextFieldValues = { ...cardTextFieldValues, jitenWords: words };
+            }
             if (videoFileUrl) {
                 if (forceUseGivenSubtitle) {
                     channel?.copy(postMineAction, subtitle, surroundingSubtitles, cardTextFieldValues);
@@ -1248,7 +1256,17 @@ function PlayerComponent(
                 );
             }
         },
-        [channel, onCopy, clock, videoFile, videoFileUrl, subtitleFiles, selectedAudioTrack, playbackRate]
+        [
+            channel,
+            onCopy,
+            clock,
+            videoFile,
+            videoFileUrl,
+            subtitleFiles,
+            selectedAudioTrack,
+            playbackRate,
+            settings.miningDestination,
+        ]
     );
 
     const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {

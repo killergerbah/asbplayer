@@ -358,6 +358,8 @@ const MobileVideoOverlay = React.forwardRef<HTMLDivElement, Props>(function Mobi
         }
 
         switch (model.postMineAction) {
+            case PostMineAction.mineNewJitenWords:
+                return t('jiten.mineNewWords');
             case PostMineAction.exportCard:
             case PostMineAction.showAnkiDialog:
             case PostMineAction.none:
