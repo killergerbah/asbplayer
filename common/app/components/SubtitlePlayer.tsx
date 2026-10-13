@@ -123,7 +123,7 @@ interface StylesProps {
 
 const useSubtitlePlayerStyles = makeStyles<Theme, StylesProps, string>((theme) => ({
     container: {
-        height: ({ appBarHidden, appBarHeight }) => (appBarHidden ? '100vh' : `calc(100vh - ${appBarHeight}px)`),
+        height: ({ appBarHidden, appBarHeight }) => (appBarHidden ? '100dvh' : `calc(100dvh - ${appBarHeight}px)`),
         position: 'relative',
         overflow: 'hidden',
         backgroundColor: theme.palette.background.default,

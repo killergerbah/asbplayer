@@ -101,7 +101,7 @@ const useStyles = makeStyles<Theme>((theme) => ({
     root: {
         position: 'relative',
         backgroundColor: 'black',
-        height: '100vh',
+        height: '100dvh',
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
@@ -864,7 +864,9 @@ export default function VideoPlayer({
             setLengthMs(duration);
             setVideoFileName(videoFileName);
             videoFileNameRef.current = videoFileName;
-            playbackEngineRef.current?.playbackPositionKeysChanged(videoFileName ? [videoFileName] : []);
+            playbackEngineRef.current?.playbackPositionKeysChanged(videoFileName ? [videoFileName] : [], {
+                isNewSource: true,
+            });
         });
 
         playerChannel.onPlay(() => {

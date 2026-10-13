@@ -27,7 +27,7 @@ import { useLocationHash } from '@project/common/hooks/use-location-hash';
 const useStyles = makeStyles<Theme>((theme) => ({
     root: {
         '& .MuiPaper-root': {
-            height: '100vh',
+            height: '100dvh',
         },
     },
     content: {
@@ -107,7 +107,7 @@ const SettingsPage = ({
     }
 
     return (
-        <Paper square style={{ height: '100vh' }}>
+        <Paper square style={{ height: '100dvh' }}>
             <Dialog open={true} maxWidth="md" fullWidth className={classes.root} onClose={() => {}}>
                 <DialogTitle>{t('settings.title')}</DialogTitle>
                 <DialogContent className={classes.content}>

@@ -26,7 +26,7 @@ interface StylesProps {
 const useStyles = makeStyles<Theme, StylesProps>({
     background: ({ appBarHidden, appBarHeight }) => ({
         position: 'absolute',
-        height: appBarHidden ? '100vh' : `calc(100vh - ${appBarHeight}px)`,
+        height: appBarHidden ? '100dvh' : `calc(100dvh - ${appBarHeight}px)`,
         width: '100%',
         zIndex: 100,
         display: 'flex',
