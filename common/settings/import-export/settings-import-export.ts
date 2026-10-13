@@ -310,6 +310,19 @@ const settingsSchema = {
     id: '/Settings',
     type: 'object',
     properties: {
+        miningDestination: {
+            type: 'string',
+            enum: ['anki', 'jiten'],
+        },
+        jitenApiKey: {
+            type: 'string',
+        },
+        jitenAttachVisual: {
+            type: 'boolean',
+        },
+        jitenAttachAudio: {
+            type: 'boolean',
+        },
         ankiConnectUrl: {
             type: 'string',
         },
@@ -805,6 +818,7 @@ export type IgnorePathSegment = string | '*';
 export type IgnorePath = readonly IgnorePathSegment[];
 
 const ignorePaths: readonly IgnorePath[] = [
+    ['jitenApiKey'],
     ['ankiConnectApiKey'],
     ['dictionaryTracks', '*', 'dictionaryWaniKaniApiToken'],
     ['streamingPages'], // Ignored due to security risk (e.g. disable CSP)

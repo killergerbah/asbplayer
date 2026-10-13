@@ -4,6 +4,7 @@ import makeStyles from '@mui/styles/makeStyles';
 import type { SubtitleModel } from '..';
 import SubtitleTextImage from '@project/common/components/SubtitleTextImage';
 import type { Theme } from '@mui/material';
+import type { ReactNode } from 'react';
 
 interface TextImageSetProps {
     selectedSubtitles: SubtitleModel[];
@@ -40,9 +41,10 @@ interface Props {
     label: string;
     onChangeText: (text: string) => void;
     selectedSubtitles: SubtitleModel[];
+    endAdornment?: ReactNode;
 }
 
-export default function SentenceField({ width, text, label, onChangeText, selectedSubtitles }: Props) {
+export default function SentenceField({ width, text, label, onChangeText, selectedSubtitles, endAdornment }: Props) {
     return (
         <>
             <TextImageSet
@@ -58,6 +60,7 @@ export default function SentenceField({ width, text, label, onChangeText, select
                 label={label}
                 value={text}
                 onChange={(e) => onChangeText(e.target.value)}
+                slotProps={{ input: { endAdornment } }}
             />
         </>
     );

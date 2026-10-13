@@ -650,13 +650,21 @@ export interface StreamingVideoSettings {
 
 export type KeyBindName = keyof KeyBindSet;
 
+export interface JitenSettings {
+    readonly miningDestination: 'anki' | 'jiten';
+    readonly jitenApiKey: string;
+    readonly jitenAttachVisual: boolean;
+    readonly jitenAttachAudio: boolean;
+}
+
 export interface AsbplayerSettings
     extends MiscSettings,
         AnkiSettings,
         SubtitleSettings,
         DictionarySettings,
         StreamingVideoSettings,
-        WebSocketClientSettings {
+        WebSocketClientSettings,
+        JitenSettings {
     readonly subtitlePreview: string;
 }
 

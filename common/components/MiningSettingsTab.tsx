@@ -21,6 +21,7 @@ interface Props {
     onSettingChanged: <K extends keyof AsbplayerSettings>(key: K, value: AsbplayerSettings[K]) => Promise<void>;
     showWebmMediaFragmentSettings?: boolean;
     supportsUpdateLastWithSameSubtitleText?: boolean;
+    showJitenSettings?: boolean;
 }
 
 const MiningSettingsTab: React.FC<Props> = ({
@@ -28,8 +29,10 @@ const MiningSettingsTab: React.FC<Props> = ({
     onSettingChanged,
     supportsUpdateLastWithSameSubtitleText,
     showWebmMediaFragmentSettings = true,
+    showJitenSettings = false,
 }) => {
     const { t } = useTranslation();
+    const jiten = showJitenSettings && settings.miningDestination === 'jiten';
     const webmCaptureSupported = showWebmMediaFragmentSettings && isWebmMediaFragmentSupported();
     const {
         audioPaddingStart,
@@ -54,13 +57,31 @@ const MiningSettingsTab: React.FC<Props> = ({
     } = settings;
     return (
         <Stack spacing={1}>
+            {showJitenSettings && (
+                <TextField
+                    select
+                    label={t('jiten.destination')}
+                    value={settings.miningDestination}
+                    onChange={(event) =>
+                        void onSettingChanged('miningDestination', event.target.value as 'anki' | 'jiten')
+                    }
+                >
+                    <MenuItem value="anki">Anki</MenuItem>
+                    <MenuItem value="jiten">Jiten</MenuItem>
+                </TextField>
+            )}
             <FormControl>
                 <FormLabel component="legend">{t('settings.clickToMineDefaultAction')}</FormLabel>
                 <RadioGroup row={false}>
                     <LabelWithHoverEffect
                         control={
                             <Radio
-                                checked={clickToMineDefaultAction === PostMineAction.showAnkiDialog}
+                                checked={
+                                    clickToMineDefaultAction === PostMineAction.showAnkiDialog ||
+                                    (jiten &&
+                                        (clickToMineDefaultAction === PostMineAction.showUpdateCardDialog ||
+                                            clickToMineDefaultAction === PostMineAction.exportCard))
+                                }
                                 value={PostMineAction.showAnkiDialog}
                                 onChange={(event) =>
                                     event.target.checked &&
@@ -68,7 +89,7 @@ const MiningSettingsTab: React.FC<Props> = ({
                                 }
                             />
                         }
-                        label={t('postMineAction.showAnkiDialog')}
+                        label={t(jiten ? 'jiten.showMiningDialog' : 'postMineAction.showAnkiDialog')}
                     />
                     <LabelWithHoverEffect
                         control={
@@ -83,35 +104,39 @@ const MiningSettingsTab: React.FC<Props> = ({
                         }
                         label={t('postMineAction.updateLastCard')}
                     />
-                    <LabelWithHoverEffect
-                        control={
-                            <Radio
-                                checked={clickToMineDefaultAction === PostMineAction.showUpdateCardDialog}
-                                value={PostMineAction.showUpdateCardDialog}
-                                onChange={(event) =>
-                                    event.target.checked &&
-                                    void onSettingChanged(
-                                        'clickToMineDefaultAction',
-                                        PostMineAction.showUpdateCardDialog
-                                    )
-                                }
-                            />
-                        }
-                        label={t('postMineAction.showUpdateCardDialog')}
-                    />
-                    <LabelWithHoverEffect
-                        control={
-                            <Radio
-                                checked={clickToMineDefaultAction === PostMineAction.exportCard}
-                                value={PostMineAction.exportCard}
-                                onChange={(event) =>
-                                    event.target.checked &&
-                                    void onSettingChanged('clickToMineDefaultAction', PostMineAction.exportCard)
-                                }
-                            />
-                        }
-                        label={t('postMineAction.exportCard')}
-                    />
+                    {!jiten && (
+                        <LabelWithHoverEffect
+                            control={
+                                <Radio
+                                    checked={clickToMineDefaultAction === PostMineAction.showUpdateCardDialog}
+                                    value={PostMineAction.showUpdateCardDialog}
+                                    onChange={(event) =>
+                                        event.target.checked &&
+                                        void onSettingChanged(
+                                            'clickToMineDefaultAction',
+                                            PostMineAction.showUpdateCardDialog
+                                        )
+                                    }
+                                />
+                            }
+                            label={t('postMineAction.showUpdateCardDialog')}
+                        />
+                    )}
+                    {!jiten && (
+                        <LabelWithHoverEffect
+                            control={
+                                <Radio
+                                    checked={clickToMineDefaultAction === PostMineAction.exportCard}
+                                    value={PostMineAction.exportCard}
+                                    onChange={(event) =>
+                                        event.target.checked &&
+                                        void onSettingChanged('clickToMineDefaultAction', PostMineAction.exportCard)
+                                    }
+                                />
+                            }
+                            label={t('postMineAction.exportCard')}
+                        />
+                    )}
                     <LabelWithHoverEffect
                         control={
                             <Radio

@@ -16,6 +16,7 @@ import About from '@project/common/components/About';
 import { TutorialStep } from '@project/common/components/settings-model';
 import AnkiSettingsTab from '@project/common/components/AnkiSettingsTab';
 import MiningSettingsTab from '@project/common/components/MiningSettingsTab';
+import JitenSettingsTab from '@project/common/components/JitenSettingsTab';
 import DictionarySettingsTab from '@project/common/components/DictionarySettingsTab';
 import SubtitleAppearanceSettingsTab from '@project/common/components/SubtitleAppearanceSettingsTab';
 import KeyboardShortcutsSettingsTab, {
@@ -324,11 +325,13 @@ export default function SettingsForm({
             'about',
         ];
 
+        if (insideApp) [tabs[0], tabs[1]] = [tabs[1], tabs[0]];
+
         if (!extensionSupportsAppIntegration) tabs.splice(tabs.indexOf('streaming-video'), 1);
         if (!supportsDictionary) tabs.splice(tabs.indexOf('annotation'), 1);
 
         return Object.fromEntries(tabs.map((tab, i) => [tab, i]));
-    }, [extensionSupportsAppIntegration, supportsDictionary]);
+    }, [extensionSupportsAppIntegration, supportsDictionary, insideApp]);
 
     useEffect(() => {
         if (!scrollToId) {
@@ -465,8 +468,13 @@ export default function SettingsForm({
                         marginRight: smallScreen ? 'auto' : 0,
                     }}
                 >
-                    <Tab tabIndex={0} label={t('settings.anki')} id="anki-settings" />
-                    <Tab tabIndex={1} label={t('settings.mining')} id="mining-settings" />
+                    {insideApp && <Tab tabIndex={0} label={t('settings.mining')} id="mining-settings" />}
+                    <Tab
+                        tabIndex={insideApp ? 1 : 0}
+                        label={insideApp && settings.miningDestination === 'jiten' ? 'Jiten' : t('settings.anki')}
+                        id="anki-settings"
+                    />
+                    {!insideApp && <Tab tabIndex={1} label={t('settings.mining')} id="mining-settings" />}
                     <Tab tabIndex={2} label={t('settings.subtitleAppearance')} id="subtitle-appearance" />
                     <Tab tabIndex={3} label={t('settings.keyboardShortcuts')} id="keyboard-shortcuts" />
                     {supportsDictionary && (
@@ -501,23 +509,28 @@ export default function SettingsForm({
                     index={tabIndicesById['anki-settings']}
                     tabsOrientation={tabsOrientation}
                 >
-                    <AnkiSettingsTab
-                        settings={settings}
-                        extensionInstalled={extensionInstalled}
-                        extensionSupportsOrderableAnkiFields={extensionSupportsOrderableAnkiFields}
-                        isMobile={isMobile}
-                        insideApp={insideApp}
-                        inTutorial={inTutorial}
-                        onSettingChanged={handleSettingChanged}
-                        onSettingsChanged={onSettingsChanged}
-                        tutorialStep={tutorialStep}
-                        onTutorialStepChanged={setTutorialStep}
-                        anki={anki}
-                        testCard={testCard}
-                    />
+                    {insideApp && settings.miningDestination === 'jiten' ? (
+                        <JitenSettingsTab settings={settings} onSettingChanged={handleSettingChanged} />
+                    ) : (
+                        <AnkiSettingsTab
+                            settings={settings}
+                            extensionInstalled={extensionInstalled}
+                            extensionSupportsOrderableAnkiFields={extensionSupportsOrderableAnkiFields}
+                            isMobile={isMobile}
+                            insideApp={insideApp}
+                            inTutorial={inTutorial}
+                            onSettingChanged={handleSettingChanged}
+                            onSettingsChanged={onSettingsChanged}
+                            tutorialStep={tutorialStep}
+                            onTutorialStepChanged={setTutorialStep}
+                            anki={anki}
+                            testCard={testCard}
+                        />
+                    )}
                 </TabPanel>
                 <TabPanel value={tabIndex} index={tabIndicesById['mining-settings']} tabsOrientation={tabsOrientation}>
                     <MiningSettingsTab
+                        showJitenSettings={Boolean(insideApp)}
                         settings={settings}
                         onSettingChanged={handleSettingChanged}
                         showWebmMediaFragmentSettings={Boolean(insideApp)}
