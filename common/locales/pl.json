@@ -501,6 +501,7 @@
         "subtitleBlurDescription": "Ukrywa zaznaczone ścieżki napisów, rozmywając je. Rozmycie można deaktywować najeżdżając na nie myszką.",
         "tabName": "Nazwa karty",
         "subtitleRegexFilter": "Filtr Regex napisów",
+        "subtitleRegexFilterDocs": "Subtitle text filtering guide and examples",
         "subtitleRegexFilterTextReplacement": "Zamiana tekstu z filtru Regex napisów",
         "convertNetflixRuby": "Detect and Display Ruby",
         "subtitleHtml": "Subtitle HTML",
@@ -805,6 +806,8 @@
         "noFiles": "No files",
         "searchCategory": "Search category",
         "categoryAnime": "Anime",
-        "categoryDrama": "Drama"
+        "categoryDrama": "Drama",
+        "episodeRegex": "Custom episode regex",
+        "episodeRegexHint": "Detects the episode from the page title to auto-filter files. Capture group 1 is the episode number; built-in rules are used when it doesn't match. Press Enter to apply."
     }
 }

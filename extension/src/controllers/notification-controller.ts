@@ -29,7 +29,7 @@ export default class NotificationController {
                         </style>
                     </head>
                     <body>
-                        <div id="root" style="width:100%;height:100vh;"></div>
+                        <div id="root" style="width:100%;height:100dvh;"></div>
                         <script type="application/json" id="loc">${JSON.stringify(
                             await fetchLocalization(lang)
                         )}</script>

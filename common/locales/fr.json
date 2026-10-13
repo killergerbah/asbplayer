@@ -501,6 +501,7 @@
         "subtitleBlurDescription": "Masque les pistes de sous-titres sélectionnées en les floutant. Le flou est supprimé au survol de la souris.",
         "tabName": "Nom de l'onglet",
         "subtitleRegexFilter": "Filtre regex des sous-titres",
+        "subtitleRegexFilterDocs": "Subtitle text filtering guide and examples",
         "subtitleRegexFilterTextReplacement": "Remplacement de texte pour le filtre regex des sous-titres",
         "convertNetflixRuby": "Detect and Display Ruby",
         "subtitleHtml": "Sous-titres HTML",
@@ -805,6 +806,8 @@
         "noFiles": "No files",
         "searchCategory": "Search category",
         "categoryAnime": "Anime",
-        "categoryDrama": "Drama"
+        "categoryDrama": "Drama",
+        "episodeRegex": "Custom episode regex",
+        "episodeRegexHint": "Detects the episode from the page title to auto-filter files. Capture group 1 is the episode number; built-in rules are used when it doesn't match. Press Enter to apply."
     }
 }

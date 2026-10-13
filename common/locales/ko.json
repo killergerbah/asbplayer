@@ -501,6 +501,7 @@
         "subtitleBlurDescription": "선택한 자막을 블러 효과로 숨깁니다. 마우스를 올리면 해제됩니다.",
         "tabName": "탭 이름",
         "subtitleRegexFilter": "자막 정규식 필터",
+        "subtitleRegexFilterDocs": "Subtitle text filtering guide and examples",
         "subtitleRegexFilterTextReplacement": "자막 정규식 필터 텍스트 치환",
         "convertNetflixRuby": "Detect and Display Ruby",
         "subtitleHtml": "자막 HTML",
@@ -805,6 +806,8 @@
         "noFiles": "No files",
         "searchCategory": "Search category",
         "categoryAnime": "Anime",
-        "categoryDrama": "Drama"
+        "categoryDrama": "Drama",
+        "episodeRegex": "Custom episode regex",
+        "episodeRegexHint": "Detects the episode from the page title to auto-filter files. Capture group 1 is the episode number; built-in rules are used when it doesn't match. Press Enter to apply."
     }
 }
