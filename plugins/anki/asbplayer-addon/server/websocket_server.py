@@ -12,7 +12,7 @@ import json
 
 def _log(msg: str) -> None:
     """Print debug message."""
-    print(f"[asbplayer-plugin] {msg}")
+    print(f"[asbplayer-addon] {msg}")
 
 
 try:
@@ -42,7 +42,7 @@ if WEBSOCKETS_AVAILABLE:
                 return True
 
             self._server = QWebSocketServer(
-                "asbplayer-plugin", QWebSocketServer.SslMode.NonSecureMode, self
+                "asbplayer-addon", QWebSocketServer.SslMode.NonSecureMode, self
             )
 
             if not self._server.listen(QHostAddress.SpecialAddress.Any, self._port):

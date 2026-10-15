@@ -65,7 +65,7 @@ qt = [
 ]
 
 [[package]]
-name = "asbplayer-plugin"
+name = "asbplayer-addon"
 version = "1.0.0"
 source = { virtual = "." }
 

@@ -8,6 +8,12 @@ Contributions to the project are always welcome. asbplayer will never be complet
 
 ## AI-assisted contributions {#ai-assisted-contributions}
 
+### Large contributions {#large-contributions}
+
+While it is possible to make large and valuable contributions using AI very quickly, reviewing those contributions still takes enormous amounts of time. Therefore, **it is highly recommended that you discuss feature and implementation details with maintainers before opening a large PR.** Maintainers can be easily reached on a [GitHub issue](https://github.com/asbplayer/asbplayer/issues) or [Discord](https://discord.gg/ad7VAQru7m).
+
+### Commit messages {#commit-messages}
+
 The guidelines below take inspiration from the [Linux project](https://github.com/torvalds/linux/blob/master/Documentation/process/coding-assistants.rst#attribution).
 
 AI-assisted contributions must include a tag like the following in the commit message:
@@ -21,6 +27,10 @@ For example:
 ```
 Assisted-by: Claude:claude-3-opus
 ```
+
+## License {#license}
+
+Please review the contribution licensing terms in [CONTRIBUTORS](https://github.com/asbplayer/asbplayer/blob/main/CONTRIBUTORS) before contributing.
 
 ## Pull requests {#pull-requests}
 
