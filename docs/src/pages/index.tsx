@@ -131,9 +131,15 @@ export default function Home(): ReactNode {
                             asbplayer is a free, open source, community-driven project, used by thousands of language
                             learners.
                         </p>
-                        <Link className="button button--secondary button--lg" to="/docs/intro">
-                            Learn more
-                        </Link>
+                        <div className={styles.ctaButtons}>
+                            <Link className="button button--secondary button--lg" to="/docs/intro">
+                                Learn more
+                            </Link>
+                            <Link className={clsx('button', 'button--lg', styles.discordButton)} to="/docs/intro">
+                                <span className={styles.discordIcon} aria-hidden="true" />
+                                Join Discord
+                            </Link>
+                        </div>
                     </div>
                 </div>
             </main>
