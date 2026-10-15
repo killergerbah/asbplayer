@@ -26,6 +26,7 @@
                 nodejs_24
                 pnpm
                 python313
+                basedpyright
                 go
               ])
               ++ (with pkgs.python313Packages; [
