@@ -7,20 +7,34 @@ import type {
 export class WebSocketCommandDispatcher {
     private _handlers: Partial<WebSocketCommandHandlers> = {};
 
-    get handlers(): Partial<WebSocketCommandHandlers> {
-        return this._handlers;
-    }
-
     setHandlers(handlers: Partial<WebSocketCommandHandlers>) {
         this._handlers = { ...this._handlers, ...handlers };
+
+        return () => {
+            const remaining = { ...this._handlers };
+
+            for (const key of Object.keys(handlers) as (keyof WebSocketCommandHandlers)[]) {
+                if (remaining[key] === handlers[key]) {
+                    delete remaining[key];
+                }
+            }
+
+            this._handlers = remaining;
+        };
     }
 
-    clearHandlers() {
-        this._handlers = {};
+    async dispatch(data: string, commands?: readonly WebSocketCommand['command'][]) {
+        return this.dispatchCommand(JSON.parse(data), commands);
     }
 
-    async dispatch(data: string): Promise<Response<object> | undefined> {
-        const command: WebSocketCommand = JSON.parse(data);
+    async dispatchCommand(
+        command: WebSocketCommand,
+        commands?: readonly WebSocketCommand['command'][]
+    ): Promise<Response<object> | undefined> {
+        if (commands !== undefined && !commands.includes(command.command)) {
+            return undefined;
+        }
+
         const body = await this._body(command);
 
         if (body === undefined) {

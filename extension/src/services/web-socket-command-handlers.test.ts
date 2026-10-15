@@ -7,6 +7,7 @@ import { MockStorageArea } from '@project/extension/src/services/mock-storage-ar
 import type TabRegistry from '@project/extension/src/services/tab-registry';
 import { webSocketCommandHandlers } from '@project/extension/src/services/web-socket-command-handlers';
 import { localMediaId, streamingMediaId } from '@project/common/web-socket-client/web-socket-media';
+import { filterByTracks, toSubtitleCues } from '@project/common/web-socket-client/web-socket-subtitles';
 
 const subtitle = (text: string, track: number, start: number): SubtitleModel => ({
     text,
@@ -46,6 +47,8 @@ interface HarnessOptions {
     activeTabId?: number;
     videoElementSubtitles?: { [tabId: number]: SubtitleModel[] };
     asbplayerSubtitles?: { [asbplayerId: string]: SubtitleModel[] };
+    asbplayerPublishes?: boolean;
+    asbplayerResponds?: boolean;
     unreachableTabIds?: number[];
 }
 
@@ -55,6 +58,8 @@ const harness = ({
     activeTabId,
     videoElementSubtitles = {},
     asbplayerSubtitles = {},
+    asbplayerPublishes = true,
+    asbplayerResponds = true,
     unreachableTabIds = [],
 }: HarnessOptions) => {
     const videoElementCommands: any[] = [];
@@ -90,15 +95,6 @@ const harness = ({
                 }
             }
         },
-        publishCommandToAsbplayers: async ({ commandFactory }: { commandFactory: (asbplayer: any) => any }) => {
-            for (const a of asbplayers) {
-                const command = commandFactory(a);
-
-                if (command !== undefined) {
-                    asbplayerCommands.push(command);
-                }
-            }
-        },
         publishCommandToVideoElementTabs: async (commandFactory: (tab: { id: number }) => any) => {
             for (const tabId of new Set(videoElements.map((v) => v.id))) {
                 const command = commandFactory({ id: tabId });
@@ -108,9 +104,32 @@ const harness = ({
                 }
             }
         },
-        publishCommandToAsbplayersAndAwaitResponse: async ({ asbplayerId }: { asbplayerId: string }) => ({
-            response: { subtitles: asbplayerSubtitles[asbplayerId] },
-        }),
+        // Answers forwarded commands the way the app's handlers would.
+        publishCommandToAsbplayersAndAwaitResponse: async ({ asbplayerId, commandFactory }: any) => {
+            const command = commandFactory(
+                asbplayers.find((a) => a.id === asbplayerId),
+                'forwarded'
+            );
+            const { webSocketCommand } = command.message;
+            asbplayerCommands.push({ asbplayerId: command.asbplayerId, webSocketCommand });
+
+            if (!asbplayerResponds) {
+                return undefined;
+            }
+
+            const subtitles = asbplayerSubtitles[asbplayerId] ?? [];
+            const body =
+                webSocketCommand.command === 'get-subtitles'
+                    ? { subtitles: toSubtitleCues(filterByTracks(subtitles, webSocketCommand.body.trackNumbers)) }
+                    : webSocketCommand.command === 'mine-subtitle'
+                      ? { published: asbplayerPublishes }
+                      : {};
+            return {
+                command: 'web-socket-command-response',
+                messageId: 'forwarded',
+                response: { command: 'response', messageId: webSocketCommand.messageId, body },
+            };
+        },
     } as unknown as TabRegistry;
 
     const settings = new SettingsProvider(new ExtensionSettingsStorage(new MockStorageArea()));
@@ -178,9 +197,8 @@ describe('seek-timestamp', () => {
         expect(videoElementCommands).toEqual([]);
         expect(asbplayerCommands).toEqual([
             {
-                sender: 'asbplayer-extension-to-player',
-                message: { command: 'seek-timestamp', timestamp: 7 },
                 asbplayerId: targeted.id,
+                webSocketCommand: seekCommand({ timestamp: 7, mediaId: localMediaId(targeted.id) }),
             },
         ]);
     });
@@ -192,7 +210,12 @@ describe('seek-timestamp', () => {
 
         await handlers.onSeekTimestamp(seekCommand({ timestamp: 7 }));
 
-        expect(asbplayerCommands.map((command) => command.asbplayerId)).toEqual([active.id]);
+        expect(asbplayerCommands).toEqual([
+            {
+                asbplayerId: active.id,
+                webSocketCommand: seekCommand({ timestamp: 7, mediaId: localMediaId(active.id) }),
+            },
+        ]);
     });
 });
 
@@ -234,39 +257,36 @@ describe('mine-subtitle', () => {
         ]);
     });
 
-    it('publishes to a targeted local asbplayer without a note ID', async () => {
+    it('forwards the command, note ID included, to a targeted local asbplayer', async () => {
         const asbplayer = asbplayerInstance('asbplayer-1', 3);
-        const { handlers, settings, asbplayerCommands, videoElementCommands } = harness({
+        const { handlers, asbplayerCommands, videoElementCommands } = harness({
             asbplayers: [asbplayer],
             activeTabId: 3,
         });
-        await settings.set({ wordField: 'Word', definitionField: '', sentenceField: '', customAnkiFields: {} });
+        const command = mineCommand({
+            fields: { Word: 'ねこ' },
+            postMineAction: PostMineAction.showAnkiDialog,
+            mediaId: localMediaId(asbplayer.id),
+            noteId: 555,
+        });
 
-        const published = await handlers.onMineSubtitle(
-            mineCommand({
-                fields: { Word: 'ねこ' },
-                postMineAction: PostMineAction.showAnkiDialog,
-                mediaId: localMediaId(asbplayer.id),
-                noteId: 555,
-            })
-        );
+        const published = await handlers.onMineSubtitle(command);
 
         expect(published).toBe(true);
         expect(videoElementCommands).toEqual([]);
-        expect(asbplayerCommands).toEqual([
-            {
-                sender: 'asbplayer-extension-to-player',
-                message: {
-                    command: 'copy-subtitle-with-additional-fields',
-                    word: 'ねこ',
-                    definition: undefined,
-                    text: undefined,
-                    customFieldValues: {},
-                    postMineAction: PostMineAction.showAnkiDialog,
-                },
-                asbplayerId: asbplayer.id,
-            },
-        ]);
+        expect(asbplayerCommands).toEqual([{ asbplayerId: asbplayer.id, webSocketCommand: command }]);
+    });
+
+    it("reports the local asbplayer's answer as the published result", async () => {
+        const asbplayer = asbplayerInstance('asbplayer-1', 3);
+        const command = mineCommand({ fields: {}, postMineAction: 0, mediaId: localMediaId(asbplayer.id) });
+
+        expect(
+            await harness({ asbplayers: [asbplayer], asbplayerPublishes: false }).handlers.onMineSubtitle(command)
+        ).toBe(false);
+        expect(
+            await harness({ asbplayers: [asbplayer], asbplayerResponds: false }).handlers.onMineSubtitle(command)
+        ).toBe(false);
     });
 
     it('defaults to showing the Anki dialog when no post-mine action is given', async () => {
@@ -513,11 +533,7 @@ describe('load-subtitles', () => {
 
         expect(videoElementTabCommands).toEqual([]);
         expect(asbplayerCommands).toEqual([
-            {
-                sender: 'asbplayer-extension-to-player',
-                message: { command: 'load-subtitle-files', subtitleFiles: files },
-                asbplayerId: active.id,
-            },
+            { asbplayerId: active.id, webSocketCommand: loadCommand({ files, mediaId: localMediaId(active.id) }) },
         ]);
     });
 

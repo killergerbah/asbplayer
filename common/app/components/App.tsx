@@ -20,7 +20,6 @@ import type {
     CardModel,
     ShowAnkiUiMessage,
     JumpToSubtitleMessage,
-    LoadSubtitleFilesMessage,
     SubtitleFile,
     DownloadImageMessage,
     DownloadAudioMessage,
@@ -63,7 +62,7 @@ import { useAppKeyBinder } from '@project/common/app/hooks/use-app-key-binder';
 import { useAnki } from '@project/common/app/hooks/use-anki';
 import { usePlaybackPreferences } from '@project/common/app/hooks/use-playback-preferences';
 import { MiningContext } from '@project/common/app/services/mining-context';
-import { useAppWebSocketClient } from '@project/common/app/hooks/use-app-web-socket-client';
+import { useAppWebSocketCommands } from '@project/common/app/hooks/use-app-web-socket-commands';
 import { appWebSocketCommandHandlers } from '@project/common/app/services/app-web-socket-command-handlers';
 import type { LoadSubtitlesCommand } from '@project/common/web-socket-client';
 import { localMediaId } from '@project/common/web-socket-client/web-socket-media';
@@ -392,11 +391,7 @@ function App({
     const anki = useAnki({ settings, fetcher });
     const searchParams = useMemo(() => new URLSearchParams(location.search), []);
     const inVideoPlayer = useMemo(() => searchParams.get('video') !== null, [searchParams]);
-    // The embedded video player is controlled by the app page that opened it, so it never connects itself.
-    const webSocketClient = useAppWebSocketClient({
-        settings,
-        appOwnsConnection: !inVideoPlayer && !extension.supportsWebSocketClientOwnership,
-    });
+    const webSocketCommands = useAppWebSocketCommands({ settings, extension, inVideoPlayer });
     const [videoFullscreen, setVideoFullscreen] = useState<boolean>(false);
     const keyBinder = useAppKeyBinder(settings.keyBindSet, extension);
     const videoFrameRef = useRef<HTMLIFrameElement>(null);
@@ -1224,53 +1219,32 @@ function App({
         [handleError, handleFiles, t]
     );
 
-    useEffect(() => {
-        if (!webSocketClient) {
-            return;
-        }
+    useEffect(
+        () =>
+            webSocketCommands.setHandlers({
+                onLoadSubtitles: async ({ body: { files, mediaId } }: LoadSubtitlesCommand) => {
+                    if (mediaId !== undefined && mediaId !== localMediaId(extension.id)) {
+                        return;
+                    }
 
-        webSocketClient.onLoadSubtitles = async (command: LoadSubtitlesCommand) => {
-            const { files, mediaId } = command.body;
+                    handleFiles({ files: await decodeSubtitleFiles(files ?? []) });
+                },
+            }),
+        [webSocketCommands, extension, handleFiles]
+    );
 
-            if (mediaId !== undefined && mediaId !== localMediaId(extension.id)) {
-                return;
-            }
-
-            handleFiles({ files: await decodeSubtitleFiles(files ?? []) });
-        };
-    }, [webSocketClient, extension, handleFiles]);
-
-    useEffect(() => {
-        // An installed extension already answers read commands for this app's media; answering too would race it.
-        if (!webSocketClient || extension.supportsWebSocketClient) {
-            return;
-        }
-
-        webSocketClient.setHandlers(
-            appWebSocketCommandHandlers({
-                appId: extension.id,
-                subtitles,
-                subtitleFileNames: sources.subtitleFiles.map((f) => f.file.name),
-                isActive: () => document.visibilityState === 'visible',
-            })
-        );
-
-        // The client outlives extension detection, so an extension detected later must not inherit these handlers.
-        return () => webSocketClient.setHandlers({ onGetBoundMedia: undefined, onGetSubtitles: undefined });
-    }, [webSocketClient, extension, subtitles, sources.subtitleFiles]);
-
-    useEffect(() => {
-        if (inVideoPlayer) {
-            return;
-        }
-
-        return extension.subscribe((message: ExtensionMessage) => {
-            if (message.data.command === 'load-subtitle-files') {
-                const { subtitleFiles } = message.data as LoadSubtitleFilesMessage;
-                void decodeSubtitleFiles(subtitleFiles).then((files) => handleFiles({ files }));
-            }
-        });
-    }, [extension, inVideoPlayer, handleFiles]);
+    useEffect(
+        () =>
+            webSocketCommands.setHandlers(
+                appWebSocketCommandHandlers({
+                    appId: extension.id,
+                    subtitles,
+                    subtitleFileNames: sources.subtitleFiles.map((f) => f.file.name),
+                    isActive: () => document.visibilityState === 'visible',
+                })
+            ),
+        [webSocketCommands, extension, subtitles, sources.subtitleFiles]
+    );
 
     useEffect(() => {
         if (inVideoPlayer) {
@@ -2137,7 +2111,7 @@ function App({
                                     disableKeyEvents={disableKeyEvents}
                                     miningContext={miningContext}
                                     keyBinder={keyBinder}
-                                    webSocketClient={webSocketClient}
+                                    webSocketCommands={webSocketCommands}
                                     playbackTimelineFileName={fileName}
                                     playbackTimelineModeLabels={{
                                         normal: t('controls.normalMode'),

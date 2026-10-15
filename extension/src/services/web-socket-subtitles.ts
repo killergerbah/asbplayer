@@ -1,33 +1,9 @@
-import type TabRegistry from '@project/extension/src/services/tab-registry';
 import type {
-    ExtensionToAsbPlayerCommand,
     ExtensionToVideoCommand,
-    LocalSubtitlesResponseMessage,
-    RequestLocalSubtitlesMessage,
     RequestSubtitlesMessage,
     RequestSubtitlesResponse,
     SubtitleModel,
 } from '@project/common';
-
-export const requestSubtitlesFromAsbplayer = async (
-    tabRegistry: TabRegistry,
-    asbplayerId: string
-): Promise<SubtitleModel[] | undefined> => {
-    const response = await tabRegistry.publishCommandToAsbplayersAndAwaitResponse<
-        RequestLocalSubtitlesMessage,
-        LocalSubtitlesResponseMessage
-    >({
-        asbplayerId,
-        responseCommand: 'local-subtitles-response',
-        commandFactory: (asbplayer, messageId): ExtensionToAsbPlayerCommand<RequestLocalSubtitlesMessage> => ({
-            sender: 'asbplayer-extension-to-player',
-            message: { command: 'request-local-subtitles', messageId },
-            asbplayerId: asbplayer.id,
-        }),
-    });
-
-    return response?.response.subtitles;
-};
 
 export const requestSubtitlesFromVideoElement = async (
     tabId: number,

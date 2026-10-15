@@ -2,8 +2,10 @@ import type { SettingsProvider } from '@project/common/settings';
 import { ankiSettingsKeys } from '@project/common/settings';
 import type {
     BoundMedia,
+    GetSubtitlesResponseBody,
     LoadSubtitlesCommand,
     MineSubtitleCommand,
+    MineSubtitleResponseBody,
     SeekTimestampCommand,
     SubtitleCue,
     WebSocketCommandHandlers,
@@ -12,25 +14,19 @@ import type TabRegistry from '@project/extension/src/services/tab-registry';
 import type {
     CardTextFieldValues,
     CopySubtitleMessage,
-    CopySubtitleWithAdditionalFieldsMessage,
     ExtensionToVideoCommand,
-    LoadSubtitleFilesMessage,
-    SeekTimestampMessage,
-    SubtitleModel,
     ToggleVideoSelectMessage,
 } from '@project/common';
 import { PostMineAction } from '@project/common';
+import { v4 as uuidv4 } from 'uuid';
 import { localMediaId, localMediaTitle, streamingMediaId } from '@project/common/web-socket-client/web-socket-media';
 import {
+    forwardToAsbplayers,
     isVideoElementTarget,
-    publishToAsbplayers,
     publishToVideoElements,
     resolveMediaTargets,
 } from '@project/extension/src/services/web-socket-media-targets';
-import {
-    requestSubtitlesFromAsbplayer,
-    requestSubtitlesFromVideoElement,
-} from '@project/extension/src/services/web-socket-subtitles';
+import { requestSubtitlesFromVideoElement } from '@project/extension/src/services/web-socket-subtitles';
 import { filterByTracks, toSubtitleCues } from '@project/common/web-socket-client/web-socket-subtitles';
 
 const ankiFieldValues = async (
@@ -61,8 +57,11 @@ const ankiFieldValues = async (
 const mineSubtitle = async (
     settings: SettingsProvider,
     tabRegistry: TabRegistry,
-    { body: { fields: receivedFields, postMineAction: receivedPostMineAction, mediaId, noteId } }: MineSubtitleCommand
+    command: MineSubtitleCommand
 ): Promise<boolean> => {
+    const {
+        body: { fields: receivedFields, postMineAction: receivedPostMineAction, mediaId, noteId },
+    } = command;
     const targets = (await resolveMediaTargets(tabRegistry, mediaId)).filter((target) =>
         isVideoElementTarget(target) ? target.videoElement.loadedSubtitles : target.asbplayer.loadedSubtitles
     );
@@ -74,7 +73,7 @@ const mineSubtitle = async (
     const cardTextFieldValues = await ankiFieldValues(settings, receivedFields);
     const postMineAction = receivedPostMineAction ?? PostMineAction.showAnkiDialog;
 
-    await Promise.all([
+    const [, asbplayerResponses] = await Promise.all([
         publishToVideoElements<CopySubtitleMessage>(tabRegistry, targets, (src) => ({
             sender: 'asbplayer-extension-to-video',
             message: {
@@ -85,24 +84,19 @@ const mineSubtitle = async (
             },
             src,
         })),
-        publishToAsbplayers<CopySubtitleWithAdditionalFieldsMessage>(tabRegistry, targets, (asbplayerId) => ({
-            sender: 'asbplayer-extension-to-player',
-            message: {
-                command: 'copy-subtitle-with-additional-fields',
-                ...cardTextFieldValues,
-                postMineAction,
-            },
-            asbplayerId,
-        })),
+        forwardToAsbplayers(tabRegistry, targets, command),
     ]);
 
-    return true;
+    return (
+        targets.some(isVideoElementTarget) ||
+        asbplayerResponses.some((response) => (response?.body as MineSubtitleResponseBody | undefined)?.published)
+    );
 };
 
-const loadSubtitles = async (
-    tabRegistry: TabRegistry,
-    { body: { files: subtitleFiles, mediaId } }: LoadSubtitlesCommand
-) => {
+const loadSubtitles = async (tabRegistry: TabRegistry, command: LoadSubtitlesCommand) => {
+    const {
+        body: { files: subtitleFiles, mediaId },
+    } = command;
     const targets = await resolveMediaTargets(tabRegistry, mediaId);
 
     if (mediaId === undefined) {
@@ -135,17 +129,13 @@ const loadSubtitles = async (
         return;
     }
 
-    await publishToAsbplayers<LoadSubtitleFilesMessage>(tabRegistry, targets, (asbplayerId) => ({
-        sender: 'asbplayer-extension-to-player',
-        message: {
-            command: 'load-subtitle-files',
-            subtitleFiles,
-        },
-        asbplayerId,
-    }));
+    await forwardToAsbplayers(tabRegistry, targets, command);
 };
 
-const seekTimestamp = async (tabRegistry: TabRegistry, { body: { timestamp, mediaId } }: SeekTimestampCommand) => {
+const seekTimestamp = async (tabRegistry: TabRegistry, command: SeekTimestampCommand) => {
+    const {
+        body: { timestamp, mediaId },
+    } = command;
     const targets = await resolveMediaTargets(tabRegistry, mediaId);
 
     await Promise.all([
@@ -157,14 +147,7 @@ const seekTimestamp = async (tabRegistry: TabRegistry, { body: { timestamp, medi
             },
             src,
         })),
-        publishToAsbplayers<SeekTimestampMessage>(tabRegistry, targets, (asbplayerId) => ({
-            sender: 'asbplayer-extension-to-player',
-            message: {
-                command: 'seek-timestamp',
-                timestamp,
-            },
-            asbplayerId,
-        })),
+        forwardToAsbplayers(tabRegistry, targets, command),
     ]);
 };
 
@@ -216,16 +199,23 @@ const getSubtitles = async (
     mediaId: string | undefined,
     trackNumbers: number[] | undefined
 ): Promise<SubtitleCue[]> => {
-    let subtitles: SubtitleModel[] | undefined;
     const [target] = await resolveMediaTargets(tabRegistry, mediaId);
 
-    if (target !== undefined) {
-        subtitles = isVideoElementTarget(target)
-            ? await requestSubtitlesFromVideoElement(target.videoElement.id, target.videoElement.src)
-            : await requestSubtitlesFromAsbplayer(tabRegistry, target.asbplayer.id);
+    if (target === undefined) {
+        return [];
     }
 
-    return toSubtitleCues(filterByTracks(subtitles ?? [], trackNumbers));
+    if (isVideoElementTarget(target)) {
+        const subtitles = await requestSubtitlesFromVideoElement(target.videoElement.id, target.videoElement.src);
+        return toSubtitleCues(filterByTracks(subtitles ?? [], trackNumbers));
+    }
+
+    const [response] = await forwardToAsbplayers(tabRegistry, [target], {
+        command: 'get-subtitles',
+        messageId: uuidv4(),
+        body: { trackNumbers },
+    });
+    return (response?.body as GetSubtitlesResponseBody | undefined)?.subtitles ?? [];
 };
 
 export const webSocketCommandHandlers = (

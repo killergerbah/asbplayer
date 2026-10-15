@@ -30,6 +30,7 @@ import type {
     RequestSubtitlesFromAppMessage,
     RequestSubtitlesResponse,
     LocalSubtitlesResponseMessage,
+    WebSocketCommandResponseMessage,
     SubtitleTrack,
     LoadSubtitlesMessage,
     RequestCopyHistoryMessage,
@@ -518,6 +519,18 @@ export default class ChromeExtension {
             sender: 'asbplayerv2',
             message: {
                 command: 'local-subtitles-response',
+                messageId,
+                response,
+            },
+        };
+        window.postMessage(command);
+    }
+
+    sendWebSocketCommandResponse(messageId: string, response: WebSocketCommandResponseMessage['response']) {
+        const command: AsbPlayerCommand<WebSocketCommandResponseMessage> = {
+            sender: 'asbplayerv2',
+            message: {
+                command: 'web-socket-command-response',
                 messageId,
                 response,
             },
