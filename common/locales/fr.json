@@ -424,6 +424,8 @@
         "fastForwardPlaybackMinimumSkipInterval": "Fast-forward minimum skip interval",
         "coloringStrategy": "Coloring strategy",
         "copyOnMine": "Copier les sous-titres minés dans le presse-papiers",
+        "alwaysUseSubtitleForSentence": "Always use subtitle text for sentence field",
+        "updateLastCardForSameSubtitle": "When updating last card, also update image/audio for cards that have the same subtitle text",
         "corsHelperText": "Assurez-vous que {{origin}} figure dans webCorsOriginList de vos paramètres AnkiConnect, comme dans cette <0>vidéo</0>.",
         "customCssField": "CSS: {{styleKey}}",
         "deck": "Deck",
@@ -500,6 +502,7 @@
         "subtitleBlurDescription": "Masque les pistes de sous-titres sélectionnées en les floutant. Le flou est supprimé au survol de la souris.",
         "tabName": "Nom de l'onglet",
         "subtitleRegexFilter": "Filtre regex des sous-titres",
+        "subtitleRegexFilterDocs": "Subtitle text filtering guide and examples",
         "subtitleRegexFilterTextReplacement": "Remplacement de texte pour le filtre regex des sous-titres",
         "convertNetflixRuby": "Detect and Display Ruby",
         "subtitleHtml": "Sous-titres HTML",
@@ -804,6 +807,8 @@
         "noFiles": "No files",
         "searchCategory": "Search category",
         "categoryAnime": "Anime",
-        "categoryDrama": "Drama"
+        "categoryDrama": "Drama",
+        "episodeRegex": "Custom episode regex",
+        "episodeRegexHint": "Detects the episode from the page title to auto-filter files. Capture group 1 is the episode number; built-in rules are used when it doesn't match. Press Enter to apply."
     }
 }

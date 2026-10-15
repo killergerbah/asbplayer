@@ -424,6 +424,8 @@
         "fastForwardPlaybackMinimumSkipInterval": "Fast-forward minimum skip interval",
         "coloringStrategy": "Coloring strategy",
         "copyOnMine": "Copiar legenda minerada para a área de transferência",
+        "alwaysUseSubtitleForSentence": "Always use subtitle text for sentence field",
+        "updateLastCardForSameSubtitle": "When updating last card, also update image/audio for cards that have the same subtitle text",
         "corsHelperText": "Certifique-se de que {{origin}} esteja na webCorsOriginList em suas configurações do AnkiConnect, como neste <0>vídeo</0>.",
         "customCssField": "CSS: {{styleKey}}",
         "deck": "Baralho",
@@ -500,6 +502,7 @@
         "subtitleBlurDescription": "Oculta as faixas de legendas selecionadas desfocando-as. Não pode ser desfocado ao passar o mouse.",
         "tabName": "Nome da guia",
         "subtitleRegexFilter": "Filtro regex da legenda",
+        "subtitleRegexFilterDocs": "Subtitle text filtering guide and examples",
         "subtitleRegexFilterTextReplacement": "Substituição de texto do filtro regex da legenda",
         "convertNetflixRuby": "Detect and Display Ruby",
         "subtitleHtml": "HTML da Legenda",
@@ -804,6 +807,8 @@
         "noFiles": "No files",
         "searchCategory": "Search category",
         "categoryAnime": "Anime",
-        "categoryDrama": "Drama"
+        "categoryDrama": "Drama",
+        "episodeRegex": "Custom episode regex",
+        "episodeRegexHint": "Detects the episode from the page title to auto-filter files. Capture group 1 is the episode number; built-in rules are used when it doesn't match. Press Enter to apply."
     }
 }

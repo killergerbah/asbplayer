@@ -78,7 +78,7 @@ const StatisticsUi = () => {
     return (
         <ThemeProvider theme={theme}>
             <CssBaseline />
-            <Paper square sx={{ display: 'flex', width: '100vw', height: '100vh', overflowY: 'scroll' }}>
+            <Paper square sx={{ display: 'flex', width: '100vw', height: '100dvh', overflowY: 'scroll' }}>
                 <Statistics
                     mediaId={mediaIdWithSubtitles}
                     dictionaryProvider={dictionaryProvider}

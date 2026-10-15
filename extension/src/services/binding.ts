@@ -73,7 +73,7 @@ import {
     StopRecordingErrorCode,
     VideoDataUiOpenReason,
 } from '@project/common';
-import type { SeekableTracks } from '@project/common/settings';
+import type { AsbplayerSettings, SeekableTracks } from '@project/common/settings';
 import {
     calculateSeekableTracksValue,
     extractAnkiSettings,
@@ -173,6 +173,22 @@ export interface BindingOptions {
     readonly videoSrcChangesIndicateNewVideo: boolean;
 }
 
+const subtitleParsingSettingsKeys = [
+    'subtitleRegexFilter',
+    'subtitleRegexFilterTextReplacement',
+    'subtitleHtml',
+    'convertNetflixRuby',
+] as const;
+
+type SubtitleParsingSettings = Pick<AsbplayerSettings, (typeof subtitleParsingSettingsKeys)[number]>;
+
+interface SubtitleSource {
+    readonly files: File[];
+    readonly flatten: boolean;
+    settings: SubtitleParsingSettings;
+    offset: number;
+}
+
 export default class Binding {
     private readonly _fallbackVideoSrc = uuidv4();
 
@@ -198,6 +214,8 @@ export default class Binding {
     private _seekDurationMs = 3000;
     private _speedChangeStep = 0.1;
     private _lastProfile?: string;
+    private _subtitleSource?: SubtitleSource;
+    private _subtitleRefreshId = 0;
 
     readonly video: HTMLMediaElement;
     readonly hasPageScript: boolean;
@@ -216,6 +234,7 @@ export default class Binding {
     readonly bulkExportController: BulkExportController;
 
     private copyToClipboardOnMine: boolean;
+    private alwaysUseSubtitleForSentence: boolean;
     private clickToMineDefaultAction: PostMineAction;
     private takeScreenshot: boolean;
     private cleanScreenshot: boolean;
@@ -279,7 +298,8 @@ export default class Binding {
         this.ankiUiController = new AnkiUiController();
         this.notificationController = new NotificationController(this);
         this.mobileVideoOverlayController = new MobileVideoOverlayController(this, OffsetAnchor.top);
-        this.subtitleController.onOffsetChange = () => {
+        this.subtitleController.onOffsetChange = (offset) => {
+            if (this._subtitleSource !== undefined) this._subtitleSource.offset = offset;
             this.playbackEngine.subtitlesChanged(this.subtitleController.subtitles);
             return this.mobileVideoOverlayController.updateModel();
         };
@@ -296,6 +316,7 @@ export default class Binding {
         this.maxImageWidth = 0;
         this.maxImageHeight = 0;
         this.copyToClipboardOnMine = false;
+        this.alwaysUseSubtitleForSentence = false;
         this.alwaysPlayOnSubtitleRepeat = true;
         this.postMinePlayback = PostMinePlayback.remember;
         this._synced = false;
@@ -957,6 +978,7 @@ export default class Binding {
                         // ignore
                         break;
                     case 'subtitles': {
+                        this._subtitleSource = undefined;
                         const subtitlesMessage = request.message as SubtitlesToVideoMessage;
                         const subtitles: SubtitleModel[] = subtitlesMessage.value;
                         this._updateSubtitles(
@@ -1331,6 +1353,8 @@ export default class Binding {
     }
 
     async _refreshSettings() {
+        const subtitleRefreshId = ++this._subtitleRefreshId;
+        const subtitleSource = this._subtitleSource;
         asbTrace('playback/binding', 'Refreshing media-owner settings');
         const activeProfile = (await this.settings.activeProfile())?.name;
         const profileChanged = this._lastProfile !== activeProfile;
@@ -1352,6 +1376,7 @@ export default class Binding {
         this.maxImageHeight = currentSettings.maxImageHeight;
         this.trimBlackBars = currentSettings.trimBlackBars;
         this.copyToClipboardOnMine = currentSettings.copyToClipboardOnMine;
+        this.alwaysUseSubtitleForSentence = currentSettings.alwaysUseSubtitleForSentence;
         this.alwaysPlayOnSubtitleRepeat = currentSettings.alwaysPlayOnSubtitleRepeat;
         this.pauseOnHoverMode = currentSettings.pauseOnHoverMode;
 
@@ -1410,6 +1435,29 @@ export default class Binding {
             void this.mobileVideoOverlayController.updateModel();
         }
 
+        if (
+            subtitleSource !== undefined &&
+            subtitleSource === this._subtitleSource &&
+            subtitleRefreshId === this._subtitleRefreshId &&
+            subtitleParsingSettingsKeys.some((key) => subtitleSource.settings[key] !== currentSettings[key])
+        ) {
+            asbTrace('playback/binding', 'Refreshing subtitles after parsing settings changed', {
+                changedSettings: subtitleParsingSettingsKeys.filter(
+                    (key) => subtitleSource.settings[key] !== currentSettings[key]
+                ),
+            });
+            subtitleSource.settings = {
+                ...subtitleSource.settings,
+                subtitleRegexFilter: currentSettings.subtitleRegexFilter,
+                subtitleRegexFilterTextReplacement: currentSettings.subtitleRegexFilterTextReplacement,
+                subtitleHtml: currentSettings.subtitleHtml,
+                convertNetflixRuby: currentSettings.convertNetflixRuby,
+            };
+            void this._reloadSubtitles(subtitleSource).catch((error) =>
+                asbError('video/binding', 'Failed to refresh subtitles:', error)
+            );
+        }
+
         await i18nInit(currentSettings.language);
         asbTrace('playback/binding', 'Media-owner settings refreshed', {
             activeProfile,
@@ -1422,6 +1470,7 @@ export default class Binding {
     }
 
     unbind() {
+        this._subtitleSource = undefined;
         asbTrace('playback/binding', 'Unbinding media owner', {
             subscribed: this.subscribed,
             pendingDisneyPlusSeeks: this.disneyPlusPendingSeeks.size,
@@ -1574,7 +1623,7 @@ export default class Binding {
             await this.play();
         }
 
-        if (!text || subtitle.text.includes(text.trim())) {
+        if (this.alwaysUseSubtitleForSentence || !text || subtitle.text.includes(text.trim())) {
             text = extractText(subtitle, surroundingSubtitles);
         }
 
@@ -1908,6 +1957,7 @@ export default class Binding {
     }
 
     async loadSubtitles(files: File[], flatten: boolean, syncWithAsbplayerId?: string) {
+        this._subtitleSource = undefined;
         const {
             streamingSubtitleListPreference,
             subtitleRegexFilter,
@@ -1946,15 +1996,18 @@ export default class Binding {
 
         switch (streamingSubtitleListPreference) {
             case SubtitleListPreference.noSubtitleList: {
-                const reader = new SubtitleReader({
-                    regexFilter: subtitleRegexFilter,
-                    regexFilterTextReplacement: subtitleRegexFilterTextReplacement,
-                    subtitleHtml: subtitleHtml,
-                    convertNetflixRuby: convertNetflixRuby,
-                    pgsParserWorkerFactory: pgsParserWorkerFactory,
-                });
-                const offset = this.playbackEngine.lastSubtitleOffset;
-                const subtitles = await reader.subtitles(files, flatten);
+                const source: SubtitleSource = {
+                    files: [...files],
+                    flatten,
+                    settings: {
+                        subtitleRegexFilter,
+                        subtitleRegexFilterTextReplacement,
+                        subtitleHtml,
+                        convertNetflixRuby,
+                    },
+                    offset: this.playbackEngine.lastSubtitleOffset,
+                };
+                const subtitles = await this._parseSubtitles(source);
 
                 // Order is important: sync with tab first, then update our subtitle controller
                 // since the subtitle controller may send coloring messages as soon as it gets
@@ -1971,26 +2024,64 @@ export default class Binding {
                     asbWarn('video/binding', 'Failed to sync with asbplayer tab when loading subtitles:', error);
                 }
 
-                this._updateSubtitles(
-                    subtitles.map((s, index) => ({
-                        start: s.start + offset,
-                        end: s.end + offset,
-                        text: s.text,
-                        textImage: s.textImage,
-                        track: s.track,
-                        index,
-                        originalStart: s.start,
-                        originalEnd: s.end,
-                        tokenization: s.tokenization,
-                    })),
-                    flatten ? [files[0].name] : files.map((f) => f.name)
-                );
+                this._subtitleSource = source;
+                this._updateSubtitles(subtitles, flatten ? [files[0].name] : files.map((f) => f.name));
                 break;
             }
             case SubtitleListPreference.app:
                 await syncWithAsbplayerTab(false, undefined);
                 break;
         }
+    }
+
+    private async _parseSubtitles(source: SubtitleSource) {
+        const settings = source.settings;
+        const reader = new SubtitleReader({
+            regexFilter: settings.subtitleRegexFilter,
+            regexFilterTextReplacement: settings.subtitleRegexFilterTextReplacement,
+            subtitleHtml: settings.subtitleHtml,
+            convertNetflixRuby: settings.convertNetflixRuby,
+            pgsParserWorkerFactory,
+        });
+        const subtitles = await reader.subtitles(source.files, source.flatten);
+        return subtitles.map((subtitle, index) => ({
+            ...subtitle,
+            start: subtitle.start + source.offset,
+            end: subtitle.end + source.offset,
+            originalStart: subtitle.start,
+            originalEnd: subtitle.end,
+            index,
+        }));
+    }
+
+    private async _reloadSubtitles(source: SubtitleSource) {
+        const settings = source.settings;
+        const subtitles = await this._parseSubtitles(source);
+        const sourceChanged = this._subtitleSource !== source;
+        const settingsChanged = source.settings !== settings;
+        if (sourceChanged || settingsChanged) {
+            asbTrace('playback/binding', 'Discarded subtitle refresh', { sourceChanged, settingsChanged });
+            return;
+        }
+        const subtitleFileNames = this.subtitleController.subtitleFileNames ?? [];
+        const nonEmptyTrackIndexes = this._nonEmptyTrackIndexes(subtitles);
+        asbTrace('playback/binding', 'Reloading media-owner subtitles', {
+            subtitleCount: subtitles.length,
+            trackCount: nonEmptyTrackIndexes.length,
+            fileCount: subtitleFileNames.length,
+        });
+        this.subtitleController.subtitles = subtitles;
+        this.subtitleController.cacheHtml();
+        this.subtitleController.refreshCurrentSubtitle = true;
+
+        this.playbackEngine.playbackPositionKeysChanged(
+            this._playbackPositionKeys(nonEmptyTrackIndexes, subtitleFileNames),
+            { isNewSource: false }
+        );
+        this.playbackEngine.subtitlesChanged(this.subtitleController.subtitles);
+
+        this.ankiUiSavedState = undefined;
+        void this.mobileVideoOverlayController.updateModel();
     }
 
     private _updateSubtitles(subtitles: IndexedSubtitleModel[], subtitleFileNames: string[]) {
@@ -2005,7 +2096,8 @@ export default class Binding {
 
         const nonEmptyTrackIndexes = this._nonEmptyTrackIndexes(subtitles);
         this.playbackEngine.playbackPositionKeysChanged(
-            this._playbackPositionKeys(nonEmptyTrackIndexes, subtitleFileNames)
+            this._playbackPositionKeys(nonEmptyTrackIndexes, subtitleFileNames),
+            { isNewSource: true }
         );
         this.playbackEngine.subtitlesChanged(this.subtitleController.subtitles);
 
@@ -2059,11 +2151,12 @@ export default class Binding {
     }
 
     private _resetSubtitles() {
+        this._subtitleSource = undefined;
         asbTrace('playback/binding', 'Resetting media-owner subtitles', {
             previousSubtitleCount: this.subtitleController.subtitles.length,
         });
         this.subtitleController.reset();
-        this.playbackEngine.playbackPositionKeysChanged([]);
+        this.playbackEngine.playbackPositionKeysChanged([], { isNewSource: true });
         this.playbackEngine.subtitlesChanged([]);
         this.ankiUiSavedState = undefined;
         this._synced = false;

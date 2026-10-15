@@ -30,7 +30,7 @@ const useStyles = makeStyles<Theme, StylesProps>(() => ({
         '&::before': {
             content: "' '",
             position: 'absolute',
-            height: appBarHidden ? '100vh' : 'calc(100vh - 64px)',
+            height: appBarHidden ? '100dvh' : 'calc(100dvh - 64px)',
             width: '100%',
             display: 'flex',
             flexDirection: 'column',

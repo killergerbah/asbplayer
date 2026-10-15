@@ -424,6 +424,8 @@
         "fastForwardPlaybackMinimumSkipInterval": "Fast-forward minimum skip interval",
         "coloringStrategy": "色付け戦略",
         "copyOnMine": "マイニングした字幕をクリップボードにコピー",
+        "alwaysUseSubtitleForSentence": "Always use subtitle text for sentence field",
+        "updateLastCardForSameSubtitle": "When updating last card, also update image/audio for cards that have the same subtitle text",
         "corsHelperText": "<0>この動画</0>を参考に、{{origin}} が AnkiConnect 設定の webCorsOriginList に入っていることを確認してください。",
         "customCssField": "CSS: {{styleKey}}",
         "deck": "デッキ",
@@ -500,6 +502,7 @@
         "subtitleBlurDescription": "字幕トラックをぼかします。マウスホバーでぼかしを解除できます。",
         "tabName": "タブ名",
         "subtitleRegexFilter": "字幕の正規表現フィルタ",
+        "subtitleRegexFilterDocs": "Subtitle text filtering guide and examples",
         "subtitleRegexFilterTextReplacement": "字幕の正規表現フィルタの置き換えテキスト",
         "convertNetflixRuby": "ルビーを検出して表示",
         "subtitleHtml": "字幕に含まれるHTML",
@@ -804,6 +807,8 @@
         "noFiles": "ファイルはありません",
         "searchCategory": "Search category",
         "categoryAnime": "Anime",
-        "categoryDrama": "Drama"
+        "categoryDrama": "Drama",
+        "episodeRegex": "カスタム話数正規表現",
+        "episodeRegexHint": "ページタイトルから話数を検出し、ファイルを自動で絞り込みます。1番目のキャプチャグループが話数で、一致しない場合は組み込みルールを使用します。Enterで適用。"
     }
 }

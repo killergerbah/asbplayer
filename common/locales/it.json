@@ -424,6 +424,8 @@
         "fastForwardPlaybackMinimumSkipInterval": "Fast-forward minimum skip interval",
         "coloringStrategy": "Strategia di colorazione",
         "copyOnMine": "Copia i sottotitoli estratti negli appunti",
+        "alwaysUseSubtitleForSentence": "Always use subtitle text for sentence field",
+        "updateLastCardForSameSubtitle": "When updating last card, also update image/audio for cards that have the same subtitle text",
         "corsHelperText": "Assicurati che {{origin}} sia nella webCorsOriginList nelle impostazioni di AnkiConnect come in questo <0>video</0>.",
         "customCssField": "CSS: {{styleKey}}",
         "deck": "Mazzo",
@@ -500,6 +502,7 @@
         "subtitleBlurDescription": "Nasconde le tracce di sottotitoli selezionate sfocandole. È possibile togliere la sfocatura passando il mouse sopra.",
         "tabName": "Nome della scheda",
         "subtitleRegexFilter": "Filtro regex sottotitoli",
+        "subtitleRegexFilterDocs": "Subtitle text filtering guide and examples",
         "subtitleRegexFilterTextReplacement": "Sostituzione testo filtro regex sottotitoli",
         "convertNetflixRuby": "Rileva e mostra Ruby",
         "subtitleHtml": "HTML sottotitoli",
@@ -804,6 +807,8 @@
         "noFiles": "Nessun file",
         "searchCategory": "Search category",
         "categoryAnime": "Anime",
-        "categoryDrama": "Drama"
+        "categoryDrama": "Drama",
+        "episodeRegex": "Custom episode regex",
+        "episodeRegexHint": "Detects the episode from the page title to auto-filter files. Capture group 1 is the episode number; built-in rules are used when it doesn't match. Press Enter to apply."
     }
 }

@@ -25,7 +25,9 @@ export interface ElementOverlayParams {
     // 'leave the width alone'
     contentWidth?: number;
     contentWidthUnit?: SubtitlesWidthUnit;
-    onContainerStyles?: (container: HTMLElement) => void;
+    // Overrides all container style behavior.
+    // If set, offsetAnchor, contentPositionOffset, contentWidth, and contentWidthUnit are ignored.
+    applyContainerStylesOverride?: (container: HTMLElement) => void;
     onMouseOver: (event: MouseEvent) => void;
     onMouseOut: (event: MouseEvent) => void;
 }
@@ -69,7 +71,7 @@ export class CachingElementOverlay implements ElementOverlay {
     private layoutAnimationFrame?: number;
     private onMouseOver: (event: MouseEvent) => void;
     private onMouseOut: (event: MouseEvent) => void;
-    private onContainerStyles?: (container: HTMLElement) => void;
+    private applyContainerStylesOverride?: (container: HTMLElement) => void;
 
     nonFullscreenContainerClassName: string;
     nonFullscreenContentClassName: string;
@@ -92,7 +94,7 @@ export class CachingElementOverlay implements ElementOverlay {
         contentWidthUnit,
         onMouseOver,
         onMouseOut,
-        onContainerStyles,
+        applyContainerStylesOverride,
     }: ElementOverlayParams) {
         this.targetElement = targetElement;
         this.nonFullscreenContainerClassName = nonFullscreenContainerClassName;
@@ -105,7 +107,7 @@ export class CachingElementOverlay implements ElementOverlay {
         this.contentWidthUnit = contentWidthUnit ?? '%';
         this.onMouseOver = onMouseOver;
         this.onMouseOut = onMouseOut;
-        this.onContainerStyles = onContainerStyles;
+        this.applyContainerStylesOverride = applyContainerStylesOverride;
 
         // Necessary for token highlighting on hover
         document.body.classList.add(ASB_TOKEN_CONTAINER_CLASS);
@@ -477,6 +479,11 @@ export class CachingElementOverlay implements ElementOverlay {
     }
 
     private _applyContainerStyles(container: HTMLElement, { fullscreen }: ApplyContainerStylesOptions) {
+        if (this.applyContainerStylesOverride !== undefined) {
+            this.applyContainerStylesOverride?.(container);
+            return;
+        }
+
         const rect = this.targetElement.getBoundingClientRect();
         if (
             !Number.isFinite(rect.left) ||
@@ -533,8 +540,6 @@ export class CachingElementOverlay implements ElementOverlay {
 
         container.style.top = top + 'px';
         container.style.bottom = '';
-
-        this.onContainerStyles?.(container);
     }
 
     private _applyResponsiveContentStyles(container: HTMLElement, videoWidth: number) {

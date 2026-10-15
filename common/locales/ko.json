@@ -424,6 +424,8 @@
         "fastForwardPlaybackMinimumSkipInterval": "Fast-forward minimum skip interval",
         "coloringStrategy": "Coloring strategy",
         "copyOnMine": "추출한 자막을 클립보드에 복사",
+        "alwaysUseSubtitleForSentence": "Always use subtitle text for sentence field",
+        "updateLastCardForSameSubtitle": "When updating last card, also update image/audio for cards that have the same subtitle text",
         "corsHelperText": "{{origin}}이 AnkiConnect의 webCorsOriginList 항목에 추가되어 있는지 이 <0>영상</0>을 참고하여 확인해 주세요.",
         "customCssField": "CSS: {{styleKey}}",
         "deck": "덱",
@@ -500,6 +502,7 @@
         "subtitleBlurDescription": "선택한 자막을 블러 효과로 숨깁니다. 마우스를 올리면 해제됩니다.",
         "tabName": "탭 이름",
         "subtitleRegexFilter": "자막 정규식 필터",
+        "subtitleRegexFilterDocs": "Subtitle text filtering guide and examples",
         "subtitleRegexFilterTextReplacement": "자막 정규식 필터 텍스트 치환",
         "convertNetflixRuby": "Detect and Display Ruby",
         "subtitleHtml": "자막 HTML",
@@ -804,6 +807,8 @@
         "noFiles": "No files",
         "searchCategory": "Search category",
         "categoryAnime": "Anime",
-        "categoryDrama": "Drama"
+        "categoryDrama": "Drama",
+        "episodeRegex": "Custom episode regex",
+        "episodeRegexHint": "Detects the episode from the page title to auto-filter files. Capture group 1 is the episode number; built-in rules are used when it doesn't match. Press Enter to apply."
     }
 }

@@ -424,6 +424,8 @@
         "fastForwardPlaybackMinimumSkipInterval": "Fast-forward minimum skip interval",
         "coloringStrategy": "Coloring strategy",
         "copyOnMine": "Копировать смайненные субтитры в буфер обмена",
+        "alwaysUseSubtitleForSentence": "Always use subtitle text for sentence field",
+        "updateLastCardForSameSubtitle": "When updating last card, also update image/audio for cards that have the same subtitle text",
         "corsHelperText": "Убедитесь, что {{origin}} находится в списке webCorsOriginList в настройках AnkiConnect, как в этом <0>видео</0>.",
         "customCssField": "CSS: {{styleKey}}",
         "deck": "Колода",
@@ -500,6 +502,7 @@
         "subtitleBlurDescription": "Скрывает выбранные дорожки субтитров, размывая их. Показывается обратно при наведении мыши.",
         "tabName": "Название вкладки",
         "subtitleRegexFilter": "Пропускать субтитры через фильтр с регулярным выражением",
+        "subtitleRegexFilterDocs": "Subtitle text filtering guide and examples",
         "subtitleRegexFilterTextReplacement": "Текст на замену при использовании регулярных выражений",
         "convertNetflixRuby": "Detect and Display Ruby",
         "subtitleHtml": "HTML субтитров",
@@ -804,6 +807,8 @@
         "noFiles": "No files",
         "searchCategory": "Search category",
         "categoryAnime": "Anime",
-        "categoryDrama": "Drama"
+        "categoryDrama": "Drama",
+        "episodeRegex": "Custom episode regex",
+        "episodeRegexHint": "Detects the episode from the page title to auto-filter files. Capture group 1 is the episode number; built-in rules are used when it doesn't match. Press Enter to apply."
     }
 }
