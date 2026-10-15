@@ -15,9 +15,10 @@ import type {
     VideoDataUiModel,
     VideoToExtensionCommand,
 } from '@project/common';
-import { VideoDataUiOpenReason } from '@project/common';
+import { SubtitleHtml, VideoDataUiOpenReason } from '@project/common';
+import { SubtitleReader } from '@project/common/subtitle-reader';
 import type { AsbplayerSettings, SettingsProvider } from '@project/common/settings';
-import { base64ToBlob, bufferToBase64 } from '@project/common/base64';
+import { base64ToBlob, blobToBase64, bufferToBase64 } from '@project/common/base64';
 import type Binding from '@project/extension/src/services/binding';
 import { currentPageDelegate } from '@project/extension/src/services/pages';
 import type UiFrame from '@project/extension/src/services/ui-frame';
@@ -673,10 +674,7 @@ export default class VideoDataSyncController {
                 }
             }
 
-            await this._syncSubtitles(
-                subtitles,
-                data.some((track) => typeof track.url === 'object')
-            );
+            await this._syncSubtitles(subtitles, false);
             return true;
         } catch (error) {
             if (typeof (error as Error).message !== 'undefined') {
@@ -699,11 +697,7 @@ export default class VideoDataSyncController {
                 }
             }
 
-            await this._syncSubtitles(
-                subtitles,
-                data.some((track) => typeof track.url === 'object'),
-                syncWithAsbplayerId
-            );
+            await this._syncSubtitles(subtitles, false, syncWithAsbplayerId);
             return true;
         } catch (error) {
             if (typeof (error as Error).message !== 'undefined') {
@@ -833,7 +827,7 @@ export default class VideoDataSyncController {
         const fileName = `${name}.${partExtension}`;
         const partCount = url.length;
         const promises = url.map((u) => fetch(u));
-        const tracks = [];
+        const parts: File[] = [];
         const responseStatusCounts: Record<string, number> = {};
         let finishedPromises = 0;
         let responseBytes = 0;
@@ -856,10 +850,7 @@ export default class VideoDataSyncController {
 
                 const body = await response.arrayBuffer();
                 responseBytes += body.byteLength;
-                tracks.push({
-                    name: fileName,
-                    base64: bufferToBase64(body),
-                });
+                parts.push(new File([body], fileName));
             }
         } catch (error) {
             asbError('subtitle/error', 'Segmented subtitle retrieval failed', {
@@ -881,7 +872,24 @@ export default class VideoDataSyncController {
             responseBytes,
             durationMs: performance.now() - startedAt,
         });
-        return tracks;
+        // Merge only this selected track's segments. Flattening all selected
+        // languages together would make every cue inherit track one's appearance.
+        const reader = new SubtitleReader({
+            regexFilter: '',
+            regexFilterTextReplacement: '',
+            subtitleHtml: SubtitleHtml.render,
+            convertNetflixRuby: false,
+            pgsParserWorkerFactory: async () => {
+                throw new Error('Image subtitle segments are not supported');
+            },
+        });
+        const subtitles = await reader.subtitles(parts, true);
+        return [
+            {
+                name: `${name}.srt`,
+                base64: await blobToBase64(new Blob([reader.subtitlesToSrt(subtitles)], { type: 'text/plain' })),
+            },
+        ];
     }
 
     private async _reportError(error: string) {
