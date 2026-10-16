@@ -59,7 +59,7 @@ When `postMineAction` is `2`, `noteId` selects the Anki note to update. If omitt
 
 Loads the files into the active tab's media by default, showing the video selector when the tab has more than one video. Set `mediaId` to an ID returned by [`get-bound-media`](#get-bound-media) to load the files directly into that media.
 
-> `mediaId` requires extension v1.22.0 or later. Earlier versions load the files into every tab with a bound video
+> `mediaId` requires extension v1.23.0 or later. Earlier versions load the files into every tab with a bound video
 
 #### Request {#load-subtitles-request}
 
@@ -96,7 +96,7 @@ Loads the files into the active tab's media by default, showing the video select
 
 Seeks the active tab's media by default. Set `mediaId` to an ID returned by [`get-bound-media`](#get-bound-media) to target specific media.
 
-> `mediaId` requires extension v1.20.0+. Seeking local media requires extension v1.22.0+
+> `mediaId` requires extension v1.20.0+. Seeking local media requires extension v1.23.0+
 
 #### Request {#seek-timestamp-request}
 

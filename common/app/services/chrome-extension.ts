@@ -226,7 +226,7 @@ export default class ChromeExtension {
     }
 
     get supportsWebSocketClientOwnership() {
-        return this.installed && gte(this.version, '1.22.0');
+        return this.installed && gte(this.version, '1.23.0');
     }
 
     get supportsPlaybackEngine() {
