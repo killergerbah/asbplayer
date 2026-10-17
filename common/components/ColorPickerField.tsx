@@ -21,7 +21,7 @@ interface Props {
 }
 
 const hexPattern = /^#?[0-9a-fA-F]{6}$/;
-const changeThrottleMs = 1000;
+const changeThrottleMs = 300;
 
 const ColorPickerField: React.FC<Props> = ({ value, onChange, label, disabled, fullWidth, sx }) => {
     const theme = useTheme();
@@ -32,7 +32,6 @@ const ColorPickerField: React.FC<Props> = ({ value, onChange, label, disabled, f
     const onChangeRef = useRef(onChange);
     onChangeRef.current = onChange;
     const lastEmitTimeRef = useRef(0);
-    const lastEmittedRef = useRef<string | undefined>(undefined);
     const pendingRef = useRef<string | undefined>(undefined);
     const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
@@ -43,7 +42,6 @@ const ColorPickerField: React.FC<Props> = ({ value, onChange, label, disabled, f
         if (pendingRef.current !== undefined) {
             const hex = pendingRef.current;
             pendingRef.current = undefined;
-            lastEmittedRef.current = hex;
             lastEmitTimeRef.current = Date.now();
             onChangeRef.current(hex);
         }
@@ -67,18 +65,24 @@ const ColorPickerField: React.FC<Props> = ({ value, onChange, label, disabled, f
     // Don't lose the final value if we unmount while a change is pending
     useEffect(() => flush, [flush]);
 
-    // Re-sync from outside changes, but keep the hue/saturation while the value still matches
-    // (converting gray, black and white back from hex would otherwise reset the hue).
-    // Ignore echoes of our own throttled changes, which can lag behind the picker.
+    const open = anchorEl !== null;
+
+    // Update the picker when `value` changes from outside, but only while closed. While open, the picker
+    // is the source of truth, because `value` can briefly lag behind it and would make it jump around.
+    // Skip the update if the picker already shows this color, so it keeps its hue. White, gray and black have
+    // no hue of their own, so converting them from hex would reset the hue slider to red.
     useEffect(() => {
-        if (pendingRef.current === undefined && value.toLowerCase() !== lastEmittedRef.current) {
-            if (value.toLowerCase() !== hsvaToHex({ ...hsva, a: 1 }).toLowerCase()) {
-                setHsva(hexToHsva(value));
-            }
+        if (open) {
+            return;
         }
+
+        if (value.toLowerCase() !== hsvaToHex({ ...hsva, a: 1 }).toLowerCase()) {
+            setHsva(hexToHsva(value));
+        }
+
         setHexText(value.toUpperCase());
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [value]);
+    }, [value, open]);
 
     const handlePickerChange = useCallback(
         (result: { hsva: HsvaColor }) => {
@@ -104,7 +108,6 @@ const ColorPickerField: React.FC<Props> = ({ value, onChange, label, disabled, f
         [emitThrottled, flush]
     );
 
-    const open = anchorEl !== null;
     const handleOpen = (e: React.SyntheticEvent<HTMLElement>) => {
         if (!disabled) {
             setAnchorEl(e.currentTarget);
@@ -176,7 +179,7 @@ const ColorPickerField: React.FC<Props> = ({ value, onChange, label, disabled, f
                         value={hexText}
                         error={!hexPattern.test(hexText)}
                         onChange={(e) => handleHexTextChange(e.target.value)}
-                        onBlur={() => setHexText(value.toUpperCase())}
+                        onBlur={() => setHexText(hsvaToHex({ ...hsva, a: 1 }).toUpperCase())}
                     />
                 </Stack>
             </Popover>

@@ -10,7 +10,7 @@ let clientUrl: string | undefined;
 export const bindWebSocketClient = async (settings: SettingsProvider, tabRegistry: TabRegistry) => {
     const url = await settings.getSingle('webSocketServerUrl');
 
-    // No awaits below this point, so concurrent calls can't leave an unreferenced (and never unbound) client behind
+    // Everything below is synchronous so that concurrent calls can't each create a client and orphan the others
     if (client !== undefined && clientUrl === url) {
         client.setHandlers(webSocketCommandHandlers(settings, tabRegistry));
         return;
