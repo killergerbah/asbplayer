@@ -1734,6 +1734,29 @@ function App({
         setSubtitleTrackSelectorDisabled,
     } = useVideoDataSyncDialogState();
 
+    // Mirror subtitles loaded outside the selector (library, drag and drop, file picker) so it shows them selected.
+    useEffect(() => {
+        const loaded = sources.subtitleFiles;
+        if (loaded.length === 0) {
+            return;
+        }
+
+        setSubtitleTrackSelectorTracks((tracks) => [
+            ...tracks,
+            ...loaded
+                .filter(({ id }) => !tracks.some((track) => track.id === id))
+                .map(({ file, id }) => ({
+                    label: file.name,
+                    id,
+                    file,
+                    extension: file.name.substring(file.name.lastIndexOf('.') + 1),
+                })),
+        ]);
+        setSubtitleTrackSelectorSelectedTrackIds(
+            Array.from({ length: Math.max(3, loaded.length) }, (_, i) => loaded[i]?.id ?? '-')
+        );
+    }, [sources.subtitleFiles, setSubtitleTrackSelectorTracks, setSubtitleTrackSelectorSelectedTrackIds]);
+
     const handleConfirmSubtitleTrackSelection = useCallback(
         (tracks: ConfirmedVideoDataSubtitleTrack[]) => {
             void (async () => {
