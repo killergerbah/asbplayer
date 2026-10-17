@@ -8,8 +8,9 @@ import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import { useTheme } from '@mui/material/styles';
 import type { SxProps, Theme } from '@mui/material/styles';
-import { Chrome, hexToHsva, hsvaToHex } from '@uiw/react-color';
-import type { HsvaColor } from '@uiw/react-color';
+import Chrome from '@uiw/react-color-chrome';
+import { hexToHsva, hsvaToHex } from '@uiw/color-convert';
+import type { HsvaColor } from '@uiw/color-convert';
 
 interface Props {
     value: string;
