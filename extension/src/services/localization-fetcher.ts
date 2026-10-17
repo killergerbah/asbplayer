@@ -19,7 +19,8 @@ export interface Localization {
 }
 
 export const fetchLocalization = async (lang: string): Promise<Localization> => {
-    if (import.meta.env.MODE === 'development') {
+    // Set WXT_BUNDLED_LOCALES=true to use only bundled strings, to preview edited strings before they are deployed
+    if (import.meta.env.WXT_BUNDLED_LOCALES === 'true') {
         return (await bundledStringsForLang(lang)) ?? (await bundledStringsForLang('en'))!;
     }
 
