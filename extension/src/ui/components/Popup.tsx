@@ -70,6 +70,23 @@ class ExtensionFetcher implements Fetcher {
     }
 }
 
+const handleUnlockLocalFonts = () => {
+    void browser.tabs.create({
+        url: `${browser.runtime.getURL('/options.html')}#subtitle-appearance`,
+        active: true,
+    });
+};
+
+// Firefox closes the popup when a file picker opens (https://bugzilla.mozilla.org/show_bug.cgi?id=1292701),
+// so importing must happen in the options page instead
+const handleImportSettings = () => {
+    void browser.tabs.create({
+        url: `${browser.runtime.getURL('/options.html')}#misc-settings`,
+        active: true,
+    });
+    window.close();
+};
+
 const NavButton: React.FC<ButtonProps & { label: string }> = ({ label, ...buttonProps }) => {
     const [isOverflowing, setIsOverflowing] = useState<boolean>();
     return (
@@ -109,21 +126,6 @@ const Popup = ({
     const { t } = useTranslation();
     const { initialized: i18nInitialized } = useI18n({ language: settings.language });
     const anki = useMemo(() => new Anki(settings, new ExtensionFetcher()), [settings]);
-    const handleUnlockLocalFonts = useCallback(() => {
-        void browser.tabs.create({
-            url: `${browser.runtime.getURL('/options.html')}#subtitle-appearance`,
-            active: true,
-        });
-    }, []);
-    // Firefox closes the popup when a file picker opens (https://bugzilla.mozilla.org/show_bug.cgi?id=1292701),
-    // so importing must happen in the options page instead
-    const handleImportSettings = useCallback(() => {
-        void browser.tabs.create({
-            url: `${browser.runtime.getURL('/options.html')}#misc-settings`,
-            active: true,
-        });
-        window.close();
-    }, []);
     const { supportedLanguages } = useSupportedLanguages();
     const { localFontsAvailable, localFontsPermission, localFontFamilies } = useLocalFontFamilies();
     const theme = useTheme();
