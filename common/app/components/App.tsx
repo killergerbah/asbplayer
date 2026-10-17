@@ -54,6 +54,7 @@ import type VideoChannel from '@project/common/app/services/video-channel';
 import { addBlobUrl, createBlobUrl, revokeBlobUrl } from '@project/common/blob-url';
 import { useTranslation } from 'react-i18next';
 import { LocalizedError } from '@project/common/app/components/localized-error';
+import { mirrorLoadedSubtitles } from '@project/common/app/components/subtitle-track-selection';
 import { useCopyHistory } from '@project/common/app/hooks/use-copy-history';
 import { useFileSession } from '@project/common/app/hooks/use-file-session';
 import { useI18n } from '@project/common/app/hooks/use-i18n';
@@ -1734,27 +1735,14 @@ function App({
         setSubtitleTrackSelectorDisabled,
     } = useVideoDataSyncDialogState();
 
-    // Mirror subtitles loaded outside the selector (library, drag and drop, file picker) so it shows them selected.
     useEffect(() => {
         const loaded = sources.subtitleFiles;
         if (loaded.length === 0) {
             return;
         }
 
-        setSubtitleTrackSelectorTracks((tracks) => [
-            ...tracks,
-            ...loaded
-                .filter(({ id }) => !tracks.some((track) => track.id === id))
-                .map(({ file, id }) => ({
-                    label: file.name,
-                    id,
-                    file,
-                    extension: file.name.substring(file.name.lastIndexOf('.') + 1),
-                })),
-        ]);
-        setSubtitleTrackSelectorSelectedTrackIds(
-            Array.from({ length: Math.max(3, loaded.length) }, (_, i) => loaded[i]?.id ?? '-')
-        );
+        setSubtitleTrackSelectorTracks((tracks) => mirrorLoadedSubtitles(tracks, loaded).tracks);
+        setSubtitleTrackSelectorSelectedTrackIds(mirrorLoadedSubtitles([], loaded).selectedTrackIds);
     }, [sources.subtitleFiles, setSubtitleTrackSelectorTracks, setSubtitleTrackSelectorSelectedTrackIds]);
 
     const handleConfirmSubtitleTrackSelection = useCallback(
