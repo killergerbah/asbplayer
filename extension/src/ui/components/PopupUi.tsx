@@ -29,6 +29,8 @@ interface Props {
     commands: any;
 }
 
+const handleOpenExtensionShortcuts = () => openExtensionShortcuts({ closePopup: true });
+
 const notifySettingsUpdated = () => {
     const settingsUpdatedCommand: PopupToExtensionCommand<SettingsUpdatedMessage> = {
         sender: 'asbplayer-popup',
@@ -147,7 +149,7 @@ export function PopupUi({ commands }: Props) {
                             onSettingsChanged={handleSettingsChanged}
                             onOpenApp={handleOpenApp}
                             onOpenSidePanel={handleOpenSidePanel}
-                            onOpenExtensionShortcuts={openExtensionShortcuts}
+                            onOpenExtensionShortcuts={handleOpenExtensionShortcuts}
                             onOpenUserGuide={handleOpenUserGuide}
                             {...profilesContext}
                         />
