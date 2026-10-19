@@ -1,5 +1,5 @@
-import { VideoDataSubtitleTrackDef } from '@project/common';
-import { extractExtension } from './util';
+import type { VideoDataSubtitleTrackDef } from '@project/common';
+import { extractExtension } from '@project/extension/src/pages/util';
 
 type JsonObject = Record<string, unknown>;
 

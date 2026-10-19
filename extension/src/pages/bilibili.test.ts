@@ -1,4 +1,4 @@
-import { extractBilibiliTracks } from './bilibili';
+import { extractBilibiliTracks } from '@project/extension/src/pages/bilibili';
 
 describe('extractBilibiliTracks', () => {
     it('extracts international SRT and JSON tracks', () => {
