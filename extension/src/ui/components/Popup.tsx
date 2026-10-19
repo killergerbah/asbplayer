@@ -79,7 +79,7 @@ const handleUnlockLocalFonts = () => {
 
 // Firefox closes the popup when a file picker opens (https://bugzilla.mozilla.org/show_bug.cgi?id=1292701),
 // so importing must happen in the options page instead
-const handleImportSettings = () => {
+const handleFirefoxImportSettings = () => {
     void browser.tabs.create({
         url: `${browser.runtime.getURL('/options.html')}#misc-settings`,
         active: true,
@@ -227,7 +227,7 @@ const Popup = ({
                 >
                     {!statisticsOpen && (
                         <SettingsForm
-                            onImportSettings={isFirefoxBuild ? handleImportSettings : undefined}
+                            onImportSettings={isFirefoxBuild ? handleFirefoxImportSettings : undefined}
                             heightConstrained
                             extensionInstalled
                             extensionVersion={browser.runtime.getManifest().version}
