@@ -68,6 +68,7 @@ interface Props {
     logProvider: LogProvider;
     supportedLanguages: string[];
     insideApp?: boolean;
+    onImportSettings?: () => void;
     extensionInstalled?: boolean;
     extensionSupportsPauseOnHover?: boolean;
     extensionSupportsSeekableTrackSetting?: boolean;
@@ -88,6 +89,7 @@ const MiscSettingTab: React.FC<Props> = ({
     logProvider,
     supportedLanguages,
     insideApp,
+    onImportSettings,
     extensionInstalled,
     extensionSupportsPauseOnHover,
     extensionSupportsSeekableTrackSetting,
@@ -242,8 +244,12 @@ const MiscSettingTab: React.FC<Props> = ({
     }, [onSettingsChanged, settings]);
 
     const handleImportSettings = useCallback(() => {
-        settingsFileInputRef.current?.click();
-    }, []);
+        if (onImportSettings) {
+            onImportSettings();
+        } else {
+            settingsFileInputRef.current?.click();
+        }
+    }, [onImportSettings]);
     const handleExportSettings = useCallback(() => {
         exportSettings(settings);
     }, [settings]);
