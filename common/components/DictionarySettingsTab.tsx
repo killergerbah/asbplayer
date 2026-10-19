@@ -516,7 +516,7 @@ const Alert: React.FC<AlertProps> = ({ children, ...props }) => {
     return (
         <MuiAlert
             style={{
-                // SettingsDialog applies height: 100vh to .MuiPaper-root - override it here
+                // SettingsDialog applies height: 100dvh to .MuiPaper-root - override it here
                 height: 'auto',
             }}
             {...props}
