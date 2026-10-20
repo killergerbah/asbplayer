@@ -205,8 +205,8 @@ Submit bugs or feature requests from the [issues page](https://github.com/asbpla
 
 ### Environment
 
-node 24.21.0
-pnpm 11.27.0
+- node 24.21.0
+- pnpm 11.27.0
 
 ### Building
 
@@ -215,10 +215,10 @@ pnpm 11.27.0
 pnpm install
 
 # Builds Firefox extension to extension/.output/asbplayer-<version>-firefox.zip
-pnpm --filter @project/extension run wxt zip -b firefox
+pnpm --filter @project/extension exec wxt zip -b firefox
 
 # Builds Firefox for Android extension to extension/.output/asbplayer-<version>-firefox-android.zip
-pnpm --filter @project/extension run wxt zip -b firefox-android --mv2
+pnpm --filter @project/extension exec wxt zip -b firefox-android --mv2
 ```
 
 ## License
