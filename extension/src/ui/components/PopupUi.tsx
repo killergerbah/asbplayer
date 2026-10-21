@@ -22,11 +22,14 @@ import { StyledEngineProvider } from '@mui/material/styles';
 import { DictionaryProvider } from '@project/common/dictionary-db';
 import { ExtensionDictionaryStorage } from '@/services/extension-dictionary-storage';
 import { isFirefoxBuild } from '@/services/build-flags';
+import { openExtensionShortcuts } from '@/services/extension-shortcuts';
 import { extensionLogProvider } from '@/services/extension-log-provider';
 
 interface Props {
     commands: any;
 }
+
+const handleOpenExtensionShortcuts = () => openExtensionShortcuts({ closePopup: true });
 
 const notifySettingsUpdated = () => {
     const settingsUpdatedCommand: PopupToExtensionCommand<SettingsUpdatedMessage> = {
@@ -66,13 +69,10 @@ export function PopupUi({ commands }: Props) {
         [settingsProvider]
     );
 
-    const handleOpenExtensionShortcuts = useCallback(() => {
-        void browser.tabs.create({ active: true, url: 'chrome://extensions/shortcuts' });
-    }, []);
-
-    const handleOpenApp = useCallback(async () => {
+    const handleOpenApp = useCallback(() => {
         if (settings?.streamingAppUrl) {
             void browser.tabs.create({ active: true, url: settings.streamingAppUrl });
+            window.close();
         }
     }, [settings]);
 
@@ -89,6 +89,7 @@ export function PopupUi({ commands }: Props) {
 
     const handleOpenUserGuide = useCallback(() => {
         void browser.tabs.create({ active: true, url: 'https://docs.asbplayer.dev/docs/intro' });
+        window.close();
     }, []);
 
     const { requestingActiveTabPermission, tabRequestingActiveTabPermission } = useRequestingActiveTabPermission();
