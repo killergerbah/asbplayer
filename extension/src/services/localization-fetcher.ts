@@ -59,9 +59,9 @@ export const primeLocalization = async (lang: string): Promise<void> => {
         }
 
         const result = (await browser.storage.local.get([stringsKey, versionKey])) ?? {};
-        const version = result[versionKey] as number | undefined;
+        const cachedVersion = result[versionKey] as number | undefined;
 
-        if (result[stringsKey] === undefined || version === undefined || version < langConfig.version) {
+        if (result[stringsKey] === undefined || cachedVersion === undefined || cachedVersion < langConfig.version) {
             await fetchAndCache(langConfig);
         }
     } catch (e) {
@@ -127,10 +127,14 @@ const bundledStringsForLang = async (lang: string): Promise<Localization | undef
 
 const cachedStringsForLang = async (lang: string): Promise<Localization | undefined> => {
     const stringsKey = stringsKeyForLang(lang);
-    const result = await browser.storage.local.get(stringsKey);
-    const strings = result ? result[stringsKey] : undefined;
+    const versionKey = versionKeyForLang(lang);
+    const result = (await browser.storage.local.get([stringsKey, versionKey])) ?? {};
+    const strings = result[stringsKey];
+    const cachedVersion = result[versionKey] as number | undefined;
 
-    if (strings === undefined) {
+    // Only use downloaded strings that are newer than the bundled ones, in case primeLocalization hasn't cleared
+    // a stale cache yet (still running, or the config couldn't be fetched)
+    if (strings === undefined || cachedVersion === undefined || cachedVersion <= bundledVersion(lang)) {
         return undefined;
     }
 
