@@ -40,6 +40,12 @@ export default defineConfig({
         // @ts-expect-error -- honored at runtime
         include: [/extension\/src\//],
     },
+    experimental: {
+        // Prevents issue https://issues.chromium.org/issues/395595611
+        // fast-xml-parser@5.11.2 depends on xml-naming which pulls in a string like '\u{10000}-\u{EFFFF}' into the source code.
+        // Rolldown prints the actual character into the code, instead of the escaped version, causing the issue above.
+        escapeUnicode: true,
+    },
     vite: () => ({
         plugins: [
             {
