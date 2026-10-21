@@ -325,7 +325,7 @@ export class StatisticsOverlayController {
             contentWidth: undefined,
             onMouseOut: () => {},
             onMouseOver: () => {},
-            onContainerStyles: (container) => {
+            applyContainerStylesOverride: (container) => {
                 this._applyOverlayContainerStyles(container);
             },
         });

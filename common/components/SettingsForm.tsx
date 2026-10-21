@@ -192,6 +192,7 @@ interface Props {
     extensionSupportsDictionaryMatchAcrossScripts: boolean;
     extensionSupportsSeekableTrackSetting: boolean;
     extensionSupportsAutoCopyableTrackSetting: boolean;
+    extensionOwnsWebSocketClient?: boolean;
     extensionSupportsDictionaryTokenStatusDisplayAlpha: boolean;
     extensionSupportsDictionaryYomitanMecab: boolean;
     extensionSupportsSubtitleTrackSelectorInWebApp: boolean;
@@ -220,6 +221,7 @@ interface Props {
     onSettingsChanged: (settings: Partial<AsbplayerSettings>) => void;
     onOpenChromeExtensionShortcuts: () => void;
     onUnlockLocalFonts: () => void;
+    onImportSettings?: () => void;
 }
 
 export default function SettingsForm({
@@ -252,6 +254,7 @@ export default function SettingsForm({
     extensionSupportsDictionaryMatchAcrossScripts,
     extensionSupportsSeekableTrackSetting,
     extensionSupportsAutoCopyableTrackSetting,
+    extensionOwnsWebSocketClient,
     extensionSupportsDictionaryTokenStatusDisplayAlpha,
     extensionSupportsDictionaryYomitanMecab,
     extensionSupportsUpdateLastWithSameSubtitleText,
@@ -272,6 +275,7 @@ export default function SettingsForm({
     onSettingsChanged,
     onOpenChromeExtensionShortcuts,
     onUnlockLocalFonts,
+    onImportSettings,
 }: Props) {
     const supportsDictionary = !extensionInstalled || extensionSupportsDictionary;
     const supportsDictionaryBrowser = !extensionInstalled || extensionSupportsDictionaryBrowser;
@@ -600,10 +604,12 @@ export default function SettingsForm({
                         logProvider={logProvider}
                         supportedLanguages={supportedLanguages}
                         insideApp={insideApp}
+                        onImportSettings={onImportSettings}
                         extensionInstalled={extensionInstalled}
                         extensionSupportsPauseOnHover={extensionSupportsPauseOnHover}
                         extensionSupportsSeekableTrackSetting={extensionSupportsSeekableTrackSetting}
                         extensionSupportsAutoCopyableTrackSetting={extensionSupportsAutoCopyableTrackSetting}
+                        extensionOwnsWebSocketClient={extensionOwnsWebSocketClient}
                         supportsSubtitleListCustomization={supportsSubtitleListCustomization}
                         supportsPlaybackEngine={supportsPlaybackEngine}
                         supportsAutoPauseResume={supportsAutoPauseResume}

@@ -39,6 +39,10 @@ export default defineConfig(({ mode }) => {
                         src: '../common/assets',
                         dest: '',
                     },
+                    {
+                        src: '../common/extension.json',
+                        dest: '',
+                    },
                 ],
             }),
             VitePWA({

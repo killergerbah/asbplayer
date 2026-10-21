@@ -68,10 +68,12 @@ interface Props {
     logProvider: LogProvider;
     supportedLanguages: string[];
     insideApp?: boolean;
+    onImportSettings?: () => void;
     extensionInstalled?: boolean;
     extensionSupportsPauseOnHover?: boolean;
     extensionSupportsSeekableTrackSetting?: boolean;
     extensionSupportsAutoCopyableTrackSetting?: boolean;
+    extensionOwnsWebSocketClient?: boolean;
     supportsSubtitleListCustomization: boolean;
     supportsPlaybackEngine: boolean;
     supportsAutoPauseResume: boolean;
@@ -87,10 +89,12 @@ const MiscSettingTab: React.FC<Props> = ({
     logProvider,
     supportedLanguages,
     insideApp,
+    onImportSettings,
     extensionInstalled,
     extensionSupportsPauseOnHover,
     extensionSupportsSeekableTrackSetting,
     extensionSupportsAutoCopyableTrackSetting,
+    extensionOwnsWebSocketClient,
     supportsSubtitleListCustomization,
     supportsPlaybackEngine,
     supportsAutoPauseResume,
@@ -175,28 +179,47 @@ const MiscSettingTab: React.FC<Props> = ({
     const validRegex = useMemo(() => regexIsValid(subtitleRegexFilter), [subtitleRegexFilter]);
     const [webSocketConnectionSucceeded, setWebSocketConnectionSucceeded] = useState<boolean>();
     const [logViewerOpen, setLogViewerOpen] = useState(false);
-    const pingWebSocketServer = useCallback(() => {
+    const [webSocketPingRequest, setWebSocketPingRequest] = useState(0);
+    useEffect(() => {
+        if (extensionOwnsWebSocketClient) {
+            setWebSocketConnectionSucceeded(undefined);
+            return;
+        }
+
+        if (!webSocketClientEnabled || !webSocketServerUrl) {
+            return;
+        }
+
+        let cancelled = false;
         const client = new WebSocketClient();
         client
             .bind(webSocketServerUrl)
             .then(() => client.ping())
-            .then(() => setWebSocketConnectionSucceeded(true))
+            .then(() => {
+                if (!cancelled) {
+                    setWebSocketConnectionSucceeded(true);
+                }
+            })
             .catch((e) => {
-                asbError('settings/web-socket', e);
-                setWebSocketConnectionSucceeded(false);
+                if (!cancelled) {
+                    asbError('settings/web-socket', e);
+                    setWebSocketConnectionSucceeded(false);
+                }
             })
             .finally(() => client.unbind());
-    }, [webSocketServerUrl]);
-    useEffect(() => {
-        if (webSocketClientEnabled && webSocketServerUrl) {
-            pingWebSocketServer();
-        }
-    }, [pingWebSocketServer, webSocketClientEnabled, webSocketServerUrl]);
+
+        return () => {
+            cancelled = true;
+            client.unbind();
+        };
+    }, [extensionOwnsWebSocketClient, webSocketClientEnabled, webSocketServerUrl, webSocketPingRequest]);
 
     let webSocketServerUrlHelperText: string | null | undefined = undefined;
 
     if (webSocketClientEnabled) {
-        if (webSocketConnectionSucceeded) {
+        if (extensionOwnsWebSocketClient) {
+            webSocketServerUrlHelperText = t('info.webSocketManagedByExtension');
+        } else if (webSocketConnectionSucceeded) {
             webSocketServerUrlHelperText = t('info.connectionSucceeded');
         } else if (webSocketConnectionSucceeded === false) {
             webSocketServerUrlHelperText = t('info.connectionFailed');
@@ -221,8 +244,12 @@ const MiscSettingTab: React.FC<Props> = ({
     }, [onSettingsChanged, settings]);
 
     const handleImportSettings = useCallback(() => {
-        settingsFileInputRef.current?.click();
-    }, []);
+        if (onImportSettings) {
+            onImportSettings();
+        } else {
+            settingsFileInputRef.current?.click();
+        }
+    }, [onImportSettings]);
     const handleExportSettings = useCallback(() => {
         exportSettings(settings);
     }, [settings]);
@@ -1058,9 +1085,9 @@ const MiscSettingTab: React.FC<Props> = ({
                     helperText={webSocketServerUrlHelperText}
                     slotProps={{
                         input: {
-                            endAdornment: (
+                            endAdornment: extensionOwnsWebSocketClient ? undefined : (
                                 <InputAdornment position="end">
-                                    <IconButton onClick={pingWebSocketServer}>
+                                    <IconButton onClick={() => setWebSocketPingRequest((request) => request + 1)}>
                                         <RefreshIcon />
                                     </IconButton>
                                 </InputAdornment>

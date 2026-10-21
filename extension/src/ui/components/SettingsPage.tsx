@@ -20,6 +20,7 @@ import { testCard } from '@project/common/settings';
 import { useTheme } from '@mui/material/styles';
 import type { Theme } from '@mui/material/styles';
 import { settingsPageConfigs } from '@/services/pages';
+import { openExtensionShortcuts } from '@/services/extension-shortcuts';
 import type { DictionaryProvider } from '@project/common/dictionary-db';
 import type { LogProvider } from '@project/common/util/log';
 import { useLocationHash } from '@project/common/hooks/use-location-hash';
@@ -27,7 +28,7 @@ import { useLocationHash } from '@project/common/hooks/use-location-hash';
 const useStyles = makeStyles<Theme>((theme) => ({
     root: {
         '& .MuiPaper-root': {
-            height: '100vh',
+            height: '100dvh',
         },
     },
     content: {
@@ -93,10 +94,6 @@ const SettingsPage = ({
 
     const commands = useCommandKeyBinds();
 
-    const handleOpenExtensionShortcuts = useCallback(() => {
-        void browser.tabs.create({ active: true, url: 'chrome://extensions/shortcuts' });
-    }, []);
-
     const { initialized: i18nInitialized } = useI18n({ language: settings?.language ?? 'en' });
     const { supportedLanguages } = useSupportedLanguages();
 
@@ -107,7 +104,7 @@ const SettingsPage = ({
     }
 
     return (
-        <Paper square style={{ height: '100vh' }}>
+        <Paper square style={{ height: '100dvh' }}>
             <Dialog open={true} maxWidth="md" fullWidth className={classes.root} onClose={() => {}}>
                 <DialogTitle>{t('settings.title')}</DialogTitle>
                 <DialogContent className={classes.content}>
@@ -139,7 +136,7 @@ const SettingsPage = ({
                         extensionSupportsSubtitleListCustomization
                         extensionSupportsUpdateLastWithSameSubtitleText
                         chromeKeyBinds={commands}
-                        onOpenChromeExtensionShortcuts={handleOpenExtensionShortcuts}
+                        onOpenChromeExtensionShortcuts={openExtensionShortcuts}
                         onSettingsChanged={onSettingsChanged}
                         dictionaryProvider={dictionaryProvider}
                         logProvider={logProvider}

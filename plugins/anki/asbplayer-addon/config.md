@@ -1,4 +1,4 @@
-# asbplayer Plugin Configuration
+# asbplayer Add-on Configuration
 
 Configure the WebSocket server for one-click mining with asbplayer.
 

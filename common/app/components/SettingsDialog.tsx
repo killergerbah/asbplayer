@@ -29,7 +29,7 @@ const appTestCard = () => {
 const useStyles = makeStyles<Theme>((theme) => ({
     root: {
         '& .MuiPaper-root': {
-            height: '100vh',
+            height: '100dvh',
         },
     },
     content: {
@@ -124,6 +124,7 @@ export default function SettingsDialog({
                     extensionSupportsDictionaryMatchAcrossScripts={extension.supportsDictionaryMatchAcrossScripts}
                     extensionSupportsSeekableTrackSetting={extension.supportsSeekableTrackSetting}
                     extensionSupportsAutoCopyableTrackSetting={extension.supportsAutoCopyableTrackSetting}
+                    extensionOwnsWebSocketClient={extension.supportsWebSocketClientOwnership}
                     extensionSupportsDictionaryTokenStatusDisplayAlpha={
                         extension.supportsDictionaryTokenStatusDisplayAlpha
                     }

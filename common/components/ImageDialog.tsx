@@ -94,7 +94,7 @@ export default function ImageDialog({
 
     return (
         <div>
-            <Modal disableRestoreFocus style={{ width: '100vw', height: '100vh' }} open={open} onClose={onClose}>
+            <Modal disableRestoreFocus style={{ width: '100vw', height: '100dvh' }} open={open} onClose={onClose}>
                 <div
                     style={{
                         position: 'absolute',
