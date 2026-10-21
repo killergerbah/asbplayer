@@ -764,6 +764,13 @@ const dependencies: Dependency[] = [
         purpose: 'UI',
     },
     {
+        name: 'react-color',
+        projectLink: 'https://github.com/uiwjs/react-color',
+        license: 'MIT',
+        licenseLink: 'https://github.com/uiwjs/react-color/blob/main/LICENSE',
+        purpose: 'UI',
+    },
+    {
         name: 'Roboto',
         projectLink: 'https://fonts.google.com/specimen/Roboto',
         license: 'Apache 2.0',
