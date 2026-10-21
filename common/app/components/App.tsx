@@ -1756,7 +1756,7 @@ function App({
         setSubtitleTrackSelectorTracks,
         subtitleTrackSelectorDisabled,
         setSubtitleTrackSelectorDisabled,
-    } = useVideoDataSyncDialogState();
+    } = useVideoDataSyncDialogState(sources.subtitleFiles);
 
     const handleConfirmSubtitleTrackSelection = useCallback(
         (tracks: ConfirmedVideoDataSubtitleTrack[]) => {
@@ -1765,9 +1765,14 @@ function App({
                 try {
                     const files: FileWithId[] = [];
                     const cachedSubtitleFiles: FileWithId[] = [];
+                    const previouslyCachedIds = new Set(
+                        (await fetchFileSession())?.cachedSubtitleFiles?.map(({ id }) => id) ?? []
+                    );
                     for (const t of tracks) {
                         if (t.file !== undefined) {
-                            files.push({ file: t.file, id: t.id });
+                            const fileWithId = { file: t.file, id: t.id };
+                            files.push(fileWithId);
+                            if (previouslyCachedIds.has(t.id)) cachedSubtitleFiles.push(fileWithId);
                         } else if (!Array.isArray(t.url)) {
                             const url = t.url as string;
                             const blob = await (await fetch(url)).blob();
@@ -1803,6 +1808,7 @@ function App({
             handleFiles,
             handleError,
             closeSubtitleTrackSelector,
+            fetchFileSession,
             promoteBufferedHandlesInFileSession,
             saveCachedSubtitleFilesToFileSession,
             setSubtitleTrackSelectorDisabled,
