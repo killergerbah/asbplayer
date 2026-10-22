@@ -718,7 +718,8 @@
         "webSocketInterface": "Interfaccia WebSocket",
         "yomitanHelperText": "Le istruzioni per configurare l'API Yomitan sono <0>qui</0>.",
         "seekableTracks": "Tracce dei sottotitoli influenzate dalle modalità di riproduzione e dalle scorciatoie da tastiera",
-        "autoCopyableTracks": "Tracce dei sottotitoli idonee per la copia automatica"
+        "autoCopyableTracks": "Tracce dei sottotitoli idonee per la copia automatica",
+        "externalConnections": "External connections"
     },
     "statistics": {
         "title": "Statistiche",
@@ -814,5 +815,13 @@
         "categoryDrama": "Drama",
         "episodeRegex": "Custom episode regex",
         "episodeRegexHint": "Detects the episode from the page title to auto-filter files. Capture group 1 is the episode number; built-in rules are used when it doesn't match. Press Enter to apply."
+    },
+    "externalConnections": {
+        "pending": "Pending connection requests",
+        "approved": "Approved extensions",
+        "approve": "Approve",
+        "deny": "Deny",
+        "remove": "Remove",
+        "unknownName": "Unnamed extension"
     }
 }

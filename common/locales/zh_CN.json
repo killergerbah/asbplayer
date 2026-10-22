@@ -718,7 +718,8 @@
         "webSocketInterface": "WebSocket 接口",
         "yomitanHelperText": "Yomitan API 配置说明详见 <0>此处</0>。",
         "seekableTracks": "Subtitle tracks affected by playback modes and keyboard shortcuts",
-        "autoCopyableTracks": "Subtitle tracks eligible for auto-copy"
+        "autoCopyableTracks": "Subtitle tracks eligible for auto-copy",
+        "externalConnections": "External connections"
     },
     "statistics": {
         "title": "统计数据",
@@ -814,5 +815,13 @@
         "categoryDrama": "剧集",
         "episodeRegex": "自定义集数正则",
         "episodeRegexHint": "从页面标题识别集数，自动筛选文件。第 1 个捕获组为集数，未匹配时使用内置规则。按回车应用。"
+    },
+    "externalConnections": {
+        "pending": "Pending connection requests",
+        "approved": "Approved extensions",
+        "approve": "Approve",
+        "deny": "Deny",
+        "remove": "Remove",
+        "unknownName": "Unnamed extension"
     }
 }
