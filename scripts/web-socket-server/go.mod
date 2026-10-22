@@ -1,6 +1,6 @@
 module github.com/asbplayer/asbplayer/web-socket-server
 
-go 1.25.0
+go 1.27.3
 
 require (
 	github.com/gorilla/websocket v1.5.3
