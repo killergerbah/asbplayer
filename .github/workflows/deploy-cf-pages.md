@@ -42,7 +42,7 @@ jobs:
       branch_name: ${{ steps.deploy.outputs.branch_name }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Prepare deploy branch
@@ -151,7 +151,7 @@ safe-outputs:
             fi
             echo "DEPLOY_BRANCH=$branch" >> "$GITHUB_ENV"
         - name: Checkout deploy branch
-          uses: actions/checkout@v4
+          uses: actions/checkout@v7
           with:
             ref: ${{ env.DEPLOY_BRANCH }}
             fetch-depth: 0
