@@ -65,13 +65,13 @@ import Typography from '@mui/material/Typography';
 import TextField from '@mui/material/TextField';
 import type Clock from '@project/common/playback/timing/clock';
 import { useAppBarHeight } from '@project/common/hooks/use-app-bar-height';
-import type { MineSubtitleParams } from '@project/common/app/hooks/use-app-web-socket-commands';
+import type { MineSubtitleParams } from '@project/common/app/hooks/use-app-external-commands';
 import { useSubtitleFind } from '@project/common/app/hooks/use-subtitle-find';
 import { isMobile } from 'react-device-detect';
 import type { ExtensionMessage } from '@project/common/app/services/chrome-extension';
 import type ChromeExtension from '@project/common/app/services/chrome-extension';
-import type { MineSubtitleCommand, WebSocketCommandDispatcher } from '@project/common/web-socket-client';
-import { localMediaId } from '@project/common/web-socket-client/web-socket-media';
+import type { MineSubtitleCommand, ExternalCommandDispatcher } from '@project/common/external-commands';
+import { localMediaId } from '@project/common/external-commands/media';
 import { clampSubtitlePlayerWidth } from '@project/common/app/components/video-subtitle-split';
 import { useTokenSelection } from '@project/common/app/hooks/use-token-selection';
 import '@project/common/app/components/subtitles.css';
@@ -691,7 +691,7 @@ interface SubtitlePlayerProps {
     keyBinder: KeyBinder;
     maxResizeWidth: number;
     initialWidth?: number;
-    webSocketCommands?: WebSocketCommandDispatcher;
+    externalCommands?: ExternalCommandDispatcher;
 }
 
 export default function SubtitlePlayer({
@@ -728,7 +728,7 @@ export default function SubtitlePlayer({
     keyBinder,
     maxResizeWidth,
     initialWidth,
-    webSocketCommands,
+    externalCommands,
 }: SubtitlePlayerProps) {
     const { t } = useTranslation();
     const clockRef = useRef<Clock>(clock);
@@ -1166,7 +1166,7 @@ export default function SubtitlePlayer({
         onCopy,
     ]);
 
-    const copyFromWebSocketClient = useCallback(
+    const copyFromExternalCommandClient = useCallback(
         ({ postMineAction, text, word, definition, customFieldValues }: MineSubtitleParams) => {
             if (!subtitles || subtitles.length === 0) {
                 return false;
@@ -1242,11 +1242,11 @@ export default function SubtitlePlayer({
                     .filter((entry) => entry !== undefined)
             );
             const postMineAction = receivedPostMineAction ?? PostMineAction.showAnkiDialog;
-            return copyFromWebSocketClient({ postMineAction, text, word, definition, customFieldValues });
+            return copyFromExternalCommandClient({ postMineAction, text, word, definition, customFieldValues });
         };
 
-        return webSocketCommands?.setHandlers({ onMineSubtitle });
-    }, [webSocketCommands, extension, settings, copyFromWebSocketClient]);
+        return externalCommands?.setHandlers({ onMineSubtitle });
+    }, [externalCommands, extension, settings, copyFromExternalCommandClient]);
 
     useEffect(() => {
         if (extension.installed) {
@@ -1255,10 +1255,10 @@ export default function SubtitlePlayer({
                     return;
                 }
 
-                copyFromWebSocketClient(message.data as CopySubtitleWithAdditionalFieldsMessage);
+                copyFromExternalCommandClient(message.data as CopySubtitleWithAdditionalFieldsMessage);
             });
         }
-    }, [extension, copyFromWebSocketClient]);
+    }, [extension, copyFromExternalCommandClient]);
 
     useEffect(() => {
         return keyBinder.bindToggleSubtitleTrackInList(
