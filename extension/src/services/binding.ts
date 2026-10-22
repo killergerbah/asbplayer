@@ -587,8 +587,12 @@ export default class Binding {
                 }
             ),
             callbacks: {
-                selectToken: (target) =>
-                    this.subtitleController.selectToken(target, { autoPause: true, scrollIntoView: false }),
+                selectToken: (target, options) =>
+                    this.subtitleController.selectToken(target, {
+                        ...options,
+                        autoPause: true,
+                        scrollIntoView: false,
+                    }),
                 clearAutoPauseTokenSelection: () => this.subtitleController.clearAutoPauseTokenSelection(),
                 pause: () => this.pause(),
                 play: async () => {
