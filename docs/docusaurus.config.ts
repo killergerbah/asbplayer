@@ -27,6 +27,7 @@ const config: Config = {
       {
         docs: {
           sidebarPath: "./sidebars.ts",
+          sidebarCollapsed: false,
           editUrl: "https://github.com/asbplayer/asbplayer/edit/main",
         },
         blog: {
