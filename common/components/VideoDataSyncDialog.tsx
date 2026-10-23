@@ -364,12 +364,23 @@ export default function VideoDataSyncDialog({
     const threeSubtitleTrackSelectors = generateSubtitleTrackSelectors(3);
     const okActionRef = useRef<ButtonBaseActions | null>(null);
     const videoNameRef = useRef<HTMLInputElement>(null);
+    const [focusOkAfterFileSelection, setFocusOkAfterFileSelection] = useState(false);
 
     useEffect(() => {
-        if (open && trimmedName && !videoNameRef.current?.contains(document.activeElement) && !disabled) {
-            okActionRef.current?.focusVisible();
+        if (!open) {
+            setFocusOkAfterFileSelection(false);
+            return;
         }
-    }, [open, trimmedName, disabled]);
+
+        if (
+            (hideVideoNameTextField || trimmedName) &&
+            (focusOkAfterFileSelection || !videoNameRef.current?.contains(document.activeElement)) &&
+            !disabled
+        ) {
+            okActionRef.current?.focusVisible();
+            setFocusOkAfterFileSelection(false);
+        }
+    }, [open, trimmedName, disabled, hideVideoNameTextField, focusOkAfterFileSelection]);
 
     const [fileInputTrackNumber, setFileInputTrackNumber] = useState<number>();
     const [onlineDialogOpen, setOnlineDialogOpen] = useState(false);
@@ -381,6 +392,8 @@ export default function VideoDataSyncDialog({
             if (!files || files.length === 0) {
                 return;
             }
+
+            setFocusOkAfterFileSelection(true);
 
             if (fileInputTrackNumber === undefined) {
                 onOpenFiles(files);
