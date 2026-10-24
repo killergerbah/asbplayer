@@ -186,6 +186,7 @@ interface Props {
     extensionSupportsAutoPauseResume: boolean;
     extensionSupportsExportCardBind: boolean;
     extensionSupportsPageSettings: boolean;
+    extensionSupportsAnimatedImageCapture?: boolean;
     extensionSupportsDictionary: boolean;
     extensionSupportsDictionaryBrowser: boolean;
     extensionSupportsDictionaryWaniKani: boolean;
@@ -198,6 +199,7 @@ interface Props {
     extensionSupportsSubtitleTrackSelectorInWebApp: boolean;
     extensionSupportsSubtitleListCustomization: boolean;
     extensionSupportsUpdateLastWithSameSubtitleText: boolean;
+    extensionSupportsAnimatedMediaFragment?: boolean;
     insideApp?: boolean;
     appVersionRepoPath?: string;
     dictionaryProvider: DictionaryProvider;
@@ -248,6 +250,7 @@ export default function SettingsForm({
     extensionSupportsAutoPauseResume,
     extensionSupportsExportCardBind,
     extensionSupportsPageSettings,
+    extensionSupportsAnimatedImageCapture,
     extensionSupportsDictionary,
     extensionSupportsDictionaryBrowser,
     extensionSupportsDictionaryWaniKani,
@@ -593,6 +596,7 @@ export default function SettingsForm({
                         insideApp={insideApp}
                         extensionSupportsOverlay={extensionSupportsOverlay}
                         extensionSupportsPageSettings={extensionSupportsPageSettings}
+                        extensionSupportsAnimatedImageCapture={extensionSupportsAnimatedImageCapture}
                         pageConfigs={pageConfigs}
                     />
                 </TabPanel>
