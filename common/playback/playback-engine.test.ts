@@ -1326,16 +1326,16 @@ describe('PlaybackEngine', () => {
             track: 1,
             index: 1,
         };
-        const future = {
+        const expired = {
             ...subtitle,
-            start: 2200,
-            originalStart: 2200,
-            end: 3000,
-            originalEnd: 3000,
+            start: 1600,
+            originalStart: 1600,
+            end: 1800,
+            originalEnd: 1800,
             track: 2,
             index: 2,
         };
-        const harness = await makePlaybackEngine([PlayMode.autoPause], 1500, [first, connecting, future], {
+        const harness = await makePlaybackEngine([PlayMode.autoPause], 1500, [first, connecting, expired], {
             autoPauseCorrectionDisabled: true,
         });
 

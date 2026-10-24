@@ -207,7 +207,7 @@ const newDisplayGroup = <T extends IndexedSubtitleModel>(
     subtitles: intervals.map(({ subtitle }) => subtitle),
 });
 
-/** Bounded layout epochs of connected half-open subtitle intervals; input must be ordered by start time. */
+/** Bounded layout epochs of mutually overlapping subtitle intervals; input must be ordered by start time. */
 const displayGroups = <T extends IndexedSubtitleModel>(
     intervals: readonly DisplayInterval<T>[]
 ): readonly DisplayGroup<T>[] => {
@@ -219,7 +219,12 @@ const displayGroups = <T extends IndexedSubtitleModel>(
             continue;
         }
 
-        if (group.intervals.length < maxRenderedSubtitleGroupSize) {
+        // Reserve space only for cues that can all appear together. Once a cue is replaced,
+        // start a new epoch so its expired placeholder is not stacked with the replacement.
+        if (
+            group.intervals.length < maxRenderedSubtitleGroupSize &&
+            group.intervals.every(({ endMs }) => overlapsForInvisibleSubtitleGroup(interval.startMs, endMs))
+        ) {
             group.endMs = Math.max(group.endMs, interval.endMs);
             group.intervals.push(interval);
             group.subtitles.push(interval.subtitle);
