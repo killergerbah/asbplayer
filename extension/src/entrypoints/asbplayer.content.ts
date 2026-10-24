@@ -18,6 +18,7 @@ import type {
     DictionaryStatisticsMessage,
     GetGlobalStateMessage,
     GetSettingsMessage,
+    GlobalStateUpdatedMessage,
     RemoveProfileMessage,
     RequestCopyHistoryMessage,
     SetActiveProfileMessage,
@@ -58,6 +59,14 @@ export default defineContentScript({
         const dictionaryStorage = new ExtensionDictionaryStorage();
         const settingsStorage = new ExtensionSettingsStorage();
         const globalStateProvider = new ExtensionGlobalStateProvider();
+
+        globalStateProvider.onUpdated((state) => {
+            const message: GlobalStateUpdatedMessage = {
+                command: 'global-state-updated',
+                state,
+            };
+            sendMessageToPlayer(message);
+        });
 
         window.addEventListener('message', (event) => {
             void (async () => {
