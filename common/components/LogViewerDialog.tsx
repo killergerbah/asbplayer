@@ -16,6 +16,7 @@ import type { LogProvider } from '@project/common/util/log';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import DownloadIcon from '@mui/icons-material/Download';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import CloseIcon from '@mui/icons-material/Close';
 import IconButton from '@mui/material/IconButton';
@@ -42,29 +43,42 @@ const LogViewerDialog: React.FC<Props> = ({ open, onClose, logProvider }) => {
     const [numberOfLines, setNumberOfLines] = useState(DEFAULT_LOG_LINE_COUNT);
     const [logLines, setLogLines] = useState<readonly LogLine[]>([]);
     const [loadError, setLoadError] = useState<string>();
+    const numberOfLinesRef = useRef(DEFAULT_LOG_LINE_COUNT);
+    const lastReloadedNumberOfLinesRef = useRef(DEFAULT_LOG_LINE_COUNT);
     const logContainerRef = useRef<HTMLDivElement>(null);
-    const scrollPositionRef = useRef<'top' | 'bottom'>('bottom');
+    const scrollPositionRef = useRef<'top' | 'bottom' | number>('bottom');
 
     const scrollLogLines = useCallback(() => {
         const logContainer = logContainerRef.current;
         if (logContainer) {
-            logContainer.scrollTop = scrollPositionRef.current === 'bottom' ? logContainer.scrollHeight : 0;
+            const position = scrollPositionRef.current;
+            if (typeof position === 'number') {
+                logContainer.scrollTop = position;
+            } else {
+                logContainer.scrollTo({
+                    top: position === 'bottom' ? logContainer.scrollHeight : 0,
+                    behavior: 'smooth',
+                });
+            }
         }
     }, []);
 
     const reloadLogLines = useCallback(
-        async (scrollPosition: 'top' | 'bottom') => {
-            scrollPositionRef.current = scrollPosition;
-            scrollLogLines();
+        async (scrollPosition?: 'bottom') => {
+            const requestedNumberOfLines = numberOfLinesRef.current;
+            const lineCountChanged = requestedNumberOfLines !== lastReloadedNumberOfLinesRef.current;
             try {
                 const lines = await logProvider.getLogLines();
+                scrollPositionRef.current =
+                    scrollPosition ?? (lineCountChanged ? 'top' : (logContainerRef.current?.scrollTop ?? 0));
+                lastReloadedNumberOfLinesRef.current = requestedNumberOfLines;
                 setLogLines(lines);
                 setLoadError(undefined);
             } catch (error) {
                 setLoadError(error instanceof Error ? error.message : String(error));
             }
         },
-        [logProvider, scrollLogLines]
+        [logProvider]
     );
 
     useLayoutEffect(scrollLogLines, [logLines, scrollLogLines]);
@@ -87,6 +101,15 @@ const LogViewerDialog: React.FC<Props> = ({ open, onClose, logProvider }) => {
     const displayedLogLines = logLines
         .filter((logLine) => showTrace || logLine.level !== 'trace')
         .slice(-numberOfLines);
+
+    const handleCopyLogs = async () => {
+        try {
+            await navigator.clipboard.writeText(displayedLogLines.map(formatLogLine).join('\n'));
+            setLoadError(undefined);
+        } catch (error) {
+            setLoadError(error instanceof Error ? error.message : String(error));
+        }
+    };
 
     return (
         <Dialog
@@ -130,6 +153,7 @@ const LogViewerDialog: React.FC<Props> = ({ open, onClose, logProvider }) => {
                 <Box
                     ref={logContainerRef}
                     component="div"
+                    role="log"
                     sx={{
                         minHeight: '20rem',
                         maxHeight: '60vh',
@@ -165,6 +189,7 @@ const LogViewerDialog: React.FC<Props> = ({ open, onClose, logProvider }) => {
                     onChange={(event) => {
                         const value = Math.max(1, Math.floor(Number(event.target.value)));
                         if (Number.isFinite(value)) {
+                            numberOfLinesRef.current = value;
                             setNumberOfLines(value);
                         }
                     }}
@@ -180,7 +205,10 @@ const LogViewerDialog: React.FC<Props> = ({ open, onClose, logProvider }) => {
                 <Button startIcon={<DownloadIcon />} onClick={() => void handleExportLogs()}>
                     {t('ankiDialog.export')}
                 </Button>
-                <Button startIcon={<RefreshIcon />} onClick={() => void reloadLogLines('top')}>
+                <Button startIcon={<ContentCopyIcon />} onClick={() => void handleCopyLogs()}>
+                    {t('action.copy')}
+                </Button>
+                <Button startIcon={<RefreshIcon />} onClick={() => void reloadLogLines()}>
                     {t('action.reload')}
                 </Button>
             </DialogActions>
