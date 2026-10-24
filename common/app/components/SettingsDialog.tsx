@@ -132,6 +132,7 @@ export default function SettingsDialog({
                     extensionSupportsSubtitleTrackSelectorInWebApp={extension.supportsSubtitleTrackSelectorInWebApp}
                     extensionSupportsSubtitleListCustomization={extension.supportsSubtitleListCustomization}
                     extensionSupportsUpdateLastWithSameSubtitleText={extension.supportsUpdateLastWithSameSubtitleText}
+                    extensionSupportsAnimatedImageCapture={extension.supportsAnimatedImageCapture}
                     pageConfigs={extension.pageConfig}
                     insideApp
                     appVersionRepoPath={import.meta.env.VITE_APP_VERSION_REPO_PATH}
