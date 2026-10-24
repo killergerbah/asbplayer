@@ -199,7 +199,6 @@ interface Props {
     extensionSupportsSubtitleTrackSelectorInWebApp: boolean;
     extensionSupportsSubtitleListCustomization: boolean;
     extensionSupportsUpdateLastWithSameSubtitleText: boolean;
-    extensionSupportsAnimatedMediaFragment?: boolean;
     insideApp?: boolean;
     appVersionRepoPath?: string;
     dictionaryProvider: DictionaryProvider;

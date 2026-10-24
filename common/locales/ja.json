@@ -36,7 +36,10 @@
         "userGuide": "ユーザーガイド",
         "search": "検索",
         "reload": "再読み込み",
-        "findPlaceholder": "テキストまたは /regex/ で検索"
+        "findPlaceholder": "テキストまたは /regex/ で検索",
+        "approve": "Approve",
+        "deny": "Deny",
+        "remove": "Remove"
     },
     "about": {
         "title": "asbplayerについて",
@@ -814,5 +817,9 @@
         "categoryDrama": "Drama",
         "episodeRegex": "カスタム話数正規表現",
         "episodeRegexHint": "ページタイトルから話数を検出し、ファイルを自動で絞り込みます。1番目のキャプチャグループが話数で、一致しない場合は組み込みルールを使用します。Enterで適用。"
+    },
+    "externalConnections": {
+        "incomingRequest": "An external extension is requesting to connect to asbplayer.",
+        "unknownName": "Unnamed extension"
     }
 }

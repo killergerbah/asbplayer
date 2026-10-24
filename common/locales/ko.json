@@ -36,7 +36,10 @@
         "userGuide": "User guide",
         "search": "Search",
         "reload": "Reload",
-        "findPlaceholder": "Search by text or /regex/"
+        "findPlaceholder": "Search by text or /regex/",
+        "approve": "Approve",
+        "deny": "Deny",
+        "remove": "Remove"
     },
     "about": {
         "title": "asbplayer 소개",
@@ -814,5 +817,9 @@
         "categoryDrama": "Drama",
         "episodeRegex": "Custom episode regex",
         "episodeRegexHint": "Detects the episode from the page title to auto-filter files. Capture group 1 is the episode number; built-in rules are used when it doesn't match. Press Enter to apply."
+    },
+    "externalConnections": {
+        "incomingRequest": "An external extension is requesting to connect to asbplayer.",
+        "unknownName": "Unnamed extension"
     }
 }

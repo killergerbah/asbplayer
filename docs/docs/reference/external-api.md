@@ -4,11 +4,14 @@ sidebar_position: 2
 
 # External API {#external-api}
 
-This page is intended to be an technical reference on asbplayer's external interface and the [pre-packaged WebSocket server](https://github.com/asbplayer/asbplayer/tree/main/scripts/web-socket-server) that implements this interface. See the [guide](../guides/web-socket-server) for how to setup the WebSocket server.
+This page is intended to be an technical reference on asbplayer's external interface. Below are ways to call the interface:
 
-## WebSocket commands {#websocket-commands}
+- The [pre-packaged WebSocket server](https://github.com/asbplayer/asbplayer/tree/main/scripts/web-socket-server). See the [guide](../guides/web-socket-server) for how to setup the WebSocket server.
+- (v1.23 and above) Using an extension-to-extension connection obtained from [browser.runtime.connect](https://developer.chrome.com/docs/extensions/reference/api/runtime#method-connect). See the [guide](../guides/external-extensions) for how to connect to asbplayer from another extension.
 
-asbplayer, as a WebSocket client, responds to the following commands from a WebSocket server.
+## Commands {#commands}
+
+asbplayer responds to the following commands.
 
 ### `mine-subtitle` {#mine-subtitle}
 
@@ -210,38 +213,4 @@ Returns an empty list when no matching media is found or no subtitles are loaded
         ]
     }
 }
-```
-
-## HTTP-based API {#http-based-api}
-
-The WebSocket server also implements an HTTP-based API which can trigger the commands above.
-
-- `POST asbplayer/load-subtitles` (optional `mediaId` in the request body) ([script](https://github.com/asbplayer/asbplayer/blob/main/scripts/web-socket-server/cli/load-subtitles))
-- `POST asbplayer/seek` (optional `mediaId` in the request body) ([script](https://github.com/asbplayer/asbplayer/blob/main/scripts/web-socket-server/cli/seek))
-- `GET asbplayer/bound-media` ([script](https://github.com/asbplayer/asbplayer/blob/main/scripts/web-socket-server/cli/bound-media))
-- `GET asbplayer/subtitles` (optional `?mediaId=...&trackNumbers=0,1`) ([script](https://github.com/asbplayer/asbplayer/blob/main/scripts/web-socket-server/cli/subtitles))
-
-## AnkiConnect proxy {#ankiconnect-proxy}
-
-It also functions as an AnkiConnect proxy that allows `addNote` requests to be enriched with asbplayer-provided context, such as audio and screenshots.
-
-The proxy passes through all AnkiConnect requests as-is except for `addNote`. The proxy's specific behavior in the case of `addNote` depends on the value of `POST_MINE_ACTION` in the configuration documented below.
-
-## Server configuration {#server-configuration}
-
-The server is configured with an `.env` file placed next to it in the same directory. Below is an example file with explanation.
-
-```
-# Port that the proxy will listen on
-PORT=8766
-
-# AnkiConnect URL
-ANKI_CONNECT_URL=http://127.0.0.1:8765
-
-# Action for asbplayer to take when the proxy receives an addNote request
-# 0 = 'None'
-# 1 = 'Open Anki dialog'
-# 2 = 'Update last card' (updates last card with asbplayer media AFTER passing through original addNote request)
-# 3 = 'Export card'
-POST_MINE_ACTION=2
 ```
