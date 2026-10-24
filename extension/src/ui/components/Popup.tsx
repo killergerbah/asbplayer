@@ -243,6 +243,7 @@ const Popup = ({
                             extensionSupportsAutoPauseResume
                             extensionSupportsExportCardBind
                             extensionSupportsPageSettings
+                            extensionSupportsAnimatedImageCapture={!isFirefoxBuild}
                             extensionSupportsDictionary
                             extensionSupportsDictionaryBrowser
                             extensionSupportsDictionaryWaniKani
@@ -254,6 +255,7 @@ const Popup = ({
                             extensionSupportsSubtitleTrackSelectorInWebApp
                             extensionSupportsSubtitleListCustomization
                             extensionSupportsUpdateLastWithSameSubtitleText
+                            extensionSupportsAnimatedMediaFragment={!isFirefoxBuild}
                             forceVerticalTabs={false}
                             anki={anki}
                             chromeKeyBinds={chromeCommandBindsToKeyBinds(commands)}

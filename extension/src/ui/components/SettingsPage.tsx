@@ -5,6 +5,7 @@ import { makeStyles } from '@mui/styles';
 import { useTranslation } from 'react-i18next';
 import Box from '@mui/material/Box';
 import SettingsForm from '@project/common/components/SettingsForm';
+import { isFirefoxBuild } from '@project/extension/src/services/build-flags';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
@@ -124,6 +125,7 @@ const SettingsPage = ({
                         extensionSupportsAutoPauseResume
                         extensionSupportsExportCardBind
                         extensionSupportsPageSettings
+                        extensionSupportsAnimatedImageCapture={!isFirefoxBuild}
                         extensionSupportsDictionary
                         extensionSupportsDictionaryBrowser
                         extensionSupportsDictionaryWaniKani
@@ -135,6 +137,7 @@ const SettingsPage = ({
                         extensionSupportsSubtitleTrackSelectorInWebApp
                         extensionSupportsSubtitleListCustomization
                         extensionSupportsUpdateLastWithSameSubtitleText
+                        extensionSupportsAnimatedMediaFragment={!isFirefoxBuild}
                         chromeKeyBinds={commands}
                         onOpenChromeExtensionShortcuts={openExtensionShortcuts}
                         onSettingsChanged={onSettingsChanged}

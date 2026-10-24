@@ -5,10 +5,12 @@ import VideoSelectController from '@/controllers/video-select-controller';
 import type {
     CopyToClipboardMessage,
     CropAndResizeMessage,
+    ResolveCaptureAreaMessage,
     TabToExtensionCommand,
     ToggleSidePanelMessage,
 } from '@project/common';
 import { SettingsProvider } from '@project/common/settings';
+import { captureArea } from '@/services/animated-webp-capture';
 import { FrameInfoBroadcaster, FrameInfoListener } from '@/services/frame-info';
 import { cropAndResize } from '@project/common/src/image-transformer';
 import { TabAnkiUiController } from '@/controllers/tab-anki-ui-controller';
@@ -267,6 +269,11 @@ export default defineContentScript({
                             cropAndResizeMessage.dataUrl,
                             cropAndResizeMessage.trimBlackBars
                         ).then((dataUrl) => sendResponse({ dataUrl }));
+                        return true;
+                    }
+                    case 'resolve-capture-area': {
+                        const { rect, frameId } = request.message as ResolveCaptureAreaMessage;
+                        sendResponse(captureArea(rect, frameId, frameInfoListener?.iframesById));
                         return true;
                     }
                     case 'show-anki-ui':
